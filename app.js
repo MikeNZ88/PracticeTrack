@@ -13,4 +13,3 @@ if (typeof window !== 'undefined') {
 
 // Log app initialization
 console.log('PracticeTrack application initialized');
-
