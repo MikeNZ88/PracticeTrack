@@ -1133,17 +1133,20 @@
       align-items: center;
       justify-content: center;
       gap: 8px;
-      background-color: var(--primary-color);
+      background-color: var(--secondary-color);
       color: white;
-      padding: 10px 15px;
+      padding: 12px 15px;
       border-radius: var(--radius);
-      margin-top: 15px;
+      margin: 15px 0;
       cursor: pointer;
       transition: var(--transition);
+      font-weight: bold;
+      font-size: 1.1em;
     }
 
     .camera-button:hover {
-      background-color: var(--primary-dark);
+      background-color: var(--secondary-dark);
+      transform: translateY(-2px);
     }
 
     .camera-modal {
@@ -1224,12 +1227,6 @@
       flex-wrap: wrap;
       gap: 5px;
       margin-top: 10px;
-    }
-
-    @media (min-width: 769px) {
-      .camera-button {
-        display: none;
-      }
     }
 
     /* Add new styles for the guide */
@@ -1414,7 +1411,7 @@
     <!-- Timer Tab -->
     <div id="timer-tab" class="tab active">
       <!-- Add How to Use button -->
-      <button class="guide-button" id="show-guide">
+      <button class="guide-button" id="show-guide" style="margin-bottom: 20px;">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="10"></circle>
           <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
@@ -1528,7 +1525,7 @@
         </div>
       </div>
       
-      <!-- Add camera button (only visible on mobile) -->
+      <!-- Add camera button (for mobile only) -->
       <button id="camera-button" class="camera-button">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
@@ -1544,12 +1541,9 @@
           <div class="camera-controls">
             <button id="switch-camera">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
-                <path d="M3 12v8c0 1.66 4 3 9 3s9-1.34 9-3v-8"></path>
-                <path d="M3 8c0 1.66 4 3 9 3s9-1.34 9-3"></path>
-                <path d="M21 8v4"></path>
-                <path d="M3 8v4"></path>
-                <path d="M12 8c-1.66 0-3-1.34-3-3 0-1.66 1.34-3 3-3s3 1.34 3 3c0 1.66-1.34 3-3 3z"></path>
+                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                <path d="M17 12h-2v-2"></path>
+                <path d="M9 10v2h2"></path>
               </svg>
             </button>
             <button id="take-photo">
@@ -1937,6 +1931,18 @@
               <li>All data is stored locally on your device</li>
             </ul>
           </div>
+          
+          <div class="guide-section">
+            <h3>Camera Feature</h3>
+            <p>Record your practice sessions on any device:</p>
+            <ul class="feature-list">
+              <li>Use the "Record Practice" button below the metronome</li>
+              <li>Take photos or record videos of your practice</li>
+              <li>Switch between front and back cameras</li>
+              <li>All media is stored locally on your device</li>
+              <li>Media appears in your saved practice sessions</li>
+            </ul>
+          </div>
         </div>
       </div>
     </div>
@@ -2136,6 +2142,9 @@ function initializeApp() {
     
     // Add menu element
     menu: document.querySelector('.menu'),
+    
+    // Camera elements
+    cameraButton: document.getElementById('camera-button')
   };
   
   // Verify elements and initialize
@@ -2147,6 +2156,13 @@ function initializeApp() {
     } else {
       console.log('localStorage not available, initializing UI only...');
       initUI();
+    }
+    
+    // Show camera tip on all devices
+    if (elements.cameraButton) {
+      setTimeout(() => {
+        notify('New feature: Record your practice using the camera button!', 'success');
+      }, 2000);
     }
   } else {
     console.error('Failed to verify elements');
@@ -3304,52 +3320,31 @@ function handleMenuScroll() {
 }
 
 // Add new event listeners for the guide modal
-document.getElementById('show-guide').addEventListener('click', () => {
-  document.getElementById('guide-modal').style.display = 'block';
-});
-
-document.getElementById('close-guide').addEventListener('click', () => {
-  document.getElementById('guide-modal').style.display = 'none';
-});
-
-// Close modal when clicking outside
-document.getElementById('guide-modal').addEventListener('click', (e) => {
-  if (e.target === document.getElementById('guide-modal')) {
-    document.getElementById('guide-modal').style.display = 'none';
-  }
+document.addEventListener('DOMContentLoaded', () => {
+  console.log('DOM loaded - setting up guide and camera');
+  
+  const showGuideBtn = document.getElementById('show-guide');
+  const closeGuideBtn = document.getElementById('close-guide');
+  const guideModal = document.getElementById('guide-modal');
+  
+  if (showGuideBtn && closeGuideBtn && guideModal) {
+    showGuideBtn.addEventListener('click', () => {
+      guideModal.style.display = 'block';
     });
-
-// Camera functionality
-(function() {
-  // Initialize IndexedDB
-  let db;
-  const DB_NAME = 'PracticeTrackDB';
-  const DB_VERSION = 1;
-  const MEDIA_STORE = 'mediaFiles';
-  
-  const request = indexedDB.open(DB_NAME, DB_VERSION);
-  
-  request.onerror = function(event) {
-    console.error("IndexedDB error:", event.target.error);
-  };
-  
-  request.onupgradeneeded = function(event) {
-    db = event.target.result;
     
-    // Create object store for media files if it doesn't exist
-    if (!db.objectStoreNames.contains(MEDIA_STORE)) {
-      const store = db.createObjectStore(MEDIA_STORE, { keyPath: 'id' });
-      store.createIndex('sessionId', 'sessionId', { unique: false });
-      store.createIndex('timestamp', 'timestamp', { unique: false });
-    }
-  };
+    closeGuideBtn.addEventListener('click', () => {
+      guideModal.style.display = 'none';
+    });
+    
+    // Close modal when clicking outside
+    guideModal.addEventListener('click', (e) => {
+      if (e.target === guideModal) {
+        guideModal.style.display = 'none';
+      }
+    });
+  }
   
-  request.onsuccess = function(event) {
-    db = event.target.result;
-    console.log("IndexedDB initialized successfully");
-  };
-  
-  // Camera elements
+  // Camera functionality
   const cameraButton = document.getElementById('camera-button');
   const cameraModal = document.getElementById('camera-modal');
   const cameraPreview = document.getElementById('camera-preview');
@@ -3358,319 +3353,195 @@ document.getElementById('guide-modal').addEventListener('click', (e) => {
   const startRecordingBtn = document.getElementById('start-recording');
   const stopRecordingBtn = document.getElementById('stop-recording');
   const closeCameraBtn = document.getElementById('close-camera');
-  
-  // Media preview elements
   const mediaPreview = document.getElementById('media-preview');
   const photoPreview = document.getElementById('photo-preview');
   const videoPreview = document.getElementById('video-preview');
   const saveMediaBtn = document.getElementById('save-media');
   const cancelMediaBtn = document.getElementById('cancel-media');
   
-  // Camera state variables
+  // Camera variables
   let stream = null;
   let mediaRecorder = null;
   let recordedChunks = [];
-  let facingMode = 'environment'; // Start with back camera by default
+  let facingMode = 'environment';
   let currentMediaType = null;
   let currentMediaBlob = null;
-  let currentSessionId = null;
   
-  // Event listeners
+  // Initialize IndexedDB
+  let db;
+  const DB_NAME = 'PracticeTrackDB';
+  const DB_VERSION = 1;
+  
+  const request = indexedDB.open(DB_NAME, DB_VERSION);
+  
+  request.onupgradeneeded = (event) => {
+    db = event.target.result;
+    if (!db.objectStoreNames.contains('mediaFiles')) {
+      const store = db.createObjectStore('mediaFiles', { keyPath: 'id' });
+      store.createIndex('sessionId', 'sessionId', { unique: false });
+    }
+  };
+  
+  request.onsuccess = (event) => {
+    db = event.target.result;
+    console.log('Database initialized successfully');
+  };
+  
+  // Camera button (opens camera modal)
   if (cameraButton) {
-    cameraButton.addEventListener('click', startCamera);
+    cameraButton.addEventListener('click', async () => {
+      try {
+        if (stream) {
+          stream.getTracks().forEach(track => track.stop());
+        }
+        
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: facingMode }
+        });
+        
+        cameraPreview.srcObject = stream;
+        cameraModal.style.display = 'block';
+      } catch (err) {
+        console.error('Error accessing camera:', err);
+        notify('Could not access camera. Please check permissions.', 'error');
+      }
+    });
   }
   
+  // Switch camera button
   if (switchCameraBtn) {
-    switchCameraBtn.addEventListener('click', switchCamera);
+    switchCameraBtn.addEventListener('click', async () => {
+      facingMode = facingMode === 'environment' ? 'user' : 'environment';
+      
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+      }
+      
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: facingMode }
+        });
+        
+        cameraPreview.srcObject = stream;
+      } catch (err) {
+        console.error('Error switching camera:', err);
+      }
+    });
   }
   
+  // Take photo button
   if (takePhotoBtn) {
-    takePhotoBtn.addEventListener('click', takePhoto);
+    takePhotoBtn.addEventListener('click', () => {
+      if (!stream) return;
+      
+      const canvas = document.createElement('canvas');
+      canvas.width = cameraPreview.videoWidth;
+      canvas.height = cameraPreview.videoHeight;
+      canvas.getContext('2d').drawImage(cameraPreview, 0, 0);
+      
+      canvas.toBlob(blob => {
+        currentMediaType = 'photo';
+        currentMediaBlob = blob;
+        
+        photoPreview.src = URL.createObjectURL(blob);
+        photoPreview.classList.remove('hidden');
+        videoPreview.classList.add('hidden');
+        mediaPreview.classList.add('show');
+      }, 'image/jpeg', 0.8);
+    });
   }
   
+  // Start recording button
   if (startRecordingBtn) {
-    startRecordingBtn.addEventListener('click', startRecording);
+    startRecordingBtn.addEventListener('click', () => {
+      if (!stream) return;
+      
+      recordedChunks = [];
+      
+      try {
+        mediaRecorder = new MediaRecorder(stream);
+        
+        mediaRecorder.ondataavailable = (e) => {
+          if (e.data.size > 0) {
+            recordedChunks.push(e.data);
+          }
+        };
+        
+        mediaRecorder.onstop = () => {
+          const blob = new Blob(recordedChunks, { type: 'video/webm' });
+          currentMediaType = 'video';
+          currentMediaBlob = blob;
+          
+          videoPreview.src = URL.createObjectURL(blob);
+          videoPreview.classList.remove('hidden');
+          photoPreview.classList.add('hidden');
+          mediaPreview.classList.add('show');
+        };
+        
+        mediaRecorder.start();
+        startRecordingBtn.classList.add('hidden');
+        stopRecordingBtn.classList.remove('hidden');
+      } catch (err) {
+        console.error('Error starting recording:', err);
+        notify('Could not start recording.', 'error');
+      }
+    });
   }
   
+  // Stop recording button
   if (stopRecordingBtn) {
-    stopRecordingBtn.addEventListener('click', stopRecording);
+    stopRecordingBtn.addEventListener('click', () => {
+      if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+        mediaRecorder.stop();
+        startRecordingBtn.classList.remove('hidden');
+        stopRecordingBtn.classList.add('hidden');
+      }
+    });
   }
   
+  // Close camera button
   if (closeCameraBtn) {
-    closeCameraBtn.addEventListener('click', closeCamera);
+    closeCameraBtn.addEventListener('click', () => {
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+        stream = null;
+      }
+      
+      cameraModal.style.display = 'none';
+      mediaPreview.classList.remove('show');
+    });
   }
   
+  // Save media button
   if (saveMediaBtn) {
-    saveMediaBtn.addEventListener('click', saveMedia);
+    saveMediaBtn.addEventListener('click', () => {
+      if (!db || !currentMediaBlob) return;
+      
+      const transaction = db.transaction(['mediaFiles'], 'readwrite');
+      const store = transaction.objectStore('mediaFiles');
+      
+      const mediaFile = {
+        id: Date.now().toString(),
+        sessionId: Date.now().toString(), // We'll use this to link to the session
+        type: currentMediaType,
+        blob: currentMediaBlob,
+        timestamp: new Date().toISOString()
+      };
+      
+      store.add(mediaFile).onsuccess = () => {
+        notify('Media saved successfully!', 'success');
+        mediaPreview.classList.remove('show');
+      };
+    });
   }
   
+  // Cancel media button
   if (cancelMediaBtn) {
     cancelMediaBtn.addEventListener('click', () => {
       mediaPreview.classList.remove('show');
     });
   }
-  
-  // Camera functions
-  async function startCamera() {
-    try {
-      if (stream) {
-        stream.getTracks().forEach(track => track.stop());
-      }
-      
-      const constraints = {
-        video: {
-          facingMode: facingMode,
-          width: { ideal: 1280 },
-          height: { ideal: 720 }
-        }
-      };
-      
-      stream = await navigator.mediaDevices.getUserMedia(constraints);
-      cameraPreview.srcObject = stream;
-      cameraModal.style.display = 'block';
-    } catch (err) {
-      console.error('Error accessing camera:', err);
-      notify('Could not access camera. Please check permissions.', 'error');
-    }
-  }
-  
-  function switchCamera() {
-    facingMode = facingMode === 'environment' ? 'user' : 'environment';
-    startCamera();
-  }
-  
-  function takePhoto() {
-    if (!stream) return;
-    
-    const canvas = document.createElement('canvas');
-    canvas.width = cameraPreview.videoWidth;
-    canvas.height = cameraPreview.videoHeight;
-    const context = canvas.getContext('2d');
-    context.drawImage(cameraPreview, 0, 0, canvas.width, canvas.height);
-    
-    canvas.toBlob(blob => {
-      currentMediaType = 'photo';
-      currentMediaBlob = blob;
-      
-      photoPreview.src = URL.createObjectURL(blob);
-      photoPreview.classList.remove('hidden');
-      videoPreview.classList.add('hidden');
-      mediaPreview.classList.add('show');
-    }, 'image/jpeg', 0.8);
-  }
-  
-  function startRecording() {
-    if (!stream) return;
-    
-    recordedChunks = [];
-    
-    try {
-      mediaRecorder = new MediaRecorder(stream, {
-        mimeType: 'video/webm;codecs=vp8,opus'
-      });
-    } catch (e) {
-      try {
-        // Try a more compatible format if the first one fails
-        mediaRecorder = new MediaRecorder(stream, {
-          mimeType: 'video/webm'
-        });
-      } catch (e) {
-        notify('Video recording not supported on this device', 'error');
-        return;
-      }
-    }
-    
-    mediaRecorder.ondataavailable = function(e) {
-      if (e.data.size > 0) {
-        recordedChunks.push(e.data);
-      }
-    };
-    
-    mediaRecorder.onstop = function() {
-      const blob = new Blob(recordedChunks, { type: 'video/webm' });
-      currentMediaType = 'video';
-      currentMediaBlob = blob;
-      
-      videoPreview.src = URL.createObjectURL(blob);
-      videoPreview.classList.remove('hidden');
-      photoPreview.classList.add('hidden');
-      mediaPreview.classList.add('show');
-    };
-    
-    // Start recording
-    mediaRecorder.start();
-    startRecordingBtn.classList.add('hidden');
-    stopRecordingBtn.classList.remove('hidden');
-  }
-  
-  function stopRecording() {
-    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-      mediaRecorder.stop();
-      startRecordingBtn.classList.remove('hidden');
-      stopRecordingBtn.classList.add('hidden');
-    }
-  }
-  
-  function closeCamera() {
-    if (stream) {
-      stream.getTracks().forEach(track => track.stop());
-      stream = null;
-    }
-    
-    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-      mediaRecorder.stop();
-    }
-    
-    cameraModal.style.display = 'none';
-    mediaPreview.classList.remove('show');
-  }
-  
-  function saveMedia() {
-    if (!db || !currentMediaBlob) {
-      notify('Unable to save media, please try again', 'error');
-      return;
-    }
-    
-    // Generate a unique ID for the media file
-    const mediaId = Date.now().toString();
-    
-    // Get the current session ID (create it if we're going to save a session)
-    if (!currentSessionId) {
-      currentSessionId = Date.now().toString();
-    }
-    
-    // Store the media file in IndexedDB
-    const transaction = db.transaction([MEDIA_STORE], 'readwrite');
-    const store = transaction.objectStore(MEDIA_STORE);
-    
-    const mediaFile = {
-      id: mediaId,
-      sessionId: currentSessionId,
-      type: currentMediaType,
-      blob: currentMediaBlob,
-      timestamp: new Date().toISOString()
-    };
-    
-    const request = store.add(mediaFile);
-    
-    request.onsuccess = function() {
-      notify('Media saved successfully!', 'success');
-      mediaPreview.classList.remove('show');
-      
-      // If we're on the sessions tab, update the display
-      if (document.getElementById('sessions-tab').classList.contains('active')) {
-        refreshSessionList();
-      }
-    };
-    
-    request.onerror = function() {
-      notify('Failed to save media', 'error');
-    };
-  }
-  
-  // Override the original saveSession function to include current session ID
-  const originalSaveSession = window.saveSession;
-  window.saveSession = function() {
-    // Generate session ID if it doesn't exist
-    currentSessionId = Date.now().toString();
-    
-    // Call the original function
-    if (typeof originalSaveSession === 'function') {
-      originalSaveSession();
-    }
-  };
-  
-  // Override the refreshSessionList function to include media thumbnails
-  const originalRefreshSessionList = window.refreshSessionList;
-  window.refreshSessionList = function() {
-    // First call the original function to get the basic list
-    if (typeof originalRefreshSessionList === 'function') {
-      originalRefreshSessionList();
-    }
-    
-    // Add media thumbnails to each session
-    if (!db) return;
-    
-    const sessionItems = document.querySelectorAll('.session-list li');
-    
-    sessionItems.forEach(item => {
-      const sessionId = item.querySelector('.delete-btn').getAttribute('data-id');
-      if (!sessionId) return;
-      
-      // Get media files for this session
-      const transaction = db.transaction([MEDIA_STORE], 'readonly');
-      const store = transaction.objectStore(MEDIA_STORE);
-      const index = store.index('sessionId');
-      const request = index.getAll(sessionId);
-      
-      request.onsuccess = function() {
-        const mediaFiles = request.result;
-        if (mediaFiles.length === 0) return;
-        
-        // Create media container
-        const mediaContainer = document.createElement('div');
-        mediaContainer.className = 'session-media';
-        
-        // Add thumbnails
-        mediaFiles.forEach(file => {
-          const thumbnail = document.createElement('img');
-          thumbnail.className = 'media-thumbnail';
-          thumbnail.src = URL.createObjectURL(file.blob);
-          thumbnail.alt = file.type === 'photo' ? 'Photo' : 'Video';
-          thumbnail.dataset.id = file.id;
-          
-          // Add click event to view the media
-          thumbnail.addEventListener('click', () => {
-            viewMedia(file);
-          });
-          
-          mediaContainer.appendChild(thumbnail);
-        });
-        
-        // Add the media container to the session item
-        const sessionInfo = item.querySelector('.session-info');
-        sessionInfo.appendChild(mediaContainer);
-      };
-    });
-  };
-  
-  function viewMedia(mediaFile) {
-    if (mediaFile.type === 'photo') {
-      photoPreview.src = URL.createObjectURL(mediaFile.blob);
-      photoPreview.classList.remove('hidden');
-      videoPreview.classList.add('hidden');
-    } else {
-      videoPreview.src = URL.createObjectURL(mediaFile.blob);
-      videoPreview.classList.remove('hidden');
-      photoPreview.classList.add('hidden');
-    }
-    
-    mediaPreview.classList.add('show');
-    
-    // Don't allow saving when viewing existing media
-    saveMediaBtn.style.display = 'none';
-    
-    // Cancel button should be the only option
-    cancelMediaBtn.addEventListener('click', () => {
-      mediaPreview.classList.remove('show');
-      saveMediaBtn.style.display = 'block';
-    }, { once: true });
-  }
-  
-  // Update the export function to include media files
-  const originalExportData = window.exportData;
-  window.exportData = function() {
-    if (typeof originalExportData === 'function') {
-      originalExportData();
-    } else {
-      // If for some reason the original function doesn't exist
-      notify('Unable to export data', 'error');
-    }
-    
-    // Note: Media files are likely too large to include in a JSON export
-    // We would need a more complex solution to export/import media files
-  };
-})();
+});
   </script>
 </body>
 </html>
