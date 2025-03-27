@@ -1350,16 +1350,6 @@
             </svg>
             Export Data
           </button>
-          <button id="export-spreadsheet" class="save-btn">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-              <polyline points="14 2 14 8 20 8"></polyline>
-              <line x1="16" y1="13" x2="8" y2="13"></line>
-              <line x1="16" y1="17" x2="8" y2="17"></line>
-              <polyline points="10 9 9 9 8 9"></polyline>
-            </svg>
-            Export to Excel
-          </button>
           <button id="import-data" class="save-btn">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
@@ -1369,17 +1359,6 @@
             Import Data
           </button>
           <input type="file" id="import-file" accept=".json" class="hidden">
-          <button id="import-excel" class="save-btn">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-              <polyline points="14 2 14 8 20 8"></polyline>
-              <line x1="16" y1="13" x2="8" y2="13"></line>
-              <line x1="16" y1="17" x2="8" y2="17"></line>
-              <polyline points="10 9 9 9 8 9"></polyline>
-            </svg>
-            Import Excel
-          </button>
-          <input type="file" id="import-excel-file" accept=".xlsx" class="hidden">
         </div>
       </div>
     </div>
@@ -1555,11 +1534,8 @@ function initializeApp() {
     themeSelect: document.getElementById('theme-select'),
     saveSettingsBtn: document.getElementById('save-settings'),
     exportDataBtn: document.getElementById('export-data'),
-    exportSpreadsheetBtn: document.getElementById('export-spreadsheet'),
     importDataBtn: document.getElementById('import-data'),
     importFile: document.getElementById('import-file'),
-    importExcelBtn: document.getElementById('import-excel'),
-    importExcelFile: document.getElementById('import-excel-file'),
     
     // Metronome
     tempoSlider: document.getElementById('tempo-slider'),
@@ -1732,11 +1708,8 @@ function setupEventListeners() {
 
     // Export/Import
     elements.exportDataBtn.addEventListener('click', exportData);
-    elements.exportSpreadsheetBtn.addEventListener('click', exportSpreadsheet);
     elements.importDataBtn.addEventListener('click', () => elements.importFile.click());
     elements.importFile.addEventListener('change', importData);
-    elements.importExcelBtn.addEventListener('click', () => elements.importExcelFile.click());
-    elements.importExcelFile.addEventListener('change', importExcel);
 
     // Tab navigation
     document.querySelectorAll('.menu-item').forEach(item => {
@@ -2362,138 +2335,6 @@ function exportData() {
   }
 }
 
-// Excel Export Function
-function exportSpreadsheet() {
-  try {
-    // Show loading overlay with export message
-    document.getElementById('loading-overlay').classList.add('show');
-    document.querySelector('.loading-message').textContent = 'Generating Excel file...';
-    
-    // Create a new workbook
-    const wb = XLSX.utils.book_new();
-    wb.Props = {
-      Title: "PracticeTrack Data",
-      Author: "PracticeTrack App",
-      CreatedDate: new Date()
-    };
-    
-    // 1. Create metadata sheet
-    const metadataWs = XLSX.utils.aoa_to_sheet([
-      ["PracticeTrack Export Data"],
-      ["Export Date", new Date().toISOString()],
-      ["Version", "1.0"],
-      ["Note", "This file contains both human-readable data and raw data for importing back into the app"]
-    ]);
-    XLSX.utils.book_append_sheet(wb, metadataWs, "Metadata");
-
-    // 2. Create sessions sheet with both formatted and raw data
-    const sessionsFormattedData = sessions.map((session, idx) => ({
-      "Index": idx + 1,
-      "Date": new Date(session.date).toLocaleDateString(),
-      "Start Time": session.startTime || "N/A",
-      "End Time": session.endTime || "N/A",
-      "Duration": formatTime(session.duration),
-      "Category": session.category || "N/A",
-      "Instrument": session.instrument || "N/A",
-      "Notes": session.notes || ""
-    }));
-    
-    // Add formatted data for human reading
-    const sessionsWs = XLSX.utils.json_to_sheet(sessionsFormattedData);
-    
-    // Add raw data for importing (after some blank rows)
-    XLSX.utils.sheet_add_aoa(sessionsWs, [
-      [],
-      ["RAW DATA FOR IMPORT - DO NOT MODIFY THIS SECTION"],
-      []
-    ], {origin: -1});
-    
-    // Stringify the entire sessions array for reliable import
-    XLSX.utils.sheet_add_aoa(sessionsWs, [
-      ["SESSIONS_JSON"],
-      [JSON.stringify(sessions)]
-    ], {origin: -1});
-    
-    XLSX.utils.book_append_sheet(wb, sessionsWs, "Practice Sessions");
-    
-    // 3. Create goals sheet with both formatted and raw data
-    const goalsFormattedData = goals.map((goal, idx) => ({
-      "Index": idx + 1,
-      "Title": goal.title,
-      "Category": goal.category || "N/A",
-      "Instrument": goal.instrument || "N/A",
-      "Status": goal.completed ? "Completed" : "In Progress",
-      "Completion Date": goal.completedDate ? new Date(goal.completedDate).toLocaleDateString() : "N/A",
-      "Description": goal.description || ""
-    }));
-    
-    // Add formatted data for human reading
-    const goalsWs = XLSX.utils.json_to_sheet(goalsFormattedData);
-    
-    // Add raw data for importing (after some blank rows)
-    XLSX.utils.sheet_add_aoa(goalsWs, [
-      [],
-      ["RAW DATA FOR IMPORT - DO NOT MODIFY THIS SECTION"],
-      []
-    ], {origin: -1});
-    
-    // Stringify the entire goals array for reliable import
-    XLSX.utils.sheet_add_aoa(goalsWs, [
-      ["GOALS_JSON"],
-      [JSON.stringify(goals)]
-    ], {origin: -1});
-    
-    XLSX.utils.book_append_sheet(wb, goalsWs, "Goals");
-    
-    // 4. Create settings sheet
-    const settingsWs = XLSX.utils.aoa_to_sheet([
-      ["Setting", "Value"],
-      ["Instrument", settings.instrument || ""],
-      ["Lesson Day", settings.lessonDay || ""],
-      ["Theme", settings.theme || "default"],
-      [],
-      ["RAW DATA FOR IMPORT - DO NOT MODIFY THIS SECTION"],
-      [],
-      ["SETTINGS_JSON"],
-      [JSON.stringify(settings)]
-    ]);
-    XLSX.utils.book_append_sheet(wb, settingsWs, "Settings");
-    
-    // 5. Create stats sheet (not used for import, just for user reference)
-    const statsData = calculatePracticeStats();
-    const statsWs = XLSX.utils.json_to_sheet(statsData);
-    XLSX.utils.book_append_sheet(wb, statsWs, "Practice Stats");
-    
-    // 6. Create custom categories sheet
-    const categoriesSheet = XLSX.utils.aoa_to_sheet([
-      ["Instrument", "Categories"],
-      ...Object.entries(customCategories).map(([instrument, categories]) => [
-        instrument, categories.join(", ")
-      ]),
-      [],
-      ["RAW DATA FOR IMPORT - DO NOT MODIFY THIS SECTION"],
-      [],
-      ["CUSTOM_CATEGORIES_JSON"],
-      [JSON.stringify(customCategories)]
-    ]);
-    XLSX.utils.book_append_sheet(wb, categoriesSheet, "Custom Categories");
-    
-    // Generate and download the Excel file
-    XLSX.writeFile(wb, "PracticeTrack-data.xlsx");
-    
-    // Hide loading overlay
-    document.getElementById('loading-overlay').classList.remove('show');
-    
-    notify("Excel file exported successfully!", "success");
-  } catch (error) {
-    // Hide loading overlay in case of error
-    document.getElementById('loading-overlay').classList.remove('show');
-    
-    console.error('Excel export error:', error);
-    notify("Failed to export Excel file. Please try again.", "error");
-  }
-}
-
 function importData(e) {
   try {
     const file = e.target.files[0];
@@ -2533,145 +2374,6 @@ function importData(e) {
   } catch (error) {
     console.error("Error importing data:", error);
     notify("Failed to import data.", "error");
-  }
-}
-
-// Import Excel Function
-function importExcel(e) {
-  try {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    // Show loading overlay
-    document.getElementById('loading-overlay').classList.add('show');
-    document.querySelector('.loading-message').textContent = 'Importing Excel file...';
-    
-    const reader = new FileReader();
-    reader.onload = function(e) {
-      try {
-        const data = new Uint8Array(e.target.result);
-        const workbook = XLSX.read(data, {type: 'array'});
-        
-        // Initialize containers for imported data
-        let importedSessions = [];
-        let importedGoals = [];
-        let importedSettings = { instrument: "", lessonDay: "", theme: "default" };
-        let importedCustomCategories = {};
-        
-        // Process each required sheet
-        const sheetNames = workbook.SheetNames;
-        
-        // Check for required sheets
-        if (!sheetNames.includes('Practice Sessions') || 
-            !sheetNames.includes('Goals') || 
-            !sheetNames.includes('Settings')) {
-          throw new Error("Required sheets missing from Excel file");
-        }
-
-        // Extract sessions from raw JSON data
-        const sessionsSheet = workbook.Sheets['Practice Sessions'];
-        const sessionsData = XLSX.utils.sheet_to_json(sessionsSheet, {header: 1});
-        const sessionsJsonRow = sessionsData.findIndex(row => 
-          row[0] === 'SESSIONS_JSON'
-        );
-        
-        if (sessionsJsonRow !== -1 && sessionsJsonRow + 1 < sessionsData.length) {
-          importedSessions = JSON.parse(sessionsData[sessionsJsonRow + 1][0]);
-          if (!Array.isArray(importedSessions)) {
-            throw new Error("Invalid sessions data format");
-          }
-        } else {
-          throw new Error("Sessions data not found in Excel file");
-        }
-
-        // Extract goals from raw JSON data
-        const goalsSheet = workbook.Sheets['Goals'];
-        const goalsData = XLSX.utils.sheet_to_json(goalsSheet, {header: 1});
-        const goalsJsonRow = goalsData.findIndex(row => 
-          row[0] === 'GOALS_JSON'
-        );
-        
-        if (goalsJsonRow !== -1 && goalsJsonRow + 1 < goalsData.length) {
-          importedGoals = JSON.parse(goalsData[goalsJsonRow + 1][0]);
-          if (!Array.isArray(importedGoals)) {
-            throw new Error("Invalid goals data format");
-          }
-        } else {
-          throw new Error("Goals data not found in Excel file");
-        }
-
-        // Extract settings from raw JSON data
-        const settingsSheet = workbook.Sheets['Settings'];
-        const settingsData = XLSX.utils.sheet_to_json(settingsSheet, {header: 1});
-        const settingsJsonRow = settingsData.findIndex(row => 
-          row[0] === 'SETTINGS_JSON'
-        );
-        
-        if (settingsJsonRow !== -1 && settingsJsonRow + 1 < settingsData.length) {
-          importedSettings = JSON.parse(settingsData[settingsJsonRow + 1][0]);
-          if (typeof importedSettings !== 'object') {
-            throw new Error("Invalid settings data format");
-          }
-        } else {
-          throw new Error("Settings data not found in Excel file");
-        }
-
-        // Extract custom categories if available
-        if (sheetNames.includes('Custom Categories')) {
-          const categoriesSheet = workbook.Sheets['Custom Categories'];
-          const categoriesData = XLSX.utils.sheet_to_json(categoriesSheet, {header: 1});
-          const categoriesJsonRow = categoriesData.findIndex(row => 
-            row[0] === 'CUSTOM_CATEGORIES_JSON'
-          );
-          
-          if (categoriesJsonRow !== -1 && categoriesJsonRow + 1 < categoriesData.length) {
-            importedCustomCategories = JSON.parse(categoriesData[categoriesJsonRow + 1][0]);
-            if (typeof importedCustomCategories !== 'object') {
-              importedCustomCategories = {}; // Reset if invalid
-            }
-          }
-        }
-
-        // Update app data
-        sessions = importedSessions;
-        goals = importedGoals;
-        settings = importedSettings;
-        customCategories = importedCustomCategories;
-        
-        // Save to localStorage
-        localStorage.setItem("sessions", JSON.stringify(sessions));
-        localStorage.setItem("goals", JSON.stringify(goals));
-        localStorage.setItem("instrument", settings.instrument);
-        localStorage.setItem("lessonDay", settings.lessonDay);
-        localStorage.setItem("theme", settings.theme);
-        localStorage.setItem("customCategories", JSON.stringify(customCategories));
-        
-        // Update UI
-        applyTheme(settings.theme);
-        initUI();
-        
-        // Hide loading overlay
-        document.getElementById('loading-overlay').classList.remove('show');
-        notify("Excel data imported successfully!", "success");
-      } catch (error) {
-        // Hide loading overlay
-        document.getElementById('loading-overlay').classList.remove('show');
-        console.error("Error parsing Excel import:", error);
-        notify("Failed to import Excel data: " + error.message, "error");
-      }
-    };
-    
-    reader.onerror = function() {
-      document.getElementById('loading-overlay').classList.remove('show');
-      notify("Error reading the Excel file", "error");
-    };
-    
-    reader.readAsArrayBuffer(file);
-    e.target.value = ""; // Reset the file input
-  } catch (error) {
-    document.getElementById('loading-overlay').classList.remove('show');
-    console.error("Error importing Excel:", error);
-    notify("Failed to import Excel data", "error");
   }
 }
 
