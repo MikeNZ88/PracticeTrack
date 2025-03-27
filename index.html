@@ -1126,6 +1126,51 @@
         min-width: 35px;
       }
     }
+
+    /* Add new styles for the guide */
+    .guide-content {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .guide-section {
+      margin-bottom: 30px;
+    }
+
+    .guide-section h3 {
+      color: var(--primary-color);
+      margin-bottom: 15px;
+    }
+
+    .guide-section p {
+      margin-bottom: 10px;
+      line-height: 1.6;
+    }
+
+    .feature-list {
+      list-style-type: none;
+      padding: 0;
+    }
+
+    .feature-list li {
+      margin-bottom: 15px;
+      padding-left: 25px;
+      position: relative;
+    }
+
+    .feature-list li:before {
+      content: '♪';
+      position: absolute;
+      left: 0;
+      color: var(--primary-color);
+    }
+
+    /* Hide guide tab on mobile */
+    @media (max-width: 768px) {
+      .menu-item[data-tab="guide"] {
+        display: none;
+      }
+    }
   </style>
 </head>
 <body>
@@ -1182,6 +1227,14 @@
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="3"></circle>
           <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        </svg>
+      </li>
+      <li class="menu-item" data-tab="guide">
+        <span>Guide</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+          <line x1="12" y1="17" x2="12.01" y2="17"></line>
         </svg>
       </li>
     </ul>
@@ -1550,6 +1603,80 @@
   <div class="loading-overlay" id="loading-overlay">
     <div class="spinner"></div>
     <p class="loading-message">Processing...</p>
+  </div>
+
+  <!-- Guide Tab -->
+  <div id="guide-tab" class="tab">
+    <div class="card">
+      <div class="guide-content">
+        <h2>How to Use PracticeTrack</h2>
+        
+        <div class="guide-section">
+          <h3>Getting Started</h3>
+          <p>Welcome to PracticeTrack, your musical practice companion! Follow these steps to get started:</p>
+          <ol class="feature-list">
+            <li>First, go to the Settings tab and select your instrument and regular lesson day (if applicable)</li>
+            <li>Choose a theme that suits your preference (Default, Dark, or Light mode)</li>
+            <li>Save your settings to personalize your practice experience</li>
+          </ol>
+        </div>
+        
+        <div class="guide-section">
+          <h3>Using the Practice Timer</h3>
+          <p>Track your practice sessions effectively:</p>
+          <ul class="feature-list">
+            <li>Use the Start button to begin your practice session</li>
+            <li>Pause anytime if you need a break</li>
+            <li>Resume when you're ready to continue</li>
+            <li>Stop when you're done practicing</li>
+            <li>Select a practice category and add optional notes</li>
+            <li>Save your session to track your progress</li>
+          </ul>
+        </div>
+        
+        <div class="guide-section">
+          <h3>Setting Goals</h3>
+          <p>Stay motivated with practice goals:</p>
+          <ul class="feature-list">
+            <li>Add specific, achievable practice goals</li>
+            <li>Mark goals as complete when achieved</li>
+            <li>Filter goals by status (Active/Completed)</li>
+            <li>Track your progress over time</li>
+          </ul>
+        </div>
+        
+        <div class="guide-section">
+          <h3>Tracking Progress</h3>
+          <p>Monitor your practice journey:</p>
+          <ul class="feature-list">
+            <li>View detailed practice statistics in the Dashboard</li>
+            <li>Check your total practice time and session counts</li>
+            <li>See your practice distribution across different categories</li>
+            <li>Track days until your next lesson</li>
+          </ul>
+        </div>
+        
+        <div class="guide-section">
+          <h3>Using the Metronome</h3>
+          <p>Keep perfect time with the built-in metronome:</p>
+          <ul class="feature-list">
+            <li>Adjust tempo using the slider or +/- buttons</li>
+            <li>Range from 40 to 220 BPM</li>
+            <li>Start/stop with a single click</li>
+          </ul>
+        </div>
+        
+        <div class="guide-section">
+          <h3>Data Management</h3>
+          <p>Keep your practice data safe:</p>
+          <ul class="feature-list">
+            <li>Export your data for backup</li>
+            <li>Import previously saved data</li>
+            <li>All data is stored locally on your device</li>
+          </ul>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script>
