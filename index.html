@@ -1,140 +1,3005 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PracticeTrack</title>
+  <meta charset="UTF-8">
+  <title>PracticeTrack - Music Practice Companion</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- SheetJS Excel Export Library -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <style>
+    :root {
+      --primary-color: #4154b3;
+      --primary-light: #7681e4;
+      --primary-dark: #2a3990;
+      --secondary-color: #FF6A4B;
+      --secondary-light: #ffb4a1;
+      --secondary-dark: #E25B3D;
+      --text-color: #333;
+      --text-light: #666;
+      --bg-color: #f5f5f5;
+      --card-color: #fff;
+      --border-color: #e0e0e0;
+      --success-color: #4caf50;
+      --success-light: #e8f5e9;
+      --warning-color: #ff9800;
+      --warning-light: #fff3e0;
+      --error-color: #f44336;
+      --error-light: #ffebee;
+      --gray-100: #f8f9fa;
+      --gray-200: #e9ecef;
+      --gray-300: #dee2e6;
+      --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+      --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+      --shadow-lg: 0 10px 15px rgba(0,0,0,0.1);
+      --transition: all 0.3s ease;
+      --radius-sm: 5px;
+      --radius: 10px;
+      --radius-lg: 15px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      line-height: 1.6;
+      color: var(--text-color);
+      background-color: var(--bg-color);
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .container {
+      background-color: var(--card-color);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      padding: 20px;
+    }
+
+    .logo-container {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
+      overflow: hidden;
+      border-radius: var(--radius);
+      padding: 20px;
+      background-color: white;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .logo-text {
+      font-size: 32px;
+      font-weight: bold;
+      letter-spacing: 1px;
+      text-align: center;
+    }
     
-    <!-- Include React -->
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    .practice {
+      color: var(--primary-color);
+    }
     
-    <!-- Include Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    .track {
+      color: var(--secondary-color);
+    }
     
-    <!-- Include Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
+    .tagline {
+      color: #555555;
+      text-align: center;
+      margin: 10px 0;
+      font-size: 14px;
+    }
     
-    <style>
-        body {
-            margin: 0;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-            background-color: #f5f5f5;
-        }
-        
-        /* Loading indicator */
-        .loading {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            font-size: 1.5rem;
-            color: #3b82f6;
-        }
-        
-        .loading-spinner {
-            border: 4px solid rgba(0, 0, 0, 0.1);
-            border-left-color: #3b82f6;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin-right: 12px;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        /* Fallback message */
-        .fallback {
-            padding: 20px;
-            max-width: 500px;
-            margin: 50px auto;
-            text-align: center;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            display: none;
-        }
-    </style>
+    .divider {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 10px 0;
+    }
+    
+    .line {
+      height: 2px;
+      width: 180px;
+      background: linear-gradient(to right, var(--primary-color), var(--primary-light));
+      margin: 0 10px;
+    }
+    
+    .music-note {
+      color: var(--primary-color);
+      font-size: 18px;
+    }
+    
+    .music-note-orange {
+      color: var(--secondary-color);
+      font-size: 18px;
+    }
+
+    .menu {
+      display: flex;
+      justify-content: space-around;
+      list-style-type: none;
+      margin-bottom: 20px;
+      border-bottom: 2px solid var(--border-color);
+      overflow-x: auto;
+      scrollbar-width: none;
+      position: relative;
+    }
+
+    .menu::-webkit-scrollbar {
+      display: none;
+    }
+
+    .menu-item {
+      padding: 12px 20px;
+      cursor: pointer;
+      transition: var(--transition);
+      font-weight: 500;
+      position: relative;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .menu-item:after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 3px;
+      background-color: var(--primary-color);
+      transition: var(--transition);
+    }
+
+    .menu-item:hover:after {
+      width: 25%;
+    }
+
+    .menu-item.active {
+      color: var(--primary-color);
+    }
+
+    .menu-item.active:after {
+      width: 80%;
+    }
+
+    .tab {
+      display: none;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .tab.active {
+      display: block;
+    }
+
+    .card {
+      background-color: var(--card-color);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: var(--shadow-sm);
+      transition: var(--transition);
+    }
+
+    .card:hover {
+      box-shadow: var(--shadow-md);
+    }
+
+    .timer-card {
+      background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary-color) 100%);
+      color: white;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .timer-card:before {
+      content: '';
+      position: absolute;
+      top: -10px;
+      left: -10px;
+      right: -10px;
+      bottom: -10px;
+      background: repeating-linear-gradient(
+        45deg,
+        rgba(255, 255, 255, 0.1),
+        rgba(255, 255, 255, 0.1) 10px,
+        rgba(255, 255, 255, 0.05) 10px,
+        rgba(255, 255, 255, 0.05) 20px
+      );
+      z-index: 0;
+      opacity: 0.3;
+    }
+
+    .timer-content {
+      position: relative;
+      z-index: 1;
+    }
+
+    .timer-display {
+      font-size: 4rem;
+      text-align: center;
+      margin: 15px 0;
+      font-weight: bold;
+      color: white;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+      transition: var(--transition);
+      position: relative;
+    }
+
+    .timer-display:after {
+      content: '';
+      position: absolute;
+      bottom: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 50px;
+      height: 3px;
+      background-color: rgba(255, 255, 255, 0.5);
+      border-radius: 3px;
+    }
+
+    .timer-progress {
+      height: 6px;
+      background-color: rgba(255, 255, 255, 0.2);
+      border-radius: 3px;
+      margin: 15px 0;
+      overflow: hidden;
+    }
+
+    .timer-progress-bar {
+      height: 100%;
+      background-color: white;
+      border-radius: 3px;
+      width: 0%;
+      transition: width 1s linear;
+    }
+
+    .controls {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      padding: 10px 15px;
+      border: none;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: var(--transition);
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background-color: var(--gray-200);
+      color: var(--text-color);
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .start { 
+      background-color: var(--success-color); 
+      color: white;
+    }
+    
+    .start:hover { 
+      background-color: #43a047; 
+    }
+    
+    .pause { 
+      background-color: var(--warning-color); 
+      color: white;
+    }
+    
+    .pause:hover { 
+      background-color: #fb8c00; 
+    }
+    
+    .stop { 
+      background-color: var(--error-color); 
+      color: white;
+    }
+    
+    .stop:hover { 
+      background-color: #e53935; 
+    }
+    
+    .resume { 
+      background-color: var(--primary-color); 
+      color: white;
+    }
+    
+    .resume:hover { 
+      background-color: var(--primary-dark); 
+    }
+
+    button:disabled {
+      background-color: var(--gray-300);
+      color: var(--text-light);
+      cursor: not-allowed;
+      transform: none;
+      opacity: 0.7;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+      color: var(--text-color);
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      background-color: var(--gray-100);
+      transition: var(--transition);
+      font-family: inherit;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(65, 84, 179, 0.1);
+    }
+
+    .form-group textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+
+    .required-field:after {
+      content: '*';
+      color: var(--error-color);
+      margin-left: 4px;
+    }
+
+    .icon-input {
+      position: relative;
+    }
+
+    .icon-input svg {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-light);
+      width: 20px;
+      height: 20px;
+    }
+
+    .icon-input input,
+    .icon-input select,
+    .icon-input textarea {
+      padding-left: 40px;
+    }
+
+    .icon-input textarea + svg {
+      top: 22px;
+      transform: none;
+    }
+
+    .save-btn {
+      background-color: var(--primary-color);
+      color: white;
+      width: 100%;
+      padding: 12px;
+      font-weight: 600;
+      border-radius: var(--radius-sm);
+      margin-top: 10px;
+      transition: var(--transition);
+    }
+
+    .save-btn:hover {
+      background-color: var(--primary-dark);
+      transform: translateY(-2px);
+    }
+
+    .save-btn:disabled {
+      background-color: var(--gray-300);
+      color: var(--text-light);
+      transform: none;
+    }
+
+    .save-btn.active-save {
+      background-color: var(--success-color);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .save-btn.active-save:hover {
+      background-color: #43a047;
+    }
+
+    /* Metronome */
+    .metronome-controls {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 15px;
+      padding: 15px;
+      background-color: var(--gray-100);
+      border-radius: var(--radius);
+    }
+    
+    .bpm-display {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--primary-color);
+      text-align: center;
+      min-width: 80px;
+    }
+    
+    .tempo-slider {
+      flex: 1;
+      margin: 0 15px;
+    }
+    
+    input[type="range"] {
+      width: 100%;
+      height: 6px;
+      -webkit-appearance: none;
+      background: var(--gray-300);
+      border-radius: 3px;
+      outline: none;
+    }
+    
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--primary-color);
+      cursor: pointer;
+    }
+    
+    input[type="range"]::-moz-range-thumb {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--primary-color);
+      cursor: pointer;
+      border: none;
+    }
+    
+    .metronome-button {
+      min-width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+    }
+
+    /* Session list styling */
+    .session-list {
+      list-style-type: none;
+      margin-top: 15px;
+    }
+
+    .session-list li {
+      background-color: var(--gray-100);
+      margin-bottom: 15px;
+      padding: 15px;
+      border-radius: var(--radius);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: var(--transition);
+      border-left: 3px solid transparent;
+    }
+
+    .session-list li:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .session-info {
+      flex: 1;
+    }
+
+    .session-header {
+      font-weight: 600;
+      margin-bottom: 5px;
+      color: var(--primary-color);
+    }
+
+    .session-details {
+      font-size: 0.9rem;
+      color: var(--text-light);
+    }
+
+    .session-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .action-btn {
+      padding: 6px 10px;
+      border-radius: var(--radius-sm);
+      font-size: 0.85rem;
+      transition: var(--transition);
+    }
+
+    .delete-btn {
+      background-color: var(--error-light);
+      color: var(--error-color);
+    }
+
+    .delete-btn:hover {
+      background-color: var(--error-color);
+      color: white;
+    }
+
+    .edit-btn {
+      background-color: var(--primary-light);
+      color: var(--primary-dark);
+    }
+
+    .edit-btn:hover {
+      background-color: var(--primary-color);
+      color: white;
+    }
+
+    /* Chart styling */
+    .chart-container {
+      height: 200px;
+      margin-top: 10px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+    }
+
+    .chart-bar {
+      flex: 1;
+      margin: 0 2px;
+      background-color: var(--primary-light);
+      border-radius: 3px 3px 0 0;
+      position: relative;
+      min-height: 1px;
+    }
+
+    .chart-day {
+      text-align: center;
+      font-size: 0.8rem;
+      color: var(--text-light);
+      margin-top: 5px;
+    }
+
+    .chart-bar-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+    }
+
+    /* Stats cards */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .stat-card {
+      background-color: var(--gray-100);
+      padding: 15px;
+      border-radius: var(--radius);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      transition: var(--transition);
+    }
+
+    .stat-card:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .stat-value {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--primary-color);
+      margin-bottom: 5px;
+    }
+
+    .stat-label {
+      font-size: 0.85rem;
+      color: var(--text-light);
+    }
+
+    .empty-message {
+      text-align: center;
+      padding: 30px;
+      color: var(--text-light);
+      background-color: var(--gray-100);
+      border-radius: var(--radius);
+      margin-top: 20px;
+    }
+
+    /* Goals list styling */
+    .goals-list {
+      list-style-type: none;
+      margin-top: 15px;
+    }
+
+    .goals-list li {
+      background-color: var(--gray-100);
+      margin-bottom: 10px;
+      padding: 12px 15px;
+      border-radius: var(--radius);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: var(--transition);
+    }
+
+    .goals-list li:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .goals-list li.completed {
+      text-decoration: line-through;
+      color: var(--text-light);
+    }
+
+    .goal-checkbox {
+      min-width: 20px;
+      height: 20px;
+      border-radius: 4px;
+      border: 2px solid var(--primary-color);
+      position: relative;
+      display: inline-block;
+      cursor: pointer;
+    }
+
+    .goal-checkbox.checked:after {
+      content: '';
+      position: absolute;
+      top: 1px;
+      left: 5px;
+      width: 5px;
+      height: 10px;
+      border: solid white;
+      border-width: 0 2px 2px 0;
+      transform: rotate(45deg);
+    }
+
+    .goal-checkbox.checked {
+      background-color: var(--primary-color);
+    }
+
+    .goal-text {
+      flex: 1;
+      word-break: break-word;
+    }
+
+    /* Notification styling */
+    #notification {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      padding: 15px 20px;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-md);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.3s ease;
+    }
+    
+    #notification.active {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    
+    #notification.success {
+      background-color: var(--success-light);
+      border-left: 4px solid var(--success-color);
+      color: var(--success-color);
+    }
+    
+    #notification.error {
+      background-color: var(--error-light);
+      border-left: 4px solid var(--error-color);
+      color: var(--error-color);
+    }
+
+    /* Animations */
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes slideIn {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    /* Dark theme */
+    body.dark-theme {
+      --text-color: #e0e0e0;
+      --text-light: #aaaaaa;
+      --bg-color: #121212;
+      --card-color: #1e1e1e;
+      --border-color: #333;
+      --gray-100: #2a2a2a;
+      --gray-200: #333;
+      --gray-300: #444;
+    }
+
+    /* Light theme */
+    body.light-theme {
+      --text-color: #333;
+      --text-light: #666;
+      --bg-color: #f8f9fa;
+      --card-color: #fff;
+      --border-color: #eee;
+      --gray-100: #f4f4f4;
+      --gray-200: #e0e0e0;
+      --gray-300: #ccc;
+    }
+
+    /* Responsive design */
+    @media (max-width: 768px) {
+      .timer-display {
+        font-size: 3rem;
+      }
+
+      .controls {
+        flex-wrap: wrap;
+      }
+
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 480px) {
+      .menu {
+        padding-bottom: 5px;
+      }
+
+      .menu-item {
+        padding: 10px 15px;
+        font-size: 0.9rem;
+      }
+
+      .timer-display {
+        font-size: 2.5rem;
+      }
+
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .categories-list {
+      margin-top: 10px;
+      background: var(--gray-100);
+      border-radius: var(--radius);
+      padding: 10px;
+    }
+
+    .category-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px;
+      margin-bottom: 5px;
+      background: var(--card-color);
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-color);
+    }
+
+    .category-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .category-name {
+      flex: 1;
+    }
+
+    .category-actions {
+      display: flex;
+      gap: 5px;
+    }
+
+    .filter-controls {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      min-width: 200px;
+    }
+
+    .filter-group label {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    .filter-group select {
+      padding: 0.5rem;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      background-color: var(--bg-secondary);
+      color: var(--text-primary);
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: border-color 0.2s ease;
+    }
+
+    .filter-group select:hover {
+      border-color: var(--border-hover);
+    }
+
+    .filter-group select:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 2px var(--primary-color-alpha);
+    }
+
+    /* Update existing styles */
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    .form-group input[type="text"] {
+      width: 100%;
+      padding: 0.5rem;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      background-color: var(--bg-secondary);
+      color: var(--text-primary);
+      font-size: 0.9rem;
+      transition: border-color 0.2s ease;
+    }
+
+    .form-group input[type="text"]:hover {
+      border-color: var(--border-hover);
+    }
+
+    .form-group input[type="text"]:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 2px var(--primary-color-alpha);
+    }
+
+    /* Loading overlay styles */
+    .loading-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.6);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .loading-overlay.show {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 5px solid var(--gray-300);
+      border-top-color: var(--primary-color);
+      border-radius: 50%;
+      animation: spinner 1s linear infinite;
+    }
+
+    .loading-message {
+      color: white;
+      background-color: var(--primary-color);
+      padding: 1rem 2rem;
+      border-radius: var(--radius);
+      margin-top: 15px;
+      text-align: center;
+      box-shadow: var(--shadow-md);
+    }
+
+    @keyframes spinner {
+      to {transform: rotate(360deg);}
+    }
+  </style>
 </head>
 <body>
-    <div id="root">
-        <!-- Loading indicator will show until app loads -->
-        <div class="loading">
-            <div class="loading-spinner"></div>
-            <span>Loading PracticeTrack...</span>
+  <div class="container">
+    <div class="logo-container">
+      <div>
+        <div class="logo-text">
+          <span class="practice">Practice</span><span class="track">Track</span>
         </div>
-        
-        <!-- Fallback message if app fails to load -->
-        <div id="fallback" class="fallback">
-            <h2 style="color: #3b82f6; font-size: 1.5rem; margin-bottom: 1rem;">PracticeTrack</h2>
-            <p>If you're seeing this message, there was an error loading the application.</p>
-            <div style="margin-top: 1rem; font-size: 0.9rem; color: #666;">
-                <p>Please check the browser console for errors.</p>
-            </div>
+        <div class="tagline">Your musical journey companion</div>
+        <div class="divider">
+          <span class="music-note">♪</span>
+          <div class="line"></div>
+          <span class="music-note-orange">♪</span>
         </div>
+      </div>
     </div>
     
-    <!-- Include app files -->
-    <script type="module">
-        // Import lucide icons
-        import { createIcons, icons } from 'https://unpkg.com/lucide@latest/dist/esm/lucide.js';
+    <ul class="menu">
+      <li class="menu-item active" data-tab="timer">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polyline points="12 6 12 12 16 14"></polyline>
+        </svg>
+        Timer
+      </li>
+      <li class="menu-item" data-tab="sessions">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+          <line x1="16" y1="13" x2="8" y2="13"></line>
+          <line x1="16" y1="17" x2="8" y2="17"></line>
+          <polyline points="10 9 9 9 8 9"></polyline>
+        </svg>
+        Sessions
+      </li>
+      <li class="menu-item" data-tab="goals">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path>
+          <path d="M9 12l2 2 4-4"></path>
+        </svg>
+        Goals
+      </li>
+      <li class="menu-item" data-tab="dashboard">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+          <line x1="3" y1="9" x2="21" y2="9"></line>
+          <line x1="9" y1="21" x2="9" y2="9"></line>
+        </svg>
+        Dashboard
+      </li>
+      <li class="menu-item" data-tab="settings">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        </svg>
+        Settings
+      </li>
+    </ul>
+    
+    <!-- Timer Tab -->
+    <div id="timer-tab" class="tab active">
+      <div class="card timer-card">
+        <div class="timer-content">
+          <h2>Practice Timer</h2>
+          <div id="timer-display" class="timer-display">00:00:00</div>
+          <div class="timer-progress">
+            <div id="timer-progress-bar" class="timer-progress-bar"></div>
+          </div>
+          
+          <div class="controls">
+            <button id="start-timer" class="start">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+              </svg>
+              Start
+            </button>
+            <button id="pause-timer" class="pause" disabled>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="6" y="4" width="4" height="16"></rect>
+                <rect x="14" y="4" width="4" height="16"></rect>
+              </svg>
+              Pause
+            </button>
+            <button id="resume-timer" class="resume hidden" disabled>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+              </svg>
+              Resume
+            </button>
+            <button id="stop-timer" class="stop" disabled>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+              </svg>
+              Stop
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Timer Tab Form -->
+      <div class="card">
+        <div class="form-group">
+          <label for="practice-category" class="required-field">Practice Category</label>
+          <div class="icon-input">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+            </svg>
+            <select id="practice-category" required>
+              <option value="">--Select Practice Category--</option>
+            </select>
+          </div>
+        </div>
         
-        // Initialize lucide icons when page loads
-        window.addEventListener('DOMContentLoaded', () => {
-            // Initialize lucide icons
-            createIcons({
-                icons: {
-                    Clock: icons.Clock,
-                    BarChart3: icons.BarChart3,
-                    Settings: icons.Settings,
-                    Play: icons.Play,
-                    Pause: icons.Pause,
-                    Save: icons.Save,
-                    List: icons.List,
-                    RefreshCw: icons.RefreshCw,
-                    Trash2: icons.Trash2,
-                    Camera: icons.Camera,
-                    Video: icons.Video,
-                    Image: icons.Image,
-                    X: icons.X,
-                    CheckCircle: icons.CheckCircle,
-                    Download: icons.Download,
-                    Upload: icons.Upload,
-                    AlertCircle: icons.AlertCircle
-                }
-            });
-        });
+        <div class="form-group">
+          <label for="session-notes">Notes (optional)</label>
+          <div class="icon-input">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+            </svg>
+            <textarea name="session-notes" id="session-notes" placeholder="Add any notes about your practice session..."></textarea>
+          </div>
+        </div>
         
-        try {
-            // Try importing the app module
-            const appModule = await import('./app.js');
-            const { PracticeTrackApp } = appModule;
-            
-            if (!PracticeTrackApp) {
-                throw new Error('PracticeTrackApp not found in module');
-            }
-            
-            // Render when document is loaded
-            document.addEventListener('DOMContentLoaded', () => {
-                try {
-                    const root = ReactDOM.createRoot(document.getElementById('root'));
-                    root.render(React.createElement(PracticeTrackApp));
-                    console.log('PracticeTrack app rendered successfully');
-                } catch (renderError) {
-                    console.error('Error rendering app:', renderError);
-                    document.querySelector('.loading').style.display = 'none';
-                    document.getElementById('fallback').style.display = 'block';
-                }
-            });
-        } catch (importError) {
-            console.error('Error importing app module:', importError);
-            document.querySelector('.loading').style.display = 'none';
-            document.getElementById('fallback').style.display = 'block';
+        <button id="save-session" class="save-btn" disabled>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+            <polyline points="17 21 17 13 7 13 7 21"></polyline>
+            <polyline points="7 3 7 8 15 8"></polyline>
+          </svg>
+          Save Session
+        </button>
+      </div>
+      
+      <div class="card">
+        <h2>Metronome</h2>
+        <div class="metronome-controls">
+          <button class="metronome-button" id="decrease-tempo">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+          </button>
+          <div class="tempo-slider">
+            <input type="range" id="tempo-slider" min="40" max="220" value="100">
+          </div>
+          <div class="bpm-display" id="bpm-display">100</div>
+          <button class="metronome-button" id="increase-tempo">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+          </button>
+          <button class="metronome-button" id="start-metronome">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="5 3 19 12 5 21 5 3"></polygon>
+            </svg>
+          </button>
+          <button class="metronome-button hidden" id="stop-metronome">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="6" y="4" width="12" height="16"></rect>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Sessions Tab -->
+    <div id="sessions-tab" class="tab">
+      <div class="card">
+        <h2>Practice Sessions</h2>
+        <div class="filter-controls">
+          <div class="filter-group">
+            <label for="session-date-filter">Time Period:</label>
+            <select id="session-date-filter">
+              <option value="this-week">This Week</option>
+              <option value="this-month">This Month</option>
+              <option value="ytd">Year to Date</option>
+              <option value="year">Past Year</option>
+              <option value="all">All Time</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label for="session-category-filter">Category:</label>
+            <select id="session-category-filter">
+              <option value="all">All Categories</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <input type="text" id="session-filter" placeholder="Filter sessions...">
+        </div>
+        <ul id="sessions-list" class="session-list"></ul>
+        <div id="no-sessions-message" class="empty-message">
+          <p>No practice sessions recorded yet. Use the timer to start tracking your practice!</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Goals Tab -->
+    <div id="goals-tab" class="tab">
+      <div class="card">
+        <h2>Practice Goals</h2>
+        <div class="filter-controls">
+          <div class="filter-group">
+            <label for="goal-date-filter">Time Period:</label>
+            <select id="goal-date-filter">
+              <option value="this-week">This Week</option>
+              <option value="this-month">This Month</option>
+              <option value="ytd">Year to Date</option>
+              <option value="year">Past Year</option>
+              <option value="all">All Time</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label for="goal-category-filter">Category:</label>
+            <select id="goal-category-filter">
+              <option value="all">All Categories</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <input type="text" id="goal-input" placeholder="Enter new goal..." required>
+        </div>
+        <div class="controls">
+          <button id="add-goal" class="save-btn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            Add Goal
+          </button>
+          <button id="update-goal" class="save-btn hidden">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+              <polyline points="17 21 17 13 7 13 7 21"></polyline>
+              <polyline points="7 3 7 8 15 8"></polyline>
+            </svg>
+            Update Goal
+          </button>
+          <button id="cancel-edit" class="hidden">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+            Cancel
+          </button>
+        </div>
+        <div class="form-group">
+          <label for="goal-filter">Show: </label>
+          <select id="goal-filter">
+            <option value="all">All Goals</option>
+            <option value="active" selected>Active</option>
+            <option value="completed">Completed</option>
+          </select>
+        </div>
+        <ul id="goals-list" class="goals-list"></ul>
+        <div id="no-goals-message" class="empty-message">
+          <p>No goals added yet. Add some goals to track your practice objectives!</p>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Dashboard Tab -->
+    <div id="dashboard-tab" class="tab">
+      <div class="card">
+        <h2>Practice Statistics</h2>
+        <div class="filter-controls">
+          <div class="filter-group">
+            <label for="dashboard-date-filter">Time Period:</label>
+            <select id="dashboard-date-filter">
+              <option value="this-week">This Week</option>
+              <option value="this-month">This Month</option>
+              <option value="ytd">Year to Date</option>
+              <option value="year">Past Year</option>
+              <option value="all">All Time</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label for="dashboard-category-filter">Category:</label>
+            <select id="dashboard-category-filter">
+              <option value="all">All Categories</option>
+            </select>
+          </div>
+        </div>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-value" id="total-time">0h 0m</div>
+            <div class="stat-label">Total Practice Time</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="total-sessions">0</div>
+            <div class="stat-label">Total Sessions</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="avg-time">0m</div>
+            <div class="stat-label">Average Session</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="completed-goals">0 / 0</div>
+            <div class="stat-label">Goals Completed</div>
+          </div>
+        </div>
+        
+        <div>
+          <p>Instrument: <span id="instrument-display">None</span></p>
+          <p>Lesson Day: <span id="lesson-day-display">None</span></p>
+          <p id="next-lesson-text" style="display:none;">Next Lesson in <span id="days-to-lesson">0</span> days</p>
+        </div>
+        
+        <h3>Weekly Practice Time (minutes)</h3>
+        <div id="chart-container" class="chart-container"></div>
+      </div>
+    </div>
+    
+    <!-- Settings Tab -->
+    <div id="settings-tab" class="tab">
+      <div class="card">
+        <h2>Settings</h2>
+        <div class="form-group">
+          <label for="instrument">Instrument</label>
+          <div class="icon-input">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 18V5l12-2v13"></path>
+              <circle cx="6" cy="18" r="3"></circle>
+              <circle cx="18" cy="16" r="3"></circle>
+            </svg>
+            <select id="instrument" name="instrument" required>
+              <option value="">--Select Instrument--</option>
+              <option value="Piano">Piano</option>
+              <option value="Guitar">Guitar</option>
+              <option value="Violin">Violin</option>
+              <option value="Drums">Drums</option>
+              <option value="Voice">Voice</option>
+              <option value="Bass Guitar">Bass Guitar</option>
+              <option value="Saxophone">Saxophone</option>
+              <option value="Flute">Flute</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="lesson-day">Lesson Day</label>
+          <div class="icon-input">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="16" y1="2" x2="16" y2="6"></line>
+              <line x1="8" y1="2" x2="8" y2="6"></line>
+              <line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
+            <select id="lesson-day" name="lesson-day">
+              <option value="">--Select--</option>
+              <option>Sunday</option>
+              <option>Monday</option>
+              <option>Tuesday</option>
+              <option>Wednesday</option>
+              <option>Thursday</option>
+              <option>Friday</option>
+              <option>Saturday</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="theme-select">Theme</label>
+          <div class="icon-input">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="5"></circle>
+              <line x1="12" y1="1" x2="12" y2="3"></line>
+              <line x1="12" y1="21" x2="12" y2="23"></line>
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+              <line x1="1" y1="12" x2="3" y2="12"></line>
+              <line x1="21" y1="12" x2="23" y2="12"></line>
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+            </svg>
+            <select id="theme-select">
+              <option value="default">Default</option>
+              <option value="dark">Dark Mode</option>
+              <option value="light">Light Mode</option>
+            </select>
+          </div>
+        </div>
+        <button id="save-settings" class="save-btn">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+            <polyline points="17 21 17 13 7 13 7 21"></polyline>
+            <polyline points="7 3 7 8 15 8"></polyline>
+          </svg>
+          Save Settings
+        </button>
+      </div>
+      
+      <div class="card">
+        <h2>Data Management</h2>
+        <div class="controls">
+          <button id="export-data" class="save-btn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            Export Data
+          </button>
+          <button id="export-spreadsheet" class="save-btn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="16" y1="13" x2="8" y2="13"></line>
+              <line x1="16" y1="17" x2="8" y2="17"></line>
+              <polyline points="10 9 9 9 8 9"></polyline>
+            </svg>
+            Export to Excel
+          </button>
+          <button id="import-data" class="save-btn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="17 8 12 3 7 8"></polyline>
+              <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
+            Import Data
+          </button>
+          <input type="file" id="import-file" accept=".json" class="hidden">
+          <button id="import-excel" class="save-btn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="16" y1="13" x2="8" y2="13"></line>
+              <line x1="16" y1="17" x2="8" y2="17"></line>
+              <polyline points="10 9 9 9 8 9"></polyline>
+            </svg>
+            Import Excel
+          </button>
+          <input type="file" id="import-excel-file" accept=".xlsx" class="hidden">
+        </div>
+      </div>
+    </div>
+    
+    <!-- Notification element -->
+    <div id="notification" class="hidden"></div>
+  </div>
+  
+  <div class="loading-overlay" id="loading-overlay">
+    <div class="spinner"></div>
+    <p class="loading-message">Processing...</p>
+  </div>
+
+  <script>
+// Global variables
+let sessions = [];
+let goals = [];
+let settings = { instrument: "", lessonDay: "", theme: "default" };
+let timerStatus = "stopped";
+let startTime = 0;
+let pausedTimeAccum = 0;
+let timerInterval = null;
+let metronomeInterval = null;
+let audioCtx = null;
+let notificationTimeout = null;
+let editingGoalId = null;
+let elements = null;
+
+// Instrument definitions and practice categories
+const instrumentCategories = {
+  "Piano": [
+    "Scales & Arpeggios",
+    "Technique & Exercises",
+    "Sight Reading",
+    "Repertoire - Classical",
+    "Repertoire - Contemporary",
+    "Music Theory",
+    "Ear Training",
+    "Improvisation",
+    "Accompaniment"
+  ],
+  "Guitar": [
+    "Scales & Modes",
+    "Chords & Progressions",
+    "Fingerpicking",
+    "Strumming Patterns",
+    "Music Theory",
+    "Ear Training",
+    "Repertoire - Classical",
+    "Repertoire - Rock/Pop",
+    "Improvisation",
+    "Technique Exercises"
+  ],
+  "Violin": [
+    "Scales & Arpeggios",
+    "Bowing Technique",
+    "Etudes",
+    "Repertoire - Classical",
+    "Repertoire - Folk",
+    "Sight Reading",
+    "Orchestra Practice",
+    "Chamber Music",
+    "Music Theory",
+    "Ear Training"
+  ],
+  "Drums": [
+    "Rudiments",
+    "Groove Practice",
+    "Fill Patterns",
+    "Time Keeping",
+    "Reading Rhythms",
+    "Style Studies",
+    "Coordination Exercises",
+    "Speed & Control",
+    "Song Practice",
+    "Improvisation"
+  ],
+  "Voice": [
+    "Warm-up Exercises",
+    "Breath Control",
+    "Scales & Intervals",
+    "Repertoire - Classical",
+    "Repertoire - Contemporary",
+    "Sight Singing",
+    "Ear Training",
+    "Technique Practice",
+    "Performance Practice",
+    "Language & Diction"
+  ],
+  "Bass Guitar": [
+    "Scales & Modes",
+    "Groove Practice",
+    "Walking Bass Lines",
+    "Slap Technique",
+    "Reading Practice",
+    "Ear Training",
+    "Theory & Harmony",
+    "Song Practice",
+    "Improvisation",
+    "Technique Exercises"
+  ],
+  "Saxophone": [
+    "Scales & Arpeggios",
+    "Tone Development",
+    "Articulation Studies",
+    "Jazz Studies",
+    "Classical Repertoire",
+    "Sight Reading",
+    "Improvisation",
+    "Technical Exercises",
+    "Ensemble Practice",
+    "Music Theory"
+  ],
+  "Flute": [
+    "Tone Exercises",
+    "Scales & Arpeggios",
+    "Articulation Studies",
+    "Breathing Exercises",
+    "Classical Repertoire",
+    "Orchestral Excerpts",
+    "Chamber Music",
+    "Technical Studies",
+    "Sight Reading",
+    "Music Theory"
+  ]
+};
+
+// Initialize the application
+function initializeApp() {
+  console.log('Initializing application...');
+  
+  // Initialize DOM elements
+  elements = {
+    // Timer
+    timerDisplay: document.getElementById('timer-display'),
+    timerProgressBar: document.getElementById('timer-progress-bar'),
+    startTimerBtn: document.getElementById('start-timer'),
+    pauseTimerBtn: document.getElementById('pause-timer'),
+    resumeTimerBtn: document.getElementById('resume-timer'),
+    stopTimerBtn: document.getElementById('stop-timer'),
+    
+    // Session
+    practiceCategory: document.getElementById('practice-category'),
+    sessionNotes: document.getElementById('session-notes'),
+    saveSessionBtn: document.getElementById('save-session'),
+    sessionList: document.getElementById('sessions-list'),
+    sessionFilter: document.getElementById('session-filter'),
+    noSessionsMessage: document.getElementById('no-sessions-message'),
+    
+    // Goals
+    goalName: document.getElementById('goal-input'),
+    addGoalBtn: document.getElementById('add-goal'),
+    updateGoalBtn: document.getElementById('update-goal'),
+    cancelEditBtn: document.getElementById('cancel-edit'),
+    goalList: document.getElementById('goals-list'),
+    goalFilter: document.getElementById('goal-filter'),
+    noGoalsMessage: document.getElementById('no-goals-message'),
+    
+    // Dashboard
+    totalTime: document.getElementById('total-time'),
+    totalSessions: document.getElementById('total-sessions'),
+    avgTime: document.getElementById('avg-time'),
+    completedGoals: document.getElementById('completed-goals'),
+    instrumentDisplay: document.getElementById('instrument-display'),
+    lessonDayDisplay: document.getElementById('lesson-day-display'),
+    nextLessonText: document.getElementById('next-lesson-text'),
+    daysToLesson: document.getElementById('days-to-lesson'),
+    practiceChart: document.getElementById('chart-container'),
+    
+    // Settings
+    instrument: document.getElementById('instrument'),
+    lessonDay: document.getElementById('lesson-day'),
+    themeSelect: document.getElementById('theme-select'),
+    saveSettingsBtn: document.getElementById('save-settings'),
+    exportDataBtn: document.getElementById('export-data'),
+    exportSpreadsheetBtn: document.getElementById('export-spreadsheet'),
+    importDataBtn: document.getElementById('import-data'),
+    importFile: document.getElementById('import-file'),
+    importExcelBtn: document.getElementById('import-excel'),
+    importExcelFile: document.getElementById('import-excel-file'),
+    
+    // Metronome
+    tempoSlider: document.getElementById('tempo-slider'),
+    bpmDisplay: document.getElementById('bpm-display'),
+    decreaseTempoBtn: document.getElementById('decrease-tempo'),
+    increaseTempoBtn: document.getElementById('increase-tempo'),
+    startMetronomeBtn: document.getElementById('start-metronome'),
+    stopMetronomeBtn: document.getElementById('stop-metronome'),
+    
+    // Notification
+    notification: document.getElementById('notification'),
+    
+    // Add new filter elements
+    sessionDateFilter: document.getElementById('session-date-filter'),
+    sessionCategoryFilter: document.getElementById('session-category-filter'),
+    goalDateFilter: document.getElementById('goal-date-filter'),
+    goalCategoryFilter: document.getElementById('goal-category-filter'),
+    dashboardDateFilter: document.getElementById('dashboard-date-filter'),
+    dashboardCategoryFilter: document.getElementById('dashboard-category-filter'),
+  };
+  
+  // Verify elements and initialize
+  if (verifyElements()) {
+    console.log('Elements verified successfully');
+    if (checkLocalStorage()) {
+      console.log('localStorage available, initializing data...');
+      initializeData();
+    } else {
+      console.log('localStorage not available, initializing UI only...');
+      initUI();
+    }
+  } else {
+    console.error('Failed to verify elements');
+    notify('There was an error initializing the application.', 'error');
+  }
+}
+
+function verifyElements() {
+  console.log('Verifying DOM elements...');
+  let missingElements = [];
+  
+  for (const [key, value] of Object.entries(elements)) {
+    if (!value) {
+      console.error(`Missing element: ${key}`);
+      missingElements.push(key);
+    }
+  }
+  
+  if (missingElements.length > 0) {
+    console.error('Missing elements:', missingElements);
+    return false;
+  }
+  
+  console.log('All DOM elements verified successfully');
+  return true;
+}
+
+function checkLocalStorage() {
+  try {
+    localStorage.setItem('test', 'test');
+    localStorage.removeItem('test');
+    return true;
+  } catch (e) {
+    console.error('localStorage not available:', e);
+    return false;
+  }
+}
+
+function initializeData() {
+  try {
+    const storedSessions = localStorage.getItem("sessions");
+    if (storedSessions) {
+      sessions = JSON.parse(storedSessions);
+    }
+    
+    const storedGoals = localStorage.getItem("goals");
+    if (storedGoals) {
+      goals = JSON.parse(storedGoals);
+    }
+    
+    settings.instrument = localStorage.getItem("instrument") || "";
+    settings.lessonDay = localStorage.getItem("lessonDay") || "";
+    settings.theme = localStorage.getItem("theme") || "default";
+    
+    // Initialize UI after data is loaded
+    initUI();
+    updatePracticeCategoryDropdown(); // Add this line
+    
+    const storedCustomCategories = localStorage.getItem("customCategories");
+    if (storedCustomCategories) {
+      customCategories = JSON.parse(storedCustomCategories);
+    }
+  } catch (error) {
+    console.error("Error loading data from localStorage:", error);
+    notify("There was an error loading your data.", "error");
+  }
+}
+
+function initUI() {
+  // Set theme
+  applyTheme(settings.theme);
+  
+  // Update category filters
+  updateCategoryFilters();
+  
+  // Populate initial UI with data
+  updateDashboard();
+  refreshSessionList();
+  refreshGoalList();
+  
+  // Fill settings form fields
+  elements.instrument.value = settings.instrument;
+  if (settings.lessonDay) {
+    elements.lessonDay.value = settings.lessonDay;
+  }
+  elements.themeSelect.value = settings.theme;
+  
+  // Set up event listeners
+  setupEventListeners();
+  
+  // Update metronome display
+  elements.bpmDisplay.textContent = elements.tempoSlider.value;
+}
+
+function setupEventListeners() {
+  try {
+    // Timer controls
+    elements.startTimerBtn.addEventListener('click', startTimer);
+    elements.pauseTimerBtn.addEventListener('click', pauseTimer);
+    elements.resumeTimerBtn.addEventListener('click', resumeTimer);
+    elements.stopTimerBtn.addEventListener('click', stopTimer);
+
+    // Session management
+    elements.saveSessionBtn.addEventListener('click', saveSession);
+    elements.practiceCategory.addEventListener('change', () => {
+      const isValid = elements.practiceCategory.value && timerStatus === "stopped" && pausedTimeAccum > 0;
+      elements.saveSessionBtn.disabled = !isValid;
+      elements.saveSessionBtn.classList.toggle('active-save', isValid);
+    });
+    elements.sessionNotes.addEventListener('input', () => {
+      if (elements.practiceCategory.value && timerStatus === "stopped" && pausedTimeAccum > 0) {
+        elements.saveSessionBtn.classList.add('active-save');
+      }
+    });
+    elements.sessionFilter.addEventListener('input', refreshSessionList);
+
+    // Goal management
+    elements.goalName.addEventListener('input', () => {
+      const isValid = elements.goalName.value.trim().length > 0;
+      elements.addGoalBtn.classList.toggle('active-save', isValid);
+    });
+    elements.addGoalBtn.addEventListener('click', addGoal);
+    elements.updateGoalBtn.addEventListener('click', updateGoal);
+    elements.cancelEditBtn.addEventListener('click', cancelEditGoal);
+    elements.goalFilter.addEventListener('change', refreshGoalList);
+
+    // Settings
+    elements.instrument.addEventListener('change', () => {
+      const isValid = elements.instrument.value && elements.lessonDay.value;
+      elements.saveSettingsBtn.classList.toggle('active-save', isValid);
+    });
+    elements.lessonDay.addEventListener('change', () => {
+      const isValid = elements.instrument.value && elements.lessonDay.value;
+      elements.saveSettingsBtn.classList.toggle('active-save', isValid);
+    });
+    elements.themeSelect.addEventListener('change', () => {
+      elements.saveSettingsBtn.classList.add('active-save');
+    });
+    elements.saveSettingsBtn.addEventListener('click', saveSettings);
+
+    // Export/Import
+    elements.exportDataBtn.addEventListener('click', exportData);
+    elements.exportSpreadsheetBtn.addEventListener('click', exportSpreadsheet);
+    elements.importDataBtn.addEventListener('click', () => elements.importFile.click());
+    elements.importFile.addEventListener('change', importData);
+    elements.importExcelBtn.addEventListener('click', () => elements.importExcelFile.click());
+    elements.importExcelFile.addEventListener('change', importExcel);
+
+    // Tab navigation
+    document.querySelectorAll('.menu-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const tabName = item.getAttribute('data-tab');
+        
+        // Update active tab class
+        document.querySelectorAll('.menu-item').forEach(menuItem => menuItem.classList.remove('active'));
+        item.classList.add('active');
+        
+        // Hide all tabs and show the selected one
+        document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+        document.getElementById(`${tabName}-tab`).classList.add('active');
+        
+        // Refresh UI when switching tabs
+        if (tabName === 'dashboard') {
+          updateDashboard();
+        } else if (tabName === 'sessions') {
+          refreshSessionList();
+        } else if (tabName === 'goals') {
+          refreshGoalList();
         }
-    </script>
+      });
+    });
+
+    // Metronome controls
+    elements.startMetronomeBtn.addEventListener('click', startMetronome);
+    elements.stopMetronomeBtn.addEventListener('click', stopMetronome);
+    elements.decreaseTempoBtn.addEventListener('click', () => changeTempo(-5));
+    elements.increaseTempoBtn.addEventListener('click', () => changeTempo(5));
+    elements.tempoSlider.addEventListener('input', () => {
+      const tempo = parseInt(elements.tempoSlider.value);
+      elements.bpmDisplay.textContent = tempo;
+      if (metronomeInterval) {
+        stopMetronome();
+        startMetronome();
+      }
+    });
+
+    // Filter event listeners
+    elements.sessionDateFilter.addEventListener('change', refreshSessionList);
+    elements.sessionCategoryFilter.addEventListener('change', refreshSessionList);
+    elements.goalDateFilter.addEventListener('change', refreshGoalList);
+    elements.goalCategoryFilter.addEventListener('change', refreshGoalList);
+    elements.dashboardDateFilter.addEventListener('change', updateDashboard);
+    elements.dashboardCategoryFilter.addEventListener('change', updateDashboard);
+
+    console.log('All event listeners set up successfully');
+  } catch (error) {
+    console.error('Error setting up event listeners:', error);
+    notify('There was an error setting up the application controls.', 'error');
+  }
+}
+
+// Timer functions
+function startTimer() {
+  console.log('Starting timer...');
+  if (timerStatus !== "stopped") return;
+  
+  pausedTimeAccum = 0;
+  timerStatus = "running";
+  startTime = Date.now();
+  
+  // Update button states
+  elements.startTimerBtn.disabled = true;
+  elements.pauseTimerBtn.disabled = false;
+  elements.stopTimerBtn.disabled = false;
+  elements.resumeTimerBtn.disabled = true;
+  elements.resumeTimerBtn.classList.add('hidden');
+  elements.pauseTimerBtn.classList.remove('hidden');
+  elements.saveSessionBtn.disabled = true;
+  
+  // Start interval to update display
+  timerInterval = setInterval(updateTimerDisplay, 1000);
+  updateTimerDisplay(); // Update immediately
+  console.log('Timer started successfully');
+}
+
+function pauseTimer() {
+  console.log('Pausing timer...');
+  if (timerStatus !== "running") return;
+  
+  clearInterval(timerInterval);
+  pausedTimeAccum += Date.now() - startTime;
+  timerStatus = "paused";
+  
+  // Update buttons
+  elements.pauseTimerBtn.classList.add('hidden');
+  elements.resumeTimerBtn.classList.remove('hidden');
+  elements.resumeTimerBtn.disabled = false;
+  console.log('Timer paused successfully');
+}
+
+function resumeTimer() {
+  console.log('Resuming timer...');
+  if (timerStatus !== "paused") return;
+  
+  startTime = Date.now();
+  timerStatus = "running";
+  
+  // Update buttons
+  elements.resumeTimerBtn.classList.add('hidden');
+  elements.pauseTimerBtn.classList.remove('hidden');
+  elements.pauseTimerBtn.disabled = false;
+  
+  timerInterval = setInterval(updateTimerDisplay, 1000);
+  console.log('Timer resumed successfully');
+}
+
+function stopTimer() {
+  console.log('Stopping timer...');
+  if (timerStatus === "stopped") return;
+  
+  if (timerStatus === "running") {
+    pausedTimeAccum += Date.now() - startTime;
+  }
+  
+  clearInterval(timerInterval);
+  timerStatus = "stopped";
+  
+  // Update displayed time one final time
+  updateTimerDisplay();
+  
+  // Reset buttons
+  elements.startTimerBtn.disabled = false;
+  elements.pauseTimerBtn.disabled = true;
+  elements.resumeTimerBtn.classList.add('hidden');
+  elements.pauseTimerBtn.classList.remove('hidden');
+  elements.stopTimerBtn.disabled = true;
+  
+  // Enable save button if we have a category and time recorded
+  const isValid = elements.practiceCategory.value && pausedTimeAccum > 0;
+  elements.saveSessionBtn.disabled = !isValid;
+  elements.saveSessionBtn.classList.toggle('active-save', isValid);
+  
+  if (pausedTimeAccum === 0) {
+    notify("No time recorded for this session.", "error");
+  }
+  console.log('Timer stopped successfully');
+}
+
+function updateTimerDisplay() {
+  let elapsed = 0;
+  
+  if (timerStatus === "running") {
+    elapsed = pausedTimeAccum + (Date.now() - startTime);
+  } else {
+    elapsed = pausedTimeAccum;
+  }
+  
+  // Convert ms to HH:MM:SS
+  const totalSeconds = Math.floor(elapsed / 1000);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  
+  // Format with leading zeros
+  const timeString = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+  elements.timerDisplay.textContent = timeString;
+  
+  // Update progress bar (30 minutes = 100%)
+  const progressPercent = Math.min(100, (elapsed / (30 * 60 * 1000)) * 100);
+  elements.timerProgressBar.style.width = `${progressPercent}%`;
+}
+
+// Utility functions
+function formatDuration(ms) {
+  const totalSeconds = Math.floor(ms / 1000);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  
+  if (hours > 0) {
+    return `${hours}h ${minutes}m ${seconds}s`;
+  } else if (minutes > 0) {
+    return `${minutes}m ${seconds}s`;
+  } else {
+    return `${seconds}s`;
+  }
+}
+
+function notify(message, type = "info") {
+  if (notificationTimeout) {
+    clearTimeout(notificationTimeout);
+  }
+  
+  elements.notification.textContent = message;
+  elements.notification.className = `notification ${type}`;
+  elements.notification.classList.remove("hidden");
+  
+  notificationTimeout = setTimeout(() => {
+    elements.notification.classList.add("hidden");
+  }, 3000);
+}
+
+function applyTheme(theme) {
+  document.body.className = theme;
+  settings.theme = theme;
+  localStorage.setItem("theme", theme);
+}
+
+// Session functions
+function saveSession() {
+  if (!elements.practiceCategory.value || timerStatus !== "stopped" || pausedTimeAccum === 0) {
+    notify("Please select a practice category and stop the timer first.", "error");
+    return;
+  }
+  
+  const session = {
+    id: Date.now(),
+    name: elements.practiceCategory.value, // Using category as the name
+    duration: pausedTimeAccum,
+    date: new Date().toISOString(),
+    notes: elements.sessionNotes.value.trim()
+  };
+  
+  sessions.push(session);
+  localStorage.setItem("sessions", JSON.stringify(sessions));
+  
+  // Reset form
+  elements.practiceCategory.value = "";
+  elements.sessionNotes.value = "";
+  pausedTimeAccum = 0;
+  elements.saveSessionBtn.disabled = true;
+  elements.saveSessionBtn.classList.remove('active-save');
+  
+  // Update UI
+  updateDashboard();
+  refreshSessionList();
+  notify("Session saved successfully!", "success");
+}
+
+function refreshSessionList() {
+  const filterText = elements.sessionFilter.value.toLowerCase();
+  const dateRange = getDateRange(elements.sessionDateFilter.value);
+  const categoryFilter = elements.sessionCategoryFilter.value;
+  
+  const filteredSessions = sessions
+    .filter(session => {
+      const sessionDate = new Date(session.date);
+      const matchesDate = sessionDate >= dateRange.start && sessionDate <= dateRange.end;
+      const matchesCategory = categoryFilter === 'all' || session.name === categoryFilter;
+      const matchesText = session.name.toLowerCase().includes(filterText);
+      return matchesDate && matchesCategory && matchesText;
+    })
+    .sort((a, b) => b.id - a.id);
+  
+  elements.sessionList.innerHTML = "";
+  elements.noSessionsMessage.style.display = filteredSessions.length === 0 ? "block" : "none";
+  
+  filteredSessions.forEach(session => {
+    const li = document.createElement("li");
+    li.className = "session-item";
+    
+    const duration = formatDuration(session.duration);
+    const date = new Date(session.date).toLocaleDateString();
+    
+    li.innerHTML = `
+      <div class="session-info">
+        <div class="session-header">${session.name}</div>
+        <div class="session-details">
+          <span>Duration: ${duration}</span>
+          <span>Date: ${date}</span>
+        </div>
+        ${session.notes ? `<p class="session-notes">${session.notes}</p>` : ""}
+      </div>
+      <div class="session-actions">
+        <button class="delete-btn" data-id="${session.id}">Delete</button>
+      </div>
+    `;
+    
+    // Add event listener for delete
+    li.querySelector(".delete-btn").addEventListener("click", () => deleteSession(session.id));
+    
+    elements.sessionList.appendChild(li);
+  });
+}
+
+function editSession(id) {
+  const session = sessions.find(s => s.id === id);
+  if (!session) return;
+  
+  // Switch to timer tab
+  document.querySelectorAll('.menu-item').forEach(menuItem => menuItem.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+  document.querySelector('[data-tab="timer"]').classList.add('active');
+  document.getElementById('timer-tab').classList.add('active');
+  
+  // Populate edit form
+  elements.practiceCategory.value = session.name;
+  elements.sessionNotes.value = session.notes || "";
+  pausedTimeAccum = session.duration;
+  
+  // Remove old session
+  sessions = sessions.filter(s => s.id !== id);
+  localStorage.setItem("sessions", JSON.stringify(sessions));
+  
+  // Update UI
+  updateTimerDisplay();
+  refreshSessionList();
+  updateDashboard();
+  
+  // Enable save button since we have valid data
+  elements.saveSessionBtn.disabled = false;
+  elements.saveSessionBtn.classList.add('active-save');
+  
+  notify("Session loaded for editing. Make your changes and save.", "info");
+}
+
+function deleteSession(id) {
+  if (!confirm("Are you sure you want to delete this session?")) return;
+  
+  sessions = sessions.filter(s => s.id !== id);
+  localStorage.setItem("sessions", JSON.stringify(sessions));
+  
+  updateDashboard();
+  refreshSessionList();
+  notify("Session deleted successfully!", "success");
+}
+
+// Goal functions
+function addGoal() {
+  const goalName = elements.goalName.value.trim();
+  if (!goalName) {
+    notify("Please enter a goal description.", "error");
+    return;
+  }
+  
+  const goal = {
+    id: Date.now(),
+    name: goalName,
+    completed: false,
+    date: new Date().toISOString()
+  };
+  
+  goals.push(goal);
+  localStorage.setItem("goals", JSON.stringify(goals));
+  
+  elements.goalName.value = "";
+  elements.addGoalBtn.classList.remove('active-save');
+  refreshGoalList();
+  updateDashboard();
+  notify("Goal added successfully!", "success");
+}
+
+function updateGoal() {
+  if (!editingGoalId || !elements.goalName.value.trim()) {
+    notify("Please enter a goal description.", "error");
+    return;
+  }
+  
+  const goalIndex = goals.findIndex(g => g.id === editingGoalId);
+  if (goalIndex === -1) return;
+  
+  goals[goalIndex].name = elements.goalName.value.trim();
+  localStorage.setItem("goals", JSON.stringify(goals));
+  
+  cancelEditGoal();
+  refreshGoalList();
+  notify("Goal updated successfully!", "success");
+}
+
+function cancelEditGoal() {
+  editingGoalId = null;
+  elements.goalName.value = "";
+  elements.addGoalBtn.classList.remove("hidden");
+  elements.updateGoalBtn.classList.add("hidden");
+  elements.cancelEditBtn.classList.add("hidden");
+}
+
+function refreshGoalList() {
+  const dateRange = getDateRange(elements.goalDateFilter.value);
+  const categoryFilter = elements.goalCategoryFilter.value;
+  const showCompleted = elements.goalFilter.value === "completed";
+  const showIncomplete = elements.goalFilter.value === "active";
+  
+  const filteredGoals = goals.filter(goal => {
+    const goalDate = new Date(goal.date);
+    const matchesDate = goalDate >= dateRange.start && goalDate <= dateRange.end;
+    const matchesCategory = categoryFilter === 'all'; // Implement category for goals if needed
+    const matchesStatus = showCompleted ? goal.completed : showIncomplete ? !goal.completed : true;
+    return matchesDate && matchesCategory && matchesStatus;
+  });
+  
+  elements.goalList.innerHTML = "";
+  elements.noGoalsMessage.style.display = filteredGoals.length === 0 ? "block" : "none";
+  
+  filteredGoals.forEach(goal => {
+    const li = document.createElement("li");
+    li.className = goal.completed ? "completed" : "";
+    
+    li.innerHTML = `
+      <div class="goal-checkbox ${goal.completed ? 'checked' : ''}" data-id="${goal.id}"></div>
+      <span class="goal-text">${goal.name}</span>
+      <div class="goal-actions">
+        <button class="delete-btn">Delete</button>
+      </div>
+    `;
+    
+    // Add event listeners
+    li.querySelector(".goal-checkbox").addEventListener("click", () => toggleGoal(goal.id));
+    li.querySelector(".delete-btn").addEventListener("click", () => {
+      if (confirm("Are you sure you want to delete this goal?")) {
+        goals = goals.filter(g => g.id !== goal.id);
+        localStorage.setItem("goals", JSON.stringify(goals));
+        refreshGoalList();
+        updateDashboard();
+        notify("Goal deleted successfully!", "success");
+      }
+    });
+    
+    elements.goalList.appendChild(li);
+  });
+}
+
+function toggleGoal(id) {
+  const goal = goals.find(g => g.id === id);
+  if (!goal) return;
+  
+  goal.completed = !goal.completed;
+  localStorage.setItem("goals", JSON.stringify(goals));
+  
+  refreshGoalList();
+  updateDashboard();
+}
+
+// Dashboard functions
+function updateDashboard() {
+  const dateRange = getDateRange(elements.dashboardDateFilter.value);
+  const categoryFilter = elements.dashboardCategoryFilter.value;
+  
+  // Filter sessions based on date range and category
+  const filteredSessions = sessions.filter(session => {
+    const sessionDate = new Date(session.date);
+    const matchesDate = sessionDate >= dateRange.start && sessionDate <= dateRange.end;
+    const matchesCategory = categoryFilter === 'all' || session.name === categoryFilter;
+    return matchesDate && matchesCategory;
+  });
+  
+  // Calculate total practice time
+  const totalTime = filteredSessions.reduce((acc, session) => acc + session.duration, 0);
+  elements.totalTime.textContent = formatDuration(totalTime);
+  
+  // Update total sessions
+  elements.totalSessions.textContent = filteredSessions.length;
+  
+  // Calculate average session time
+  const avgTime = filteredSessions.length > 0 ? totalTime / filteredSessions.length : 0;
+  elements.avgTime.textContent = formatDuration(avgTime);
+  
+  // Calculate practice time per category
+  const categoryStats = {};
+  if (settings.instrument) {
+    instrumentCategories[settings.instrument].forEach(category => {
+      categoryStats[category] = 0;
+    });
+  }
+  
+  filteredSessions.forEach(session => {
+    if (categoryStats.hasOwnProperty(session.name)) {
+      categoryStats[session.name] += session.duration;
+    }
+  });
+  
+  // Update the stats grid to show category breakdown
+  const statsGrid = document.querySelector('.stats-grid');
+  statsGrid.innerHTML = `
+    <div class="stat-card">
+      <div class="stat-value" id="total-time">${formatDuration(totalTime)}</div>
+      <div class="stat-label">Total Practice Time</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" id="total-sessions">${filteredSessions.length}</div>
+      <div class="stat-label">Total Sessions</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" id="avg-time">${formatDuration(avgTime)}</div>
+      <div class="stat-label">Average Session</div>
+    </div>
+  `;
+  
+  // Add category stats cards
+  Object.entries(categoryStats)
+    .sort((a, b) => b[1] - a[1]) // Sort by practice time descending
+    .forEach(([category, time]) => {
+      if (time > 0) { // Only show categories with practice time
+        const card = document.createElement('div');
+        card.className = 'stat-card';
+        card.innerHTML = `
+          <div class="stat-value">${formatDuration(time)}</div>
+          <div class="stat-label">${category}</div>
+        `;
+        statsGrid.appendChild(card);
+      }
+    });
+  
+  // Update instrument and lesson day display
+  elements.instrumentDisplay.textContent = settings.instrument || "None";
+  elements.lessonDayDisplay.textContent = settings.lessonDay || "None";
+  
+  // Calculate days until next lesson
+  if (settings.lessonDay) {
+    const today = new Date();
+    const dayIndex = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+      .indexOf(settings.lessonDay);
+    
+    if (dayIndex !== -1) {
+      let daysUntil = dayIndex - today.getDay();
+      if (daysUntil <= 0) daysUntil += 7;
+      
+      elements.nextLessonText.style.display = "block";
+      elements.daysToLesson.textContent = daysUntil;
+    }
+  } else {
+    elements.nextLessonText.style.display = "none";
+  }
+  
+  // Update practice chart
+  updatePracticeChart(dateRange, categoryFilter);
+}
+
+function updatePracticeChart(dateRange, categoryFilter) {
+  const dates = [];
+  const now = new Date();
+  let current = new Date(dateRange.start);
+  
+  while (current <= now) {
+    dates.push(current.toISOString().split('T')[0]);
+    current.setDate(current.getDate() + 1);
+  }
+  
+  const minutesPerDay = dates.map(date => {
+    const dayStart = new Date(date);
+    const dayEnd = new Date(date);
+    dayEnd.setDate(dayEnd.getDate() + 1);
+    
+    return sessions
+      .filter(s => {
+        const sessionDate = new Date(s.date);
+        const matchesDate = sessionDate >= dayStart && sessionDate < dayEnd;
+        const matchesCategory = categoryFilter === 'all' || s.name === categoryFilter;
+        return matchesDate && matchesCategory;
+      })
+      .reduce((acc, s) => acc + (s.duration / (60 * 1000)), 0);
+  });
+  
+  elements.practiceChart.innerHTML = "";
+  
+  minutesPerDay.forEach((minutes, i) => {
+    const barContainer = document.createElement("div");
+    barContainer.className = "chart-bar-container";
+    
+    const bar = document.createElement("div");
+    bar.className = "chart-bar";
+    bar.style.height = `${Math.min(100, (minutes / 60) * 100)}%`;
+    
+    const day = document.createElement("div");
+    day.className = "chart-day";
+    day.textContent = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][new Date(dates[i]).getDay()];
+    
+    barContainer.appendChild(bar);
+    barContainer.appendChild(day);
+    elements.practiceChart.appendChild(barContainer);
+  });
+}
+
+// Settings functions
+function saveSettings() {
+  try {
+    const oldInstrument = settings.instrument;
+    settings.instrument = elements.instrument.value.trim();
+    settings.lessonDay = elements.lessonDay.value;
+    settings.theme = elements.themeSelect.value;
+    
+    localStorage.setItem("instrument", settings.instrument);
+    localStorage.setItem("lessonDay", settings.lessonDay);
+    localStorage.setItem("theme", settings.theme);
+    
+    applyTheme(settings.theme);
+    
+    // Update category filters if instrument changed
+    if (oldInstrument !== settings.instrument) {
+      updateCategoryFilters();
+    }
+    
+    // Refresh all views
+    updateDashboard();
+    refreshSessionList();
+    refreshGoalList();
+    
+    elements.saveSettingsBtn.classList.remove('active-save');
+    notify("Settings saved successfully!", "success");
+  } catch (error) {
+    console.error("Error saving settings:", error);
+    notify("Failed to save settings.", "error");
+  }
+}
+
+// Data export/import functions
+function exportData() {
+  try {
+    const data = {
+      sessions: sessions,
+      goals: goals,
+      settings: settings
+    };
+    
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `PracticeTrack_Data_${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    
+    setTimeout(() => URL.revokeObjectURL(url), 100);
+    notify("Data exported successfully!", "success");
+  } catch (error) {
+    console.error("Error exporting data:", error);
+    notify("Failed to export data.", "error");
+  }
+}
+
+// Excel Export Function
+function exportSpreadsheet() {
+  try {
+    // Show loading overlay with export message
+    document.getElementById('loading-overlay').classList.add('show');
+    document.querySelector('.loading-message').textContent = 'Generating Excel file...';
+    
+    // Create a new workbook
+    const wb = XLSX.utils.book_new();
+    wb.Props = {
+      Title: "PracticeTrack Data",
+      Author: "PracticeTrack App",
+      CreatedDate: new Date()
+    };
+    
+    // 1. Create metadata sheet
+    const metadataWs = XLSX.utils.aoa_to_sheet([
+      ["PracticeTrack Export Data"],
+      ["Export Date", new Date().toISOString()],
+      ["Version", "1.0"],
+      ["Note", "This file contains both human-readable data and raw data for importing back into the app"]
+    ]);
+    XLSX.utils.book_append_sheet(wb, metadataWs, "Metadata");
+
+    // 2. Create sessions sheet with both formatted and raw data
+    const sessionsFormattedData = sessions.map((session, idx) => ({
+      "Index": idx + 1,
+      "Date": new Date(session.date).toLocaleDateString(),
+      "Start Time": session.startTime || "N/A",
+      "End Time": session.endTime || "N/A",
+      "Duration": formatTime(session.duration),
+      "Category": session.category || "N/A",
+      "Instrument": session.instrument || "N/A",
+      "Notes": session.notes || ""
+    }));
+    
+    // Add formatted data for human reading
+    const sessionsWs = XLSX.utils.json_to_sheet(sessionsFormattedData);
+    
+    // Add raw data for importing (after some blank rows)
+    XLSX.utils.sheet_add_aoa(sessionsWs, [
+      [],
+      ["RAW DATA FOR IMPORT - DO NOT MODIFY THIS SECTION"],
+      []
+    ], {origin: -1});
+    
+    // Stringify the entire sessions array for reliable import
+    XLSX.utils.sheet_add_aoa(sessionsWs, [
+      ["SESSIONS_JSON"],
+      [JSON.stringify(sessions)]
+    ], {origin: -1});
+    
+    XLSX.utils.book_append_sheet(wb, sessionsWs, "Practice Sessions");
+    
+    // 3. Create goals sheet with both formatted and raw data
+    const goalsFormattedData = goals.map((goal, idx) => ({
+      "Index": idx + 1,
+      "Title": goal.title,
+      "Category": goal.category || "N/A",
+      "Instrument": goal.instrument || "N/A",
+      "Status": goal.completed ? "Completed" : "In Progress",
+      "Completion Date": goal.completedDate ? new Date(goal.completedDate).toLocaleDateString() : "N/A",
+      "Description": goal.description || ""
+    }));
+    
+    // Add formatted data for human reading
+    const goalsWs = XLSX.utils.json_to_sheet(goalsFormattedData);
+    
+    // Add raw data for importing (after some blank rows)
+    XLSX.utils.sheet_add_aoa(goalsWs, [
+      [],
+      ["RAW DATA FOR IMPORT - DO NOT MODIFY THIS SECTION"],
+      []
+    ], {origin: -1});
+    
+    // Stringify the entire goals array for reliable import
+    XLSX.utils.sheet_add_aoa(goalsWs, [
+      ["GOALS_JSON"],
+      [JSON.stringify(goals)]
+    ], {origin: -1});
+    
+    XLSX.utils.book_append_sheet(wb, goalsWs, "Goals");
+    
+    // 4. Create settings sheet
+    const settingsWs = XLSX.utils.aoa_to_sheet([
+      ["Setting", "Value"],
+      ["Instrument", settings.instrument || ""],
+      ["Lesson Day", settings.lessonDay || ""],
+      ["Theme", settings.theme || "default"],
+      [],
+      ["RAW DATA FOR IMPORT - DO NOT MODIFY THIS SECTION"],
+      [],
+      ["SETTINGS_JSON"],
+      [JSON.stringify(settings)]
+    ]);
+    XLSX.utils.book_append_sheet(wb, settingsWs, "Settings");
+    
+    // 5. Create stats sheet (not used for import, just for user reference)
+    const statsData = calculatePracticeStats();
+    const statsWs = XLSX.utils.json_to_sheet(statsData);
+    XLSX.utils.book_append_sheet(wb, statsWs, "Practice Stats");
+    
+    // 6. Create custom categories sheet
+    const categoriesSheet = XLSX.utils.aoa_to_sheet([
+      ["Instrument", "Categories"],
+      ...Object.entries(customCategories).map(([instrument, categories]) => [
+        instrument, categories.join(", ")
+      ]),
+      [],
+      ["RAW DATA FOR IMPORT - DO NOT MODIFY THIS SECTION"],
+      [],
+      ["CUSTOM_CATEGORIES_JSON"],
+      [JSON.stringify(customCategories)]
+    ]);
+    XLSX.utils.book_append_sheet(wb, categoriesSheet, "Custom Categories");
+    
+    // Generate and download the Excel file
+    XLSX.writeFile(wb, "PracticeTrack-data.xlsx");
+    
+    // Hide loading overlay
+    document.getElementById('loading-overlay').classList.remove('show');
+    
+    notify("Excel file exported successfully!", "success");
+  } catch (error) {
+    // Hide loading overlay in case of error
+    document.getElementById('loading-overlay').classList.remove('show');
+    
+    console.error('Excel export error:', error);
+    notify("Failed to export Excel file. Please try again.", "error");
+  }
+}
+
+function importData(e) {
+  try {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      try {
+        const data = JSON.parse(e.target.result);
+        
+        if (!Array.isArray(data.sessions) || !Array.isArray(data.goals)) {
+          throw new Error("Invalid data format");
+        }
+        
+        sessions = data.sessions;
+        goals = data.goals;
+        settings = data.settings || { instrument: "", lessonDay: "", theme: "default" };
+        
+        localStorage.setItem("sessions", JSON.stringify(sessions));
+        localStorage.setItem("goals", JSON.stringify(goals));
+        localStorage.setItem("instrument", settings.instrument);
+        localStorage.setItem("lessonDay", settings.lessonDay);
+        localStorage.setItem("theme", settings.theme);
+        
+        applyTheme(settings.theme);
+        initUI();
+        
+        notify("Data imported successfully!", "success");
+      } catch (error) {
+        console.error("Error parsing import data:", error);
+        notify("Failed to import data: invalid format", "error");
+      }
+    };
+    
+    reader.readAsText(file);
+    e.target.value = "";
+  } catch (error) {
+    console.error("Error importing data:", error);
+    notify("Failed to import data.", "error");
+  }
+}
+
+// Import Excel Function
+function importExcel(e) {
+  try {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Show loading overlay
+    document.getElementById('loading-overlay').classList.add('show');
+    document.querySelector('.loading-message').textContent = 'Importing Excel file...';
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      try {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, {type: 'array'});
+        
+        // Initialize containers for imported data
+        let importedSessions = [];
+        let importedGoals = [];
+        let importedSettings = { instrument: "", lessonDay: "", theme: "default" };
+        let importedCustomCategories = {};
+        
+        // Process each required sheet
+        const sheetNames = workbook.SheetNames;
+        
+        // Check for required sheets
+        if (!sheetNames.includes('Practice Sessions') || 
+            !sheetNames.includes('Goals') || 
+            !sheetNames.includes('Settings')) {
+          throw new Error("Required sheets missing from Excel file");
+        }
+
+        // Extract sessions from raw JSON data
+        const sessionsSheet = workbook.Sheets['Practice Sessions'];
+        const sessionsData = XLSX.utils.sheet_to_json(sessionsSheet, {header: 1});
+        const sessionsJsonRow = sessionsData.findIndex(row => 
+          row[0] === 'SESSIONS_JSON'
+        );
+        
+        if (sessionsJsonRow !== -1 && sessionsJsonRow + 1 < sessionsData.length) {
+          importedSessions = JSON.parse(sessionsData[sessionsJsonRow + 1][0]);
+          if (!Array.isArray(importedSessions)) {
+            throw new Error("Invalid sessions data format");
+          }
+        } else {
+          throw new Error("Sessions data not found in Excel file");
+        }
+
+        // Extract goals from raw JSON data
+        const goalsSheet = workbook.Sheets['Goals'];
+        const goalsData = XLSX.utils.sheet_to_json(goalsSheet, {header: 1});
+        const goalsJsonRow = goalsData.findIndex(row => 
+          row[0] === 'GOALS_JSON'
+        );
+        
+        if (goalsJsonRow !== -1 && goalsJsonRow + 1 < goalsData.length) {
+          importedGoals = JSON.parse(goalsData[goalsJsonRow + 1][0]);
+          if (!Array.isArray(importedGoals)) {
+            throw new Error("Invalid goals data format");
+          }
+        } else {
+          throw new Error("Goals data not found in Excel file");
+        }
+
+        // Extract settings from raw JSON data
+        const settingsSheet = workbook.Sheets['Settings'];
+        const settingsData = XLSX.utils.sheet_to_json(settingsSheet, {header: 1});
+        const settingsJsonRow = settingsData.findIndex(row => 
+          row[0] === 'SETTINGS_JSON'
+        );
+        
+        if (settingsJsonRow !== -1 && settingsJsonRow + 1 < settingsData.length) {
+          importedSettings = JSON.parse(settingsData[settingsJsonRow + 1][0]);
+          if (typeof importedSettings !== 'object') {
+            throw new Error("Invalid settings data format");
+          }
+        } else {
+          throw new Error("Settings data not found in Excel file");
+        }
+
+        // Extract custom categories if available
+        if (sheetNames.includes('Custom Categories')) {
+          const categoriesSheet = workbook.Sheets['Custom Categories'];
+          const categoriesData = XLSX.utils.sheet_to_json(categoriesSheet, {header: 1});
+          const categoriesJsonRow = categoriesData.findIndex(row => 
+            row[0] === 'CUSTOM_CATEGORIES_JSON'
+          );
+          
+          if (categoriesJsonRow !== -1 && categoriesJsonRow + 1 < categoriesData.length) {
+            importedCustomCategories = JSON.parse(categoriesData[categoriesJsonRow + 1][0]);
+            if (typeof importedCustomCategories !== 'object') {
+              importedCustomCategories = {}; // Reset if invalid
+            }
+          }
+        }
+
+        // Update app data
+        sessions = importedSessions;
+        goals = importedGoals;
+        settings = importedSettings;
+        customCategories = importedCustomCategories;
+        
+        // Save to localStorage
+        localStorage.setItem("sessions", JSON.stringify(sessions));
+        localStorage.setItem("goals", JSON.stringify(goals));
+        localStorage.setItem("instrument", settings.instrument);
+        localStorage.setItem("lessonDay", settings.lessonDay);
+        localStorage.setItem("theme", settings.theme);
+        localStorage.setItem("customCategories", JSON.stringify(customCategories));
+        
+        // Update UI
+        applyTheme(settings.theme);
+        initUI();
+        
+        // Hide loading overlay
+        document.getElementById('loading-overlay').classList.remove('show');
+        notify("Excel data imported successfully!", "success");
+      } catch (error) {
+        // Hide loading overlay
+        document.getElementById('loading-overlay').classList.remove('show');
+        console.error("Error parsing Excel import:", error);
+        notify("Failed to import Excel data: " + error.message, "error");
+      }
+    };
+    
+    reader.onerror = function() {
+      document.getElementById('loading-overlay').classList.remove('show');
+      notify("Error reading the Excel file", "error");
+    };
+    
+    reader.readAsArrayBuffer(file);
+    e.target.value = ""; // Reset the file input
+  } catch (error) {
+    document.getElementById('loading-overlay').classList.remove('show');
+    console.error("Error importing Excel:", error);
+    notify("Failed to import Excel data", "error");
+  }
+}
+
+// Metronome functions
+function startMetronome() {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  
+  if (metronomeInterval) {
+    stopMetronome();
+  }
+  
+  const bpm = parseInt(elements.tempoSlider.value);
+  const intervalMs = (60 / bpm) * 1000;
+  
+  let tick = true;
+  metronomeInterval = setInterval(() => {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    
+    osc.frequency.value = tick ? 1000 : 800;
+    gain.gain.value = 0.5;
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
+    
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.05);
+    
+    tick = !tick;
+  }, intervalMs);
+  
+  elements.startMetronomeBtn.classList.add("hidden");
+  elements.stopMetronomeBtn.classList.remove("hidden");
+}
+
+function stopMetronome() {
+  if (metronomeInterval) {
+    clearInterval(metronomeInterval);
+    metronomeInterval = null;
+  }
+  
+  elements.stopMetronomeBtn.classList.add("hidden");
+  elements.startMetronomeBtn.classList.remove("hidden");
+}
+
+function changeTempo(delta) {
+  const newTempo = parseInt(elements.tempoSlider.value) + delta;
+  if (newTempo >= 40 && newTempo <= 208) {
+    elements.tempoSlider.value = newTempo;
+    elements.bpmDisplay.textContent = newTempo;
+    
+    if (metronomeInterval) {
+      stopMetronome();
+      startMetronome();
+    }
+  }
+}
+
+// Add this new function
+function updatePracticeCategoryDropdown() {
+  if (!settings.instrument) {
+    elements.practiceCategory.innerHTML = '<option value="">Please select an instrument in Settings</option>';
+    elements.practiceCategory.disabled = true;
+    return;
+  }
+
+  const categories = instrumentCategories[settings.instrument] || [];
+  elements.practiceCategory.disabled = false;
+  elements.practiceCategory.innerHTML = `
+    <option value="">--Select Practice Category--</option>
+    ${categories.map(category => `<option value="${category}">${category}</option>`).join('')}
+  `;
+}
+
+// Helper function to calculate practice statistics for the Excel export
+function calculatePracticeStats() {
+  const stats = [];
+  
+  // Calculate total practice time and session counts per instrument
+  const instrumentStats = {};
+  sessions.forEach(session => {
+    const instrument = session.instrument || 'Unspecified';
+    if (!instrumentStats[instrument]) {
+      instrumentStats[instrument] = { 
+        instrument: instrument, 
+        totalDuration: 0, 
+        sessionCount: 0,
+        categories: {}
+      };
+    }
+    
+    instrumentStats[instrument].totalDuration += session.duration;
+    instrumentStats[instrument].sessionCount++;
+    
+    // Track time per category within instrument
+    const category = session.category || 'Unspecified';
+    if (!instrumentStats[instrument].categories[category]) {
+      instrumentStats[instrument].categories[category] = 0;
+    }
+    instrumentStats[instrument].categories[category] += session.duration;
+  });
+  
+  // Add instrument summary rows
+  for (const instrument in instrumentStats) {
+    const data = instrumentStats[instrument];
+    stats.push({
+      Type: 'Instrument Summary',
+      Instrument: instrument,
+      Category: 'ALL',
+      'Total Practice Time': formatTime(data.totalDuration),
+      'Total Sessions': data.sessionCount,
+      'Average Session Time': formatTime(data.totalDuration / data.sessionCount)
+    });
+    
+    // Add category breakdown rows for each instrument
+    for (const category in data.categories) {
+      stats.push({
+        Type: 'Category Breakdown',
+        Instrument: instrument,
+        Category: category,
+        'Total Practice Time': formatTime(data.categories[category]),
+        'Percentage of Instrument Time': `${Math.round((data.categories[category] / data.totalDuration) * 100)}%`,
+        'Sessions': '-' // We don't track session count per category
+      });
+    }
+  }
+  
+  // Add a grand total row
+  const totalPracticeTime = sessions.reduce((total, session) => total + session.duration, 0);
+  const totalSessions = sessions.length;
+  stats.push({
+    Type: 'Grand Total',
+    Instrument: 'ALL',
+    Category: 'ALL',
+    'Total Practice Time': formatTime(totalPracticeTime),
+    'Total Sessions': totalSessions,
+    'Average Session Time': formatTime(totalSessions > 0 ? totalPracticeTime / totalSessions : 0)
+  });
+  
+  // Add goal statistics
+  const completedGoals = goals.filter(goal => goal.completed).length;
+  const pendingGoals = goals.length - completedGoals;
+  
+  stats.push({
+    Type: 'Goals Summary',
+    Instrument: 'ALL',
+    Category: 'ALL',
+    'Completed Goals': completedGoals,
+    'Pending Goals': pendingGoals,
+    'Total Goals': goals.length
+  });
+  
+  return stats;
+}
+
+// Add category management functions
+function addCategory(categoryName) {
+  if (!settings.instrument) {
+    notify("Please select an instrument first", "error");
+    return;
+  }
+  
+  if (!categoryName.trim()) {
+    notify("Please enter a category name", "error");
+    return;
+  }
+  
+  if (!customCategories[settings.instrument]) {
+    customCategories[settings.instrument] = [];
+  }
+  
+  if (getInstrumentCategories(settings.instrument).includes(categoryName)) {
+    notify("This category already exists", "error");
+    return;
+  }
+  
+  customCategories[settings.instrument].push(categoryName);
+  localStorage.setItem("customCategories", JSON.stringify(customCategories));
+  refreshCategoriesList();
+  updatePracticeCategoryDropdown();
+  notify("Category added successfully!", "success");
+}
+
+function deleteCategory(categoryName) {
+  if (!settings.instrument || !customCategories[settings.instrument]) return;
+  
+  const index = customCategories[settings.instrument].indexOf(categoryName);
+  if (index === -1) return;
+  
+  if (confirm("Are you sure you want to delete this category? Any sessions using this category will be preserved.")) {
+    customCategories[settings.instrument].splice(index, 1);
+    localStorage.setItem("customCategories", JSON.stringify(customCategories));
+    refreshCategoriesList();
+    updatePracticeCategoryDropdown();
+    notify("Category deleted successfully!", "success");
+  }
+}
+
+function refreshCategoriesList() {
+  const categoriesList = document.getElementById('categories-list');
+  if (!categoriesList) return;
+  
+  categoriesList.innerHTML = '';
+  
+  if (!settings.instrument) {
+    categoriesList.innerHTML = '<p class="empty-message">Please select an instrument first</p>';
+    return;
+  }
+  
+  const categories = getInstrumentCategories(settings.instrument);
+  
+  categories.forEach(category => {
+    const isDefault = instrumentCategories[settings.instrument].includes(category);
+    const div = document.createElement('div');
+    div.className = 'category-item';
+    div.innerHTML = `
+      <span class="category-name">${category}</span>
+      <div class="category-actions">
+        ${!isDefault ? `
+          <button class="delete-btn" onclick="deleteCategory('${category}')">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        ` : '<span class="badge">Default</span>'}
+      </div>
+    `;
+    categoriesList.appendChild(div);
+  });
+}
+
+// Add date filtering functions
+function getDateRange(period) {
+  const now = new Date();
+  const start = new Date();
+  
+  switch (period) {
+    case 'this-week':
+      // If lesson day is set, use it as the start of the week
+      if (settings.lessonDay) {
+        const lessonDayIndex = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+          .indexOf(settings.lessonDay);
+        const currentDayIndex = now.getDay();
+        const diff = currentDayIndex - lessonDayIndex;
+        start.setDate(now.getDate() - (diff >= 0 ? diff : diff + 7));
+      } else {
+        // Default to last 7 days
+        start.setDate(now.getDate() - 7);
+      }
+      break;
+    case 'this-month':
+      start.setMonth(now.getMonth());
+      start.setDate(1);
+      break;
+    case 'ytd':
+      start.setMonth(0);
+      start.setDate(1);
+      break;
+    case 'year':
+      start.setFullYear(now.getFullYear() - 1);
+      break;
+    default:
+      start.setFullYear(2000); // Effectively "all time"
+  }
+  
+  start.setHours(0, 0, 0, 0);
+  return { start, end: now };
+}
+
+// Wait for DOM to be fully loaded before initializing
+document.addEventListener('DOMContentLoaded', () => {
+  console.log('DOM fully loaded, initializing app...');
+  initializeApp();
+});
+
+// Update category dropdowns when instrument changes
+function updateCategoryFilters() {
+  if (!settings.instrument) {
+    const defaultOption = '<option value="">Please select an instrument in Settings</option>';
+    const filterDropdowns = [
+      elements.sessionCategoryFilter,
+      elements.goalCategoryFilter,
+      elements.dashboardCategoryFilter,
+      elements.practiceCategory
+    ];
+    
+    filterDropdowns.forEach(dropdown => {
+      if (dropdown) {
+        dropdown.innerHTML = defaultOption;
+        dropdown.disabled = true;
+      }
+    });
+    return;
+  }
+
+  const categories = instrumentCategories[settings.instrument] || [];
+  const options = categories.map(category => 
+    `<option value="${category}">${category}</option>`
+  ).join('');
+  
+  const filterDropdowns = [
+    elements.sessionCategoryFilter,
+    elements.goalCategoryFilter,
+    elements.dashboardCategoryFilter,
+    elements.practiceCategory
+  ];
+  
+  filterDropdowns.forEach(dropdown => {
+    if (dropdown) {
+      dropdown.innerHTML = `
+        <option value="all">All Categories</option>
+        ${options}
+      `;
+      dropdown.disabled = false;
+    }
+  });
+  
+  // Practice category dropdown shouldn't have "All Categories" option
+  if (elements.practiceCategory) {
+    elements.practiceCategory.innerHTML = `
+      <option value="">--Select Practice Category--</option>
+      ${options}
+    `;
+  }
+}
+  </script>
 </body>
 </html>
