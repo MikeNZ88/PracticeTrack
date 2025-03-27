@@ -1036,6 +1036,103 @@
     @keyframes spinner {
       to {transform: rotate(360deg);}
     }
+
+    .settings-icon {
+      margin-left: auto;
+    }
+
+    .settings-icon span {
+      display: none;
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 10px;
+      }
+
+      .container {
+        padding: 15px;
+      }
+
+      .menu {
+        padding: 0 10px;
+        gap: 5px;
+        justify-content: space-between;
+      }
+
+      .menu-item {
+        padding: 10px;
+        font-size: 0.9rem;
+      }
+
+      .menu-item span {
+        display: none;
+      }
+
+      .menu-item svg {
+        width: 20px;
+        height: 20px;
+      }
+
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+      }
+
+      .chart-container {
+        height: 150px;
+        overflow-x: auto;
+        padding-bottom: 20px;
+      }
+
+      .chart-bar-container {
+        min-width: 40px;
+      }
+
+      .filter-controls {
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .filter-group {
+        width: 100%;
+      }
+
+      .stat-card {
+        padding: 12px;
+      }
+
+      .stat-value {
+        font-size: 1.2rem;
+      }
+
+      .stat-label {
+        font-size: 0.8rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .menu-item {
+        padding: 8px;
+      }
+
+      .menu-item svg {
+        width: 24px;
+        height: 24px;
+      }
+
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .chart-container {
+        height: 120px;
+      }
+
+      .chart-bar-container {
+        min-width: 35px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -1087,12 +1184,11 @@
         </svg>
         Dashboard
       </li>
-      <li class="menu-item" data-tab="settings">
+      <li class="menu-item settings-icon" data-tab="settings">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="3"></circle>
           <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
         </svg>
-        Settings
       </li>
     </ul>
     
