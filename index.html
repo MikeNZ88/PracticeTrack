@@ -127,6 +127,9 @@
       overflow-x: auto;
       scrollbar-width: none;
       position: relative;
+      -webkit-overflow-scrolling: touch;
+      padding: 0 10px;
+      gap: 5px;
     }
 
     .menu::-webkit-scrollbar {
@@ -134,7 +137,7 @@
     }
 
     .menu-item {
-      padding: 12px 20px;
+      padding: 12px 15px;
       cursor: pointer;
       transition: var(--transition);
       font-weight: 500;
@@ -143,6 +146,7 @@
       display: flex;
       align-items: center;
       gap: 8px;
+      flex-shrink: 0;
     }
 
     .menu-item:after {
@@ -772,29 +776,59 @@
 
     /* Responsive design */
     @media (max-width: 768px) {
+      body {
+        padding: 10px;
+      }
+
+      .container {
+        padding: 15px;
+      }
+
       .timer-display {
         font-size: 3rem;
       }
 
       .controls {
         flex-wrap: wrap;
+        gap: 10px;
       }
 
       .stats-grid {
         grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+      }
+
+      .menu {
+        padding-bottom: 5px;
+        margin: 0 -15px 20px -15px;
+        padding: 0 15px;
+      }
+
+      .menu-item {
+        padding: 10px;
+        font-size: 0.9rem;
+      }
+
+      .menu-item svg {
+        width: 14px;
+        height: 14px;
+      }
+
+      .form-group {
+        margin-bottom: 15px;
+      }
+
+      .filter-controls {
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .filter-group {
+        min-width: 100%;
       }
     }
 
     @media (max-width: 480px) {
-      .menu {
-        padding-bottom: 5px;
-      }
-
-      .menu-item {
-        padding: 10px 15px;
-        font-size: 0.9rem;
-      }
-
       .timer-display {
         font-size: 2.5rem;
       }
@@ -802,6 +836,62 @@
       .stats-grid {
         grid-template-columns: 1fr;
       }
+
+      .menu {
+        justify-content: flex-start;
+      }
+
+      .chart-container {
+        height: 150px;
+        margin: 10px -15px;
+        padding: 0 15px;
+      }
+
+      .chart-day {
+        font-size: 0.7rem;
+        transform: rotate(-45deg);
+        margin-top: 10px;
+      }
+
+      .stat-card {
+        padding: 10px;
+      }
+
+      .stat-value {
+        font-size: 1.5rem;
+      }
+
+      .stat-label {
+        font-size: 0.8rem;
+      }
+
+      button {
+        padding: 8px 12px;
+        font-size: 0.9rem;
+      }
+
+      button svg {
+        width: 16px;
+        height: 16px;
+      }
+    }
+
+    /* Add horizontal scroll indicator for menu */
+    .menu::after {
+      content: '';
+      position: absolute;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      width: 30px;
+      background: linear-gradient(to right, transparent, var(--bg-color));
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .menu.scroll-right::after {
+      opacity: 1;
     }
 
     .categories-list {
@@ -1555,6 +1645,9 @@ function initializeApp() {
     goalCategoryFilter: document.getElementById('goal-category-filter'),
     dashboardDateFilter: document.getElementById('dashboard-date-filter'),
     dashboardCategoryFilter: document.getElementById('dashboard-category-filter'),
+    
+    // Add menu element
+    menu: document.querySelector('.menu'),
   };
   
   // Verify elements and initialize
@@ -1756,6 +1849,14 @@ function setupEventListeners() {
     elements.goalCategoryFilter.addEventListener('change', refreshGoalList);
     elements.dashboardDateFilter.addEventListener('change', updateDashboard);
     elements.dashboardCategoryFilter.addEventListener('change', updateDashboard);
+
+    // Add menu scroll handler
+    if (elements.menu) {
+      elements.menu.addEventListener('scroll', handleMenuScroll);
+      window.addEventListener('resize', handleMenuScroll);
+      // Check initial scroll state
+      handleMenuScroll();
+    }
 
     console.log('All event listeners set up successfully');
   } catch (error) {
@@ -2702,6 +2803,16 @@ function updateCategoryFilters() {
       ${options}
     `;
   }
+}
+
+// Add this new function
+function handleMenuScroll() {
+  if (!elements.menu) return;
+  
+  const hasHorizontalScroll = elements.menu.scrollWidth > elements.menu.clientWidth;
+  const isScrolledToEnd = elements.menu.scrollLeft + elements.menu.clientWidth >= elements.menu.scrollWidth - 10;
+  
+  elements.menu.classList.toggle('scroll-right', hasHorizontalScroll && !isScrolledToEnd);
 }
   </script>
 </body>
