@@ -1399,6 +1399,13 @@
           <line x1="9" y1="21" x2="9" y2="9"></line>
         </svg>
       </li>
+      <li class="menu-item" data-tab="media">
+        <span>Media</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+          <circle cx="12" cy="13" r="4"></circle>
+        </svg>
+      </li>
       <li class="menu-item" data-tab="settings">
         <span>Settings</span>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -1523,74 +1530,6 @@
             </svg>
           </button>
         </div>
-      </div>
-      
-      <!-- Add camera button (for mobile only) -->
-      <button id="camera-button" class="camera-button">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
-          <circle cx="12" cy="13" r="3"></circle>
-        </svg>
-        Record Practice
-      </button>
-      
-      <!-- Camera modal -->
-      <div id="camera-modal" class="camera-modal">
-        <div class="camera-container">
-          <video id="camera-preview" class="camera-preview" autoplay playsinline></video>
-          <div class="camera-controls">
-            <button id="switch-camera">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
-                <path d="M17 12h-2v-2"></path>
-                <path d="M9 10v2h2"></path>
-              </svg>
-            </button>
-            <button id="take-photo">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="10"></circle>
-              </svg>
-            </button>
-            <button id="start-recording">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="10"></circle>
-                <circle cx="12" cy="12" r="3"></circle>
-              </svg>
-            </button>
-            <button id="stop-recording" class="hidden">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="6" y="6" width="12" height="12" rx="1"></rect>
-              </svg>
-            </button>
-            <button id="close-camera">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="18" y1="6" x2="6" y2="18"></line>
-                <line x1="6" y1="6" x2="18" y2="18"></line>
-              </svg>
-            </button>
-          </div>
-        </div>
-      </div>
-      
-      <!-- Media preview modal -->
-      <div id="media-preview" class="media-preview">
-        <div class="camera-controls">
-          <button id="save-media">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-              <polyline points="17 21 17 13 7 13 7 21"></polyline>
-              <polyline points="7 3 7 8 15 8"></polyline>
-            </svg>
-          </button>
-          <button id="cancel-media">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <line x1="18" y1="6" x2="6" y2="18"></line>
-              <line x1="6" y1="6" x2="18" y2="18"></line>
-            </svg>
-          </button>
-        </div>
-        <img id="photo-preview" class="camera-preview hidden">
-        <video id="video-preview" class="camera-preview hidden" controls></video>
       </div>
       
       <!-- Add footer -->
@@ -1753,6 +1692,150 @@
       </div>
       <div class="footer">
         © Mike Nelson Guitar Lessons | <a href="https://mikenelsonguitarlessons.co.nz" target="_blank">mikenelsonguitarlessons.co.nz</a>
+      </div>
+    </div>
+    
+    <!-- Media Tab -->
+    <div id="media-tab" class="tab">
+      <div class="card">
+        <h2>Media Gallery</h2>
+        
+        <!-- Record button -->
+        <button id="camera-button" class="camera-button" style="margin-bottom: 20px;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+            <circle cx="12" cy="13" r="3"></circle>
+          </svg>
+          Record Practice
+        </button>
+        
+        <!-- Filter controls -->
+        <div class="filter-controls">
+          <div class="filter-group">
+            <label for="media-date-filter">Date Range:</label>
+            <select id="media-date-filter">
+              <option value="all">All Time</option>
+              <option value="today">Today</option>
+              <option value="week">This Week</option>
+              <option value="month">This Month</option>
+              <option value="year">This Year</option>
+            </select>
+          </div>
+          
+          <div class="filter-group">
+            <label for="media-category-filter">Category:</label>
+            <select id="media-category-filter">
+              <option value="all">All Categories</option>
+              <!-- Categories will be populated dynamically -->
+            </select>
+          </div>
+          
+          <div class="filter-group">
+            <label for="media-type-filter">Media Type:</label>
+            <select id="media-type-filter">
+              <option value="all">All Types</option>
+              <option value="photo">Photos</option>
+              <option value="video">Videos</option>
+            </select>
+          </div>
+        </div>
+        
+        <!-- Media gallery -->
+        <div id="media-gallery" class="media-gallery">
+          <!-- Media items will be added here dynamically -->
+          <div class="media-placeholder">
+            <p>No media recordings yet. Use the camera in the timer tab to record your practice.</p>
+          </div>
+        </div>
+      </div>
+      
+      <!-- View Media Modal -->
+      <div id="view-media-modal" class="view-media-modal">
+        <div class="view-media-content">
+          <!-- Content will be added dynamically -->
+        </div>
+        <div class="view-media-controls">
+          <button id="close-view-media">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+            Close
+          </button>
+          <button id="rename-media">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+            </svg>
+            Rename
+          </button>
+          <button id="delete-media">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+            </svg>
+            Delete
+          </button>
+        </div>
+      </div>
+      
+      <!-- Camera modal -->
+      <div id="camera-modal" class="camera-modal">
+        <div class="camera-container">
+          <video id="camera-preview" class="camera-preview" autoplay playsinline></video>
+          <div class="camera-controls">
+            <button id="switch-camera">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                <path d="M17 12h-2v-2"></path>
+                <path d="M9 10v2h2"></path>
+              </svg>
+            </button>
+            <button id="take-photo">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+              </svg>
+            </button>
+            <button id="start-recording">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+            </button>
+            <button id="stop-recording" class="hidden">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="6" y="6" width="12" height="12" rx="1"></rect>
+              </svg>
+            </button>
+            <button id="close-camera">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Media preview modal -->
+      <div id="media-preview" class="media-preview">
+        <div class="camera-controls">
+          <button id="save-media">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+              <polyline points="17 21 17 13 7 13 7 21"></polyline>
+              <polyline points="7 3 7 8 15 8"></polyline>
+            </svg>
+          </button>
+          <button id="cancel-media">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+        <img id="photo-preview" class="camera-preview hidden">
+        <video id="video-preview" class="camera-preview hidden" controls></video>
       </div>
     </div>
     
@@ -3517,13 +3600,18 @@ document.addEventListener('DOMContentLoaded', () => {
     saveMediaBtn.addEventListener('click', () => {
       if (!db || !currentMediaBlob) return;
       
+      // Prompt for media name
+      const mediaName = prompt('Enter a name for this recording:', '');
+      const name = mediaName && mediaName.trim() !== '' ? mediaName.trim() : getNextUnnamedMedia();
+      
       const transaction = db.transaction(['mediaFiles'], 'readwrite');
       const store = transaction.objectStore('mediaFiles');
       
       const mediaFile = {
         id: Date.now().toString(),
-        sessionId: Date.now().toString(), // We'll use this to link to the session
+        sessionId: currentSessionId || Date.now().toString(), // Link to the current session or create new ID
         type: currentMediaType,
+        name: name,
         blob: currentMediaBlob,
         timestamp: new Date().toISOString()
       };
@@ -3535,11 +3623,446 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
   
+  // Function to generate next unnamed media name
+  function getNextUnnamedMedia() {
+    const prefix = currentMediaType === 'photo' ? 'Unnamed Photo' : 'Unnamed Video';
+    let counter = 1;
+    
+    if (db) {
+      const transaction = db.transaction(['mediaFiles'], 'readonly');
+      const store = transaction.objectStore('mediaFiles');
+      
+      const countRequest = store.count();
+      countRequest.onsuccess = () => {
+        counter = countRequest.result + 1;
+      };
+    }
+    
+    return `${prefix} ${counter}`;
+  }
+  
   // Cancel media button
   if (cancelMediaBtn) {
     cancelMediaBtn.addEventListener('click', () => {
       mediaPreview.classList.remove('show');
     });
+  }
+});
+
+// Media tab functionality
+document.addEventListener('DOMContentLoaded', () => {
+  const mediaTab = document.querySelector('[data-tab="media"]');
+  const mediaGallery = document.getElementById('media-gallery');
+  const mediaDateFilter = document.getElementById('media-date-filter');
+  const mediaCategoryFilter = document.getElementById('media-category-filter');
+  const mediaTypeFilter = document.getElementById('media-type-filter');
+  const viewMediaModal = document.getElementById('view-media-modal');
+  
+  let currentMediaId = null;
+  let mediaCounter = 1;
+  
+  // Initialize media gallery when tab is clicked
+  if (mediaTab) {
+    mediaTab.addEventListener('click', function() {
+      // Ensure we have a slight delay to allow the tab to become visible
+      setTimeout(loadMediaGallery, 100);
+    });
+  }
+  
+  // Initialize media gallery on page load if we're already on the media tab
+  if (document.getElementById('media-tab').classList.contains('active')) {
+    loadMediaGallery();
+  }
+  
+  // Initialize filters
+  if (mediaDateFilter) {
+    mediaDateFilter.addEventListener('change', loadMediaGallery);
+  }
+  
+  if (mediaCategoryFilter) {
+    mediaCategoryFilter.addEventListener('change', loadMediaGallery);
+  }
+  
+  if (mediaTypeFilter) {
+    mediaTypeFilter.addEventListener('change', loadMediaGallery);
+  }
+  
+  // Load media gallery with filters
+  function loadMediaGallery() {
+    if (!db) {
+      console.error('Database not initialized');
+      return;
+    }
+    
+    const dateFilter = mediaDateFilter ? mediaDateFilter.value : 'all';
+    const categoryFilter = mediaCategoryFilter ? mediaCategoryFilter.value : 'all';
+    const typeFilter = mediaTypeFilter ? mediaTypeFilter.value : 'all';
+    
+    const transaction = db.transaction(['mediaFiles'], 'readonly');
+    const store = transaction.objectStore('mediaFiles');
+    
+    store.getAll().onsuccess = function(event) {
+      const mediaFiles = event.target.result;
+      
+      // Clear existing gallery
+      if (mediaGallery) {
+        mediaGallery.innerHTML = '';
+      }
+      
+      if (!mediaFiles || mediaFiles.length === 0) {
+        const placeholder = document.createElement('div');
+        placeholder.className = 'media-placeholder';
+        placeholder.innerHTML = '<p>No media recordings yet. Use the camera in the timer tab to record your practice.</p>';
+        mediaGallery.appendChild(placeholder);
+        return;
+      }
+      
+      // Apply filters
+      let filteredMedia = mediaFiles;
+      
+      // Date filter
+      if (dateFilter !== 'all') {
+        const now = new Date();
+        let startDate;
+        
+        switch (dateFilter) {
+          case 'today':
+            startDate = new Date(now.setHours(0, 0, 0, 0));
+            break;
+          case 'week':
+            startDate = new Date(now.setDate(now.getDate() - now.getDay()));
+            break;
+          case 'month':
+            startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+            break;
+          case 'year':
+            startDate = new Date(now.getFullYear(), 0, 1);
+            break;
+        }
+        
+        filteredMedia = filteredMedia.filter(media => {
+          const mediaDate = new Date(media.timestamp);
+          return mediaDate >= startDate;
+        });
+      }
+      
+      // Category filter
+      if (categoryFilter !== 'all') {
+        filteredMedia = filteredMedia.filter(media => {
+          // Link to session data to get category
+          const session = getSavedSession(media.sessionId);
+          return session && session.category === categoryFilter;
+        });
+      }
+      
+      // Type filter
+      if (typeFilter !== 'all') {
+        filteredMedia = filteredMedia.filter(media => media.type === typeFilter);
+      }
+      
+      // Sort by timestamp (newest first)
+      filteredMedia.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+      
+      // Render filtered media
+      filteredMedia.forEach(media => {
+        const mediaItem = createMediaItem(media);
+        mediaGallery.appendChild(mediaItem);
+      });
+      
+      if (filteredMedia.length === 0) {
+        const placeholder = document.createElement('div');
+        placeholder.className = 'media-placeholder';
+        placeholder.innerHTML = '<p>No media found matching your filters.</p>';
+        mediaGallery.appendChild(placeholder);
+      }
+    };
+    
+    // Update the category filter options with available categories
+    updateCategoryFilter();
+  }
+  
+  // Create a media item element
+  function createMediaItem(media) {
+    const mediaItem = document.createElement('div');
+    mediaItem.className = 'media-item';
+    mediaItem.dataset.id = media.id;
+    
+    // Get session data if available
+    const session = getSavedSession(media.sessionId);
+    const category = session ? session.category : 'Uncategorized';
+    
+    // Format the date
+    const mediaDate = new Date(media.timestamp);
+    const formattedDate = `${mediaDate.toLocaleDateString()} ${mediaDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+    
+    // Get media name (or use default)
+    const mediaName = media.name || `Unnamed ${media.type === 'photo' ? 'Photo' : 'Video'} ${mediaCounter++}`;
+    
+    // Create preview based on media type
+    const previewContent = media.type === 'photo' 
+      ? `<img src="${URL.createObjectURL(media.blob)}" alt="${mediaName}">` 
+      : `<video src="${URL.createObjectURL(media.blob)}" preload="metadata"></video>`;
+    
+    // Create type icon
+    const typeIcon = media.type === 'photo'
+      ? `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>`
+      : `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>`;
+    
+    mediaItem.innerHTML = `
+      <div class="media-preview">
+        ${previewContent}
+      </div>
+      <div class="media-info">
+        <div class="media-name">${typeIcon} ${mediaName}</div>
+        <div class="media-date">${formattedDate}</div>
+        <div class="media-category">${category}</div>
+        <div class="media-actions">
+          <button class="view-btn">View</button>
+          <button class="rename-btn">Rename</button>
+          <button class="delete-btn">Delete</button>
+        </div>
+      </div>
+    `;
+    
+    // Add event listeners to buttons
+    const viewBtn = mediaItem.querySelector('.view-btn');
+    const renameBtn = mediaItem.querySelector('.rename-btn');
+    const deleteBtn = mediaItem.querySelector('.delete-btn');
+    
+    if (viewBtn) {
+      viewBtn.addEventListener('click', () => {
+        viewMedia(media);
+      });
+    }
+    
+    if (renameBtn) {
+      renameBtn.addEventListener('click', () => {
+        const newName = prompt('Enter new name:', mediaName);
+        if (newName && newName.trim() !== '') {
+          updateMediaName(media.id, newName.trim());
+        }
+      });
+    }
+    
+    if (deleteBtn) {
+      deleteBtn.addEventListener('click', () => {
+        if (confirm('Are you sure you want to delete this media? This cannot be undone.')) {
+          deleteMedia(media.id);
+        }
+      });
+    }
+    
+    return mediaItem;
+  }
+  
+  // View media in modal
+  function viewMedia(media) {
+    if (!viewMediaModal) return;
+    
+    currentMediaId = media.id;
+    
+    const viewContent = viewMediaModal.querySelector('.view-media-content');
+    if (!viewContent) return;
+    
+    viewContent.innerHTML = '';
+    
+    if (media.type === 'photo') {
+      const img = document.createElement('img');
+      img.src = URL.createObjectURL(media.blob);
+      img.alt = media.name || 'Photo';
+      viewContent.appendChild(img);
+    } else {
+      const video = document.createElement('video');
+      video.src = URL.createObjectURL(media.blob);
+      video.controls = true;
+      video.autoplay = true;
+      viewContent.appendChild(video);
+    }
+    
+    viewMediaModal.style.display = 'flex';
+  }
+  
+  // Update media name
+  function updateMediaName(mediaId, newName) {
+    if (!db) return;
+    
+    const transaction = db.transaction(['mediaFiles'], 'readwrite');
+    const store = transaction.objectStore('mediaFiles');
+    
+    const request = store.get(mediaId);
+    
+    request.onsuccess = function(event) {
+      const media = event.target.result;
+      
+      if (media) {
+        media.name = newName;
+        
+        store.put(media).onsuccess = function() {
+          notify('Media renamed successfully', 'success');
+          loadMediaGallery();
+        };
+      }
+    };
+  }
+  
+  // Delete media file
+  function deleteMedia(mediaId) {
+    if (!db) return;
+    
+    const transaction = db.transaction(['mediaFiles'], 'readwrite');
+    const store = transaction.objectStore('mediaFiles');
+    
+    store.delete(mediaId).onsuccess = function() {
+      notify('Media deleted successfully', 'success');
+      
+      // Close modal if open
+      if (currentMediaId === mediaId && viewMediaModal.style.display === 'flex') {
+        viewMediaModal.style.display = 'none';
+      }
+      
+      loadMediaGallery();
+    };
+  }
+  
+  // Update category filter with available categories from practice sessions
+  function updateCategoryFilter() {
+    if (!mediaCategoryFilter) return;
+    
+    // Keep the first option (All Categories)
+    const firstOption = mediaCategoryFilter.options[0];
+    mediaCategoryFilter.innerHTML = '';
+    mediaCategoryFilter.appendChild(firstOption);
+    
+    // Initialize categories Set
+    const categories = new Set();
+    
+    // Add categories from practice sessions
+    if (localStorage.getItem('practiceSessions')) {
+      try {
+        const sessions = JSON.parse(localStorage.getItem('practiceSessions'));
+        
+        if (Array.isArray(sessions)) {
+          sessions.forEach(session => {
+            if (session && session.category && typeof session.category === 'string') {
+              categories.add(session.category);
+            }
+          });
+        }
+      } catch (error) {
+        console.error('Error parsing practice sessions:', error);
+      }
+    }
+    
+    // Add categories from media files directly
+    if (db) {
+      const transaction = db.transaction(['mediaFiles'], 'readonly');
+      const store = transaction.objectStore('mediaFiles');
+      
+      store.getAll().onsuccess = function(event) {
+        const mediaFiles = event.target.result;
+        
+        if (Array.isArray(mediaFiles)) {
+          // Get all session IDs from media files
+          const sessionIds = new Set();
+          mediaFiles.forEach(media => {
+            if (media && media.sessionId) {
+              sessionIds.add(media.sessionId);
+            }
+          });
+          
+          // Look up each session to get its category
+          if (localStorage.getItem('practiceSessions')) {
+            try {
+              const sessions = JSON.parse(localStorage.getItem('practiceSessions'));
+              
+              if (Array.isArray(sessions)) {
+                sessionIds.forEach(sessionId => {
+                  const session = sessions.find(s => s.id === sessionId);
+                  if (session && session.category) {
+                    categories.add(session.category);
+                  }
+                });
+              }
+            } catch (error) {
+              console.error('Error parsing practice sessions:', error);
+            }
+          }
+        }
+        
+        // Add categories to filter
+        categories.forEach(category => {
+          const option = document.createElement('option');
+          option.value = category;
+          option.textContent = category;
+          mediaCategoryFilter.appendChild(option);
+        });
+      };
+    } else {
+      // If no IndexedDB, still add the categories we've found
+      categories.forEach(category => {
+        const option = document.createElement('option');
+        option.value = category;
+        option.textContent = category;
+        mediaCategoryFilter.appendChild(option);
+      });
+    }
+  }
+  
+  // Helper function to get session by ID
+  function getSavedSession(sessionId) {
+    if (!sessionId || !localStorage.getItem('practiceSessions')) {
+      return null;
+    }
+    
+    const sessions = JSON.parse(localStorage.getItem('practiceSessions'));
+    return sessions.find(session => session.id === sessionId);
+  }
+  
+  // Setup event listeners for media modal
+  if (viewMediaModal) {
+    const closeBtn = document.getElementById('close-view-media');
+    const renameBtn = document.getElementById('rename-media');
+    const deleteBtn = document.getElementById('delete-media');
+    
+    if (closeBtn) {
+      closeBtn.addEventListener('click', () => {
+        viewMediaModal.style.display = 'none';
+        const videoElement = viewMediaModal.querySelector('video');
+        if (videoElement) {
+          videoElement.pause();
+        }
+      });
+    }
+    
+    if (renameBtn) {
+      renameBtn.addEventListener('click', () => {
+        if (!currentMediaId) return;
+        
+        const transaction = db.transaction(['mediaFiles'], 'readonly');
+        const store = transaction.objectStore('mediaFiles');
+        
+        store.get(currentMediaId).onsuccess = function(event) {
+          const media = event.target.result;
+          
+          if (media) {
+            const newName = prompt('Enter new name:', media.name || '');
+            if (newName && newName.trim() !== '') {
+              updateMediaName(currentMediaId, newName.trim());
+            }
+          }
+        };
+      });
+    }
+    
+    if (deleteBtn) {
+      deleteBtn.addEventListener('click', () => {
+        if (!currentMediaId) return;
+        
+        if (confirm('Are you sure you want to delete this media? This cannot be undone.')) {
+          deleteMedia(currentMediaId);
+        }
+      });
+    }
   }
 });
   </script>
