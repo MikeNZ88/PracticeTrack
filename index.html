@@ -3455,20 +3455,37 @@ document.addEventListener('DOMContentLoaded', () => {
   const DB_NAME = 'PracticeTrackDB';
   const DB_VERSION = 1;
   
-  const request = indexedDB.open(DB_NAME, DB_VERSION);
+  function initializeDatabase() {
+    console.log('Initializing IndexedDB...');
+    const request = indexedDB.open(DB_NAME, DB_VERSION);
+    
+    request.onupgradeneeded = (event) => {
+      console.log('Database upgrade needed, creating object stores');
+      db = event.target.result;
+      if (!db.objectStoreNames.contains('mediaFiles')) {
+        const store = db.createObjectStore('mediaFiles', { keyPath: 'id' });
+        store.createIndex('sessionId', 'sessionId', { unique: false });
+      }
+    };
+    
+    request.onsuccess = (event) => {
+      db = event.target.result;
+      console.log('Database initialized successfully');
+      
+      // Initialize media gallery if we're on the media tab
+      if (document.getElementById('media-tab').classList.contains('active')) {
+        loadMediaGallery();
+      }
+    };
+    
+    request.onerror = (event) => {
+      console.error('Error opening database:', event.target.error);
+      notify('Database error. Some features may not work properly.', 'error');
+    };
+  }
   
-  request.onupgradeneeded = (event) => {
-    db = event.target.result;
-    if (!db.objectStoreNames.contains('mediaFiles')) {
-      const store = db.createObjectStore('mediaFiles', { keyPath: 'id' });
-      store.createIndex('sessionId', 'sessionId', { unique: false });
-    }
-  };
-  
-  request.onsuccess = (event) => {
-    db = event.target.result;
-    console.log('Database initialized successfully');
-  };
+  // Initialize the database
+  initializeDatabase();
   
   // Camera button (opens camera modal)
   if (cameraButton) {
@@ -3598,7 +3615,10 @@ document.addEventListener('DOMContentLoaded', () => {
   // Save media button
   if (saveMediaBtn) {
     saveMediaBtn.addEventListener('click', () => {
-      if (!db || !currentMediaBlob) return;
+      if (!db || !currentMediaBlob) {
+        console.error('Cannot save media: database or media blob not available', {db, currentMediaBlob});
+        return;
+      }
       
       // Prompt for media name
       const mediaName = prompt('Enter a name for this recording:', '');
@@ -3616,9 +3636,29 @@ document.addEventListener('DOMContentLoaded', () => {
         timestamp: new Date().toISOString()
       };
       
+      console.log('Saving media file:', mediaFile);
+      
       store.add(mediaFile).onsuccess = () => {
         notify('Media saved successfully!', 'success');
         mediaPreview.classList.remove('show');
+        cameraModal.style.display = 'none';
+        
+        // Reload the media gallery if we're on the media tab
+        if (document.getElementById('media-tab').classList.contains('active')) {
+          loadMediaGallery();
+        }
+        
+        // Switch to media tab to show the saved media
+        if (mediaTab && mediaTab.click) {
+          setTimeout(() => {
+            mediaTab.click();
+          }, 300);
+        }
+      };
+      
+      transaction.onerror = (event) => {
+        console.error('Error saving media:', event.target.error);
+        notify('Failed to save media. Please try again.', 'error');
       };
     });
   }
@@ -3694,6 +3734,8 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
     
+    console.log('Loading media gallery...');
+    
     const dateFilter = mediaDateFilter ? mediaDateFilter.value : 'all';
     const categoryFilter = mediaCategoryFilter ? mediaCategoryFilter.value : 'all';
     const typeFilter = mediaTypeFilter ? mediaTypeFilter.value : 'all';
@@ -3703,6 +3745,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     store.getAll().onsuccess = function(event) {
       const mediaFiles = event.target.result;
+      console.log('Media files found:', mediaFiles ? mediaFiles.length : 0, mediaFiles);
       
       // Clear existing gallery
       if (mediaGallery) {
@@ -3783,103 +3826,203 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // Create a media item element
   function createMediaItem(media) {
-    const mediaItem = document.createElement('div');
-    mediaItem.className = 'media-item';
-    mediaItem.dataset.id = media.id;
-    
-    // Get session data if available
-    const session = getSavedSession(media.sessionId);
-    const category = session ? session.category : 'Uncategorized';
-    
-    // Format the date
-    const mediaDate = new Date(media.timestamp);
-    const formattedDate = `${mediaDate.toLocaleDateString()} ${mediaDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
-    
-    // Get media name (or use default)
-    const mediaName = media.name || `Unnamed ${media.type === 'photo' ? 'Photo' : 'Video'} ${mediaCounter++}`;
-    
-    // Create preview based on media type
-    const previewContent = media.type === 'photo' 
-      ? `<img src="${URL.createObjectURL(media.blob)}" alt="${mediaName}">` 
-      : `<video src="${URL.createObjectURL(media.blob)}" preload="metadata"></video>`;
-    
-    // Create type icon
-    const typeIcon = media.type === 'photo'
-      ? `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>`
-      : `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>`;
-    
-    mediaItem.innerHTML = `
-      <div class="media-preview">
-        ${previewContent}
-      </div>
-      <div class="media-info">
-        <div class="media-name">${typeIcon} ${mediaName}</div>
-        <div class="media-date">${formattedDate}</div>
-        <div class="media-category">${category}</div>
-        <div class="media-actions">
-          <button class="view-btn">View</button>
-          <button class="rename-btn">Rename</button>
-          <button class="delete-btn">Delete</button>
+    try {
+      const mediaItem = document.createElement('div');
+      mediaItem.className = 'media-item';
+      mediaItem.dataset.id = media.id;
+      
+      // Validate that we have a blob
+      if (!media.blob || !(media.blob instanceof Blob)) {
+        console.error('Invalid media blob for item:', media);
+        
+        // Create a placeholder instead
+        mediaItem.innerHTML = `
+          <div class="media-preview" style="background-color: #f8f8f8; display: flex; align-items: center; justify-content: center;">
+            <div style="text-align: center; padding: 20px;">
+              <p>Media preview unavailable</p>
+            </div>
+          </div>
+          <div class="media-info">
+            <div class="media-name">${media.name || 'Unnamed Media'}</div>
+            <div class="media-date">${new Date(media.timestamp).toLocaleString()}</div>
+            <div class="media-actions">
+              <button class="delete-btn">Delete</button>
+            </div>
+          </div>
+        `;
+        
+        // Add delete button event listener
+        const deleteBtn = mediaItem.querySelector('.delete-btn');
+        if (deleteBtn) {
+          deleteBtn.addEventListener('click', () => {
+            if (confirm('Are you sure you want to delete this media? This cannot be undone.')) {
+              deleteMedia(media.id);
+            }
+          });
+        }
+        
+        return mediaItem;
+      }
+      
+      // Get session data if available
+      const session = getSavedSession(media.sessionId);
+      const category = session ? session.category : 'Uncategorized';
+      
+      // Format the date
+      const mediaDate = new Date(media.timestamp);
+      const formattedDate = `${mediaDate.toLocaleDateString()} ${mediaDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+      
+      // Get media name (or use default)
+      const mediaName = media.name || `Unnamed ${media.type === 'photo' ? 'Photo' : 'Video'} ${mediaCounter++}`;
+      
+      // Create preview based on media type
+      let previewContent;
+      try {
+        const blobUrl = URL.createObjectURL(media.blob);
+        previewContent = media.type === 'photo' 
+          ? `<img src="${blobUrl}" alt="${mediaName}">` 
+          : `<video src="${blobUrl}" preload="metadata"></video>`;
+      } catch (error) {
+        console.error('Error creating blob URL:', error);
+        previewContent = `<div class="media-error">Error loading preview</div>`;
+      }
+      
+      // Create type icon
+      const typeIcon = media.type === 'photo'
+        ? `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>`
+        : `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>`;
+      
+      mediaItem.innerHTML = `
+        <div class="media-preview">
+          ${previewContent}
         </div>
-      </div>
-    `;
-    
-    // Add event listeners to buttons
-    const viewBtn = mediaItem.querySelector('.view-btn');
-    const renameBtn = mediaItem.querySelector('.rename-btn');
-    const deleteBtn = mediaItem.querySelector('.delete-btn');
-    
-    if (viewBtn) {
-      viewBtn.addEventListener('click', () => {
-        viewMedia(media);
-      });
+        <div class="media-info">
+          <div class="media-name">${typeIcon} ${mediaName}</div>
+          <div class="media-date">${formattedDate}</div>
+          <div class="media-category">${category}</div>
+          <div class="media-actions">
+            <button class="view-btn">View</button>
+            <button class="rename-btn">Rename</button>
+            <button class="delete-btn">Delete</button>
+          </div>
+        </div>
+      `;
+      
+      // Add event listeners to buttons
+      const viewBtn = mediaItem.querySelector('.view-btn');
+      const renameBtn = mediaItem.querySelector('.rename-btn');
+      const deleteBtn = mediaItem.querySelector('.delete-btn');
+      
+      if (viewBtn) {
+        viewBtn.addEventListener('click', () => {
+          viewMedia(media);
+        });
+      }
+      
+      if (renameBtn) {
+        renameBtn.addEventListener('click', () => {
+          const newName = prompt('Enter new name:', mediaName);
+          if (newName && newName.trim() !== '') {
+            updateMediaName(media.id, newName.trim());
+          }
+        });
+      }
+      
+      if (deleteBtn) {
+        deleteBtn.addEventListener('click', () => {
+          if (confirm('Are you sure you want to delete this media? This cannot be undone.')) {
+            deleteMedia(media.id);
+          }
+        });
+      }
+      
+      return mediaItem;
+    } catch (error) {
+      console.error('Error creating media item:', error);
+      
+      // Return a simple fallback element if there's an error
+      const errorItem = document.createElement('div');
+      errorItem.className = 'media-item';
+      errorItem.style.backgroundColor = '#ffeeee';
+      errorItem.innerHTML = `
+        <div class="media-info">
+          <div class="media-name">Error displaying media</div>
+          <div class="media-actions">
+            <button class="delete-btn">Delete</button>
+          </div>
+        </div>
+      `;
+      
+      const deleteBtn = errorItem.querySelector('.delete-btn');
+      if (deleteBtn && media && media.id) {
+        deleteBtn.addEventListener('click', () => {
+          if (confirm('Are you sure you want to delete this media? This cannot be undone.')) {
+            deleteMedia(media.id);
+          }
+        });
+      }
+      
+      return errorItem;
     }
-    
-    if (renameBtn) {
-      renameBtn.addEventListener('click', () => {
-        const newName = prompt('Enter new name:', mediaName);
-        if (newName && newName.trim() !== '') {
-          updateMediaName(media.id, newName.trim());
-        }
-      });
-    }
-    
-    if (deleteBtn) {
-      deleteBtn.addEventListener('click', () => {
-        if (confirm('Are you sure you want to delete this media? This cannot be undone.')) {
-          deleteMedia(media.id);
-        }
-      });
-    }
-    
-    return mediaItem;
   }
   
   // View media in modal
   function viewMedia(media) {
     if (!viewMediaModal) return;
     
-    currentMediaId = media.id;
-    
-    const viewContent = viewMediaModal.querySelector('.view-media-content');
-    if (!viewContent) return;
-    
-    viewContent.innerHTML = '';
-    
-    if (media.type === 'photo') {
-      const img = document.createElement('img');
-      img.src = URL.createObjectURL(media.blob);
-      img.alt = media.name || 'Photo';
-      viewContent.appendChild(img);
-    } else {
-      const video = document.createElement('video');
-      video.src = URL.createObjectURL(media.blob);
-      video.controls = true;
-      video.autoplay = true;
-      viewContent.appendChild(video);
+    try {
+      currentMediaId = media.id;
+      
+      const viewContent = viewMediaModal.querySelector('.view-media-content');
+      if (!viewContent) return;
+      
+      viewContent.innerHTML = '';
+      
+      // Check if the media blob is valid
+      if (!media.blob || !(media.blob instanceof Blob)) {
+        viewContent.innerHTML = `
+          <div style="background-color: #f8f8f8; padding: 30px; text-align: center; color: #666;">
+            <p>Media content unavailable</p>
+          </div>
+        `;
+        viewMediaModal.style.display = 'flex';
+        return;
+      }
+      
+      // Attempt to create blob URL
+      let blobUrl;
+      try {
+        blobUrl = URL.createObjectURL(media.blob);
+      } catch (error) {
+        console.error('Error creating blob URL for viewing:', error);
+        viewContent.innerHTML = `
+          <div style="background-color: #f8f8f8; padding: 30px; text-align: center; color: #666;">
+            <p>Error loading media content</p>
+          </div>
+        `;
+        viewMediaModal.style.display = 'flex';
+        return;
+      }
+      
+      // Create appropriate element based on media type
+      if (media.type === 'photo') {
+        const img = document.createElement('img');
+        img.src = blobUrl;
+        img.alt = media.name || 'Photo';
+        viewContent.appendChild(img);
+      } else {
+        const video = document.createElement('video');
+        video.src = blobUrl;
+        video.controls = true;
+        video.autoplay = true;
+        viewContent.appendChild(video);
+      }
+      
+      viewMediaModal.style.display = 'flex';
+    } catch (error) {
+      console.error('Error displaying media in modal:', error);
+      notify('Error displaying media. Please try again.', 'error');
     }
-    
-    viewMediaModal.style.display = 'flex';
   }
   
   // Update media name
