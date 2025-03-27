@@ -789,7 +789,7 @@
       .stats-grid {
         grid-template-columns: repeat(2, 1fr);
         gap: 10px;
-      }
+    }
 
       .menu {
         padding-bottom: 5px;
@@ -1171,6 +1171,81 @@
         display: none;
       }
     }
+
+    /* Add new styles for the guide button, modal, and footer */
+    .guide-button {
+      display: block;
+      width: 100%;
+      margin-top: 15px;
+      padding: 12px;
+      background-color: var(--primary-light);
+      color: white;
+      border: none;
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .guide-button:hover {
+      background-color: var(--primary-color);
+      transform: translateY(-2px);
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      overflow-y: auto;
+    }
+
+    .modal-content {
+      background-color: var(--card-color);
+      margin: 20px auto;
+      padding: 20px;
+      border-radius: var(--radius);
+      max-width: 800px;
+      position: relative;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .close-modal {
+      position: absolute;
+      right: 20px;
+      top: 20px;
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      color: var(--text-color);
+    }
+
+    .footer {
+      text-align: center;
+      margin-top: 30px;
+      padding: 20px;
+      border-top: 1px solid var(--border-color);
+      color: var(--text-light);
+    }
+
+    .footer a {
+      color: var(--primary-color);
+      text-decoration: none;
+      transition: var(--transition);
+    }
+
+    .footer a:hover {
+      color: var(--primary-dark);
+      text-decoration: underline;
+    }
   </style>
 </head>
 <body>
@@ -1222,25 +1297,27 @@
           <line x1="9" y1="21" x2="9" y2="9"></line>
         </svg>
       </li>
-      <li class="menu-item settings-icon" data-tab="settings">
+      <li class="menu-item" data-tab="settings">
         <span>Settings</span>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="3"></circle>
           <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
         </svg>
       </li>
-      <li class="menu-item" data-tab="guide">
-        <span>Guide</span>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="10"></circle>
-          <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
-          <line x1="12" y1="17" x2="12.01" y2="17"></line>
-        </svg>
-      </li>
     </ul>
     
     <!-- Timer Tab -->
     <div id="timer-tab" class="tab active">
+      <!-- Add How to Use button -->
+      <button class="guide-button" id="show-guide">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+          <line x1="12" y1="17" x2="12.01" y2="17"></line>
+        </svg>
+        How to Use PracticeTrack
+      </button>
+
       <div class="card timer-card">
         <div class="timer-content">
           <h2>Practice Timer</h2>
@@ -1345,6 +1422,11 @@
           </button>
         </div>
       </div>
+
+      <!-- Add footer -->
+      <div class="footer">
+        © Mike Nelson Guitar Lessons | <a href="https://mikenelsonguitarlessons.co.nz" target="_blank">mikenelsonguitarlessons.co.nz</a>
+      </div>
     </div>
     
     <!-- Sessions Tab -->
@@ -1376,6 +1458,9 @@
         <div id="no-sessions-message" class="empty-message">
           <p>No practice sessions recorded yet. Use the timer to start tracking your practice!</p>
         </div>
+      </div>
+      <div class="footer">
+        © Mike Nelson Guitar Lessons | <a href="https://mikenelsonguitarlessons.co.nz" target="_blank">mikenelsonguitarlessons.co.nz</a>
       </div>
     </div>
 
@@ -1441,6 +1526,9 @@
           <p>No goals added yet. Add some goals to track your practice objectives!</p>
         </div>
       </div>
+      <div class="footer">
+        © Mike Nelson Guitar Lessons | <a href="https://mikenelsonguitarlessons.co.nz" target="_blank">mikenelsonguitarlessons.co.nz</a>
+      </div>
     </div>
     
     <!-- Dashboard Tab -->
@@ -1492,6 +1580,9 @@
         
         <h3>Weekly Practice Time (minutes)</h3>
         <div id="chart-container" class="chart-container"></div>
+      </div>
+      <div class="footer">
+        © Mike Nelson Guitar Lessons | <a href="https://mikenelsonguitarlessons.co.nz" target="_blank">mikenelsonguitarlessons.co.nz</a>
       </div>
     </div>
     
@@ -1594,6 +1685,84 @@
           <input type="file" id="import-file" accept=".json" class="hidden">
         </div>
       </div>
+      <div class="footer">
+        © Mike Nelson Guitar Lessons | <a href="https://mikenelsonguitarlessons.co.nz" target="_blank">mikenelsonguitarlessons.co.nz</a>
+      </div>
+    </div>
+    
+    <!-- Add Guide Modal -->
+    <div id="guide-modal" class="modal">
+      <div class="modal-content">
+        <button class="close-modal" id="close-guide">&times;</button>
+        <div class="guide-content">
+          <h2>How to Use PracticeTrack</h2>
+          
+          <div class="guide-section">
+            <h3>Getting Started</h3>
+            <p>Welcome to PracticeTrack, your musical practice companion! Follow these steps to get started:</p>
+            <ol class="feature-list">
+              <li>First, go to the Settings tab and select your instrument and regular lesson day (if applicable)</li>
+              <li>Choose a theme that suits your preference (Default, Dark, or Light mode)</li>
+              <li>Save your settings to personalize your practice experience</li>
+            </ol>
+          </div>
+          
+          <div class="guide-section">
+            <h3>Using the Practice Timer</h3>
+            <p>Track your practice sessions effectively:</p>
+            <ul class="feature-list">
+              <li>Use the Start button to begin your practice session</li>
+              <li>Pause anytime if you need a break</li>
+              <li>Resume when you're ready to continue</li>
+              <li>Stop when you're done practicing</li>
+              <li>Select a practice category and add optional notes</li>
+              <li>Save your session to track your progress</li>
+            </ul>
+          </div>
+          
+          <div class="guide-section">
+            <h3>Setting Goals</h3>
+            <p>Stay motivated with practice goals:</p>
+            <ul class="feature-list">
+              <li>Add specific, achievable practice goals</li>
+              <li>Mark goals as complete when achieved</li>
+              <li>Filter goals by status (Active/Completed)</li>
+              <li>Track your progress over time</li>
+            </ul>
+          </div>
+          
+          <div class="guide-section">
+            <h3>Tracking Progress</h3>
+            <p>Monitor your practice journey:</p>
+            <ul class="feature-list">
+              <li>View detailed practice statistics in the Dashboard</li>
+              <li>Check your total practice time and session counts</li>
+              <li>See your practice distribution across different categories</li>
+              <li>Track days until your next lesson</li>
+            </ul>
+          </div>
+          
+          <div class="guide-section">
+            <h3>Using the Metronome</h3>
+            <p>Keep perfect time with the built-in metronome:</p>
+            <ul class="feature-list">
+              <li>Adjust tempo using the slider or +/- buttons</li>
+              <li>Range from 40 to 220 BPM</li>
+              <li>Start/stop with a single click</li>
+            </ul>
+          </div>
+          
+          <div class="guide-section">
+            <h3>Data Management</h3>
+            <p>Keep your practice data safe:</p>
+            <ul class="feature-list">
+              <li>Export your data for backup</li>
+              <li>Import previously saved data</li>
+              <li>All data is stored locally on your device</li>
+            </ul>
+          </div>
+        </div>
+      </div>
     </div>
     
     <!-- Notification element -->
@@ -1605,93 +1774,19 @@
     <p class="loading-message">Processing...</p>
   </div>
 
-  <!-- Guide Tab -->
-  <div id="guide-tab" class="tab">
-    <div class="card">
-      <div class="guide-content">
-        <h2>How to Use PracticeTrack</h2>
-        
-        <div class="guide-section">
-          <h3>Getting Started</h3>
-          <p>Welcome to PracticeTrack, your musical practice companion! Follow these steps to get started:</p>
-          <ol class="feature-list">
-            <li>First, go to the Settings tab and select your instrument and regular lesson day (if applicable)</li>
-            <li>Choose a theme that suits your preference (Default, Dark, or Light mode)</li>
-            <li>Save your settings to personalize your practice experience</li>
-          </ol>
-        </div>
-        
-        <div class="guide-section">
-          <h3>Using the Practice Timer</h3>
-          <p>Track your practice sessions effectively:</p>
-          <ul class="feature-list">
-            <li>Use the Start button to begin your practice session</li>
-            <li>Pause anytime if you need a break</li>
-            <li>Resume when you're ready to continue</li>
-            <li>Stop when you're done practicing</li>
-            <li>Select a practice category and add optional notes</li>
-            <li>Save your session to track your progress</li>
-          </ul>
-        </div>
-        
-        <div class="guide-section">
-          <h3>Setting Goals</h3>
-          <p>Stay motivated with practice goals:</p>
-          <ul class="feature-list">
-            <li>Add specific, achievable practice goals</li>
-            <li>Mark goals as complete when achieved</li>
-            <li>Filter goals by status (Active/Completed)</li>
-            <li>Track your progress over time</li>
-          </ul>
-        </div>
-        
-        <div class="guide-section">
-          <h3>Tracking Progress</h3>
-          <p>Monitor your practice journey:</p>
-          <ul class="feature-list">
-            <li>View detailed practice statistics in the Dashboard</li>
-            <li>Check your total practice time and session counts</li>
-            <li>See your practice distribution across different categories</li>
-            <li>Track days until your next lesson</li>
-          </ul>
-        </div>
-        
-        <div class="guide-section">
-          <h3>Using the Metronome</h3>
-          <p>Keep perfect time with the built-in metronome:</p>
-          <ul class="feature-list">
-            <li>Adjust tempo using the slider or +/- buttons</li>
-            <li>Range from 40 to 220 BPM</li>
-            <li>Start/stop with a single click</li>
-          </ul>
-        </div>
-        
-        <div class="guide-section">
-          <h3>Data Management</h3>
-          <p>Keep your practice data safe:</p>
-          <ul class="feature-list">
-            <li>Export your data for backup</li>
-            <li>Import previously saved data</li>
-            <li>All data is stored locally on your device</li>
-          </ul>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <script>
 // Global variables
-let sessions = [];
-let goals = [];
-let settings = { instrument: "", lessonDay: "", theme: "default" };
-let timerStatus = "stopped";
-let startTime = 0;
-let pausedTimeAccum = 0;
-let timerInterval = null;
-let metronomeInterval = null;
-let audioCtx = null;
-let notificationTimeout = null;
-let editingGoalId = null;
+      let sessions = [];
+      let goals = [];
+      let settings = { instrument: "", lessonDay: "", theme: "default" };
+      let timerStatus = "stopped";
+      let startTime = 0;
+      let pausedTimeAccum = 0;
+      let timerInterval = null;
+      let metronomeInterval = null;
+      let audioCtx = null;
+      let notificationTimeout = null;
+      let editingGoalId = null;
 let elements = null;
 
 // Instrument definitions and practice categories
@@ -1799,60 +1894,60 @@ function initializeApp() {
   
   // Initialize DOM elements
   elements = {
-    // Timer
-    timerDisplay: document.getElementById('timer-display'),
-    timerProgressBar: document.getElementById('timer-progress-bar'),
-    startTimerBtn: document.getElementById('start-timer'),
-    pauseTimerBtn: document.getElementById('pause-timer'),
-    resumeTimerBtn: document.getElementById('resume-timer'),
-    stopTimerBtn: document.getElementById('stop-timer'),
-    
-    // Session
+        // Timer
+        timerDisplay: document.getElementById('timer-display'),
+        timerProgressBar: document.getElementById('timer-progress-bar'),
+        startTimerBtn: document.getElementById('start-timer'),
+        pauseTimerBtn: document.getElementById('pause-timer'),
+        resumeTimerBtn: document.getElementById('resume-timer'),
+        stopTimerBtn: document.getElementById('stop-timer'),
+        
+        // Session
     practiceCategory: document.getElementById('practice-category'),
     sessionNotes: document.getElementById('session-notes'),
-    saveSessionBtn: document.getElementById('save-session'),
+        saveSessionBtn: document.getElementById('save-session'),
     sessionList: document.getElementById('sessions-list'),
-    sessionFilter: document.getElementById('session-filter'),
-    noSessionsMessage: document.getElementById('no-sessions-message'),
-    
-    // Goals
+        sessionFilter: document.getElementById('session-filter'),
+        noSessionsMessage: document.getElementById('no-sessions-message'),
+        
+        // Goals
     goalName: document.getElementById('goal-input'),
-    addGoalBtn: document.getElementById('add-goal'),
-    updateGoalBtn: document.getElementById('update-goal'),
-    cancelEditBtn: document.getElementById('cancel-edit'),
+        addGoalBtn: document.getElementById('add-goal'),
+        updateGoalBtn: document.getElementById('update-goal'),
+        cancelEditBtn: document.getElementById('cancel-edit'),
     goalList: document.getElementById('goals-list'),
-    goalFilter: document.getElementById('goal-filter'),
-    noGoalsMessage: document.getElementById('no-goals-message'),
-    
-    // Dashboard
-    totalTime: document.getElementById('total-time'),
-    totalSessions: document.getElementById('total-sessions'),
-    avgTime: document.getElementById('avg-time'),
-    completedGoals: document.getElementById('completed-goals'),
-    instrumentDisplay: document.getElementById('instrument-display'),
-    lessonDayDisplay: document.getElementById('lesson-day-display'),
-    nextLessonText: document.getElementById('next-lesson-text'),
-    daysToLesson: document.getElementById('days-to-lesson'),
+        goalFilter: document.getElementById('goal-filter'),
+        noGoalsMessage: document.getElementById('no-goals-message'),
+        
+        // Dashboard
+        totalTime: document.getElementById('total-time'),
+        totalSessions: document.getElementById('total-sessions'),
+        avgTime: document.getElementById('avg-time'),
+        completedGoals: document.getElementById('completed-goals'),
+        instrumentDisplay: document.getElementById('instrument-display'),
+        lessonDayDisplay: document.getElementById('lesson-day-display'),
+        nextLessonText: document.getElementById('next-lesson-text'),
+        daysToLesson: document.getElementById('days-to-lesson'),
     practiceChart: document.getElementById('chart-container'),
-    
-    // Settings
-    instrument: document.getElementById('instrument'),
-    lessonDay: document.getElementById('lesson-day'),
-    themeSelect: document.getElementById('theme-select'),
-    saveSettingsBtn: document.getElementById('save-settings'),
-    exportDataBtn: document.getElementById('export-data'),
-    importDataBtn: document.getElementById('import-data'),
-    importFile: document.getElementById('import-file'),
-    
-    // Metronome
-    tempoSlider: document.getElementById('tempo-slider'),
-    bpmDisplay: document.getElementById('bpm-display'),
-    decreaseTempoBtn: document.getElementById('decrease-tempo'),
-    increaseTempoBtn: document.getElementById('increase-tempo'),
-    startMetronomeBtn: document.getElementById('start-metronome'),
-    stopMetronomeBtn: document.getElementById('stop-metronome'),
-    
-    // Notification
+        
+        // Settings
+        instrument: document.getElementById('instrument'),
+        lessonDay: document.getElementById('lesson-day'),
+        themeSelect: document.getElementById('theme-select'),
+        saveSettingsBtn: document.getElementById('save-settings'),
+        exportDataBtn: document.getElementById('export-data'),
+        importDataBtn: document.getElementById('import-data'),
+        importFile: document.getElementById('import-file'),
+        
+        // Metronome
+        tempoSlider: document.getElementById('tempo-slider'),
+        bpmDisplay: document.getElementById('bpm-display'),
+        decreaseTempoBtn: document.getElementById('decrease-tempo'),
+        increaseTempoBtn: document.getElementById('increase-tempo'),
+        startMetronomeBtn: document.getElementById('start-metronome'),
+        stopMetronomeBtn: document.getElementById('stop-metronome'),
+        
+        // Notification
     notification: document.getElementById('notification'),
     
     // Add new filter elements
@@ -1914,21 +2009,21 @@ function checkLocalStorage() {
   }
 }
 
-function initializeData() {
-  try {
-    const storedSessions = localStorage.getItem("sessions");
-    if (storedSessions) {
-      sessions = JSON.parse(storedSessions);
-    }
-    
-    const storedGoals = localStorage.getItem("goals");
-    if (storedGoals) {
-      goals = JSON.parse(storedGoals);
-    }
-    
-    settings.instrument = localStorage.getItem("instrument") || "";
-    settings.lessonDay = localStorage.getItem("lessonDay") || "";
-    settings.theme = localStorage.getItem("theme") || "default";
+      function initializeData() {
+        try {
+          const storedSessions = localStorage.getItem("sessions");
+          if (storedSessions) {
+            sessions = JSON.parse(storedSessions);
+          }
+          
+          const storedGoals = localStorage.getItem("goals");
+          if (storedGoals) {
+            goals = JSON.parse(storedGoals);
+          }
+          
+          settings.instrument = localStorage.getItem("instrument") || "";
+          settings.lessonDay = localStorage.getItem("lessonDay") || "";
+          settings.theme = localStorage.getItem("theme") || "default";
     
     // Initialize UI after data is loaded
     initUI();
@@ -1938,48 +2033,48 @@ function initializeData() {
     if (storedCustomCategories) {
       customCategories = JSON.parse(storedCustomCategories);
     }
-  } catch (error) {
-    console.error("Error loading data from localStorage:", error);
-    notify("There was an error loading your data.", "error");
-  }
-}
-
-function initUI() {
-  // Set theme
-  applyTheme(settings.theme);
+        } catch (error) {
+          console.error("Error loading data from localStorage:", error);
+          notify("There was an error loading your data.", "error");
+        }
+      }
+      
+      function initUI() {
+        // Set theme
+        applyTheme(settings.theme);
   
   // Update category filters
   updateCategoryFilters();
-  
-  // Populate initial UI with data
-  updateDashboard();
-  refreshSessionList();
-  refreshGoalList();
-  
-  // Fill settings form fields
-  elements.instrument.value = settings.instrument;
-  if (settings.lessonDay) {
-    elements.lessonDay.value = settings.lessonDay;
-  }
-  elements.themeSelect.value = settings.theme;
-  
-  // Set up event listeners
-  setupEventListeners();
-  
-  // Update metronome display
-  elements.bpmDisplay.textContent = elements.tempoSlider.value;
-}
-
-function setupEventListeners() {
+        
+        // Populate initial UI with data
+        updateDashboard();
+        refreshSessionList();
+        refreshGoalList();
+        
+        // Fill settings form fields
+        elements.instrument.value = settings.instrument;
+        if (settings.lessonDay) {
+          elements.lessonDay.value = settings.lessonDay;
+        }
+        elements.themeSelect.value = settings.theme;
+        
+        // Set up event listeners
+        setupEventListeners();
+        
+        // Update metronome display
+        elements.bpmDisplay.textContent = elements.tempoSlider.value;
+      }
+      
+      function setupEventListeners() {
   try {
-    // Timer controls
-    elements.startTimerBtn.addEventListener('click', startTimer);
-    elements.pauseTimerBtn.addEventListener('click', pauseTimer);
-    elements.resumeTimerBtn.addEventListener('click', resumeTimer);
-    elements.stopTimerBtn.addEventListener('click', stopTimer);
-
+        // Timer controls
+        elements.startTimerBtn.addEventListener('click', startTimer);
+        elements.pauseTimerBtn.addEventListener('click', pauseTimer);
+        elements.resumeTimerBtn.addEventListener('click', resumeTimer);
+        elements.stopTimerBtn.addEventListener('click', stopTimer);
+        
     // Session management
-    elements.saveSessionBtn.addEventListener('click', saveSession);
+        elements.saveSessionBtn.addEventListener('click', saveSession);
     elements.practiceCategory.addEventListener('change', () => {
       const isValid = elements.practiceCategory.value && timerStatus === "stopped" && pausedTimeAccum > 0;
       elements.saveSessionBtn.disabled = !isValid;
@@ -1990,8 +2085,8 @@ function setupEventListeners() {
         elements.saveSessionBtn.classList.add('active-save');
       }
     });
-    elements.sessionFilter.addEventListener('input', refreshSessionList);
-
+        elements.sessionFilter.addEventListener('input', refreshSessionList);
+        
     // Goal management
     elements.goalName.addEventListener('input', () => {
       const isValid = elements.goalName.value.trim().length > 0;
@@ -1999,10 +2094,10 @@ function setupEventListeners() {
     });
     elements.addGoalBtn.addEventListener('click', addGoal);
     elements.updateGoalBtn.addEventListener('click', updateGoal);
-    elements.cancelEditBtn.addEventListener('click', cancelEditGoal);
-    elements.goalFilter.addEventListener('change', refreshGoalList);
-
-    // Settings
+        elements.cancelEditBtn.addEventListener('click', cancelEditGoal);
+        elements.goalFilter.addEventListener('change', refreshGoalList);
+        
+        // Settings
     elements.instrument.addEventListener('change', () => {
       const isValid = elements.instrument.value && elements.lessonDay.value;
       elements.saveSettingsBtn.classList.toggle('active-save', isValid);
@@ -2017,9 +2112,9 @@ function setupEventListeners() {
     elements.saveSettingsBtn.addEventListener('click', saveSettings);
 
     // Export/Import
-    elements.exportDataBtn.addEventListener('click', exportData);
+        elements.exportDataBtn.addEventListener('click', exportData);
     elements.importDataBtn.addEventListener('click', () => elements.importFile.click());
-    elements.importFile.addEventListener('change', importData);
+        elements.importFile.addEventListener('change', importData);
 
     // Tab navigation
     document.querySelectorAll('.menu-item').forEach(item => {
@@ -2044,21 +2139,21 @@ function setupEventListeners() {
         }
       });
     });
-
-    // Metronome controls
+        
+        // Metronome controls
     elements.startMetronomeBtn.addEventListener('click', startMetronome);
     elements.stopMetronomeBtn.addEventListener('click', stopMetronome);
-    elements.decreaseTempoBtn.addEventListener('click', () => changeTempo(-5));
-    elements.increaseTempoBtn.addEventListener('click', () => changeTempo(5));
-    elements.tempoSlider.addEventListener('input', () => {
-      const tempo = parseInt(elements.tempoSlider.value);
-      elements.bpmDisplay.textContent = tempo;
-      if (metronomeInterval) {
-        stopMetronome();
-        startMetronome();
-      }
-    });
-
+        elements.decreaseTempoBtn.addEventListener('click', () => changeTempo(-5));
+        elements.increaseTempoBtn.addEventListener('click', () => changeTempo(5));
+        elements.tempoSlider.addEventListener('input', () => {
+          const tempo = parseInt(elements.tempoSlider.value);
+          elements.bpmDisplay.textContent = tempo;
+          if (metronomeInterval) {
+            stopMetronome();
+            startMetronome();
+          }
+        });
+        
     // Filter event listeners
     elements.sessionDateFilter.addEventListener('change', refreshSessionList);
     elements.sessionCategoryFilter.addEventListener('change', refreshSessionList);
@@ -2080,119 +2175,119 @@ function setupEventListeners() {
     console.error('Error setting up event listeners:', error);
     notify('There was an error setting up the application controls.', 'error');
   }
-}
-
-// Timer functions
-function startTimer() {
+      }
+      
+      // Timer functions
+      function startTimer() {
   console.log('Starting timer...');
-  if (timerStatus !== "stopped") return;
-  
-  pausedTimeAccum = 0;
-  timerStatus = "running";
-  startTime = Date.now();
-  
-  // Update button states
-  elements.startTimerBtn.disabled = true;
-  elements.pauseTimerBtn.disabled = false;
-  elements.stopTimerBtn.disabled = false;
-  elements.resumeTimerBtn.disabled = true;
+        if (timerStatus !== "stopped") return;
+        
+        pausedTimeAccum = 0;
+        timerStatus = "running";
+        startTime = Date.now();
+        
+        // Update button states
+        elements.startTimerBtn.disabled = true;
+        elements.pauseTimerBtn.disabled = false;
+        elements.stopTimerBtn.disabled = false;
+        elements.resumeTimerBtn.disabled = true;
   elements.resumeTimerBtn.classList.add('hidden');
   elements.pauseTimerBtn.classList.remove('hidden');
-  elements.saveSessionBtn.disabled = true;
-  
-  // Start interval to update display
-  timerInterval = setInterval(updateTimerDisplay, 1000);
-  updateTimerDisplay(); // Update immediately
+        elements.saveSessionBtn.disabled = true;
+        
+        // Start interval to update display
+        timerInterval = setInterval(updateTimerDisplay, 1000);
+        updateTimerDisplay(); // Update immediately
   console.log('Timer started successfully');
-}
-
-function pauseTimer() {
+      }
+      
+      function pauseTimer() {
   console.log('Pausing timer...');
-  if (timerStatus !== "running") return;
-  
-  clearInterval(timerInterval);
+        if (timerStatus !== "running") return;
+        
+        clearInterval(timerInterval);
   pausedTimeAccum += Date.now() - startTime;
-  timerStatus = "paused";
-  
-  // Update buttons
-  elements.pauseTimerBtn.classList.add('hidden');
-  elements.resumeTimerBtn.classList.remove('hidden');
-  elements.resumeTimerBtn.disabled = false;
+        timerStatus = "paused";
+        
+        // Update buttons
+        elements.pauseTimerBtn.classList.add('hidden');
+        elements.resumeTimerBtn.classList.remove('hidden');
+        elements.resumeTimerBtn.disabled = false;
   console.log('Timer paused successfully');
-}
-
-function resumeTimer() {
+      }
+      
+      function resumeTimer() {
   console.log('Resuming timer...');
-  if (timerStatus !== "paused") return;
-  
-  startTime = Date.now();
+        if (timerStatus !== "paused") return;
+        
+        startTime = Date.now();
   timerStatus = "running";
-  
-  // Update buttons
-  elements.resumeTimerBtn.classList.add('hidden');
-  elements.pauseTimerBtn.classList.remove('hidden');
-  elements.pauseTimerBtn.disabled = false;
-  
-  timerInterval = setInterval(updateTimerDisplay, 1000);
+        
+        // Update buttons
+        elements.resumeTimerBtn.classList.add('hidden');
+        elements.pauseTimerBtn.classList.remove('hidden');
+        elements.pauseTimerBtn.disabled = false;
+        
+        timerInterval = setInterval(updateTimerDisplay, 1000);
   console.log('Timer resumed successfully');
-}
-
-function stopTimer() {
+      }
+      
+      function stopTimer() {
   console.log('Stopping timer...');
-  if (timerStatus === "stopped") return;
-  
-  if (timerStatus === "running") {
-    pausedTimeAccum += Date.now() - startTime;
-  }
-  
-  clearInterval(timerInterval);
-  timerStatus = "stopped";
-  
-  // Update displayed time one final time
-  updateTimerDisplay();
-  
-  // Reset buttons
-  elements.startTimerBtn.disabled = false;
-  elements.pauseTimerBtn.disabled = true;
-  elements.resumeTimerBtn.classList.add('hidden');
-  elements.pauseTimerBtn.classList.remove('hidden');
-  elements.stopTimerBtn.disabled = true;
-  
+        if (timerStatus === "stopped") return;
+        
+        if (timerStatus === "running") {
+          pausedTimeAccum += Date.now() - startTime;
+        }
+        
+        clearInterval(timerInterval);
+        timerStatus = "stopped";
+        
+        // Update displayed time one final time
+        updateTimerDisplay();
+        
+        // Reset buttons
+        elements.startTimerBtn.disabled = false;
+        elements.pauseTimerBtn.disabled = true;
+        elements.resumeTimerBtn.classList.add('hidden');
+        elements.pauseTimerBtn.classList.remove('hidden');
+        elements.stopTimerBtn.disabled = true;
+        
   // Enable save button if we have a category and time recorded
   const isValid = elements.practiceCategory.value && pausedTimeAccum > 0;
   elements.saveSessionBtn.disabled = !isValid;
   elements.saveSessionBtn.classList.toggle('active-save', isValid);
   
   if (pausedTimeAccum === 0) {
-    notify("No time recorded for this session.", "error");
-  }
+          notify("No time recorded for this session.", "error");
+        }
   console.log('Timer stopped successfully');
-}
-
-function updateTimerDisplay() {
-  let elapsed = 0;
-  
-  if (timerStatus === "running") {
-    elapsed = pausedTimeAccum + (Date.now() - startTime);
-  } else {
-    elapsed = pausedTimeAccum;
-  }
-  
-  // Convert ms to HH:MM:SS
-  const totalSeconds = Math.floor(elapsed / 1000);
-  const hours = Math.floor(totalSeconds / 3600);
-  const minutes = Math.floor((totalSeconds % 3600) / 60);
-  const seconds = totalSeconds % 60;
-  
-  // Format with leading zeros
-  const timeString = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-  elements.timerDisplay.textContent = timeString;
-  
-  // Update progress bar (30 minutes = 100%)
-  const progressPercent = Math.min(100, (elapsed / (30 * 60 * 1000)) * 100);
-  elements.timerProgressBar.style.width = `${progressPercent}%`;
-}
-
+      }
+      
+      function updateTimerDisplay() {
+        let elapsed = 0;
+        
+        if (timerStatus === "running") {
+          elapsed = pausedTimeAccum + (Date.now() - startTime);
+        } else {
+          elapsed = pausedTimeAccum;
+        }
+        
+        // Convert ms to HH:MM:SS
+        const totalSeconds = Math.floor(elapsed / 1000);
+        const hours = Math.floor(totalSeconds / 3600);
+        const minutes = Math.floor((totalSeconds % 3600) / 60);
+        const seconds = totalSeconds % 60;
+        
+        // Format with leading zeros
+        const timeString = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        elements.timerDisplay.textContent = timeString;
+        
+        // Update progress bar (30 minutes = 100%)
+        const progressPercent = Math.min(100, (elapsed / (30 * 60 * 1000)) * 100);
+        elements.timerProgressBar.style.width = `${progressPercent}%`;
+      }
+      
 // Utility functions
 function formatDuration(ms) {
   const totalSeconds = Math.floor(ms / 1000);
@@ -2233,35 +2328,35 @@ function applyTheme(theme) {
 function saveSession() {
   if (!elements.practiceCategory.value || timerStatus !== "stopped" || pausedTimeAccum === 0) {
     notify("Please select a practice category and stop the timer first.", "error");
-    return;
-  }
-  
-  const session = {
+          return;
+        }
+        
+        const session = {
     id: Date.now(),
     name: elements.practiceCategory.value, // Using category as the name
-    duration: pausedTimeAccum,
+          duration: pausedTimeAccum,
     date: new Date().toISOString(),
     notes: elements.sessionNotes.value.trim()
-  };
-  
-  sessions.push(session);
-  localStorage.setItem("sessions", JSON.stringify(sessions));
-  
+        };
+        
+        sessions.push(session);
+        localStorage.setItem("sessions", JSON.stringify(sessions));
+        
   // Reset form
   elements.practiceCategory.value = "";
   elements.sessionNotes.value = "";
-  pausedTimeAccum = 0;
-  elements.saveSessionBtn.disabled = true;
+        pausedTimeAccum = 0;
+        elements.saveSessionBtn.disabled = true;
   elements.saveSessionBtn.classList.remove('active-save');
-  
-  // Update UI
-  updateDashboard();
+        
+        // Update UI
+        updateDashboard();
   refreshSessionList();
-  notify("Session saved successfully!", "success");
-}
-
-function refreshSessionList() {
-  const filterText = elements.sessionFilter.value.toLowerCase();
+        notify("Session saved successfully!", "success");
+      }
+      
+      function refreshSessionList() {
+        const filterText = elements.sessionFilter.value.toLowerCase();
   const dateRange = getDateRange(elements.sessionDateFilter.value);
   const categoryFilter = elements.sessionCategoryFilter.value;
   
@@ -2279,26 +2374,26 @@ function refreshSessionList() {
   elements.noSessionsMessage.style.display = filteredSessions.length === 0 ? "block" : "none";
   
   filteredSessions.forEach(session => {
-    const li = document.createElement("li");
+          const li = document.createElement("li");
     li.className = "session-item";
     
     const duration = formatDuration(session.duration);
     const date = new Date(session.date).toLocaleDateString();
-    
-    li.innerHTML = `
-      <div class="session-info">
+          
+          li.innerHTML = `
+            <div class="session-info">
         <div class="session-header">${session.name}</div>
         <div class="session-details">
           <span>Duration: ${duration}</span>
           <span>Date: ${date}</span>
         </div>
         ${session.notes ? `<p class="session-notes">${session.notes}</p>` : ""}
-      </div>
-      <div class="session-actions">
+            </div>
+            <div class="session-actions">
         <button class="delete-btn" data-id="${session.id}">Delete</button>
-      </div>
-    `;
-    
+            </div>
+          `;
+          
     // Add event listener for delete
     li.querySelector(".delete-btn").addEventListener("click", () => deleteSession(session.id));
     
@@ -2308,25 +2403,25 @@ function refreshSessionList() {
 
 function editSession(id) {
   const session = sessions.find(s => s.id === id);
-  if (!session) return;
-  
-  // Switch to timer tab
+        if (!session) return;
+        
+        // Switch to timer tab
   document.querySelectorAll('.menu-item').forEach(menuItem => menuItem.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
   document.querySelector('[data-tab="timer"]').classList.add('active');
   document.getElementById('timer-tab').classList.add('active');
-  
+        
   // Populate edit form
   elements.practiceCategory.value = session.name;
   elements.sessionNotes.value = session.notes || "";
-  pausedTimeAccum = session.duration;
+        pausedTimeAccum = session.duration;
   
   // Remove old session
   sessions = sessions.filter(s => s.id !== id);
   localStorage.setItem("sessions", JSON.stringify(sessions));
   
   // Update UI
-  updateTimerDisplay();
+        updateTimerDisplay();
   refreshSessionList();
   updateDashboard();
   
@@ -2341,57 +2436,57 @@ function deleteSession(id) {
   if (!confirm("Are you sure you want to delete this session?")) return;
   
   sessions = sessions.filter(s => s.id !== id);
-  localStorage.setItem("sessions", JSON.stringify(sessions));
-  
-  updateDashboard();
+        localStorage.setItem("sessions", JSON.stringify(sessions));
+        
+        updateDashboard();
   refreshSessionList();
   notify("Session deleted successfully!", "success");
-}
-
-// Goal functions
-function addGoal() {
+      }
+      
+      // Goal functions
+      function addGoal() {
   const goalName = elements.goalName.value.trim();
   if (!goalName) {
     notify("Please enter a goal description.", "error");
-    return;
-  }
-  
-  const goal = {
+          return;
+        }
+        
+        const goal = {
     id: Date.now(),
     name: goalName,
     completed: false,
     date: new Date().toISOString()
   };
   
-  goals.push(goal);
-  localStorage.setItem("goals", JSON.stringify(goals));
-  
+        goals.push(goal);
+        localStorage.setItem("goals", JSON.stringify(goals));
+        
   elements.goalName.value = "";
   elements.addGoalBtn.classList.remove('active-save');
-  refreshGoalList();
-  updateDashboard();
+        refreshGoalList();
+        updateDashboard();
   notify("Goal added successfully!", "success");
-}
-
-function updateGoal() {
+      }
+      
+      function updateGoal() {
   if (!editingGoalId || !elements.goalName.value.trim()) {
     notify("Please enter a goal description.", "error");
-    return;
-  }
-  
-  const goalIndex = goals.findIndex(g => g.id === editingGoalId);
-  if (goalIndex === -1) return;
-  
+          return;
+        }
+        
+        const goalIndex = goals.findIndex(g => g.id === editingGoalId);
+        if (goalIndex === -1) return;
+        
   goals[goalIndex].name = elements.goalName.value.trim();
-  localStorage.setItem("goals", JSON.stringify(goals));
-  
+        localStorage.setItem("goals", JSON.stringify(goals));
+        
   cancelEditGoal();
-  refreshGoalList();
+        refreshGoalList();
   notify("Goal updated successfully!", "success");
-}
-
-function cancelEditGoal() {
-  editingGoalId = null;
+      }
+      
+      function cancelEditGoal() {
+        editingGoalId = null;
   elements.goalName.value = "";
   elements.addGoalBtn.classList.remove("hidden");
   elements.updateGoalBtn.classList.add("hidden");
@@ -2523,14 +2618,14 @@ function updateDashboard() {
         statsGrid.appendChild(card);
       }
     });
-  
-  // Update instrument and lesson day display
-  elements.instrumentDisplay.textContent = settings.instrument || "None";
-  elements.lessonDayDisplay.textContent = settings.lessonDay || "None";
-  
-  // Calculate days until next lesson
-  if (settings.lessonDay) {
-    const today = new Date();
+        
+        // Update instrument and lesson day display
+        elements.instrumentDisplay.textContent = settings.instrument || "None";
+        elements.lessonDayDisplay.textContent = settings.lessonDay || "None";
+        
+        // Calculate days until next lesson
+        if (settings.lessonDay) {
+          const today = new Date();
     const dayIndex = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
       .indexOf(settings.lessonDay);
     
@@ -2538,14 +2633,14 @@ function updateDashboard() {
       let daysUntil = dayIndex - today.getDay();
       if (daysUntil <= 0) daysUntil += 7;
       
-      elements.nextLessonText.style.display = "block";
+          elements.nextLessonText.style.display = "block";
       elements.daysToLesson.textContent = daysUntil;
     }
-  } else {
-    elements.nextLessonText.style.display = "none";
-  }
-  
-  // Update practice chart
+        } else {
+          elements.nextLessonText.style.display = "none";
+        }
+        
+        // Update practice chart
   updatePracticeChart(dateRange, categoryFilter);
 }
 
@@ -2577,37 +2672,37 @@ function updatePracticeChart(dateRange, categoryFilter) {
   elements.practiceChart.innerHTML = "";
   
   minutesPerDay.forEach((minutes, i) => {
-    const barContainer = document.createElement("div");
-    barContainer.className = "chart-bar-container";
-    
-    const bar = document.createElement("div");
-    bar.className = "chart-bar";
+          const barContainer = document.createElement("div");
+          barContainer.className = "chart-bar-container";
+          
+          const bar = document.createElement("div");
+          bar.className = "chart-bar";
     bar.style.height = `${Math.min(100, (minutes / 60) * 100)}%`;
     
     const day = document.createElement("div");
     day.className = "chart-day";
     day.textContent = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][new Date(dates[i]).getDay()];
     
-    barContainer.appendChild(bar);
+          barContainer.appendChild(bar);
     barContainer.appendChild(day);
     elements.practiceChart.appendChild(barContainer);
   });
-}
-
-// Settings functions
-function saveSettings() {
+      }
+      
+      // Settings functions
+      function saveSettings() {
   try {
     const oldInstrument = settings.instrument;
-    settings.instrument = elements.instrument.value.trim();
-    settings.lessonDay = elements.lessonDay.value;
-    settings.theme = elements.themeSelect.value;
-    
-    localStorage.setItem("instrument", settings.instrument);
-    localStorage.setItem("lessonDay", settings.lessonDay);
-    localStorage.setItem("theme", settings.theme);
-    
-    applyTheme(settings.theme);
-    
+        settings.instrument = elements.instrument.value.trim();
+        settings.lessonDay = elements.lessonDay.value;
+        settings.theme = elements.themeSelect.value;
+        
+        localStorage.setItem("instrument", settings.instrument);
+        localStorage.setItem("lessonDay", settings.lessonDay);
+        localStorage.setItem("theme", settings.theme);
+        
+        applyTheme(settings.theme);
+        
     // Update category filters if instrument changed
     if (oldInstrument !== settings.instrument) {
       updateCategoryFilters();
@@ -2627,40 +2722,40 @@ function saveSettings() {
 }
 
 // Data export/import functions
-function exportData() {
+      function exportData() {
   try {
     const data = {
-      sessions: sessions,
-      goals: goals,
-      settings: settings
-    };
-    
+          sessions: sessions,
+          goals: goals,
+          settings: settings
+        };
+        
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `PracticeTrack_Data_${new Date().toISOString().split('T')[0]}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    
+          const url = URL.createObjectURL(blob);
+          
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = `PracticeTrack_Data_${new Date().toISOString().split('T')[0]}.json`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          
     setTimeout(() => URL.revokeObjectURL(url), 100);
     notify("Data exported successfully!", "success");
-  } catch (error) {
+        } catch (error) {
     console.error("Error exporting data:", error);
     notify("Failed to export data.", "error");
-  }
-}
-
-function importData(e) {
+        }
+      }
+      
+      function importData(e) {
   try {
-    const file = e.target.files[0];
-    if (!file) return;
-    
-    const reader = new FileReader();
-    reader.onload = function(e) {
-      try {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          try {
         const data = JSON.parse(e.target.result);
         
         if (!Array.isArray(data.sessions) || !Array.isArray(data.goals)) {
@@ -2671,13 +2766,13 @@ function importData(e) {
         goals = data.goals;
         settings = data.settings || { instrument: "", lessonDay: "", theme: "default" };
         
-        localStorage.setItem("sessions", JSON.stringify(sessions));
-        localStorage.setItem("goals", JSON.stringify(goals));
+            localStorage.setItem("sessions", JSON.stringify(sessions));
+            localStorage.setItem("goals", JSON.stringify(goals));
         localStorage.setItem("instrument", settings.instrument);
         localStorage.setItem("lessonDay", settings.lessonDay);
         localStorage.setItem("theme", settings.theme);
         
-        applyTheme(settings.theme);
+            applyTheme(settings.theme);
         initUI();
         
         notify("Data imported successfully!", "success");
@@ -3031,6 +3126,22 @@ function handleMenuScroll() {
   
   elements.menu.classList.toggle('scroll-right', hasHorizontalScroll && !isScrolledToEnd);
 }
+
+// Add new event listeners for the guide modal
+document.getElementById('show-guide').addEventListener('click', () => {
+  document.getElementById('guide-modal').style.display = 'block';
+});
+
+document.getElementById('close-guide').addEventListener('click', () => {
+  document.getElementById('guide-modal').style.display = 'none';
+});
+
+// Close modal when clicking outside
+document.getElementById('guide-modal').addEventListener('click', (e) => {
+  if (e.target === document.getElementById('guide-modal')) {
+    document.getElementById('guide-modal').style.display = 'none';
+  }
+    });
   </script>
 </body>
 </html>
