@@ -1951,6 +1951,14 @@
         <div class="media-controls">
           <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 20px;">
             <input type="text" id="media-name-input" placeholder="Name your recording" style="flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px;">
+            <button id="save-name-button" class="camera-button" style="margin: 0; background: #4CAF50; color: white;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                <polyline points="7 3 7 8 15 8"></polyline>
+              </svg>
+              Save
+            </button>
             <button id="camera-button" class="camera-button" style="margin: 0;">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
@@ -5132,81 +5140,109 @@ function viewMedia(media) {
 // Simple direct camera implementation
 document.addEventListener('DOMContentLoaded', function() {
   const cameraButton = document.getElementById('camera-button');
+  const saveNameButton = document.getElementById('save-name-button');
   const mediaNameInput = document.getElementById('media-name-input');
+  
+  if (saveNameButton) {
+    saveNameButton.addEventListener('click', function() {
+      const mediaName = mediaNameInput.value.trim();
+      if (!mediaName) {
+        notify('Please enter a name for your recording', 'error');
+        return;
+      }
+
+      // Create media item
+      const mediaItem = document.createElement('div');
+      mediaItem.className = 'media-item';
+      mediaItem.setAttribute('data-id', 'media_' + Date.now());
+      mediaItem.style.padding = '10px';
+      mediaItem.style.margin = '10px 0';
+      mediaItem.style.backgroundColor = '#f5f5f5';
+      mediaItem.style.borderRadius = '5px';
+      mediaItem.style.cursor = 'pointer';
+      
+      // Format the date
+      const date = new Date().toLocaleString();
+      
+      // Set the content
+      mediaItem.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div style="font-weight: bold;">
+            📝 ${mediaName}
+          </div>
+          <div style="font-size: 12px; color: #666;">
+            ${date}
+          </div>
+        </div>
+        <div style="margin-top: 5px; font-size: 13px; color: #444;">
+          No comments added yet.
+        </div>
+        <div style="margin-top: 8px; text-align: right;">
+          <button class="delete-media-btn" style="padding: 5px 10px; background: #ffebee; color: #e53935; border: none; border-radius: 4px; cursor: pointer;">
+            Delete
+          </button>
+        </div>
+      `;
+      
+      // Add to media list
+      const mediaGallery = document.getElementById('media-gallery');
+      if (mediaGallery) {
+        // Add to the beginning of the gallery (newest first)
+        if (mediaGallery.firstChild) {
+          mediaGallery.insertBefore(mediaItem, mediaGallery.firstChild);
+        } else {
+          mediaGallery.appendChild(mediaItem);
+        }
+        
+        // Add delete button event listener
+        const deleteBtn = mediaItem.querySelector('.delete-media-btn');
+        if (deleteBtn) {
+          deleteBtn.addEventListener('click', function() {
+            if (confirm('Delete this media?')) {
+              mediaGallery.removeChild(mediaItem);
+            }
+          });
+        }
+      }
+      
+      // Clear the input
+      mediaNameInput.value = '';
+      
+      // Switch to media tab
+      const mediaTabButton = document.querySelector('[data-tab="media"]');
+      if (mediaTabButton) {
+        mediaTabButton.click();
+      }
+      
+      notify('Recording saved! Click Record to capture media.', 'success');
+    });
+  }
   
   if (cameraButton) {
     cameraButton.addEventListener('click', function() {
       // Get the name from input, or use default
       const mediaName = mediaNameInput.value.trim() || `Recording ${new Date().toLocaleString()}`;
       
-      // Create a dropdown menu positioned below the button
-      const menu = document.createElement('div');
-      const buttonRect = cameraButton.getBoundingClientRect();
-      menu.style.position = 'absolute';
-      menu.style.top = `${buttonRect.bottom + 5}px`;
-      menu.style.left = `${buttonRect.left}px`;
-      menu.style.backgroundColor = 'white';
-      menu.style.padding = '10px';
-      menu.style.borderRadius = '8px';
-      menu.style.boxShadow = '0 2px 10px rgba(0,0,0,0.2)';
-      menu.style.zIndex = '1000';
-      menu.style.minWidth = '150px';
+      // Create file input for camera capture
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/*,video/*'; // Accept both photos and videos
+      input.capture = 'environment'; // Use back camera
       
-      menu.innerHTML = `
-        <button onclick="takePhoto('${mediaName}')" style="display: block; width: 100%; padding: 8px; margin-bottom: 5px; border: none; background: #e3f2fd; color: #1976d2; border-radius: 4px; cursor: pointer;">Take Photo</button>
-        <button onclick="recordVideo('${mediaName}')" style="display: block; width: 100%; padding: 8px; border: none; background: #fce4ec; color: #c2185b; border-radius: 4px; cursor: pointer;">Record Video</button>
-      `;
+      input.onchange = function() {
+        if (this.files && this.files[0]) {
+          const file = this.files[0];
+          const type = file.type.startsWith('image/') ? 'photo' : 'video';
+          saveMedia(file, type, mediaName);
+        }
+      };
       
-      // Position the menu relative to the camera button's parent
-      cameraButton.parentElement.style.position = 'relative';
-      cameraButton.parentElement.appendChild(menu);
-      
-      // Remove menu when clicking outside
-      setTimeout(() => {
-        const closeMenu = (e) => {
-          if (!menu.contains(e.target) && e.target !== cameraButton) {
-            menu.remove();
-          }
-        };
-        document.addEventListener('click', closeMenu, { once: true });
-      }, 100);
+      input.click();
     });
   }
 });
 
-function takePhoto(mediaName) {
-  const input = document.createElement('input');
-  input.type = 'file';
-  input.accept = 'image/*';
-  input.capture = 'environment';
-  
-  input.onchange = function() {
-    if (this.files && this.files[0]) {
-      saveMedia(this.files[0], 'photo', mediaName);
-    }
-  };
-  
-  input.click();
-}
-
-function recordVideo(mediaName) {
-  const input = document.createElement('input');
-  input.type = 'file';
-  input.accept = 'video/*';
-  input.capture = 'environment';
-  
-  input.onchange = function() {
-    if (this.files && this.files[0]) {
-      saveMedia(this.files[0], 'video', mediaName);
-    }
-  };
-  
-  input.click();
-}
-
 function saveMedia(file, type, name) {
-  console.log('Saving media:', type, name);
-  
   if (!db) {
     console.error('Database not initialized');
     notify('Database not initialized', 'error');
@@ -5223,15 +5259,12 @@ function saveMedia(file, type, name) {
     comments: '' // Initialize empty comments
   };
   
-  console.log('Creating media record:', mediaRecord);
-  
   const transaction = db.transaction(['mediaFiles'], 'readwrite');
   const store = transaction.objectStore('mediaFiles');
   
   const request = store.add(mediaRecord);
   
   request.onsuccess = function() {
-    console.log('Media saved successfully:', mediaRecord);
     notify(`${type === 'photo' ? 'Photo' : 'Video'} saved`, 'success');
     
     // Add to media list
