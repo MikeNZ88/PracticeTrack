@@ -4090,7 +4090,7 @@ document.addEventListener('DOMContentLoaded', () => {
           console.log('No media files found, showing placeholder');
           const placeholder = document.createElement('div');
           placeholder.className = 'media-placeholder';
-          placeholder.innerHTML = '<p>No media recordings yet. Use the Record button to capture photos or videos.</p>';
+          placeholder.innerHTML = '<p>No media recordings yet. Use the "Record" button to capture photos or videos.</p>';
           mediaGallery.appendChild(placeholder);
           return;
         }
@@ -6045,16 +6045,47 @@ function showSavedMedia() {
   console.log('Showing saved media in simplified list');
   mediaGallery.innerHTML = '<div style="padding: 15px; text-align: center;">Loading saved media...</div>';
   
-  // Check if database exists
-  if (!window.db) {
-    console.error('IndexedDB not initialized - db object not found');
-    mediaGallery.innerHTML = '<div style="padding: 15px; text-align: center; color: red;">Database not available. Please refresh the page.</div>';
+  // First, make sure database is initialized
+  if (typeof db === 'undefined') {
+    console.error('Database variable is undefined');
+    mediaGallery.innerHTML = '<div style="padding: 15px; text-align: center; color: red;">Database not initialized. Please refresh the page.</div>';
+    
+    // Add a retry button
+    const retryButton = document.createElement('button');
+    retryButton.textContent = 'Retry Connection';
+    retryButton.style.margin = '10px auto';
+    retryButton.style.padding = '8px 16px';
+    retryButton.style.backgroundColor = '#2196f3';
+    retryButton.style.color = 'white';
+    retryButton.style.border = 'none';
+    retryButton.style.borderRadius = '4px';
+    retryButton.style.cursor = 'pointer';
+    retryButton.style.display = 'block';
+    retryButton.onclick = function() {
+      // Try to initialize the database if it's not already initialized
+      if (typeof initializeDatabase === 'function') {
+        console.log('Trying to reinitialize database...');
+        initializeDatabase();
+        
+        // Check again after a short delay
+        setTimeout(showSavedMedia, 1000);
+      } else {
+        alert('Cannot reinitialize database. Please refresh the page.');
+      }
+    };
+    mediaGallery.appendChild(retryButton);
+    return;
+  }
+  
+  if (!db) {
+    console.error('Database is null');
+    mediaGallery.innerHTML = '<div style="padding: 15px; text-align: center; color: red;">Database connection lost. Please refresh the page.</div>';
     return;
   }
   
   try {
     // Simplified database access with explicit error handling
-    const transaction = window.db.transaction(['mediaFiles'], 'readonly');
+    const transaction = db.transaction(['mediaFiles'], 'readonly');
     transaction.onerror = function(event) {
       console.error('Transaction error:', event);
       mediaGallery.innerHTML = '<div style="padding: 15px; text-align: center; color: red;">Error accessing database. Please refresh the page.</div>';
@@ -6130,14 +6161,14 @@ function deleteMediaFile(id) {
   if (confirm('Are you sure you want to delete this media?')) {
     console.log('Deleting media with ID:', id);
     
-    if (!window.db) {
+    if (typeof db === 'undefined' || !db) {
       console.error('Database not initialized');
       alert('Error: Database not accessible');
       return;
     }
     
     try {
-      const transaction = window.db.transaction(['mediaFiles'], 'readwrite');
+      const transaction = db.transaction(['mediaFiles'], 'readwrite');
       const store = transaction.objectStore('mediaFiles');
       const request = store.delete(id);
       
@@ -6191,6 +6222,139 @@ document.addEventListener('DOMContentLoaded', function() {
       mediaGallery.insertBefore(refreshButton, mediaGallery.firstChild);
     } else {
       mediaGallery.appendChild(refreshButton);
+    }
+  }
+});
+
+// Ensure database is initialized on page load
+document.addEventListener('DOMContentLoaded', function() {
+  // Initialize the database first thing
+  console.log('Ensuring database is initialized at page load');
+  if (typeof initializeDatabase === 'function') {
+    initializeDatabase();
+  } else {
+    console.error('initializeDatabase function not found');
+  }
+  
+  // Attach to media tab click event
+  const mediaTab = document.querySelector('[data-tab="media"]');
+  if (mediaTab) {
+    console.log('Found media tab, attaching click handler');
+    mediaTab.addEventListener('click', function() {
+      console.log('Media tab clicked, showing saved media');
+      // Allow time for tab to become visible
+      setTimeout(showSavedMedia, 100);
+    });
+  } else {
+    console.error('Media tab element not found');
+  }
+});
+
+// Dedicated function to handle all media tab activation
+function handleMediaTabActivation() {
+  console.log('Media tab activated, showing saved media');
+  
+  // Make sure database is initialized first
+  if (typeof initializeDatabase === 'function' && (typeof db === 'undefined' || !db)) {
+    console.log('Database not initialized yet, initializing now');
+    initializeDatabase();
+    
+    // Wait a bit for database to initialize
+    setTimeout(showSavedMedia, 300);
+  } else {
+    // Database should be ready, show media
+    showSavedMedia();
+  }
+}
+
+// Single DOMContentLoaded event handler for media functionality
+document.addEventListener('DOMContentLoaded', function() {
+  console.log('DOM loaded, setting up media functionality');
+  
+  // Initialize the database first thing
+  if (typeof initializeDatabase === 'function') {
+    console.log('Initializing database at page load');
+    initializeDatabase();
+  } else {
+    console.error('initializeDatabase function not found');
+  }
+  
+  // Add a global flag to track if we've set up event listeners
+  if (!window.mediaTabEventsInitialized) {
+    // Attach to media tab click event
+    const mediaTab = document.querySelector('[data-tab="media"]');
+    if (mediaTab) {
+      console.log('Found media tab, attaching click handler');
+      
+      // Remove any existing event listeners if possible
+      const oldListener = mediaTab.onclick;
+      if (oldListener) {
+        mediaTab.removeEventListener('click', oldListener);
+      }
+      
+      // Add our new listener
+      mediaTab.addEventListener('click', function(e) {
+        console.log('Media tab clicked, handling activation');
+        handleMediaTabActivation();
+      });
+      
+      window.mediaTabEventsInitialized = true;
+    } else {
+      console.error('Media tab element not found');
+    }
+    
+    // Check if media tab is already active
+    const mediaTabContent = document.getElementById('media-tab');
+    if (mediaTabContent && mediaTabContent.classList.contains('active')) {
+      console.log('Media tab is already active, handling activation');
+      setTimeout(handleMediaTabActivation, 100);
+    }
+    
+    // Also update camera button to refresh media after capture
+    const cameraButton = document.getElementById('camera-button');
+    if (cameraButton) {
+      console.log('Found camera button, will refresh media after capture');
+      
+      // Store the original processMedia function if it exists
+      if (typeof processMedia === 'function' && !window.originalProcessMedia) {
+        window.originalProcessMedia = processMedia;
+        
+        // Replace it with our version that refreshes media
+        window.processMedia = async function(file, type) {
+          console.log('Enhanced processMedia called, will refresh media gallery after processing');
+          
+          // Call the original
+          if (window.originalProcessMedia) {
+            await window.originalProcessMedia(file, type);
+          }
+          
+          // Refresh media after a delay
+          setTimeout(showSavedMedia, 500);
+        };
+      }
+    }
+    
+    // Add a refresh button to the media gallery if it doesn't exist
+    const mediaGallery = document.getElementById('media-gallery');
+    if (mediaGallery && !document.getElementById('media-refresh-button')) {
+      const refreshButton = document.createElement('button');
+      refreshButton.id = 'media-refresh-button';
+      refreshButton.textContent = 'Refresh Media List';
+      refreshButton.style.margin = '10px 0';
+      refreshButton.style.padding = '8px 16px';
+      refreshButton.style.backgroundColor = '#2196f3';
+      refreshButton.style.color = 'white';
+      refreshButton.style.border = 'none';
+      refreshButton.style.borderRadius = '4px';
+      refreshButton.style.cursor = 'pointer';
+      refreshButton.onclick = showSavedMedia;
+      
+      // Insert at the beginning of the gallery
+      if (mediaGallery.firstChild) {
+        mediaGallery.insertBefore(refreshButton, mediaGallery.firstChild);
+      } else {
+        mediaGallery.appendChild(refreshButton);
+      }
     }
   }
 });
