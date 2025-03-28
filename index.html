@@ -1348,6 +1348,20 @@
       color: var(--primary-dark);
       text-decoration: underline;
     }
+
+    .media-text-only {
+      height: 150px;
+      overflow: hidden;
+      border-radius: 8px 8px 0 0;
+      background-color: var(--background-light);
+      color: var(--text-color);
+    }
+
+    .media-saved-locally {
+      font-size: 0.8rem;
+      color: var(--secondary-color);
+      margin-top: 8px;
+    }
   </style>
 </head>
 <body>
@@ -4121,14 +4135,15 @@ document.addEventListener('DOMContentLoaded', () => {
         media.name = newName;
         
         store.put(media).onsuccess = function() {
-          notify('Media renamed successfully', 'success');
+          notify('Media record renamed successfully', 'success');
+          notify('Note: This only changes the name in the app, not the file on your device', 'info');
           loadMediaGallery();
         };
       }
     };
   }
   
-  // Delete media file
+  // Delete media record (not the actual file)
   function deleteMedia(mediaId) {
     if (!db) return;
     
@@ -4136,7 +4151,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const store = transaction.objectStore('mediaFiles');
     
     store.delete(mediaId).onsuccess = function() {
-      notify('Media deleted successfully', 'success');
+      notify('Media record deleted successfully', 'success');
+      notify('The actual file remains on your device', 'info');
       
       // Close modal if open
       if (currentMediaId === mediaId && viewMediaModal.style.display === 'flex') {
@@ -4390,6 +4406,10 @@ function takePhoto() {
     const ctx = canvas.getContext('2d');
     ctx.drawImage(cameraPreview, 0, 0, canvas.width, canvas.height);
     
+    // Prompt user for media name
+    const mediaName = prompt('Name this photo:', '');
+    const fileName = (mediaName || 'PracticeTrack_Photo_' + new Date().toLocaleTimeString()).replace(/[^a-z0-9]/gi, '_') + '.jpg';
+    
     // Convert the canvas to a blob (image file)
     canvas.toBlob(function(blob) {
       if (!blob) {
@@ -4397,30 +4417,38 @@ function takePhoto() {
         return;
       }
       
-      // Create a unique ID for the media
+      // Create download link
+      const link = document.createElement('a');
+      link.download = fileName;
+      link.href = URL.createObjectURL(blob);
+      
+      // Create a unique ID for the media record
       const mediaId = 'media_' + Date.now();
       
       // Get current session if available
       const currentSessionId = getCurrentSessionId();
       
-      // Prompt user for media name
-      const mediaName = prompt('Name this photo:', '');
-      
-      // Create media object
-      const media = {
+      // Create text-only media record
+      const mediaRecord = {
         id: mediaId,
         type: 'photo',
         name: mediaName || 'Photo ' + new Date().toLocaleTimeString(),
+        fileName: fileName,
         timestamp: Date.now(),
-        sessionId: currentSessionId,
-        blob: blob
+        sessionId: currentSessionId
       };
       
-      // Save to IndexedDB
-      saveMedia(media);
+      // Save text record to IndexedDB
+      saveMediaRecord(mediaRecord);
+      
+      // Trigger the download
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(link.href);
       
       // Show success message
-      notify('Photo captured and saved', 'success');
+      notify('Photo saved to your device as "' + fileName + '"', 'success');
       
       // Close the camera modal
       stopCamera();
@@ -4435,10 +4463,263 @@ function takePhoto() {
   }
 }
 
+// Save text-only media record to IndexedDB
+function saveMediaRecord(mediaRecord) {
+  initDB().then(function() {
+    if (!db) {
+      console.error('Database not available');
+      return;
+    }
+    
+    const transaction = db.transaction(['mediaFiles'], 'readwrite');
+    const store = transaction.objectStore('mediaFiles');
+    
+    store.add(mediaRecord).onsuccess = function() {
+      console.log('Media record saved successfully');
+      // Load media gallery if on media tab
+      if (document.querySelector('.tab-content.active#media-tab')) {
+        loadMediaGallery();
+      }
+    };
+  });
+}
+
 // Helper to get current session ID
 function getCurrentSessionId() {
   const activeSession = document.querySelector('.timer-display[data-session-id]');
   return activeSession ? activeSession.dataset.sessionId : null;
+}
+
+// Create a media item element
+function createMediaItem(media) {
+  try {
+    const mediaItem = document.createElement('div');
+    mediaItem.className = 'media-item';
+    mediaItem.dataset.id = media.id;
+    
+    // Get session data if available
+    const session = getSavedSession(media.sessionId);
+    const category = session ? session.category : 'Uncategorized';
+    
+    // Format the date
+    const mediaDate = new Date(media.timestamp);
+    const formattedDate = `${mediaDate.toLocaleDateString()} ${mediaDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+    
+    // Get media name (or use default)
+    const mediaName = media.name || `Unnamed ${media.type === 'photo' ? 'Photo' : 'Video'}`;
+    
+    // Create type icon
+    const typeIcon = media.type === 'photo'
+      ? `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>`
+      : `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>`;
+    
+    mediaItem.innerHTML = `
+      <div class="media-preview media-text-only" style="background-color: var(--background-light); display: flex; align-items: center; justify-content: center;">
+        <div style="text-align: center; padding: 20px;">
+          ${typeIcon}
+          <p>${media.fileName || media.name}</p>
+          <p class="media-saved-locally">Saved to your device</p>
+        </div>
+      </div>
+      <div class="media-info">
+        <div class="media-name">${typeIcon} ${mediaName}</div>
+        <div class="media-date">${formattedDate}</div>
+        <div class="media-category">${category}</div>
+        <div class="media-actions">
+          <button class="rename-btn">Rename</button>
+          <button class="delete-btn">Delete</button>
+        </div>
+      </div>
+    `;
+    
+    // Add event listeners to buttons
+    const renameBtn = mediaItem.querySelector('.rename-btn');
+    const deleteBtn = mediaItem.querySelector('.delete-btn');
+    
+    if (renameBtn) {
+      renameBtn.addEventListener('click', () => {
+        const newName = prompt('Enter new name:', mediaName);
+        if (newName && newName.trim() !== '') {
+          updateMediaName(media.id, newName.trim());
+        }
+      });
+    }
+    
+    if (deleteBtn) {
+      deleteBtn.addEventListener('click', () => {
+        if (confirm('Are you sure you want to delete this media record? This will only remove the record from the app, not the actual file from your device.')) {
+          deleteMedia(media.id);
+        }
+      });
+    }
+    
+    return mediaItem;
+  } catch (error) {
+    console.error('Error creating media item:', error);
+    
+    // Return a simple fallback element if there's an error
+    const errorItem = document.createElement('div');
+    errorItem.className = 'media-item';
+    errorItem.style.backgroundColor = '#ffeeee';
+    errorItem.innerHTML = `
+      <div class="media-info">
+        <div class="media-name">Error displaying media</div>
+        <div class="media-actions">
+          <button class="delete-btn">Delete</button>
+        </div>
+      </div>
+    `;
+    
+    const deleteBtn = errorItem.querySelector('.delete-btn');
+    if (deleteBtn && media && media.id) {
+      deleteBtn.addEventListener('click', () => {
+        if (confirm('Are you sure you want to delete this media record?')) {
+          deleteMedia(media.id);
+        }
+      });
+    }
+    
+    return errorItem;
+  }
+}
+
+// Update the loadMediaGallery function to handle text-only records
+function loadMediaGallery() {
+  console.log('Loading media gallery...');
+  
+  if (!db) {
+    console.log('Database not initialized yet');
+    if (mediaGallery) {
+      mediaGallery.innerHTML = '<div class="media-placeholder"><p>Media gallery is initializing...</p></div>';
+    }
+    return;
+  }
+  
+  // Clear the gallery
+  if (mediaGallery) {
+    mediaGallery.innerHTML = '';
+  }
+  
+  // Get filters
+  const dateFilter = mediaDateFilter ? mediaDateFilter.value : 'all';
+  const categoryFilter = mediaCategoryFilter ? mediaCategoryFilter.value : 'all';
+  const typeFilter = mediaTypeFilter ? mediaTypeFilter.value : 'all';
+  
+  // Get all media files
+  const transaction = db.transaction(['mediaFiles'], 'readonly');
+  const store = transaction.objectStore('mediaFiles');
+  
+  store.getAll().onsuccess = function(event) {
+    const mediaFiles = event.target.result;
+    
+    if (!mediaFiles || mediaFiles.length === 0) {
+      // Show placeholder if no media
+      if (mediaGallery) {
+        mediaGallery.innerHTML = `
+          <div class="media-placeholder">
+            <p>No media recordings found. Use the "Record" button on the timer page to capture photos or videos of your practice!</p>
+          </div>
+        `;
+      }
+      return;
+    }
+    
+    // Filter media files based on selected filters
+    let filteredMedia = mediaFiles;
+    
+    // Apply date filter
+    if (dateFilter !== 'all') {
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+      const weekAgo = today - (7 * 24 * 60 * 60 * 1000);
+      const monthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate()).getTime();
+      const yearAgo = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate()).getTime();
+      
+      filteredMedia = filteredMedia.filter(media => {
+        switch(dateFilter) {
+          case 'today':
+            return media.timestamp >= today;
+          case 'week':
+            return media.timestamp >= weekAgo;
+          case 'month':
+            return media.timestamp >= monthAgo;
+          case 'year':
+            return media.timestamp >= yearAgo;
+          default:
+            return true;
+        }
+      });
+    }
+    
+    // Apply category filter
+    if (categoryFilter !== 'all') {
+      filteredMedia = filteredMedia.filter(media => {
+        const session = getSavedSession(media.sessionId);
+        return session && session.category === categoryFilter;
+      });
+    }
+    
+    // Apply type filter
+    if (typeFilter !== 'all') {
+      filteredMedia = filteredMedia.filter(media => media.type === typeFilter);
+    }
+    
+    // Sort by date (newest first)
+    filteredMedia.sort((a, b) => b.timestamp - a.timestamp);
+    
+    if (filteredMedia.length === 0) {
+      // Show message if no media after filtering
+      if (mediaGallery) {
+        mediaGallery.innerHTML = `
+          <div class="media-placeholder">
+            <p>No media recordings found with the selected filters.</p>
+          </div>
+        `;
+      }
+      return;
+    }
+    
+    // Add each media item to the gallery
+    filteredMedia.forEach(media => {
+      const mediaItem = createMediaItem(media);
+      if (mediaGallery) {
+        mediaGallery.appendChild(mediaItem);
+      }
+    });
+  };
+  
+  // Update category filter
+  updateCategoryFilter();
+}
+
+// View media - showing info only since we don't store the actual files
+function viewMedia(media) {
+  if (!viewMediaModal) return;
+  
+  try {
+    currentMediaId = media.id;
+    
+    const viewContent = viewMediaModal.querySelector('.view-media-content');
+    if (!viewContent) return;
+    
+    viewContent.innerHTML = '';
+    
+    // Create a text display of the media info
+    viewContent.innerHTML = `
+      <div style="background-color: var(--background-light); padding: 30px; text-align: center; color: var(--text-color);">
+        <h3>${media.name}</h3>
+        <p>File saved to your device as: ${media.fileName || 'Unknown filename'}</p>
+        <p>Date: ${new Date(media.timestamp).toLocaleString()}</p>
+        <p>Type: ${media.type === 'photo' ? 'Photo' : 'Video'}</p>
+        <p>Please check your device gallery or files to view the actual media content.</p>
+      </div>
+    `;
+    
+    viewMediaModal.style.display = 'flex';
+  } catch (error) {
+    console.error('Error displaying media info:', error);
+    notify('Error displaying media information. Please try again.', 'error');
+  }
 }
   </script>
 </body>
