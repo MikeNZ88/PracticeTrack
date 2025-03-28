@@ -5257,20 +5257,13 @@ document.addEventListener('DOMContentLoaded', function() {
           URL.revokeObjectURL(blobUrl);
         }, 100);
         
-        // Switch to media tab and refresh gallery
+        // Add a simple entry to the media list
+        addMediaToList(mediaRecord);
+        
+        // Switch to media tab
         const mediaTabButton = document.querySelector('[data-tab="media"]');
         if (mediaTabButton) {
           mediaTabButton.click();
-          
-          // Directly call our new showSavedMedia function after a short delay
-          setTimeout(() => {
-            console.log('Showing saved media after camera capture');
-            if (typeof showSavedMedia === 'function') {
-              showSavedMedia();
-            } else {
-              console.error('showSavedMedia function not found');
-            }
-          }, 300);
         }
       };
       
@@ -6358,182 +6351,133 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 });
-  </script>
+
+// Simple function to add media to the list
+function addMediaToList(media) {
+  // Find the media gallery
+  const mediaGallery = document.getElementById('media-gallery');
+  if (!mediaGallery) return;
   
-  <!-- Emergency database fix script -->
-  <script>
-    // Direct database initialization and debug code
-    console.log("EMERGENCY FIX: Adding direct database initialization");
+  // Remove placeholder if present
+  const placeholder = mediaGallery.querySelector('.media-placeholder');
+  if (placeholder) {
+    mediaGallery.removeChild(placeholder);
+  }
+  
+  // Create a simple media item
+  const mediaItem = document.createElement('div');
+  mediaItem.className = 'media-item';
+  mediaItem.style.padding = '10px';
+  mediaItem.style.margin = '10px 0';
+  mediaItem.style.backgroundColor = '#f5f5f5';
+  mediaItem.style.borderRadius = '5px';
+  
+  // Set the icon based on media type
+  const icon = media.type === 'photo' ? '📷' : '🎥';
+  
+  // Format the date
+  const date = new Date(media.timestamp).toLocaleString();
+  
+  // Set the content
+  mediaItem.innerHTML = `
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <div style="font-weight: bold;">
+        ${icon} ${media.name}
+      </div>
+      <div style="font-size: 12px; color: #666;">
+        ${date}
+      </div>
+    </div>
+    <div style="margin-top: 8px; text-align: right;">
+      <button class="delete-media-btn" data-id="${media.id}" style="padding: 5px 10px; background: #ffebee; color: #e53935; border: none; border-radius: 4px; cursor: pointer;">
+        Delete
+      </button>
+    </div>
+  `;
+  
+  // Add to the beginning of the gallery (newest first)
+  if (mediaGallery.firstChild) {
+    mediaGallery.insertBefore(mediaItem, mediaGallery.firstChild);
+  } else {
+    mediaGallery.appendChild(mediaItem);
+  }
+  
+  // Add delete button event listener
+  const deleteBtn = mediaItem.querySelector('.delete-media-btn');
+  if (deleteBtn) {
+    deleteBtn.addEventListener('click', function() {
+      if (confirm('Delete this media?')) {
+        const id = this.getAttribute('data-id');
+        const transaction = db.transaction(['mediaFiles'], 'readwrite');
+        const store = transaction.objectStore('mediaFiles');
+        store.delete(id);
+        mediaGallery.removeChild(mediaItem);
+      }
+    });
+  }
+}
+
+// Simple media tab functionality
+document.addEventListener('DOMContentLoaded', function() {
+  // Find the media tab button
+  const mediaTabButton = document.querySelector('[data-tab="media"]');
+  
+  if (mediaTabButton) {
+    // Add click event to load media
+    mediaTabButton.addEventListener('click', loadExistingMedia);
     
-    // Check if DB already exists
-    console.log("Current DB status:", typeof db, db);
-    
-    // Function to directly open the database
-    function emergencyDbInit() {
-      console.log("Running emergency database initialization");
-      
-      // Create a direct database connection
-      const dbRequest = indexedDB.open('PracticeTrackDB', 1);
-      
-      dbRequest.onerror = function(event) {
-        console.error("Emergency DB open failed:", event.target.error);
-        alert("Failed to open database: " + event.target.error);
-      };
-      
-      dbRequest.onsuccess = function(event) {
-        console.log("Emergency DB opened successfully");
-        // Store in both the window object and global variable
-        window.db = event.target.result;
-        db = event.target.result;
-        
-        // Check database structure
-        console.log("Database object stores:", Object.values(db.objectStoreNames));
-        
-        // Try to display media
-        setTimeout(emergencyShowMedia, 100);
-      };
-      
-      dbRequest.onupgradeneeded = function(event) {
-        console.log("Emergency DB upgrade needed");
-        const db = event.target.result;
-        
-        // Create object stores if needed
-        if (!db.objectStoreNames.contains('mediaFiles')) {
-          console.log("Creating mediaFiles object store");
-          const store = db.createObjectStore('mediaFiles', { keyPath: 'id' });
-          store.createIndex('timestamp', 'timestamp', { unique: false });
-          store.createIndex('type', 'type', { unique: false });
-        }
-        
-        // Create sessions store if needed
-        if (!db.objectStoreNames.contains('sessions')) {
-          console.log("Creating sessions object store");
-          const store = db.createObjectStore('sessions', { keyPath: 'id' });
-          store.createIndex('date', 'date', { unique: false });
-        }
-      };
+    // Check if media tab is already active
+    const mediaTab = document.getElementById('media-tab');
+    if (mediaTab && mediaTab.classList.contains('active')) {
+      // Already on media tab, load media
+      loadExistingMedia();
     }
+  }
+  
+  // Simple function to load existing media
+  function loadExistingMedia() {
+    const mediaGallery = document.getElementById('media-gallery');
+    if (!mediaGallery || !db) return;
     
-    // Direct function to show media (ultra-simplified)
-    function emergencyShowMedia() {
-      console.log("Emergency show media running");
+    // Clear the gallery
+    mediaGallery.innerHTML = '';
+    
+    try {
+      // Get media files from database
+      const transaction = db.transaction(['mediaFiles'], 'readonly');
+      const store = transaction.objectStore('mediaFiles');
+      const request = store.getAll();
       
-      const container = document.createElement('div');
-      container.id = 'emergency-media-container';
-      container.style.padding = '15px';
-      container.style.margin = '15px';
-      container.style.backgroundColor = '#fff3cd';
-      container.style.border = '1px solid #ffeeba';
-      container.style.borderRadius = '4px';
-      
-      container.innerHTML = '<h3 style="color:#856404">Emergency Media Display</h3>' +
-                           '<p>Attempting to show all media directly from the database...</p>';
-      
-      // Get the media gallery or create a container
-      const mediaTab = document.getElementById('media-tab');
-      if (mediaTab) {
-        if (mediaTab.querySelector('#emergency-media-container')) {
-          // Already exists, don't add again
+      request.onsuccess = function(event) {
+        const mediaFiles = event.target.result;
+        
+        // If no media files, show placeholder
+        if (!mediaFiles || mediaFiles.length === 0) {
+          const placeholder = document.createElement('div');
+          placeholder.className = 'media-placeholder';
+          placeholder.innerHTML = '<p>No media recordings yet. Use the Record button to capture photos or videos.</p>';
+          mediaGallery.appendChild(placeholder);
           return;
         }
-        mediaTab.appendChild(container);
-      } else {
-        // No media tab found, add to body
-        document.body.appendChild(container);
-      }
-      
-      if (!window.db && !db) {
-        container.innerHTML += '<p style="color:red">No database connection available! Click the Initialize button below.</p>';
-        const initButton = document.createElement('button');
-        initButton.textContent = 'Emergency Initialize Database';
-        initButton.style.padding = '8px 16px';
-        initButton.style.backgroundColor = '#dc3545';
-        initButton.style.color = 'white';
-        initButton.style.border = 'none';
-        initButton.style.borderRadius = '4px';
-        initButton.style.cursor = 'pointer';
-        initButton.onclick = emergencyDbInit;
-        container.appendChild(initButton);
-        return;
-      }
-      
-      try {
-        // Use whichever db reference is available
-        const database = window.db || db;
         
-        container.innerHTML += '<p>Database connection found, retrieving media...</p>';
+        // Sort by date (newest first)
+        mediaFiles.sort((a, b) => b.timestamp - a.timestamp);
         
-        const transaction = database.transaction(['mediaFiles'], 'readonly');
-        const store = transaction.objectStore('mediaFiles');
-        const request = store.getAll();
-        
-        request.onerror = function(event) {
-          container.innerHTML += '<p style="color:red">Error reading database: ' + event.target.error + '</p>';
-        };
-        
-        request.onsuccess = function(event) {
-          const mediaFiles = event.target.result;
-          container.innerHTML += '<p>Found ' + (mediaFiles ? mediaFiles.length : 0) + ' media files</p>';
-          
-          if (!mediaFiles || mediaFiles.length === 0) {
-            container.innerHTML += '<p>No media files found in database</p>';
-            return;
-          }
-          
-          // Display simple list
-          const list = document.createElement('div');
-          list.style.marginTop = '10px';
-          
-          mediaFiles.forEach(function(media, index) {
-            const item = document.createElement('div');
-            item.style.padding = '8px';
-            item.style.margin = '4px 0';
-            item.style.backgroundColor = '#f8f9fa';
-            item.style.borderRadius = '4px';
-            
-            const icon = media.type === 'photo' ? '📷' : '🎥';
-            const date = new Date(media.timestamp).toLocaleString();
-            
-            item.innerHTML = 
-              `<strong>${index+1}. ${icon} ${media.name || 'Unnamed ' + media.type}</strong>` + 
-              `<div style="font-size:12px;color:#666;">${date}</div>`;
-            
-            list.appendChild(item);
-          });
-          
-          container.appendChild(list);
-        };
-      } catch (error) {
-        container.innerHTML += '<p style="color:red">Error: ' + error.message + '</p>';
-      }
+        // Add each media file to the list
+        mediaFiles.forEach(function(media) {
+          addMediaToList(media);
+        });
+      };
+    } catch (e) {
+      // Silently fail - no error messages to user
+      const placeholder = document.createElement('div');
+      placeholder.className = 'media-placeholder';
+      placeholder.innerHTML = '<p>No media recordings yet. Use the Record button to capture photos or videos.</p>';
+      mediaGallery.appendChild(placeholder);
     }
-    
-    // Add emergency button to body
-    const emergencyButton = document.createElement('button');
-    emergencyButton.id = 'emergency-debug-button';
-    emergencyButton.textContent = 'Emergency Media Fix';
-    emergencyButton.style.position = 'fixed';
-    emergencyButton.style.bottom = '10px';
-    emergencyButton.style.right = '10px';
-    emergencyButton.style.zIndex = '9999';
-    emergencyButton.style.padding = '10px 15px';
-    emergencyButton.style.backgroundColor = '#dc3545';
-    emergencyButton.style.color = 'white';
-    emergencyButton.style.border = 'none';
-    emergencyButton.style.borderRadius = '4px';
-    emergencyButton.style.cursor = 'pointer';
-    emergencyButton.onclick = function() {
-      if (!window.db && !db) {
-        emergencyDbInit();
-      } else {
-        emergencyShowMedia();
-      }
-    };
-    
-    // Add the button after a slight delay
-    setTimeout(function() {
-      document.body.appendChild(emergencyButton);
-    }, 1000);
+  }
+});
   </script>
+  
 </body>
 </html>
