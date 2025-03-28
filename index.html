@@ -5139,24 +5139,27 @@ document.addEventListener('DOMContentLoaded', function() {
       // Get the name from input, or use default
       const mediaName = mediaNameInput.value.trim() || `Recording ${new Date().toLocaleString()}`;
       
-      // Create a simple menu for photo/video selection
+      // Create a dropdown menu positioned below the button
       const menu = document.createElement('div');
-      menu.style.position = 'fixed';
-      menu.style.bottom = '80px';
-      menu.style.left = '50%';
-      menu.style.transform = 'translateX(-50%)';
+      const buttonRect = cameraButton.getBoundingClientRect();
+      menu.style.position = 'absolute';
+      menu.style.top = `${buttonRect.bottom + 5}px`;
+      menu.style.left = `${buttonRect.left}px`;
       menu.style.backgroundColor = 'white';
       menu.style.padding = '10px';
       menu.style.borderRadius = '8px';
       menu.style.boxShadow = '0 2px 10px rgba(0,0,0,0.2)';
       menu.style.zIndex = '1000';
+      menu.style.minWidth = '150px';
       
       menu.innerHTML = `
         <button onclick="takePhoto('${mediaName}')" style="display: block; width: 100%; padding: 8px; margin-bottom: 5px; border: none; background: #e3f2fd; color: #1976d2; border-radius: 4px; cursor: pointer;">Take Photo</button>
         <button onclick="recordVideo('${mediaName}')" style="display: block; width: 100%; padding: 8px; border: none; background: #fce4ec; color: #c2185b; border-radius: 4px; cursor: pointer;">Record Video</button>
       `;
       
-      document.body.appendChild(menu);
+      // Position the menu relative to the camera button's parent
+      cameraButton.parentElement.style.position = 'relative';
+      cameraButton.parentElement.appendChild(menu);
       
       // Remove menu when clicking outside
       setTimeout(() => {
@@ -5202,23 +5205,116 @@ function recordVideo(mediaName) {
 }
 
 function saveMedia(file, type, name) {
+  console.log('Saving media:', type, name);
+  
+  if (!db) {
+    console.error('Database not initialized');
+    notify('Database not initialized', 'error');
+    return;
+  }
+
   const mediaRecord = {
     id: 'media_' + Date.now(),
     type: type,
     name: name,
     fileName: file.name,
     timestamp: Date.now(),
-    sessionId: getCurrentSessionId()
+    sessionId: getCurrentSessionId(),
+    comments: '' // Initialize empty comments
   };
+  
+  console.log('Creating media record:', mediaRecord);
   
   const transaction = db.transaction(['mediaFiles'], 'readwrite');
   const store = transaction.objectStore('mediaFiles');
   
-  store.add(mediaRecord).onsuccess = function() {
+  const request = store.add(mediaRecord);
+  
+  request.onsuccess = function() {
+    console.log('Media saved successfully:', mediaRecord);
     notify(`${type === 'photo' ? 'Photo' : 'Video'} saved`, 'success');
-    if (typeof addMediaToList === 'function') {
-      addMediaToList(mediaRecord);
+    
+    // Add to media list
+    const mediaGallery = document.getElementById('media-gallery');
+    if (mediaGallery) {
+      // Create media item
+      const mediaItem = document.createElement('div');
+      mediaItem.className = 'media-item';
+      mediaItem.setAttribute('data-id', mediaRecord.id);
+      mediaItem.style.padding = '10px';
+      mediaItem.style.margin = '10px 0';
+      mediaItem.style.backgroundColor = '#f5f5f5';
+      mediaItem.style.borderRadius = '5px';
+      mediaItem.style.cursor = 'pointer';
+      
+      // Set the icon based on media type
+      const icon = mediaRecord.type === 'photo' ? '📷' : '🎥';
+      
+      // Format the date
+      const date = new Date(mediaRecord.timestamp).toLocaleString();
+      
+      // Set the content
+      mediaItem.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div style="font-weight: bold;">
+            ${icon} ${mediaRecord.name || 'Unnamed Recording'}
+          </div>
+          <div style="font-size: 12px; color: #666;">
+            ${date}
+          </div>
+        </div>
+        <div style="margin-top: 5px; font-size: 13px; color: #444;">
+          ${mediaRecord.comments || 'No comments added yet.'}
+        </div>
+        <div style="margin-top: 8px; text-align: right;">
+          <button class="delete-media-btn" data-id="${mediaRecord.id}" style="padding: 5px 10px; background: #ffebee; color: #e53935; border: none; border-radius: 4px; cursor: pointer;">
+            Delete
+          </button>
+        </div>
+      `;
+      
+      // Add to the beginning of the gallery (newest first)
+      if (mediaGallery.firstChild) {
+        mediaGallery.insertBefore(mediaItem, mediaGallery.firstChild);
+      } else {
+        mediaGallery.appendChild(mediaItem);
+      }
+      
+      // Add click event to view media
+      mediaItem.addEventListener('click', function(e) {
+        if (e.target.classList.contains('delete-media-btn') || e.target.closest('.delete-media-btn')) {
+          return;
+        }
+        if (typeof viewMedia === 'function') {
+          viewMedia(mediaRecord);
+        }
+      });
+      
+      // Add delete button event listener
+      const deleteBtn = mediaItem.querySelector('.delete-media-btn');
+      if (deleteBtn) {
+        deleteBtn.addEventListener('click', function() {
+          if (confirm('Delete this media?')) {
+            const id = this.getAttribute('data-id');
+            const transaction = db.transaction(['mediaFiles'], 'readwrite');
+            const store = transaction.objectStore('mediaFiles');
+            store.delete(id);
+            mediaGallery.removeChild(mediaItem);
+          }
+        });
+      }
     }
+    
+    // Switch to media tab
+    const mediaTabButton = document.querySelector('[data-tab="media"]');
+    if (mediaTabButton) {
+      mediaTabButton.click();
+    }
+  };
+  
+  request.onerror = function(event) {
+    console.error('Error saving media:', event.target.error);
+    notify('Error saving media', 'error');
   };
 }
 
