@@ -5258,7 +5258,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 100);
         
         // Add a simple entry to the media list
-        addMediaToList(mediaRecord);
+        if (typeof addMediaToList === 'function') {
+          addMediaToList(mediaRecord);
+        }
         
         // Switch to media tab
         const mediaTabButton = document.querySelector('[data-tab="media"]');
@@ -5279,9 +5281,18 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   
   if (cameraButton) {
-    // Show a contextual menu for media type selection
+    // Name first, then show media options
     cameraButton.onclick = function(e) {
       e.preventDefault();
+      
+      // Prompt for media name first
+      const now = new Date();
+      const dateStr = now.toLocaleDateString().replace(/\//g, '-');
+      const timeStr = now.toLocaleTimeString().replace(/:/g, '-').replace(/\s/g, '');
+      const defaultName = `Recording_${dateStr}_${timeStr}`;
+      
+      const mediaName = prompt("Name your recording:", defaultName);
+      if (!mediaName) return; // User cancelled
       
       // Create a small menu to choose between photo and video
       const menu = document.createElement('div');
@@ -5347,54 +5358,139 @@ document.addEventListener('DOMContentLoaded', function() {
       
       // Handle photo option
       document.getElementById('take-photo-option').addEventListener('click', function() {
-        // Create file input for photo capture
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.accept = 'image/*';
-        
-        // Use camera directly on mobile, but allow file selection on desktop
-        if (isMobile) {
-          input.capture = 'environment';
-        }
-        
-        // Handle file selection
-        input.onchange = function() {
-          if (input.files && input.files[0]) {
-            processMedia(input.files[0], 'photo');
-          }
-        };
-        
-        // Trigger file selection
-        input.click();
         document.body.removeChild(menu);
+        takePhotoWithName(mediaName);
       });
       
       // Handle video option
       document.getElementById('record-video-option').addEventListener('click', function() {
-        // Create file input for video capture
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.accept = 'video/*';
-        
-        // Use camera directly on mobile, but allow file selection on desktop
-        if (isMobile) {
-          input.capture = 'environment';
-        }
-        
-        // Handle file selection
-        input.onchange = function() {
-          if (input.files && input.files[0]) {
-            processMedia(input.files[0], 'video');
-          }
-        };
-        
-        // Trigger file selection
-        input.click();
         document.body.removeChild(menu);
+        recordVideoWithName(mediaName);
       });
     };
   }
 });
+
+// Function to take a photo with a predetermined name
+function takePhotoWithName(mediaName) {
+  // Create file input for photo capture
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = 'image/*';
+  
+  // Use camera directly on mobile, but allow file selection on desktop
+  if (isMobile) {
+    input.capture = 'environment';
+  }
+  
+  // Handle file selection
+  input.onchange = function() {
+    if (input.files && input.files[0]) {
+      const fileExtension = '.jpg';
+      const fileName = mediaName.replace(/[^a-z0-9]/gi, '_') + fileExtension;
+      saveMedia(input.files[0], 'photo', mediaName, fileName);
+    }
+  };
+  
+  // Trigger file selection
+  input.click();
+}
+
+// Function to record a video with a predetermined name
+function recordVideoWithName(mediaName) {
+  // Create file input for video capture
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = 'video/*';
+  
+  // Use camera directly on mobile, but allow file selection on desktop
+  if (isMobile) {
+    input.capture = 'environment';
+  }
+  
+  // Handle file selection
+  input.onchange = function() {
+    if (input.files && input.files[0]) {
+      const fileExtension = '.mp4';
+      const fileName = mediaName.replace(/[^a-z0-9]/gi, '_') + fileExtension;
+      saveMedia(input.files[0], 'video', mediaName, fileName);
+    }
+  };
+  
+  // Trigger file selection
+  input.click();
+}
+
+// Save media with predetermined name
+async function saveMedia(file, type, name, fileName) {
+  try {
+    // Create thumbnail for database storage
+    const thumbnail = await createThumbnail(file, type);
+    
+    // Create downloadable URL
+    const blobUrl = URL.createObjectURL(file);
+    
+    // Trigger download
+    const downloadLink = document.createElement('a');
+    downloadLink.href = blobUrl;
+    downloadLink.download = fileName;
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
+    
+    // Create media record with thumbnail
+    const mediaRecord = {
+      id: 'media_' + Date.now(),
+      type: type,
+      name: name,
+      fileName: fileName,
+      timestamp: Date.now(),
+      sessionId: typeof getCurrentSessionId === 'function' ? getCurrentSessionId() : null,
+      preview: thumbnail, // Store a thumbnail for gallery display
+      comments: '' // Add empty comments field
+    };
+    
+    // Save the record to database
+    const transaction = db.transaction(['mediaFiles'], 'readwrite');
+    const store = transaction.objectStore('mediaFiles');
+    
+    const request = store.add(mediaRecord);
+    
+    request.onsuccess = () => {
+      // Platform-specific success message
+      if (isIOS) {
+        notify(`${type === 'photo' ? 'Photo' : 'Video'} saved. For iOS: tap and hold on the opened file, then select "Save to Photos"`, 'info', 8000);
+      } else {
+        notify(`${type === 'photo' ? 'Photo' : 'Video'} saved to your Downloads folder as "${fileName}"`, 'success');
+      }
+      
+      // Clean up resources
+      setTimeout(() => {
+        URL.revokeObjectURL(blobUrl);
+      }, 100);
+      
+      // Add a simple entry to the media list
+      if (typeof addMediaToList === 'function') {
+        addMediaToList(mediaRecord);
+      }
+      
+      // Switch to media tab
+      const mediaTabButton = document.querySelector('[data-tab="media"]');
+      if (mediaTabButton) {
+        mediaTabButton.click();
+      }
+    };
+    
+    request.onerror = (event) => {
+      console.error('Error saving media to database:', event.target.error);
+      notify('Error saving media to database. Media was downloaded but not added to gallery.', 'error');
+    };
+    
+  } catch (error) {
+    console.error('Error saving media:', error);
+    notify('Error: Could not save media', 'error');
+  }
+}
 
 // Delete media from database
 function deleteMedia(mediaId) {
@@ -6172,7 +6268,7 @@ function deleteMediaFile(id) {
       };
       
       request.onerror = function(event) {
-        console.error('Error deleting media:', event);
+        console.error('Error deleting media:', event.target.error);
         alert('Error deleting media. Please try again.');
       };
     } catch (error) {
