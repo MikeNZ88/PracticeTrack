@@ -1419,6 +1419,182 @@
         padding: 10px;
       }
     }
+
+    /* Media Gallery Styles */
+    .media-gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 16px;
+      margin-top: 20px;
+    }
+
+    .media-item {
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      background-color: #fff;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .media-item:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .media-preview {
+      height: 150px;
+      background-color: #f5f5f5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .media-thumbnail {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .video-thumbnail {
+      position: relative;
+      width: 100%;
+      height: 100%;
+    }
+
+    .play-icon {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: rgba(0, 0, 0, 0.5);
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .media-placeholder-item {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #888;
+    }
+
+    .media-type-icon {
+      margin-bottom: 10px;
+    }
+
+    .media-info {
+      padding: 12px;
+    }
+
+    .media-name {
+      font-weight: bold;
+      font-size: 14px;
+      margin-bottom: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .media-date, .media-category {
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 4px;
+    }
+
+    .media-actions {
+      margin-top: 8px;
+      display: flex;
+      gap: 8px;
+    }
+
+    .media-actions button {
+      padding: 5px 10px;
+      font-size: 12px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      background-color: #f0f0f0;
+      color: #333;
+      transition: background-color 0.2s;
+    }
+
+    .media-actions button:hover {
+      background-color: #e0e0e0;
+    }
+
+    .media-actions .delete-btn {
+      background-color: #ffeeee;
+      color: #e53935;
+    }
+
+    .media-actions .delete-btn:hover {
+      background-color: #ffdddd;
+    }
+
+    .media-placeholder {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 40px 20px;
+      color: #888;
+      background-color: #f9f9f9;
+      border-radius: 8px;
+    }
+
+    /* Media Modal Styles */
+    .media-modal-content {
+      max-width: 800px;
+      width: 90%;
+      padding: 20px;
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+      margin: auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .media-display {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+      background-color: #f5f5f5;
+      padding: 20px;
+      border-radius: 4px;
+    }
+
+    .media-details {
+      padding: 10px;
+    }
+
+    .media-details h3 {
+      margin-top: 0;
+      margin-bottom: 10px;
+      font-size: 18px;
+    }
+
+    .media-details p {
+      margin: 5px 0;
+      font-size: 14px;
+      color: #666;
+    }
+
+    /* Media type menu */
+    .media-type-menu {
+      z-index: 1000;
+    }
+
+    .media-type-menu button:hover {
+      background-color: #f0f0f0;
+    }
   </style>
 </head>
 <body>
@@ -4144,31 +4320,81 @@ document.addEventListener('DOMContentLoaded', () => {
       
       viewContent.innerHTML = '';
       
-      // Check if we have a valid media record
-      if (!media) {
-        viewContent.innerHTML = `
-          <div style="background-color: #f8f8f8; padding: 30px; text-align: center; color: #666;">
-            <p>Media content unavailable</p>
-          </div>
-        `;
-        viewMediaModal.style.display = 'flex';
-        return;
+      // Determine how to display the media
+      let mediaDisplay = '';
+      let mediaUrl = '';
+      
+      // Check for preview or blob in different formats
+      if (media.preview instanceof Blob) {
+        mediaUrl = URL.createObjectURL(media.preview);
+        
+        if (media.type === 'photo') {
+          mediaDisplay = `<img src="${mediaUrl}" alt="${media.name}" style="max-width: 100%; max-height: 70vh;">`;
+        } else {
+          mediaDisplay = `
+            <div style="text-align: center; color: var(--text-color);">
+              <img src="${mediaUrl}" alt="${media.name}" style="max-width: 100%; max-height: 50vh;">
+              <p>Preview only. To view the actual video, please check your device files.</p>
+            </div>`;
+        }
+      } else if (media.blob instanceof Blob) {
+        mediaUrl = URL.createObjectURL(media.blob);
+        
+        if (media.type === 'photo') {
+          mediaDisplay = `<img src="${mediaUrl}" alt="${media.name}" style="max-width: 100%; max-height: 70vh;">`;
+        } else {
+          mediaDisplay = `
+            <video controls style="max-width: 100%; max-height: 70vh;">
+              <source src="${mediaUrl}" type="video/mp4">
+              Your browser does not support the video tag.
+            </video>`;
+        }
+      } else {
+        // No preview available, show text-only info
+        mediaDisplay = `
+          <div style="background-color: var(--background-light); padding: 30px; text-align: center; color: var(--text-color);">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+              ${media.type === 'photo' 
+                ? '<rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>'
+                : '<polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>'
+              }
+            </svg>
+          </div>`;
       }
       
-      // Since we no longer store blobs, show info about the saved file
+      // Create the full content display
       viewContent.innerHTML = `
-        <div style="background-color: #f8f8f8; padding: 30px; text-align: center; color: #666;">
-          <h3>${media.name || 'Unnamed media'}</h3>
-          <p>This ${media.type} was saved to your device as ${media.fileName || 'a file'}.</p>
-          <p>Date: ${new Date(media.timestamp).toLocaleString()}</p>
-          <p><i>The file is stored in your device's downloads folder or gallery.</i></p>
+        <div class="media-modal-content">
+          <div class="media-display">
+            ${mediaDisplay}
+          </div>
+          <div class="media-details">
+            <h3>${media.name}</h3>
+            <p>File: ${media.fileName || 'Unknown filename'}</p>
+            <p>Date: ${new Date(media.timestamp).toLocaleString()}</p>
+            <p>Type: ${media.type === 'photo' ? 'Photo' : 'Video'}</p>
+            ${media.sessionId ? `<p>Session: ${media.sessionId}</p>` : ''}
+          </div>
         </div>
       `;
       
+      // Show the modal
       viewMediaModal.style.display = 'flex';
+      
+      // Clean up when modal is closed
+      const closeButton = viewMediaModal.querySelector('.close-modal');
+      if (closeButton) {
+        const cleanup = () => {
+          if (mediaUrl) URL.revokeObjectURL(mediaUrl);
+          closeButton.removeEventListener('click', cleanup);
+        };
+        
+        closeButton.addEventListener('click', cleanup, { once: true });
+      }
+      
     } catch (error) {
-      console.error('Error displaying media in modal:', error);
-      notify('Error displaying media. Please try again.', 'error');
+      console.error('Error displaying media info:', error);
+      notify('Error displaying media information. Please try again.', 'error');
     }
   }
   
@@ -4623,73 +4849,118 @@ function createMediaItem(media) {
       ? `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>`
       : `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>`;
     
-    mediaItem.innerHTML = `
-      <div class="media-preview media-text-only" style="background-color: var(--background-light); display: flex; align-items: center; justify-content: center;">
-        <div style="text-align: center; padding: 20px;">
-          ${typeIcon}
-          <p>${media.fileName || media.name}</p>
-          <p class="media-saved-locally">Saved to your device</p>
+    // Check if we have preview data stored in different formats
+    let previewUrl = '';
+    let previewContent = '';
+    
+    // Check for blob or preview format in different properties
+    if (media.preview instanceof Blob) {
+      // If we have a preview blob (from our enhanced media functionality)
+      previewUrl = URL.createObjectURL(media.preview);
+      
+      if (media.type === 'photo') {
+        previewContent = `<img src="${previewUrl}" alt="${mediaName}" class="media-thumbnail">`;
+      } else {
+        previewContent = `
+          <div class="video-thumbnail">
+            <img src="${previewUrl}" alt="${mediaName}" class="media-thumbnail">
+            <div class="play-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="5 3 19 12 5 21 5 3" fill="white"></polygon>
+              </svg>
+            </div>
+          </div>
+        `;
+      }
+    } else if (media.blob instanceof Blob) {
+      // Legacy format - direct blob
+      previewUrl = URL.createObjectURL(media.blob);
+      
+      if (media.type === 'photo') {
+        previewContent = `<img src="${previewUrl}" alt="${mediaName}" class="media-thumbnail">`;
+      } else {
+        previewContent = `
+          <div class="video-thumbnail">
+            <video src="${previewUrl}" class="media-thumbnail"></video>
+            <div class="play-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="5 3 19 12 5 21 5 3" fill="white"></polygon>
+              </svg>
+            </div>
+          </div>
+        `;
+      }
+    } else {
+      // No preview available, show placeholder
+      previewContent = `
+        <div class="media-placeholder-item">
+          <div class="media-type-icon">
+            ${typeIcon}
+          </div>
+          <p>${media.type === 'photo' ? 'Photo' : 'Video'}</p>
         </div>
+      `;
+    }
+    
+    // Media item HTML
+    mediaItem.innerHTML = `
+      <div class="media-preview">
+        ${previewContent}
       </div>
       <div class="media-info">
-        <div class="media-name">${typeIcon} ${mediaName}</div>
+        <div class="media-name">${mediaName}</div>
         <div class="media-date">${formattedDate}</div>
         <div class="media-category">${category}</div>
         <div class="media-actions">
-          <button class="rename-btn">Rename</button>
+          <button class="view-btn">View</button>
           <button class="delete-btn">Delete</button>
         </div>
       </div>
     `;
     
-    // Add event listeners to buttons
-    const renameBtn = mediaItem.querySelector('.rename-btn');
-    const deleteBtn = mediaItem.querySelector('.delete-btn');
+    // Add event listeners
+    const viewBtn = mediaItem.querySelector('.view-btn');
+    if (viewBtn) {
+      viewBtn.addEventListener('click', () => {
+        viewMedia(media);
+      });
+    }
     
-    if (renameBtn) {
-      renameBtn.addEventListener('click', () => {
-        const newName = prompt('Enter new name:', mediaName);
-        if (newName && newName.trim() !== '') {
-          updateMediaName(media.id, newName.trim());
+    const deleteBtn = mediaItem.querySelector('.delete-btn');
+    if (deleteBtn) {
+      deleteBtn.addEventListener('click', () => {
+        if (confirm(`Are you sure you want to delete this ${media.type}? This cannot be undone.`)) {
+          deleteMedia(media.id);
         }
       });
     }
     
-    if (deleteBtn) {
-      deleteBtn.addEventListener('click', () => {
-        if (confirm('Are you sure you want to delete this media record? This will only remove the record from the app, not the actual file from your device.')) {
-          deleteMedia(media.id);
-        }
+    // Cleanup URL when element is removed
+    if (previewUrl) {
+      // Create a MutationObserver to watch for when the element is removed from DOM
+      const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+          mutation.removedNodes.forEach((node) => {
+            if (node === mediaItem || node.contains(mediaItem)) {
+              URL.revokeObjectURL(previewUrl);
+              observer.disconnect();
+            }
+          });
+        });
       });
+      
+      // Start observing after a short delay to avoid immediate cleanup
+      setTimeout(() => {
+        if (mediaItem.parentNode) {
+          observer.observe(mediaItem.parentNode, { childList: true, subtree: true });
+        }
+      }, 100);
     }
     
     return mediaItem;
   } catch (error) {
     console.error('Error creating media item:', error);
-    
-    // Return a simple fallback element if there's an error
-    const errorItem = document.createElement('div');
-    errorItem.className = 'media-item';
-    errorItem.style.backgroundColor = '#ffeeee';
-    errorItem.innerHTML = `
-      <div class="media-info">
-        <div class="media-name">Error displaying media</div>
-        <div class="media-actions">
-          <button class="delete-btn">Delete</button>
-        </div>
-      </div>
-    `;
-    
-    const deleteBtn = errorItem.querySelector('.delete-btn');
-    if (deleteBtn && media && media.id) {
-      deleteBtn.addEventListener('click', () => {
-        if (confirm('Are you sure you want to delete this media record?')) {
-          deleteMedia(media.id);
-        }
-      });
-    }
-    
-    return errorItem;
+    return document.createElement('div');
   }
 }
 
@@ -4837,54 +5108,315 @@ document.addEventListener('DOMContentLoaded', function() {
   // Get camera button
   const cameraButton = document.getElementById('camera-button');
   
-  if (cameraButton) {
-    // Direct camera click handler
-    cameraButton.onclick = function(e) {
-      e.preventDefault();
-      
-      // Create file input for photo capture
-      const input = document.createElement('input');
-      input.type = 'file';
-      input.accept = 'image/*';
-      input.capture = 'environment'; // Use camera directly
-      
-      // Handle file selection
-      input.onchange = function() {
-        if (input.files && input.files[0]) {
-          const selectedFile = input.files[0];
+  // Detect platform for optimal experience
+  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+  
+  // Helper function to create preview thumbnails
+  async function createThumbnail(file, type) {
+    return new Promise((resolve, reject) => {
+      try {
+        if (type === 'photo') {
+          const img = new Image();
+          const url = URL.createObjectURL(file);
           
-          // Prompt for media name
-          const mediaName = prompt('Name this photo:', '');
-          if (mediaName === null) return; // User cancelled
-          
-          const fileName = (mediaName || 'Photo_' + new Date().toLocaleTimeString()).replace(/[^a-z0-9]/gi, '_') + '.jpg';
-          
-          // Create media record
-          const mediaRecord = {
-            id: 'media_' + Date.now(),
-            type: 'photo',
-            name: mediaName || 'Photo ' + new Date().toLocaleTimeString(),
-            fileName: fileName,
-            timestamp: Date.now(),
-            sessionId: getCurrentSessionId ? getCurrentSessionId() : null
+          img.onload = function() {
+            // Create a canvas for the thumbnail
+            const canvas = document.createElement('canvas');
+            const MAX_WIDTH = 400;
+            const MAX_HEIGHT = 400;
+            let width = img.width;
+            let height = img.height;
+            
+            // Calculate the new dimensions
+            if (width > height) {
+              if (width > MAX_WIDTH) {
+                height *= MAX_WIDTH / width;
+                width = MAX_WIDTH;
+              }
+            } else {
+              if (height > MAX_HEIGHT) {
+                width *= MAX_HEIGHT / height;
+                height = MAX_HEIGHT;
+              }
+            }
+            
+            canvas.width = width;
+            canvas.height = height;
+            
+            // Draw the image on the canvas
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+            
+            // Convert to blob
+            canvas.toBlob(function(blob) {
+              URL.revokeObjectURL(url);
+              resolve(blob);
+            }, 'image/jpeg', 0.7);
           };
           
-          // Save the record
-          if (typeof saveMediaRecord === 'function') {
-            saveMediaRecord(mediaRecord);
-            notify('Photo saved to your device', 'success');
-          } else {
-            // Fallback if function not found
-            alert('Photo captured. You can find it in your device gallery.');
-          }
+          img.onerror = function() {
+            URL.revokeObjectURL(url);
+            reject(new Error('Failed to load image'));
+          };
+          
+          img.src = url;
+        } else if (type === 'video') {
+          // For videos, we'll just return the file itself
+          // In a production app, you might want to extract a frame instead
+          resolve(file);
+        } else {
+          reject(new Error('Unknown media type'));
+        }
+      } catch (error) {
+        console.error('Error creating thumbnail:', error);
+        reject(error);
+      }
+    });
+  }
+  
+  // Helper function to prepare and save media
+  async function processMedia(file, type) {
+    try {
+      // Create a friendly name suggestion based on date/time
+      const now = new Date();
+      const dateStr = now.toLocaleDateString().replace(/\//g, '-');
+      const timeStr = now.toLocaleTimeString().replace(/:/g, '-').replace(/\s/g, '');
+      const defaultName = `${type === 'photo' ? 'Photo' : 'Video'}_${dateStr}_${timeStr}`;
+      
+      // Prompt for media name with better default
+      const mediaName = prompt(`Name this ${type}:`, defaultName);
+      if (mediaName === null) return; // User cancelled
+      
+      // Generate filename
+      const fileExtension = type === 'photo' ? '.jpg' : '.mp4';
+      const fileName = (mediaName || defaultName).replace(/[^a-z0-9]/gi, '_') + fileExtension;
+      
+      // Create thumbnail for database storage
+      const thumbnail = await createThumbnail(file, type);
+      
+      // Create downloadable URL
+      const blobUrl = URL.createObjectURL(file);
+      
+      // Trigger download
+      const downloadLink = document.createElement('a');
+      downloadLink.href = blobUrl;
+      downloadLink.download = fileName;
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+      document.body.removeChild(downloadLink);
+      
+      // Create media record with thumbnail
+      const mediaRecord = {
+        id: 'media_' + Date.now(),
+        type: type,
+        name: mediaName || defaultName,
+        fileName: fileName,
+        timestamp: Date.now(),
+        sessionId: typeof getCurrentSessionId === 'function' ? getCurrentSessionId() : null,
+        preview: thumbnail // Store a thumbnail for gallery display
+      };
+      
+      // Save the record to database
+      const transaction = db.transaction(['mediaFiles'], 'readwrite');
+      const store = transaction.objectStore('mediaFiles');
+      
+      store.add(mediaRecord).onsuccess = () => {
+        // Platform-specific success message
+        if (isIOS) {
+          notify(`${type === 'photo' ? 'Photo' : 'Video'} saved. For iOS: tap and hold on the opened file, then select "Save to Photos"`, 'info', 8000);
+        } else {
+          notify(`${type === 'photo' ? 'Photo' : 'Video'} saved to your Downloads folder as "${fileName}"`, 'success');
+        }
+        
+        // Clean up resources
+        setTimeout(() => {
+          URL.revokeObjectURL(blobUrl);
+        }, 100);
+        
+        // Switch to media tab and refresh gallery
+        const mediaTabButton = document.querySelector('[data-tab="media"]');
+        if (mediaTabButton) {
+          mediaTabButton.click();
         }
       };
       
-      // Trigger file selection
-      input.click();
+      store.add(mediaRecord).onerror = (event) => {
+        console.error('Error saving media to database:', event.target.error);
+        notify('Error saving media to database. Media was downloaded but not added to gallery.', 'error');
+      };
+      
+    } catch (error) {
+      console.error(`Error processing ${type}:`, error);
+      notify(`Error processing ${type}. Please try again.`, 'error');
+    }
+  }
+  
+  if (cameraButton) {
+    // Show a contextual menu for media type selection
+    cameraButton.onclick = function(e) {
+      e.preventDefault();
+      
+      // Create a small menu to choose between photo and video
+      const menu = document.createElement('div');
+      menu.className = 'media-type-menu';
+      menu.style.position = 'absolute';
+      menu.style.zIndex = '1000';
+      menu.style.backgroundColor = 'white';
+      menu.style.boxShadow = '0 2px 10px rgba(0,0,0,0.2)';
+      menu.style.borderRadius = '5px';
+      menu.style.padding = '10px';
+      
+      // Position the menu near the button
+      const rect = cameraButton.getBoundingClientRect();
+      menu.style.top = (rect.bottom + 5) + 'px';
+      menu.style.left = rect.left + 'px';
+      
+      // Add options
+      menu.innerHTML = `
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <button id="take-photo-option" style="padding: 8px 15px; display: flex; align-items: center; gap: 8px; background: none; border: none; cursor: pointer; border-radius: 4px; transition: background-color 0.2s;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+              <circle cx="12" cy="13" r="3"></circle>
+            </svg>
+            Take Photo
+          </button>
+          <button id="record-video-option" style="padding: 8px 15px; display: flex; align-items: center; gap: 8px; background: none; border: none; cursor: pointer; border-radius: 4px; transition: background-color 0.2s;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="23 7 16 12 23 17 23 7"></polygon>
+              <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
+            </svg>
+            Record Video
+          </button>
+        </div>
+      `;
+      
+      // Add menu to DOM
+      document.body.appendChild(menu);
+      
+      // Add hover effects
+      const buttons = menu.querySelectorAll('button');
+      buttons.forEach(button => {
+        button.addEventListener('mouseover', () => {
+          button.style.backgroundColor = '#f0f0f0';
+        });
+        button.addEventListener('mouseout', () => {
+          button.style.backgroundColor = 'transparent';
+        });
+      });
+      
+      // Close menu when clicking outside
+      const closeMenu = function(e) {
+        if (!menu.contains(e.target) && e.target !== cameraButton) {
+          document.body.removeChild(menu);
+          document.removeEventListener('click', closeMenu);
+        }
+      };
+      
+      // Add a slight delay to prevent immediate closing
+      setTimeout(() => {
+        document.addEventListener('click', closeMenu);
+      }, 100);
+      
+      // Handle photo option
+      document.getElementById('take-photo-option').addEventListener('click', function() {
+        // Create file input for photo capture
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+        
+        // Use camera directly on mobile, but allow file selection on desktop
+        if (isMobile) {
+          input.capture = 'environment';
+        }
+        
+        // Handle file selection
+        input.onchange = function() {
+          if (input.files && input.files[0]) {
+            processMedia(input.files[0], 'photo');
+          }
+        };
+        
+        // Trigger file selection
+        input.click();
+        document.body.removeChild(menu);
+      });
+      
+      // Handle video option
+      document.getElementById('record-video-option').addEventListener('click', function() {
+        // Create file input for video capture
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'video/*';
+        
+        // Use camera directly on mobile, but allow file selection on desktop
+        if (isMobile) {
+          input.capture = 'environment';
+        }
+        
+        // Handle file selection
+        input.onchange = function() {
+          if (input.files && input.files[0]) {
+            processMedia(input.files[0], 'video');
+          }
+        };
+        
+        // Trigger file selection
+        input.click();
+        document.body.removeChild(menu);
+      });
     };
   }
 });
+
+// Delete media from database
+function deleteMedia(mediaId) {
+  if (!db) {
+    notify('Database not initialized', 'error');
+    return;
+  }
+  
+  try {
+    const transaction = db.transaction(['mediaFiles'], 'readwrite');
+    const store = transaction.objectStore('mediaFiles');
+    
+    // First, get the media item to check if it has an URL that needs cleanup
+    const getRequest = store.get(mediaId);
+    
+    getRequest.onsuccess = function(event) {
+      const media = event.target.result;
+      
+      // Delete from database first
+      const deleteRequest = store.delete(mediaId);
+      
+      deleteRequest.onsuccess = function() {
+        // Refresh the gallery
+        loadMediaGallery();
+        notify('Media deleted successfully', 'success');
+        
+        // Close the modal if it's open
+        if (viewMediaModal && viewMediaModal.style.display === 'flex') {
+          viewMediaModal.style.display = 'none';
+        }
+      };
+      
+      deleteRequest.onerror = function(event) {
+        console.error('Error deleting media:', event.target.error);
+        notify('Error deleting media', 'error');
+      };
+    };
+    
+    getRequest.onerror = function(event) {
+      console.error('Error getting media for deletion:', event.target.error);
+      notify('Error deleting media', 'error');
+    };
+    
+  } catch (error) {
+    console.error('Error in deleteMedia:', error);
+    notify('Error deleting media', 'error');
+  }
+}
   </script>
 </body>
 </html>
