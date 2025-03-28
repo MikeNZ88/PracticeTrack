@@ -1362,6 +1362,63 @@
       color: var(--secondary-color);
       margin-top: 8px;
     }
+
+    /* Media preview and download styles */
+    #media-preview {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.9);
+      z-index: 1000;
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .download-button {
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 5px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .download-button:hover {
+      background-color: var(--primary-color-dark, #005a9c);
+    }
+
+    .download-instructions {
+      background-color: rgba(255, 255, 255, 0.1);
+      padding: 15px;
+      border-radius: 5px;
+      margin-top: 15px;
+      max-width: 85%;
+      text-align: center;
+      color: white;
+    }
+
+    /* Adjustments for mobile */
+    @media (max-width: 768px) {
+      #photo-preview, #video-preview {
+        max-width: 90%;
+        max-height: 50vh;
+      }
+      
+      .download-instructions {
+        font-size: 14px;
+        padding: 10px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -4406,57 +4463,149 @@ function takePhoto() {
     const ctx = canvas.getContext('2d');
     ctx.drawImage(cameraPreview, 0, 0, canvas.width, canvas.height);
     
-    // Prompt user for media name
-    const mediaName = prompt('Name this photo:', '');
-    const fileName = (mediaName || 'PracticeTrack_Photo_' + new Date().toLocaleTimeString()).replace(/[^a-z0-9]/gi, '_') + '.jpg';
+    // Convert to data URL for preview
+    const imageDataUrl = canvas.toDataURL('image/jpeg', 0.8);
     
-    // Convert the canvas to a blob (image file)
-    canvas.toBlob(function(blob) {
-      if (!blob) {
-        console.error('Could not create image blob');
-        return;
+    // Close camera modal and open preview modal
+    stopCamera();
+    const cameraModal = document.getElementById('camera-modal');
+    if (cameraModal) {
+      cameraModal.style.display = 'none';
+    }
+    
+    // Show preview and save options
+    const mediaPreviewEl = document.getElementById('media-preview');
+    const photoPreviewEl = document.getElementById('photo-preview');
+    const videoPreviewEl = document.getElementById('video-preview');
+    
+    if (mediaPreviewEl && photoPreviewEl) {
+      // Show the photo preview
+      photoPreviewEl.src = imageDataUrl;
+      photoPreviewEl.classList.remove('hidden');
+      if (videoPreviewEl) videoPreviewEl.classList.add('hidden');
+      
+      // Show the preview modal
+      mediaPreviewEl.style.display = 'flex';
+      
+      // Set up save button handler
+      const saveBtn = document.getElementById('save-media');
+      const cancelBtn = document.getElementById('cancel-media');
+      
+      if (saveBtn) {
+        // One-time event listener
+        const saveHandler = function() {
+          // Prompt user for media name
+          const mediaName = prompt('Name this photo:', '');
+          const fileName = (mediaName || 'PracticeTrack_Photo_' + new Date().toLocaleTimeString()).replace(/[^a-z0-9]/gi, '_') + '.jpg';
+          
+          // Convert the canvas to a blob
+          canvas.toBlob(function(blob) {
+            if (!blob) {
+              console.error('Could not create image blob');
+              return;
+            }
+            
+            // Create download link
+            const link = document.createElement('a');
+            link.download = fileName;
+            link.href = URL.createObjectURL(blob);
+            link.textContent = 'Download Image';
+            link.style.display = 'block';
+            link.style.margin = '20px auto';
+            link.style.padding = '10px';
+            link.style.backgroundColor = 'var(--primary-color)';
+            link.style.color = 'white';
+            link.style.borderRadius = '5px';
+            link.style.textAlign = 'center';
+            link.style.textDecoration = 'none';
+            link.style.width = '80%';
+            link.style.maxWidth = '300px';
+            
+            // For iOS devices, provide special instructions
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+            const instructions = document.createElement('div');
+            instructions.style.padding = '15px';
+            instructions.style.margin = '10px 0';
+            instructions.style.backgroundColor = 'var(--background-light)';
+            instructions.style.borderRadius = '5px';
+            
+            if (isIOS) {
+              instructions.innerHTML = `
+                <p><strong>On iOS devices:</strong></p>
+                <p>1. Tap the download button below</p>
+                <p>2. Tap and hold on the image that opens</p>
+                <p>3. Select "Save to Photos"</p>
+              `;
+            } else {
+              instructions.innerHTML = `
+                <p>Tap the button below to save this photo to your device.</p>
+              `;
+            }
+            
+            // Add download elements to a container
+            const downloadContainer = document.createElement('div');
+            downloadContainer.style.textAlign = 'center';
+            downloadContainer.style.padding = '20px';
+            downloadContainer.appendChild(instructions);
+            downloadContainer.appendChild(link);
+            
+            // Show download UI in the preview modal
+            if (photoPreviewEl.parentNode) {
+              photoPreviewEl.parentNode.appendChild(downloadContainer);
+            }
+            
+            // Create unique ID for the media record
+            const mediaId = 'media_' + Date.now();
+            
+            // Get current session if available
+            const currentSessionId = getCurrentSessionId();
+            
+            // Create text-only media record
+            const mediaRecord = {
+              id: mediaId,
+              type: 'photo',
+              name: mediaName || 'Photo ' + new Date().toLocaleTimeString(),
+              fileName: fileName,
+              timestamp: Date.now(),
+              sessionId: currentSessionId
+            };
+            
+            // Save text record to IndexedDB
+            saveMediaRecord(mediaRecord);
+            
+            // Remove the event listener once used
+            saveBtn.removeEventListener('click', saveHandler);
+            
+            // Update save button text
+            saveBtn.innerHTML = `
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+              </svg>
+            `;
+            saveBtn.style.backgroundColor = '#4CAF50';
+            
+            // Show success message
+            notify('Photo ready to save as "' + fileName + '"', 'success');
+          }, 'image/jpeg', 0.8);
+        };
+        
+        // Attach the handler
+        saveBtn.addEventListener('click', saveHandler);
       }
       
-      // Create download link
-      const link = document.createElement('a');
-      link.download = fileName;
-      link.href = URL.createObjectURL(blob);
-      
-      // Create a unique ID for the media record
-      const mediaId = 'media_' + Date.now();
-      
-      // Get current session if available
-      const currentSessionId = getCurrentSessionId();
-      
-      // Create text-only media record
-      const mediaRecord = {
-        id: mediaId,
-        type: 'photo',
-        name: mediaName || 'Photo ' + new Date().toLocaleTimeString(),
-        fileName: fileName,
-        timestamp: Date.now(),
-        sessionId: currentSessionId
-      };
-      
-      // Save text record to IndexedDB
-      saveMediaRecord(mediaRecord);
-      
-      // Trigger the download
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(link.href);
-      
-      // Show success message
-      notify('Photo saved to your device as "' + fileName + '"', 'success');
-      
-      // Close the camera modal
-      stopCamera();
-      const cameraModal = document.getElementById('camera-modal');
-      if (cameraModal) {
-        cameraModal.style.display = 'none';
+      if (cancelBtn) {
+        cancelBtn.addEventListener('click', function() {
+          mediaPreviewEl.style.display = 'none';
+          
+          // Clean up any download UI that might have been added
+          const downloadContainer = mediaPreviewEl.querySelector('div:not(.camera-controls):not(.camera-preview)');
+          if (downloadContainer) {
+            downloadContainer.remove();
+          }
+        });
       }
-    }, 'image/jpeg', 0.8); // JPEG format with 80% quality
+    }
   } catch (error) {
     console.error('Error taking photo:', error);
     notify('Error capturing photo. Please try again.', 'error');
