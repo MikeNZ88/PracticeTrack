@@ -5262,21 +5262,15 @@ document.addEventListener('DOMContentLoaded', function() {
         if (mediaTabButton) {
           mediaTabButton.click();
           
-          // Explicitly call loadMediaGallery after a short delay to ensure tab is visible
+          // Explicitly call our simple display function after a short delay
           setTimeout(() => {
-            if (typeof loadMediaGallery === 'function') {
-              console.log('Refreshing media gallery after saving new media');
-              loadMediaGallery();
+            console.log('Triggering simple media display after saving');
+            if (typeof displayMediaNames === 'function') {
+              displayMediaNames();
             } else {
-              console.error('loadMediaGallery function not found');
+              console.error('displayMediaNames function not found');
             }
           }, 300);
-        } else {
-          // If media tab button not found, still try to refresh gallery
-          if (typeof loadMediaGallery === 'function') {
-            console.log('Refreshing media gallery after saving new media');
-            loadMediaGallery();
-          }
         }
       };
       
@@ -5912,6 +5906,133 @@ window.deleteMedia = function(mediaId) {
     notify('Error deleting media', 'error');
   }
 };
+
+// Simple media display function - just shows names
+function displayMediaNames() {
+  console.log('Displaying simple media name list');
+  
+  // Get media gallery element
+  const mediaGallery = document.getElementById('media-gallery');
+  if (!mediaGallery) {
+    console.error('Media gallery element not found');
+    return;
+  }
+  
+  // Clear existing content
+  mediaGallery.innerHTML = '';
+  
+  if (!db) {
+    console.error('Database not initialized');
+    mediaGallery.innerHTML = '<div class="media-placeholder"><p>Please wait, database is initializing...</p></div>';
+    return;
+  }
+  
+  try {
+    const transaction = db.transaction(['mediaFiles'], 'readonly');
+    const store = transaction.objectStore('mediaFiles');
+    
+    store.getAll().onsuccess = function(event) {
+      const mediaFiles = event.target.result;
+      console.log('Media files found for simple display:', mediaFiles ? mediaFiles.length : 0);
+      
+      if (!mediaFiles || mediaFiles.length === 0) {
+        mediaGallery.innerHTML = '<div class="media-placeholder"><p>No media recordings yet. Use the Record button to capture photos or videos.</p></div>';
+        return;
+      }
+      
+      // Sort by date (newest first)
+      mediaFiles.sort((a, b) => b.timestamp - a.timestamp);
+      
+      // Create a simple list
+      const listContainer = document.createElement('div');
+      listContainer.className = 'media-list-simple';
+      listContainer.style.margin = '20px 0';
+      
+      mediaFiles.forEach(media => {
+        const date = new Date(media.timestamp).toLocaleString();
+        const item = document.createElement('div');
+        item.className = 'media-item-simple';
+        item.style.padding = '10px';
+        item.style.margin = '10px 0';
+        item.style.backgroundColor = '#f5f5f5';
+        item.style.borderRadius = '6px';
+        item.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
+        
+        const typeIcon = media.type === 'photo' 
+          ? '<span style="margin-right: 8px;">📷</span>' 
+          : '<span style="margin-right: 8px;">🎥</span>';
+        
+        item.innerHTML = `
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="font-weight: bold;">
+              ${typeIcon}${media.name || 'Unnamed ' + media.type}
+            </div>
+            <div style="font-size: 12px; color: #666;">
+              ${date}
+            </div>
+          </div>
+          <div style="display: flex; margin-top: 8px; justify-content: flex-end;">
+            <button class="delete-btn-simple" data-id="${media.id}" style="padding: 4px 8px; background: #ffeeee; color: #d32f2f; border: none; border-radius: 4px; cursor: pointer;">Delete</button>
+          </div>
+        `;
+        
+        listContainer.appendChild(item);
+      });
+      
+      mediaGallery.appendChild(listContainer);
+      
+      // Add event listeners for delete buttons
+      const deleteButtons = mediaGallery.querySelectorAll('.delete-btn-simple');
+      deleteButtons.forEach(button => {
+        button.addEventListener('click', function() {
+          const mediaId = this.getAttribute('data-id');
+          if (confirm('Delete this media item?')) {
+            deleteMedia(mediaId);
+          }
+        });
+      });
+    };
+    
+    store.getAll().onerror = function(event) {
+      console.error('Error fetching media files:', event.target.error);
+      mediaGallery.innerHTML = '<div class="media-placeholder"><p>Error loading media. Please refresh the page.</p></div>';
+    };
+  } catch (error) {
+    console.error('Error in displayMediaNames:', error);
+    mediaGallery.innerHTML = '<div class="media-placeholder"><p>Error loading media. Please refresh the page.</p></div>';
+  }
+}
+
+// Call our simple display function when the media tab is clicked
+document.addEventListener('DOMContentLoaded', function() {
+  // Get media tab button and tab element
+  const mediaTab = document.querySelector('[data-tab="media"]');
+  const mediaTabContent = document.getElementById('media-tab');
+  
+  if (mediaTab) {
+    mediaTab.addEventListener('click', function() {
+      console.log('Media tab clicked, displaying names after short delay');
+      setTimeout(displayMediaNames, 100);
+    });
+  }
+  
+  // Check if media tab is already active on page load
+  if (mediaTabContent && mediaTabContent.classList.contains('active')) {
+    console.log('Media tab is active on page load, displaying names');
+    setTimeout(displayMediaNames, 300);
+  }
+  
+  // Also update our processMedia function to call displayMediaNames
+  if (typeof processMedia !== 'undefined') {
+    const originalProcessMedia = processMedia;
+    window.processMedia = async function(file, type) {
+      await originalProcessMedia(file, type);
+      
+      // After a short delay, display the media names
+      setTimeout(displayMediaNames, 500);
+    };
+  }
+});
   </script>
 </body>
 </html>
