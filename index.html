@@ -1706,7 +1706,7 @@
             <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
             <circle cx="12" cy="13" r="3"></circle>
           </svg>
-          Record Practice
+          Record
         </button>
         
         <!-- Filter controls -->
@@ -1744,7 +1744,7 @@
         <div id="media-gallery" class="media-gallery">
           <!-- Media items will be added here dynamically -->
           <div class="media-placeholder">
-            <p>No media recordings yet. Use the camera in the timer tab to record your practice.</p>
+            <p>No media recordings yet. Use the "Record" button to capture photos or videos.</p>
           </div>
         </div>
       </div>
@@ -2019,7 +2019,7 @@
             <h3>Camera Feature</h3>
             <p>Record your practice sessions on any device:</p>
             <ul class="feature-list">
-              <li>Use the "Record Practice" button below the metronome</li>
+              <li>Use the "Record" button below the metronome</li>
               <li>Take photos or record videos of your practice</li>
               <li>Switch between front and back cameras</li>
               <li>All media is stored locally on your device</li>
@@ -3131,12 +3131,35 @@ function updatePracticeCategoryDropdown() {
     return;
   }
 
-  const categories = instrumentCategories[settings.instrument] || [];
-  elements.practiceCategory.disabled = false;
-  elements.practiceCategory.innerHTML = `
-    <option value="">--Select Practice Category--</option>
-    ${categories.map(category => `<option value="${category}">${category}</option>`).join('')}
-  `;
+  const categories = [...instrumentCategories[settings.instrument] || [], "Lesson"];
+  const options = categories.map(category => 
+    `<option value="${category}">${category}</option>`
+  ).join('');
+  
+  const filterDropdowns = [
+    elements.sessionCategoryFilter,
+    elements.goalCategoryFilter,
+    elements.dashboardCategoryFilter,
+    elements.practiceCategory
+  ];
+  
+  filterDropdowns.forEach(dropdown => {
+    if (dropdown) {
+      dropdown.innerHTML = `
+        <option value="all">All Categories</option>
+        ${options}
+      `;
+      dropdown.disabled = false;
+    }
+  });
+  
+  // Practice category dropdown shouldn't have "All Categories" option
+  if (elements.practiceCategory) {
+    elements.practiceCategory.innerHTML = `
+      <option value="">--Select Practice Category--</option>
+      ${options}
+    `;
+  }
 }
 
 // Helper function to calculate practice statistics for the Excel export
@@ -3361,7 +3384,7 @@ function updateCategoryFilters() {
     return;
   }
 
-  const categories = instrumentCategories[settings.instrument] || [];
+  const categories = [...instrumentCategories[settings.instrument] || [], "Lesson"];
   const options = categories.map(category => 
     `<option value="${category}">${category}</option>`
   ).join('');
@@ -3616,50 +3639,75 @@ document.addEventListener('DOMContentLoaded', () => {
   if (saveMediaBtn) {
     saveMediaBtn.addEventListener('click', () => {
       if (!db || !currentMediaBlob) {
-        console.error('Cannot save media: database or media blob not available', {db, currentMediaBlob});
+        console.error('Failed to save media: Database or media blob is missing', { db: !!db, blob: !!currentMediaBlob });
+        notify('Error: Could not save media', 'error');
         return;
       }
+      
+      console.log('Saving media:', { type: currentMediaType });
       
       // Prompt for media name
       const mediaName = prompt('Enter a name for this recording:', '');
       const name = mediaName && mediaName.trim() !== '' ? mediaName.trim() : getNextUnnamedMedia();
       
-      const transaction = db.transaction(['mediaFiles'], 'readwrite');
-      const store = transaction.objectStore('mediaFiles');
+      console.log('Media will be saved with name:', name);
       
-      const mediaFile = {
-        id: Date.now().toString(),
-        sessionId: currentSessionId || Date.now().toString(), // Link to the current session or create new ID
-        type: currentMediaType,
-        name: name,
-        blob: currentMediaBlob,
-        timestamp: new Date().toISOString()
-      };
-      
-      console.log('Saving media file:', mediaFile);
-      
-      store.add(mediaFile).onsuccess = () => {
-        notify('Media saved successfully!', 'success');
-        mediaPreview.classList.remove('show');
-        cameraModal.style.display = 'none';
+      try {
+        const id = Date.now().toString();
+        const transaction = db.transaction(['mediaFiles'], 'readwrite');
+        const store = transaction.objectStore('mediaFiles');
         
-        // Reload the media gallery if we're on the media tab
-        if (document.getElementById('media-tab').classList.contains('active')) {
-          loadMediaGallery();
-        }
+        const mediaFile = {
+          id: id,
+          sessionId: currentSessionId || id, // Link to the current session or create new ID
+          type: currentMediaType,
+          name: name,
+          blob: currentMediaBlob,
+          timestamp: new Date().toISOString()
+        };
         
-        // Switch to media tab to show the saved media
-        if (mediaTab && mediaTab.click) {
-          setTimeout(() => {
-            mediaTab.click();
-          }, 300);
-        }
-      };
-      
-      transaction.onerror = (event) => {
-        console.error('Error saving media:', event.target.error);
-        notify('Failed to save media. Please try again.', 'error');
-      };
+        console.log('Saving media file to IndexedDB with ID:', id);
+        
+        const request = store.add(mediaFile);
+        
+        request.onsuccess = () => {
+          console.log('Media saved successfully to IndexedDB');
+          notify('Media saved successfully!', 'success');
+          mediaPreview.classList.remove('show');
+          cameraModal.style.display = 'none';
+          
+          // Switch to media tab and refresh gallery
+          const mediaTabButton = document.querySelector('[data-tab="media"]');
+          if (mediaTabButton) {
+            console.log('Switching to media tab');
+            setTimeout(() => {
+              mediaTabButton.click();
+              setTimeout(() => {
+                console.log('Refreshing media gallery');
+                if (window.loadMediaGallery) {
+                  window.loadMediaGallery();
+                }
+              }, 300);
+            }, 100);
+          }
+        };
+        
+        request.onerror = (event) => {
+          console.error('Error saving media to IndexedDB:', event.target.error);
+          notify('Failed to save media. Please try again.', 'error');
+        };
+        
+        transaction.oncomplete = () => {
+          console.log('Transaction completed successfully');
+        };
+        
+        transaction.onerror = (event) => {
+          console.error('Transaction error:', event.target.error);
+        };
+      } catch (error) {
+        console.error('Error in media save process:', error);
+        notify('An error occurred while saving media', 'error');
+      }
     });
   }
   
@@ -3729,100 +3777,132 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // Load media gallery with filters
   function loadMediaGallery() {
+    console.log('Loading media gallery...');
+    
     if (!db) {
       console.error('Database not initialized');
+      notify('Error: Database not initialized. Please refresh the page.', 'error');
       return;
     }
-    
-    console.log('Loading media gallery...');
     
     const dateFilter = mediaDateFilter ? mediaDateFilter.value : 'all';
     const categoryFilter = mediaCategoryFilter ? mediaCategoryFilter.value : 'all';
     const typeFilter = mediaTypeFilter ? mediaTypeFilter.value : 'all';
     
-    const transaction = db.transaction(['mediaFiles'], 'readonly');
-    const store = transaction.objectStore('mediaFiles');
-    
-    store.getAll().onsuccess = function(event) {
-      const mediaFiles = event.target.result;
-      console.log('Media files found:', mediaFiles ? mediaFiles.length : 0, mediaFiles);
+    try {
+      const transaction = db.transaction(['mediaFiles'], 'readonly');
+      const store = transaction.objectStore('mediaFiles');
       
-      // Clear existing gallery
-      if (mediaGallery) {
-        mediaGallery.innerHTML = '';
-      }
-      
-      if (!mediaFiles || mediaFiles.length === 0) {
-        const placeholder = document.createElement('div');
-        placeholder.className = 'media-placeholder';
-        placeholder.innerHTML = '<p>No media recordings yet. Use the camera in the timer tab to record your practice.</p>';
-        mediaGallery.appendChild(placeholder);
-        return;
-      }
-      
-      // Apply filters
-      let filteredMedia = mediaFiles;
-      
-      // Date filter
-      if (dateFilter !== 'all') {
-        const now = new Date();
-        let startDate;
+      store.getAll().onsuccess = function(event) {
+        const mediaFiles = event.target.result;
+        console.log('Media files found:', mediaFiles ? mediaFiles.length : 0);
         
-        switch (dateFilter) {
-          case 'today':
-            startDate = new Date(now.setHours(0, 0, 0, 0));
-            break;
-          case 'week':
-            startDate = new Date(now.setDate(now.getDate() - now.getDay()));
-            break;
-          case 'month':
-            startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-            break;
-          case 'year':
-            startDate = new Date(now.getFullYear(), 0, 1);
-            break;
+        // Clear existing gallery
+        if (mediaGallery) {
+          mediaGallery.innerHTML = '';
         }
         
-        filteredMedia = filteredMedia.filter(media => {
-          const mediaDate = new Date(media.timestamp);
-          return mediaDate >= startDate;
+        if (!mediaFiles || mediaFiles.length === 0) {
+          const placeholder = document.createElement('div');
+          placeholder.className = 'media-placeholder';
+          placeholder.innerHTML = '<p>No media recordings yet. Use the Record button to capture photos or videos.</p>';
+          mediaGallery.appendChild(placeholder);
+          return;
+        }
+        
+        // Apply filters
+        let filteredMedia = mediaFiles;
+        
+        // Date filter
+        if (dateFilter !== 'all') {
+          const now = new Date();
+          let startDate;
+          
+          switch (dateFilter) {
+            case 'today':
+              startDate = new Date(now.setHours(0, 0, 0, 0));
+              break;
+            case 'week':
+              startDate = new Date(now.setDate(now.getDate() - now.getDay()));
+              break;
+            case 'month':
+              startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+              break;
+            case 'year':
+              startDate = new Date(now.getFullYear(), 0, 1);
+              break;
+          }
+          
+          filteredMedia = filteredMedia.filter(media => {
+            try {
+              const mediaDate = new Date(media.timestamp);
+              return mediaDate >= startDate;
+            } catch (error) {
+              console.error('Error parsing date:', error, media);
+              return true; // Include media with invalid dates
+            }
+          });
+        }
+        
+        // Category filter
+        if (categoryFilter !== 'all') {
+          filteredMedia = filteredMedia.filter(media => {
+            // Link to session data to get category
+            const session = getSavedSession(media.sessionId);
+            return session && session.category === categoryFilter;
+          });
+        }
+        
+        // Type filter
+        if (typeFilter !== 'all') {
+          filteredMedia = filteredMedia.filter(media => media.type === typeFilter);
+        }
+        
+        // Sort by timestamp (newest first)
+        filteredMedia.sort((a, b) => {
+          try {
+            return new Date(b.timestamp) - new Date(a.timestamp);
+          } catch (error) {
+            console.error('Error sorting by date:', error);
+            return 0;
+          }
         });
-      }
-      
-      // Category filter
-      if (categoryFilter !== 'all') {
-        filteredMedia = filteredMedia.filter(media => {
-          // Link to session data to get category
-          const session = getSavedSession(media.sessionId);
-          return session && session.category === categoryFilter;
+        
+        console.log('Filtered media files:', filteredMedia.length);
+        
+        // Render filtered media
+        filteredMedia.forEach(media => {
+          try {
+            const mediaItem = createMediaItem(media);
+            mediaGallery.appendChild(mediaItem);
+          } catch (error) {
+            console.error('Error creating media item:', error, media);
+          }
         });
-      }
+        
+        if (filteredMedia.length === 0) {
+          const placeholder = document.createElement('div');
+          placeholder.className = 'media-placeholder';
+          placeholder.innerHTML = '<p>No media found matching your filters.</p>';
+          mediaGallery.appendChild(placeholder);
+        }
+      };
       
-      // Type filter
-      if (typeFilter !== 'all') {
-        filteredMedia = filteredMedia.filter(media => media.type === typeFilter);
-      }
+      store.getAll().onerror = function(event) {
+        console.error('Error fetching media files:', event.target.error);
+        notify('Error loading media. Please refresh the page.', 'error');
+      };
       
-      // Sort by timestamp (newest first)
-      filteredMedia.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-      
-      // Render filtered media
-      filteredMedia.forEach(media => {
-        const mediaItem = createMediaItem(media);
-        mediaGallery.appendChild(mediaItem);
-      });
-      
-      if (filteredMedia.length === 0) {
-        const placeholder = document.createElement('div');
-        placeholder.className = 'media-placeholder';
-        placeholder.innerHTML = '<p>No media found matching your filters.</p>';
-        mediaGallery.appendChild(placeholder);
-      }
-    };
-    
-    // Update the category filter options with available categories
-    updateCategoryFilter();
+      // Update the category filter options with available categories
+      updateCategoryFilter();
+    } catch (error) {
+      console.error('Error in loadMediaGallery:', error);
+      notify('Error loading media gallery', 'error');
+    }
   }
+  
+  // Make loadMediaGallery available globally
+  window.loadMediaGallery = loadMediaGallery;
   
   // Create a media item element
   function createMediaItem(media) {
@@ -4096,6 +4176,9 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
     
+    // Add "Lesson" as a category
+    categories.add("Lesson");
+    
     // Add categories from media files directly
     if (db) {
       const transaction = db.transaction(['mediaFiles'], 'readonly');
@@ -4208,6 +4291,155 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 });
+
+// Add camera functionality
+document.addEventListener('DOMContentLoaded', function() {
+  const openCameraBtn = document.getElementById('open-camera');
+  const cameraModal = document.getElementById('camera-modal');
+  const closeCameraBtn = document.getElementById('close-camera');
+  const switchCameraBtn = document.getElementById('switch-camera');
+  const takePictureBtn = document.getElementById('take-picture');
+  const cameraPreview = document.getElementById('camera-preview');
+  
+  // Initialize camera variables if not already defined
+  if (typeof stream === 'undefined') {
+    let stream = null;
+  }
+  if (typeof facingMode === 'undefined') {
+    let facingMode = 'environment'; // Start with rear camera
+  }
+  
+  if (openCameraBtn) {
+    openCameraBtn.addEventListener('click', function() {
+      startCamera();
+      if (cameraModal) {
+        cameraModal.style.display = 'flex';
+      }
+    });
+  }
+  
+  if (closeCameraBtn) {
+    closeCameraBtn.addEventListener('click', function() {
+      stopCamera();
+      if (cameraModal) {
+        cameraModal.style.display = 'none';
+      }
+    });
+  }
+  
+  if (switchCameraBtn) {
+    switchCameraBtn.addEventListener('click', function() {
+      facingMode = facingMode === 'environment' ? 'user' : 'environment';
+      stopCamera();
+      startCamera();
+    });
+  }
+  
+  if (takePictureBtn) {
+    takePictureBtn.addEventListener('click', takePhoto);
+  }
+});
+
+// Camera functions
+function startCamera() {
+  const cameraPreview = document.getElementById('camera-preview');
+  if (!cameraPreview) return;
+  
+  // Stop any existing stream
+  stopCamera();
+  
+  // Get camera access
+  navigator.mediaDevices.getUserMedia({
+    video: { facingMode: facingMode },
+    audio: false
+  })
+  .then(function(newStream) {
+    stream = newStream;
+    cameraPreview.srcObject = stream;
+    cameraPreview.play();
+  })
+  .catch(function(err) {
+    console.error('Error accessing camera:', err);
+    alert('Could not access camera. Please check permissions and try again.');
+  });
+}
+
+function stopCamera() {
+  if (stream) {
+    stream.getTracks().forEach(track => track.stop());
+    stream = null;
+  }
+  
+  const cameraPreview = document.getElementById('camera-preview');
+  if (cameraPreview) {
+    cameraPreview.srcObject = null;
+  }
+}
+
+function takePhoto() {
+  const cameraPreview = document.getElementById('camera-preview');
+  if (!cameraPreview || !stream) return;
+  
+  try {
+    // Create a canvas element to capture the image
+    const canvas = document.createElement('canvas');
+    canvas.width = cameraPreview.videoWidth;
+    canvas.height = cameraPreview.videoHeight;
+    
+    // Draw the video frame to the canvas
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(cameraPreview, 0, 0, canvas.width, canvas.height);
+    
+    // Convert the canvas to a blob (image file)
+    canvas.toBlob(function(blob) {
+      if (!blob) {
+        console.error('Could not create image blob');
+        return;
+      }
+      
+      // Create a unique ID for the media
+      const mediaId = 'media_' + Date.now();
+      
+      // Get current session if available
+      const currentSessionId = getCurrentSessionId();
+      
+      // Prompt user for media name
+      const mediaName = prompt('Name this photo:', '');
+      
+      // Create media object
+      const media = {
+        id: mediaId,
+        type: 'photo',
+        name: mediaName || 'Photo ' + new Date().toLocaleTimeString(),
+        timestamp: Date.now(),
+        sessionId: currentSessionId,
+        blob: blob
+      };
+      
+      // Save to IndexedDB
+      saveMedia(media);
+      
+      // Show success message
+      notify('Photo captured and saved', 'success');
+      
+      // Close the camera modal
+      stopCamera();
+      const cameraModal = document.getElementById('camera-modal');
+      if (cameraModal) {
+        cameraModal.style.display = 'none';
+      }
+    }, 'image/jpeg', 0.8); // JPEG format with 80% quality
+  } catch (error) {
+    console.error('Error taking photo:', error);
+    notify('Error capturing photo. Please try again.', 'error');
+  }
+}
+
+// Helper to get current session ID
+function getCurrentSessionId() {
+  const activeSession = document.querySelector('.timer-display[data-session-id]');
+  return activeSession ? activeSession.dataset.sessionId : null;
+}
   </script>
 </body>
 </html>
