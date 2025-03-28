@@ -5373,6 +5373,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Function to take a photo with a predetermined name
 function takePhotoWithName(mediaName) {
+  // Detect mobile platforms
+  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  
   // Create file input for photo capture
   const input = document.createElement('input');
   input.type = 'file';
@@ -5398,6 +5401,9 @@ function takePhotoWithName(mediaName) {
 
 // Function to record a video with a predetermined name
 function recordVideoWithName(mediaName) {
+  // Detect mobile platforms
+  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  
   // Create file input for video capture
   const input = document.createElement('input');
   input.type = 'file';
@@ -5424,6 +5430,9 @@ function recordVideoWithName(mediaName) {
 // Save media with predetermined name
 async function saveMedia(file, type, name, fileName) {
   try {
+    // Detect platform for optimal experience
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    
     // Create thumbnail for database storage
     const thumbnail = await createThumbnail(file, type);
     
@@ -5456,7 +5465,7 @@ async function saveMedia(file, type, name, fileName) {
     
     const request = store.add(mediaRecord);
     
-    request.onsuccess = () => {
+    request.onsuccess = function() {
       // Platform-specific success message
       if (isIOS) {
         notify(`${type === 'photo' ? 'Photo' : 'Video'} saved. For iOS: tap and hold on the opened file, then select "Save to Photos"`, 'info', 8000);
@@ -5465,9 +5474,9 @@ async function saveMedia(file, type, name, fileName) {
       }
       
       // Clean up resources
-      setTimeout(() => {
+      setTimeout(function() {
         URL.revokeObjectURL(blobUrl);
-      }, 100);
+      }, 1000);
       
       // Add a simple entry to the media list
       if (typeof addMediaToList === 'function') {
@@ -5481,7 +5490,7 @@ async function saveMedia(file, type, name, fileName) {
       }
     };
     
-    request.onerror = (event) => {
+    request.onerror = function(event) {
       console.error('Error saving media to database:', event.target.error);
       notify('Error saving media to database. Media was downloaded but not added to gallery.', 'error');
     };
@@ -5915,9 +5924,83 @@ window.viewMedia = function(media) {
           <p>Date: ${new Date(media.timestamp).toLocaleString()}</p>
           <p>Type: ${media.type === 'photo' ? 'Photo' : 'Video'}</p>
           ${media.sessionId ? `<p>Session: ${media.sessionId}</p>` : ''}
+          <div class="media-comments-section" style="margin-top: 20px;">
+            <h4>Comments</h4>
+            <textarea id="media-comments" style="width: 100%; min-height: 100px; padding: 8px; border: 1px solid #ccc; border-radius: 4px; margin-bottom: 10px;">${media.comments || ''}</textarea>
+            <button id="save-comments-btn" style="padding: 8px 12px; background-color: #4caf50; color: white; border: none; border-radius: 4px; cursor: pointer; margin-right: 10px;">Save Comments</button>
+          </div>
         </div>
       </div>
     `;
+    
+    // Add event listener for saving comments
+    const saveCommentsBtn = viewContent.querySelector('#save-comments-btn');
+    if (saveCommentsBtn) {
+      saveCommentsBtn.addEventListener('click', function() {
+        const commentsTextarea = viewContent.querySelector('#media-comments');
+        if (!commentsTextarea) return;
+        
+        const comments = commentsTextarea.value.trim();
+        
+        // Update the media record in the database
+        if (db) {
+          try {
+            const transaction = db.transaction(['mediaFiles'], 'readwrite');
+            const store = transaction.objectStore('mediaFiles');
+            
+            // Get the current record first
+            const getRequest = store.get(media.id);
+            
+            getRequest.onsuccess = function(event) {
+              const mediaRecord = event.target.result;
+              if (mediaRecord) {
+                // Update the comments
+                mediaRecord.comments = comments;
+                
+                // Save the updated record
+                const updateRequest = store.put(mediaRecord);
+                
+                updateRequest.onsuccess = function() {
+                  console.log('Comments saved successfully');
+                  notify('Comments saved successfully', 'success');
+                  
+                  // Update the local media object for immediate UI reflection
+                  media.comments = comments;
+                  
+                  // Update the media item in the list if visible
+                  const mediaItem = document.querySelector(`.media-item[data-id="${media.id}"]`);
+                  if (mediaItem) {
+                    const commentsDisplay = mediaItem.querySelector('div:nth-child(2)');
+                    if (commentsDisplay) {
+                      commentsDisplay.textContent = comments || 'No comments added yet.';
+                    }
+                  }
+                };
+                
+                updateRequest.onerror = function(error) {
+                  console.error('Error saving comments:', error);
+                  notify('Failed to save comments. Please try again.', 'error');
+                };
+              } else {
+                console.error('Media record not found for comments update');
+                notify('Media record not found', 'error');
+              }
+            };
+            
+            getRequest.onerror = function(error) {
+              console.error('Error retrieving media record for comments update:', error);
+              notify('Failed to retrieve media record', 'error');
+            };
+          } catch (error) {
+            console.error('Error in transaction for comments update:', error);
+            notify('Database error while saving comments', 'error');
+          }
+        } else {
+          console.error('Database not initialized for comments update');
+          notify('Database not available', 'error');
+        }
+      });
+    }
     
     // Show the modal
     viewMediaModal.style.display = 'flex';
@@ -6463,10 +6546,12 @@ function addMediaToList(media) {
   // Create a simple media item
   const mediaItem = document.createElement('div');
   mediaItem.className = 'media-item';
+  mediaItem.setAttribute('data-id', media.id);
   mediaItem.style.padding = '10px';
   mediaItem.style.margin = '10px 0';
   mediaItem.style.backgroundColor = '#f5f5f5';
   mediaItem.style.borderRadius = '5px';
+  mediaItem.style.cursor = 'pointer';
   
   // Set the icon based on media type
   const icon = media.type === 'photo' ? '📷' : '🎥';
@@ -6478,14 +6563,18 @@ function addMediaToList(media) {
   mediaItem.innerHTML = `
     <div style="display: flex; justify-content: space-between; align-items: center;">
       <div style="font-weight: bold;">
-        ${icon} ${media.name}
+        ${icon} ${media.name || 'Unnamed Recording'}
       </div>
       <div style="font-size: 12px; color: #666;">
         ${date}
       </div>
     </div>
+    <div style="margin-top: 5px; font-size: 13px; color: #444; max-height: 40px; overflow: hidden;">
+      ${media.comments ? media.comments : 'No comments added yet.'}
+    </div>
     <div style="margin-top: 8px; text-align: right;">
-      <button class="delete-media-btn" data-id="${media.id}" style="padding: 5px 10px; background: #ffebee; color: #e53935; border: none; border-radius: 4px; cursor: pointer;">
+      <button class="delete-media-btn" data-id="${media.id}" style="padding: 5px 10px; background: #ffebee;
+ color: #e53935; border: none; border-radius: 4px; cursor: pointer;">
         Delete
       </button>
     </div>
@@ -6497,6 +6586,17 @@ function addMediaToList(media) {
   } else {
     mediaGallery.appendChild(mediaItem);
   }
+  
+  // Add click event to view media
+  mediaItem.addEventListener('click', function(e) {
+    // Don't trigger if delete button was clicked
+    if (e.target.classList.contains('delete-media-btn') || e.target.closest('.delete-media-btn')) {
+      return;
+    }
+    if (typeof viewMedia === 'function') {
+      viewMedia(media);
+    }
+  });
   
   // Add delete button event listener
   const deleteBtn = mediaItem.querySelector('.delete-media-btn');
@@ -6573,6 +6673,162 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 });
+
+// Save media function
+function saveMedia(file, type, name, fileName) {
+  console.log('Saving media:', type, name, fileName);
+  
+  if (!db) {
+    console.error('Database not initialized for media saving');
+    notify('Database not initialized', 'error');
+    return;
+  }
+
+  try {
+    // Create a media record
+    const mediaRecord = {
+      id: 'media_' + Date.now(),
+      type: type,
+      name: name || 'Recording ' + new Date().toLocaleString(),
+      fileName: fileName || 'unknown_file',
+      timestamp: Date.now(),
+      comments: '',  // Initialize empty comments field
+      sessionId: currentSessionId || null
+    };
+
+    // If it's a file object, store it
+    if (file instanceof File || file instanceof Blob) {
+      // Store the blob for retrieval
+      mediaRecord.blob = file;
+      
+      // Create a thumbnail for photos
+      if (type === 'photo') {
+        try {
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            const img = new Image();
+            img.onload = function() {
+              try {
+                // Create a thumbnail
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                
+                // Calculate thumbnail size (max 100px width/height)
+                const maxSize = 100;
+                let width = img.width;
+                let height = img.height;
+                
+                if (width > height) {
+                  if (width > maxSize) {
+                    height = height * (maxSize / width);
+                    width = maxSize;
+                  }
+                } else {
+                  if (height > maxSize) {
+                    width = width * (maxSize / height);
+                    height = maxSize;
+                  }
+                }
+                
+                canvas.width = width;
+                canvas.height = height;
+                
+                // Draw the thumbnail
+                ctx.drawImage(img, 0, 0, width, height);
+                
+                // Convert to blob
+                canvas.toBlob(function(thumbnailBlob) {
+                  console.log('Thumbnail created');
+                  mediaRecord.preview = thumbnailBlob;
+                  
+                  // Save to database
+                  saveMediaToDb(mediaRecord);
+                }, 'image/jpeg', 0.7);
+              } catch (err) {
+                console.error('Error creating thumbnail:', err);
+                // Continue saving without thumbnail
+                saveMediaToDb(mediaRecord);
+              }
+            };
+            img.onerror = function() {
+              console.error('Failed to load image for thumbnail');
+              // Continue saving without thumbnail
+              saveMediaToDb(mediaRecord);
+            };
+            img.src = e.target.result;
+          };
+          reader.onerror = function() {
+            console.error('Failed to read file for thumbnail');
+            // Continue saving without thumbnail
+            saveMediaToDb(mediaRecord);
+          };
+          reader.readAsDataURL(file);
+        } catch (err) {
+          console.error('Error in thumbnail creation process:', err);
+          // Continue saving without thumbnail
+          saveMediaToDb(mediaRecord);
+        }
+      } else {
+        // For video, just save without thumbnail for now
+        saveMediaToDb(mediaRecord);
+      }
+    } else {
+      console.error('Invalid file object for media saving');
+      notify('Invalid file type', 'error');
+    }
+  } catch (error) {
+    console.error('Error in media saving process:', error);
+    notify('Failed to save media. Please try again.', 'error');
+  }
+  
+  function saveMediaToDb(mediaRecord) {
+    try {
+      console.log('Saving media record to database:', mediaRecord.id);
+      const transaction = db.transaction(['mediaFiles'], 'readwrite');
+      const store = transaction.objectStore('mediaFiles');
+      
+      const request = store.add(mediaRecord);
+      
+      request.onsuccess = function() {
+        console.log('Media saved successfully');
+        
+        // Show success message
+        if (navigator.userAgent.match(/iPad|iPhone|iPod/)) {
+          // iOS doesn't support Notification API
+          notify('Recording saved', 'success');
+        } else {
+          notify('Recording saved successfully', 'success');
+        }
+        
+        // Cleanup
+        setTimeout(function() {
+          if (mediaRecord.blob && typeof URL !== 'undefined') {
+            URL.revokeObjectURL(URL.createObjectURL(mediaRecord.blob));
+          }
+        }, 1000);
+        
+        // Add to media list if function exists
+        if (typeof addMediaToList === 'function') {
+          addMediaToList(mediaRecord);
+        }
+        
+        // Switch to media tab
+        const mediaTab = document.querySelector('[data-tab="media"]');
+        if (mediaTab) {
+          mediaTab.click();
+        }
+      };
+      
+      request.onerror = function(event) {
+        console.error('Error saving media to database:', event.target.error);
+        notify('Failed to save recording to database', 'error');
+      };
+    } catch (error) {
+      console.error('Error in database transaction for media saving:', error);
+      notify('Database error. Please try again.', 'error');
+    }
+  }
+}
   </script>
   
 </body>
