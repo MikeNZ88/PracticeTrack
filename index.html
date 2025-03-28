@@ -4828,6 +4828,60 @@ function viewMedia(media) {
     notify('Error displaying media information. Please try again.', 'error');
   }
 }
+
+// Simple direct camera implementation
+document.addEventListener('DOMContentLoaded', function() {
+  // Get camera button
+  const cameraButton = document.getElementById('camera-button');
+  
+  if (cameraButton) {
+    // Direct camera click handler
+    cameraButton.onclick = function(e) {
+      e.preventDefault();
+      
+      // Create file input for photo capture
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/*';
+      input.capture = 'environment'; // Use camera directly
+      
+      // Handle file selection
+      input.onchange = function() {
+        if (input.files && input.files[0]) {
+          const selectedFile = input.files[0];
+          
+          // Prompt for media name
+          const mediaName = prompt('Name this photo:', '');
+          if (mediaName === null) return; // User cancelled
+          
+          const fileName = (mediaName || 'Photo_' + new Date().toLocaleTimeString()).replace(/[^a-z0-9]/gi, '_') + '.jpg';
+          
+          // Create media record
+          const mediaRecord = {
+            id: 'media_' + Date.now(),
+            type: 'photo',
+            name: mediaName || 'Photo ' + new Date().toLocaleTimeString(),
+            fileName: fileName,
+            timestamp: Date.now(),
+            sessionId: getCurrentSessionId ? getCurrentSessionId() : null
+          };
+          
+          // Save the record
+          if (typeof saveMediaRecord === 'function') {
+            saveMediaRecord(mediaRecord);
+            notify('Photo saved to your device', 'success');
+          } else {
+            // Fallback if function not found
+            alert('Photo captured. You can find it in your device gallery.');
+          }
+        }
+      };
+      
+      // Trigger file selection
+      input.click();
+    };
+  }
+});
   </script>
 </body>
 </html>
