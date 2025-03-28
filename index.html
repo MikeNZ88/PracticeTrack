@@ -3709,9 +3709,9 @@ document.addEventListener('DOMContentLoaded', () => {
   // Save media button
   if (saveMediaBtn) {
     saveMediaBtn.addEventListener('click', () => {
-      if (!db || !currentMediaBlob) {
-        console.error('Failed to save media: Database or media blob is missing', { db: !!db, blob: !!currentMediaBlob });
-        notify('Error: Could not save media', 'error');
+      if (!currentMediaBlob) {
+        console.error('Failed to save media: Media blob is missing');
+        notify('Error: No media to save', 'error');
         return;
       }
       
@@ -3724,60 +3724,75 @@ document.addEventListener('DOMContentLoaded', () => {
       console.log('Media will be saved with name:', name);
       
       try {
-        const id = Date.now().toString();
-        const transaction = db.transaction(['mediaFiles'], 'readwrite');
-        const store = transaction.objectStore('mediaFiles');
+        // Create a safe filename (remove invalid characters)
+        const fileExtension = currentMediaType === 'photo' ? '.jpg' : '.mp4';
+        const fileName = name.replace(/[^a-z0-9]/gi, '_') + fileExtension;
         
+        // Create a downloadable URL from the blob
+        const blobUrl = URL.createObjectURL(currentMediaBlob);
+        
+        // Create a download link
+        const downloadLink = document.createElement('a');
+        downloadLink.href = blobUrl;
+        downloadLink.download = fileName;
+        
+        // Trigger download
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        document.body.removeChild(downloadLink);
+        
+        const id = Date.now().toString();
+        
+        // Create media metadata record (without the blob)
         const mediaFile = {
           id: id,
-          sessionId: currentSessionId || id, // Link to the current session or create new ID
+          sessionId: currentSessionId || id,
           type: currentMediaType,
           name: name,
-          blob: currentMediaBlob,
+          fileName: fileName, // Store filename instead of blob
           timestamp: new Date().toISOString()
         };
         
-        console.log('Saving media file to IndexedDB with ID:', id);
+        console.log('Saving media metadata to IndexedDB with ID:', id);
         
-        const request = store.add(mediaFile);
+        // Save metadata to IndexedDB
+        const transaction = db.transaction(['mediaFiles'], 'readwrite');
+        const store = transaction.objectStore('mediaFiles');
         
-        request.onsuccess = () => {
-          console.log('Media saved successfully to IndexedDB');
-          notify('Media saved successfully!', 'success');
+        store.add(mediaFile).onsuccess = () => {
+          console.log('Media metadata saved successfully to IndexedDB');
+          
+          // Detect iOS devices
+          const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+          
+          if (isIOS) {
+            // Show iOS-specific instructions
+            notify('Media saved. For iOS: tap and hold on the opened image/video, then select "Save to Photos"', 'info', 8000);
+          } else {
+            notify(`${currentMediaType === 'photo' ? 'Photo' : 'Video'} saved to your Downloads folder as "${fileName}"`, 'success');
+          }
+          
+          // Clean up the blob URL
+          setTimeout(() => {
+            URL.revokeObjectURL(blobUrl);
+          }, 100);
+          
           mediaPreview.classList.remove('show');
           cameraModal.style.display = 'none';
+          
+          // Reset current media state
+          currentMediaBlob = null;
+          currentMediaType = null;
           
           // Switch to media tab and refresh gallery
           const mediaTabButton = document.querySelector('[data-tab="media"]');
           if (mediaTabButton) {
-            console.log('Switching to media tab');
-            setTimeout(() => {
-              mediaTabButton.click();
-              setTimeout(() => {
-                console.log('Refreshing media gallery');
-                if (window.loadMediaGallery) {
-                  window.loadMediaGallery();
-                }
-              }, 300);
-            }, 100);
+            mediaTabButton.click();
           }
         };
-        
-        request.onerror = (event) => {
-          console.error('Error saving media to IndexedDB:', event.target.error);
-          notify('Failed to save media. Please try again.', 'error');
-        };
-        
-        transaction.oncomplete = () => {
-          console.log('Transaction completed successfully');
-        };
-        
-        transaction.onerror = (event) => {
-          console.error('Transaction error:', event.target.error);
-        };
       } catch (error) {
-        console.error('Error in media save process:', error);
-        notify('An error occurred while saving media', 'error');
+        console.error('Error saving media:', error);
+        notify('Error: Could not save media', 'error');
       }
     });
   }
@@ -4129,8 +4144,8 @@ document.addEventListener('DOMContentLoaded', () => {
       
       viewContent.innerHTML = '';
       
-      // Check if the media blob is valid
-      if (!media.blob || !(media.blob instanceof Blob)) {
+      // Check if we have a valid media record
+      if (!media) {
         viewContent.innerHTML = `
           <div style="background-color: #f8f8f8; padding: 30px; text-align: center; color: #666;">
             <p>Media content unavailable</p>
@@ -4140,34 +4155,15 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
       
-      // Attempt to create blob URL
-      let blobUrl;
-      try {
-        blobUrl = URL.createObjectURL(media.blob);
-      } catch (error) {
-        console.error('Error creating blob URL for viewing:', error);
-        viewContent.innerHTML = `
-          <div style="background-color: #f8f8f8; padding: 30px; text-align: center; color: #666;">
-            <p>Error loading media content</p>
-          </div>
-        `;
-        viewMediaModal.style.display = 'flex';
-        return;
-      }
-      
-      // Create appropriate element based on media type
-      if (media.type === 'photo') {
-        const img = document.createElement('img');
-        img.src = blobUrl;
-        img.alt = media.name || 'Photo';
-        viewContent.appendChild(img);
-      } else {
-        const video = document.createElement('video');
-        video.src = blobUrl;
-        video.controls = true;
-        video.autoplay = true;
-        viewContent.appendChild(video);
-      }
+      // Since we no longer store blobs, show info about the saved file
+      viewContent.innerHTML = `
+        <div style="background-color: #f8f8f8; padding: 30px; text-align: center; color: #666;">
+          <h3>${media.name || 'Unnamed media'}</h3>
+          <p>This ${media.type} was saved to your device as ${media.fileName || 'a file'}.</p>
+          <p>Date: ${new Date(media.timestamp).toLocaleString()}</p>
+          <p><i>The file is stored in your device's downloads folder or gallery.</i></p>
+        </div>
+      `;
       
       viewMediaModal.style.display = 'flex';
     } catch (error) {
@@ -4581,7 +4577,14 @@ function saveMediaRecord(mediaRecord) {
     const transaction = db.transaction(['mediaFiles'], 'readwrite');
     const store = transaction.objectStore('mediaFiles');
     
-    store.add(mediaRecord).onsuccess = function() {
+    // Make sure we're not accidentally storing a blob
+    const safeRecord = { ...mediaRecord };
+    if (safeRecord.blob) {
+      console.log('Removing blob from record to store metadata only');
+      delete safeRecord.blob;
+    }
+    
+    store.add(safeRecord).onsuccess = function() {
       console.log('Media record saved successfully');
       // Load media gallery if on media tab
       if (document.querySelector('.tab-content.active#media-tab')) {
