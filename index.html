@@ -6359,5 +6359,181 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 });
   </script>
+  
+  <!-- Emergency database fix script -->
+  <script>
+    // Direct database initialization and debug code
+    console.log("EMERGENCY FIX: Adding direct database initialization");
+    
+    // Check if DB already exists
+    console.log("Current DB status:", typeof db, db);
+    
+    // Function to directly open the database
+    function emergencyDbInit() {
+      console.log("Running emergency database initialization");
+      
+      // Create a direct database connection
+      const dbRequest = indexedDB.open('PracticeTrackDB', 1);
+      
+      dbRequest.onerror = function(event) {
+        console.error("Emergency DB open failed:", event.target.error);
+        alert("Failed to open database: " + event.target.error);
+      };
+      
+      dbRequest.onsuccess = function(event) {
+        console.log("Emergency DB opened successfully");
+        // Store in both the window object and global variable
+        window.db = event.target.result;
+        db = event.target.result;
+        
+        // Check database structure
+        console.log("Database object stores:", Object.values(db.objectStoreNames));
+        
+        // Try to display media
+        setTimeout(emergencyShowMedia, 100);
+      };
+      
+      dbRequest.onupgradeneeded = function(event) {
+        console.log("Emergency DB upgrade needed");
+        const db = event.target.result;
+        
+        // Create object stores if needed
+        if (!db.objectStoreNames.contains('mediaFiles')) {
+          console.log("Creating mediaFiles object store");
+          const store = db.createObjectStore('mediaFiles', { keyPath: 'id' });
+          store.createIndex('timestamp', 'timestamp', { unique: false });
+          store.createIndex('type', 'type', { unique: false });
+        }
+        
+        // Create sessions store if needed
+        if (!db.objectStoreNames.contains('sessions')) {
+          console.log("Creating sessions object store");
+          const store = db.createObjectStore('sessions', { keyPath: 'id' });
+          store.createIndex('date', 'date', { unique: false });
+        }
+      };
+    }
+    
+    // Direct function to show media (ultra-simplified)
+    function emergencyShowMedia() {
+      console.log("Emergency show media running");
+      
+      const container = document.createElement('div');
+      container.id = 'emergency-media-container';
+      container.style.padding = '15px';
+      container.style.margin = '15px';
+      container.style.backgroundColor = '#fff3cd';
+      container.style.border = '1px solid #ffeeba';
+      container.style.borderRadius = '4px';
+      
+      container.innerHTML = '<h3 style="color:#856404">Emergency Media Display</h3>' +
+                           '<p>Attempting to show all media directly from the database...</p>';
+      
+      // Get the media gallery or create a container
+      const mediaTab = document.getElementById('media-tab');
+      if (mediaTab) {
+        if (mediaTab.querySelector('#emergency-media-container')) {
+          // Already exists, don't add again
+          return;
+        }
+        mediaTab.appendChild(container);
+      } else {
+        // No media tab found, add to body
+        document.body.appendChild(container);
+      }
+      
+      if (!window.db && !db) {
+        container.innerHTML += '<p style="color:red">No database connection available! Click the Initialize button below.</p>';
+        const initButton = document.createElement('button');
+        initButton.textContent = 'Emergency Initialize Database';
+        initButton.style.padding = '8px 16px';
+        initButton.style.backgroundColor = '#dc3545';
+        initButton.style.color = 'white';
+        initButton.style.border = 'none';
+        initButton.style.borderRadius = '4px';
+        initButton.style.cursor = 'pointer';
+        initButton.onclick = emergencyDbInit;
+        container.appendChild(initButton);
+        return;
+      }
+      
+      try {
+        // Use whichever db reference is available
+        const database = window.db || db;
+        
+        container.innerHTML += '<p>Database connection found, retrieving media...</p>';
+        
+        const transaction = database.transaction(['mediaFiles'], 'readonly');
+        const store = transaction.objectStore('mediaFiles');
+        const request = store.getAll();
+        
+        request.onerror = function(event) {
+          container.innerHTML += '<p style="color:red">Error reading database: ' + event.target.error + '</p>';
+        };
+        
+        request.onsuccess = function(event) {
+          const mediaFiles = event.target.result;
+          container.innerHTML += '<p>Found ' + (mediaFiles ? mediaFiles.length : 0) + ' media files</p>';
+          
+          if (!mediaFiles || mediaFiles.length === 0) {
+            container.innerHTML += '<p>No media files found in database</p>';
+            return;
+          }
+          
+          // Display simple list
+          const list = document.createElement('div');
+          list.style.marginTop = '10px';
+          
+          mediaFiles.forEach(function(media, index) {
+            const item = document.createElement('div');
+            item.style.padding = '8px';
+            item.style.margin = '4px 0';
+            item.style.backgroundColor = '#f8f9fa';
+            item.style.borderRadius = '4px';
+            
+            const icon = media.type === 'photo' ? '📷' : '🎥';
+            const date = new Date(media.timestamp).toLocaleString();
+            
+            item.innerHTML = 
+              `<strong>${index+1}. ${icon} ${media.name || 'Unnamed ' + media.type}</strong>` + 
+              `<div style="font-size:12px;color:#666;">${date}</div>`;
+            
+            list.appendChild(item);
+          });
+          
+          container.appendChild(list);
+        };
+      } catch (error) {
+        container.innerHTML += '<p style="color:red">Error: ' + error.message + '</p>';
+      }
+    }
+    
+    // Add emergency button to body
+    const emergencyButton = document.createElement('button');
+    emergencyButton.id = 'emergency-debug-button';
+    emergencyButton.textContent = 'Emergency Media Fix';
+    emergencyButton.style.position = 'fixed';
+    emergencyButton.style.bottom = '10px';
+    emergencyButton.style.right = '10px';
+    emergencyButton.style.zIndex = '9999';
+    emergencyButton.style.padding = '10px 15px';
+    emergencyButton.style.backgroundColor = '#dc3545';
+    emergencyButton.style.color = 'white';
+    emergencyButton.style.border = 'none';
+    emergencyButton.style.borderRadius = '4px';
+    emergencyButton.style.cursor = 'pointer';
+    emergencyButton.onclick = function() {
+      if (!window.db && !db) {
+        emergencyDbInit();
+      } else {
+        emergencyShowMedia();
+      }
+    };
+    
+    // Add the button after a slight delay
+    setTimeout(function() {
+      document.body.appendChild(emergencyButton);
+    }, 1000);
+  </script>
 </body>
 </html>
