@@ -2048,8 +2048,6 @@
           <p>Lesson Day: <span id="lesson-day-display">None</span></p>
           <p id="next-lesson-text" style="display:none;">Next Lesson in <span id="days-to-lesson">0</span> days</p>
         </div>
-        
-        <h3>Weekly Practice Time (minutes)</h3>
         <div id="chart-container" class="chart-container"></div>
       </div>
       <div class="footer">
@@ -3323,21 +3321,7 @@ function updateDashboard() {
   const avgTime = filteredSessions.length > 0 ? totalTime / filteredSessions.length : 0;
   elements.avgTime.textContent = formatDuration(avgTime);
   
-  // Calculate practice time per category
-  const categoryStats = {};
-  if (settings.instrument) {
-    instrumentCategories[settings.instrument].forEach(category => {
-      categoryStats[category] = 0;
-    });
-  }
-  
-  filteredSessions.forEach(session => {
-    if (categoryStats.hasOwnProperty(session.name)) {
-      categoryStats[session.name] += session.duration;
-    }
-  });
-  
-  // Update the stats grid to show category breakdown
+  // Update the stats grid with only the three main stats
   const statsGrid = document.querySelector('.stats-grid');
   statsGrid.innerHTML = `
     <div class="stat-card">
@@ -3354,28 +3338,13 @@ function updateDashboard() {
     </div>
   `;
   
-  // Add category stats cards
-  Object.entries(categoryStats)
-    .sort((a, b) => b[1] - a[1]) // Sort by practice time descending
-    .forEach(([category, time]) => {
-      if (time > 0) { // Only show categories with practice time
-        const card = document.createElement('div');
-        card.className = 'stat-card';
-        card.innerHTML = `
-          <div class="stat-value">${formatDuration(time)}</div>
-          <div class="stat-label">${category}</div>
-        `;
-        statsGrid.appendChild(card);
-      }
-    });
-        
-        // Update instrument and lesson day display
-        elements.instrumentDisplay.textContent = settings.instrument || "None";
-        elements.lessonDayDisplay.textContent = settings.lessonDay || "None";
-        
-        // Calculate days until next lesson
-        if (settings.lessonDay) {
-          const today = new Date();
+  // Update instrument and lesson day display
+  elements.instrumentDisplay.textContent = settings.instrument || "None";
+  elements.lessonDayDisplay.textContent = settings.lessonDay || "None";
+  
+  // Calculate days until next lesson
+  if (settings.lessonDay) {
+    const today = new Date();
     const dayIndex = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
       .indexOf(settings.lessonDay);
     
@@ -3383,15 +3352,12 @@ function updateDashboard() {
       let daysUntil = dayIndex - today.getDay();
       if (daysUntil <= 0) daysUntil += 7;
       
-          elements.nextLessonText.style.display = "block";
+      elements.nextLessonText.style.display = "block";
       elements.daysToLesson.textContent = daysUntil;
     }
-        } else {
-          elements.nextLessonText.style.display = "none";
-        }
-        
-        // Update practice chart
-  updatePracticeChart(dateRange, categoryFilter);
+  } else {
+    elements.nextLessonText.style.display = "none";
+  }
 }
 
 function updatePracticeChart(dateRange, categoryFilter) {
