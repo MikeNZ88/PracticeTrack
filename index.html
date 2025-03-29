@@ -2137,6 +2137,10 @@
               <option value="Bass Guitar">Bass Guitar</option>
               <option value="Saxophone">Saxophone</option>
               <option value="Flute">Flute</option>
+              <option value="Trumpet">Trumpet</option>
+              <option value="Cello">Cello</option>
+              <option value="Clarinet">Clarinet</option>
+              <option value="Trombone">Trombone</option>
             </select>
           </div>
         </div>
@@ -2376,98 +2380,135 @@ let elements = null;
 const instrumentCategories = {
   "Piano": [
     "Scales & Arpeggios",
-    "Technique & Exercises",
+    "Technique",
     "Sight Reading",
-    "Repertoire - Classical",
-    "Repertoire - Contemporary",
-    "Music Theory",
-    "Ear Training",
+    "Classical Repertoire",
+    "Contemporary Songs",
+    "Music Theory Study",
+    "Chord Voicings",
     "Improvisation",
-    "Accompaniment"
+    "Songwriting"
   ],
   "Guitar": [
-    "Scales & Modes",
+    "Scales & Arpeggios",
+    "Technique",
+    "Sight Reading",
+    "Classical Repertoire",
+    "Song Practice",
+    "Music Theory Study",
     "Chords & Progressions",
-    "Fingerpicking",
-    "Strumming Patterns",
-    "Music Theory",
-    "Ear Training",
-    "Repertoire - Classical",
-    "Repertoire - Rock/Pop",
     "Improvisation",
-    "Technique Exercises"
+    "Songwriting"
   ],
   "Violin": [
     "Scales & Arpeggios",
-    "Bowing Technique",
-    "Etudes",
-    "Repertoire - Classical",
-    "Repertoire - Folk",
+    "Technique",
     "Sight Reading",
-    "Orchestra Practice",
-    "Chamber Music",
-    "Music Theory",
-    "Ear Training"
+    "Classical Repertoire",
+    "Folk & Contemporary",
+    "Music Theory Study",
+    "Bowing Practice",
+    "Improvisation",
+    "Songwriting"
   ],
   "Drums": [
-    "Rudiments",
-    "Groove Practice",
-    "Fill Patterns",
-    "Time Keeping",
-    "Reading Rhythms",
-    "Style Studies",
-    "Coordination Exercises",
-    "Speed & Control",
+    "Scales & Arpeggios",
+    "Technique",
+    "Sight Reading",
+    "Groove & Timing",
     "Song Practice",
-    "Improvisation"
+    "Music Theory Study",
+    "Fills & Transitions",
+    "Improvisation",
+    "Songwriting"
   ],
   "Voice": [
-    "Warm-up Exercises",
-    "Breath Control",
-    "Scales & Intervals",
-    "Repertoire - Classical",
-    "Repertoire - Contemporary",
-    "Sight Singing",
-    "Ear Training",
-    "Technique Practice",
-    "Performance Practice",
-    "Language & Diction"
+    "Scales & Arpeggios",
+    "Technique",
+    "Sight Reading",
+    "Classical Repertoire",
+    "Contemporary Songs",
+    "Music Theory Study",
+    "Breath Support",
+    "Improvisation",
+    "Songwriting"
   ],
   "Bass Guitar": [
-    "Scales & Modes",
-    "Groove Practice",
-    "Walking Bass Lines",
-    "Slap Technique",
-    "Reading Practice",
-    "Ear Training",
-    "Theory & Harmony",
+    "Scales & Arpeggios",
+    "Technique",
+    "Sight Reading",
+    "Bass Lines",
     "Song Practice",
+    "Music Theory Study",
+    "Groove & Timing",
     "Improvisation",
-    "Technique Exercises"
+    "Songwriting"
   ],
   "Saxophone": [
     "Scales & Arpeggios",
-    "Tone Development",
-    "Articulation Studies",
-    "Jazz Studies",
-    "Classical Repertoire",
+    "Technique",
     "Sight Reading",
+    "Classical Repertoire",
+    "Ensemble Material",
+    "Music Theory Study",
+    "Tone Development",
     "Improvisation",
-    "Technical Exercises",
-    "Ensemble Practice",
-    "Music Theory"
+    "Songwriting"
   ],
   "Flute": [
-    "Tone Exercises",
     "Scales & Arpeggios",
-    "Articulation Studies",
-    "Breathing Exercises",
-    "Classical Repertoire",
-    "Orchestral Excerpts",
-    "Chamber Music",
-    "Technical Studies",
+    "Technique",
     "Sight Reading",
-    "Music Theory"
+    "Classical Repertoire",
+    "Orchestral Material",
+    "Music Theory Study",
+    "Tone & Breathing",
+    "Improvisation",
+    "Songwriting"
+  ],
+  "Trumpet": [
+    "Scales & Arpeggios",
+    "Technique",
+    "Sight Reading",
+    "Classical Repertoire",
+    "Ensemble Material",
+    "Music Theory Study",
+    "Range Building",
+    "Improvisation",
+    "Songwriting"
+  ],
+  "Cello": [
+    "Scales & Arpeggios",
+    "Technique",
+    "Sight Reading",
+    "Classical Repertoire",
+    "Chamber Music",
+    "Music Theory Study",
+    "Bowing Practice",
+    "Improvisation",
+    "Songwriting"
+  ],
+  "Clarinet": [
+    "Scales & Arpeggios",
+    "Technique",
+    "Sight Reading",
+    "Classical Repertoire",
+    "Ensemble Material",
+    "Music Theory Study",
+    "Tone & Breathing",
+    "Improvisation",
+    "Songwriting"
+  ],
+  "Trombone": [
+    "Scales & Arpeggios",
+    "Technique",
+    "Sight Reading",
+    "Classical Repertoire",
+    "Ensemble Material",
+    "Music Theory Study",
+    "Slide Work",
+    "Improvisation",
+    "Songwriting"
   ]
 };
 
