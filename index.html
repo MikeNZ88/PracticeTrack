@@ -3130,6 +3130,9 @@ function checkLocalStorage() {
         document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
         document.getElementById(`${tabName}-tab`).classList.add('active');
         
+        // Save the active tab to localStorage
+        localStorage.setItem("activeTab", `${tabName}-tab`);
+        
         // Refresh UI when switching tabs
         if (tabName === 'dashboard') {
           updateDashboard();
@@ -4290,8 +4293,8 @@ document.addEventListener('DOMContentLoaded', () => {
         
         console.log(`Restored active tab: ${activeTabId}`);
         
-        // Clear the stored tab
-        localStorage.removeItem("activeTab");
+        // No longer remove the stored tab
+        // localStorage.removeItem("activeTab");
       }
     }
   }
