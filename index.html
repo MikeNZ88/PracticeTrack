@@ -903,6 +903,11 @@
       background: var(--card-color);
       border-radius: var(--radius-sm);
       border: 1px solid var(--border-color);
+      transition: var(--transition);
+    }
+
+    .category-item:hover {
+      box-shadow: var(--shadow-sm);
     }
 
     .category-item:last-child {
@@ -916,6 +921,29 @@
     .category-actions {
       display: flex;
       gap: 5px;
+    }
+
+    .category-actions button {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 5px;
+      border-radius: 4px;
+      transition: var(--transition);
+    }
+
+    .category-actions .delete-btn:hover {
+      background-color: var(--error-light);
+      color: var(--error-color);
+    }
+
+    .category-actions .toggle-btn:hover {
+      background-color: var(--gray-200);
+    }
+
+    .category-item.hidden-category {
+      opacity: 0.6;
+      border-style: dashed;
     }
 
     .filter-controls {
@@ -2283,6 +2311,42 @@
           <input type="file" id="import-file" accept=".json" class="hidden">
         </div>
       </div>
+      
+      <div class="card">
+        <h2>Category Management</h2>
+        
+        <div class="form-group">
+          <label for="new-category-input">Add New Category</label>
+          <div class="icon-input" style="display: flex; gap: 10px;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            <input type="text" id="new-category-input" placeholder="Enter new category name">
+            <button id="add-category-btn" class="save-btn" style="width: auto; margin-top: 0;">
+              Add
+            </button>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <h3>Custom Categories</h3>
+          <div id="categories-list" class="categories-list">
+            <!-- Custom categories will be added here dynamically -->
+            <p class="empty-message">No custom categories added yet</p>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <h3>Default Categories</h3>
+          <p class="hint" style="font-size: 0.85rem; color: var(--text-light); margin-bottom: 10px;">Default categories can be hidden or shown. Hidden categories won't appear in dropdown menus.</p>
+          <div id="default-categories-list" class="categories-list">
+            <!-- Default categories will be added here dynamically -->
+            <p class="empty-message">Please select an instrument first</p>
+          </div>
+        </div>
+      </div>
+      
       <div class="footer">
         © Mike Nelson Guitar Lessons | <a href="https://mikenelsonguitarlessons.co.nz" target="_blank">mikenelsonguitarlessons.co.nz</a>
       </div>
@@ -2388,7 +2452,13 @@
 // Global variables
       let sessions = [];
       let goals = [];
-      let settings = { instrument: "", lessonDay: "", theme: "default" };
+      let settings = {
+        instrument: "",
+        lessonDay: "",
+        theme: "default"
+      };
+      let customCategories = {}; // Format: {instrument: [category1, category2, ...]}
+      let hiddenCategories = {}; // Format: {instrument: [category1, category2, ...]}
       let timerStatus = "stopped";
       let startTime = 0;
       let pausedTimeAccum = 0;
@@ -2572,7 +2642,13 @@ function initializeApp() {
     menu: document.querySelector('.menu'),
     
     // Camera elements
-    cameraButton: document.getElementById('camera-button')
+    cameraButton: document.getElementById('camera-button'),
+    
+    // Category Management
+    addCategoryBtn: document.getElementById('add-category-btn'),
+    newCategoryInput: document.getElementById('new-category-input'),
+    categoriesList: document.getElementById('categories-list'),
+    defaultCategoriesList: document.getElementById('default-categories-list'),
   };
   
   // Verify elements and initialize
@@ -2687,6 +2763,25 @@ function checkLocalStorage() {
         // Initialize category dropdowns
         updateCategoryFilters();
         updateManualSessionCategoryDropdown();
+        
+        // Initialize category management
+        initializeCustomCategories();
+        refreshCategoriesList();
+        updateAllCategoryDropdowns();
+        
+        // Set up category management event listeners
+        if (elements.addCategoryBtn) {
+          elements.addCategoryBtn.addEventListener('click', addCustomCategory);
+        }
+        
+        if (elements.newCategoryInput) {
+          elements.newCategoryInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              addCustomCategory();
+            }
+          });
+        }
       }
       
       function setupEventListeners() {
@@ -3380,24 +3475,26 @@ function updatePracticeChart(dateRange, categoryFilter) {
       function exportData() {
   try {
     const data = {
-          sessions: sessions,
-          goals: goals,
-          settings: settings
-        };
-        
+      sessions: sessions,
+      goals: goals,
+      settings: settings,
+      customCategories: customCategories,
+      hiddenCategories: hiddenCategories
+    };
+    
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-          const url = URL.createObjectURL(blob);
-          
-          const a = document.createElement("a");
-          a.href = url;
-          a.download = `PracticeTrack_Data_${new Date().toISOString().split('T')[0]}.json`;
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          
+    const url = URL.createObjectURL(blob);
+    
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `PracticeTrack_Data_${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    
     setTimeout(() => URL.revokeObjectURL(url), 100);
     notify("Data exported successfully!", "success");
-        } catch (error) {
+  } catch (error) {
     console.error("Error exporting data:", error);
     notify("Failed to export data.", "error");
         }
@@ -5586,6 +5683,301 @@ function saveManualSession() {
     console.error("Error saving manual session:", error);
     notify("There was an error saving the session. Please try again.", "error");
   }
+}
+
+// ... rest of existing code ...
+
+// Category Management Functions
+function initializeCustomCategories() {
+  const storedCustomCategories = localStorage.getItem("customCategories");
+  if (storedCustomCategories) {
+    customCategories = JSON.parse(storedCustomCategories);
+  }
+  
+  const storedHiddenCategories = localStorage.getItem("hiddenCategories");
+  if (storedHiddenCategories) {
+    hiddenCategories = JSON.parse(storedHiddenCategories);
+  }
+}
+
+function addCustomCategory() {
+  if (!settings.instrument) {
+    notify("Please select an instrument first", "error");
+    return;
+  }
+  
+  const categoryInput = document.getElementById('new-category-input');
+  const categoryName = categoryInput.value.trim();
+  
+  if (!categoryName) {
+    notify("Please enter a category name", "error");
+    return;
+  }
+  
+  if (!customCategories[settings.instrument]) {
+    customCategories[settings.instrument] = [];
+  }
+  
+  // Check if the category already exists (either as default or custom)
+  const existingCategories = getAllCategories(settings.instrument);
+  if (existingCategories.includes(categoryName)) {
+    notify("This category already exists", "error");
+    return;
+  }
+  
+  // Add the category
+  customCategories[settings.instrument].push(categoryName);
+  localStorage.setItem("customCategories", JSON.stringify(customCategories));
+  
+  // Clear input
+  categoryInput.value = '';
+  
+  // Refresh the category management UI
+  refreshCategoriesList();
+  
+  // Update all category dropdowns
+  updateAllCategoryDropdowns();
+  
+  notify("Category added successfully!", "success");
+}
+
+function deleteCustomCategory(categoryName) {
+  if (!settings.instrument || !customCategories[settings.instrument]) return;
+  
+  const index = customCategories[settings.instrument].indexOf(categoryName);
+  if (index === -1) return;
+  
+  if (confirm("Are you sure you want to delete this category? Any sessions using this category will be preserved.")) {
+    customCategories[settings.instrument].splice(index, 1);
+    localStorage.setItem("customCategories", JSON.stringify(customCategories));
+    
+    // Refresh the category management UI
+    refreshCategoriesList();
+    
+    // Update all category dropdowns
+    updateAllCategoryDropdowns();
+    
+    notify("Category deleted successfully!", "success");
+  }
+}
+
+function toggleDefaultCategory(categoryName) {
+  if (!settings.instrument) return;
+  
+  // Initialize the hiddenCategories for this instrument if it doesn't exist
+  if (!hiddenCategories[settings.instrument]) {
+    hiddenCategories[settings.instrument] = [];
+  }
+  
+  const isHidden = hiddenCategories[settings.instrument].includes(categoryName);
+  
+  if (isHidden) {
+    // Show the category again
+    hiddenCategories[settings.instrument] = hiddenCategories[settings.instrument].filter(cat => cat !== categoryName);
+  } else {
+    // Hide the category
+    hiddenCategories[settings.instrument].push(categoryName);
+  }
+  
+  localStorage.setItem("hiddenCategories", JSON.stringify(hiddenCategories));
+  
+  // Refresh the category management UI
+  refreshCategoriesList();
+  
+  // Update all category dropdowns
+  updateAllCategoryDropdowns();
+  
+  notify(`Category ${isHidden ? 'shown' : 'hidden'} successfully!`, "success");
+}
+
+function refreshCategoriesList() {
+  const categoriesList = document.getElementById('categories-list');
+  const defaultCategoriesList = document.getElementById('default-categories-list');
+  
+  if (!categoriesList || !defaultCategoriesList) return;
+  
+  // Clear the lists
+  categoriesList.innerHTML = '';
+  defaultCategoriesList.innerHTML = '';
+  
+  if (!settings.instrument) {
+    categoriesList.innerHTML = '<p class="empty-message">Please select an instrument first</p>';
+    defaultCategoriesList.innerHTML = '<p class="empty-message">Please select an instrument first</p>';
+    return;
+  }
+  
+  // Get custom categories for this instrument
+  const customCats = customCategories[settings.instrument] || [];
+  
+  // Show message if no custom categories
+  if (customCats.length === 0) {
+    categoriesList.innerHTML = '<p class="empty-message">No custom categories added yet</p>';
+  } else {
+    // Add custom categories
+    customCats.forEach(category => {
+      const div = document.createElement('div');
+      div.className = 'category-item';
+      div.innerHTML = `
+        <span class="category-name">${category}</span>
+        <div class="category-actions">
+          <button class="delete-btn" onclick="deleteCustomCategory('${category}')">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+            </svg>
+          </button>
+        </div>
+      `;
+      categoriesList.appendChild(div);
+    });
+  }
+  
+  // Get default categories and hidden status
+  const defaultCats = instrumentCategories[settings.instrument] || [];
+  const hiddenCats = hiddenCategories[settings.instrument] || [];
+  
+  // Add default categories
+  defaultCats.forEach(category => {
+    const isHidden = hiddenCats.includes(category);
+    const div = document.createElement('div');
+    div.className = 'category-item';
+    
+    if (isHidden) {
+      div.classList.add('hidden-category');
+    }
+    
+    div.innerHTML = `
+      <span class="category-name">${category}</span>
+      <div class="category-actions">
+        <button class="toggle-btn" onclick="toggleDefaultCategory('${category}')">
+          ${isHidden ? 
+            `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>` : 
+            `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+              <line x1="1" y1="1" x2="23" y2="23"></line>
+            </svg>`
+          }
+        </button>
+      </div>
+    `;
+    defaultCategoriesList.appendChild(div);
+  });
+}
+
+// Helper function to get all available categories for an instrument (including custom, excluding hidden)
+function getAllCategories(instrument) {
+  if (!instrument) return [];
+  
+  // Get default categories
+  const defaultCats = instrumentCategories[instrument] || [];
+  
+  // Get hidden categories
+  const hiddenCats = hiddenCategories[instrument] || [];
+  
+  // Get custom categories
+  const customCats = customCategories[instrument] || [];
+  
+  // Combine all categories (excluding hidden ones)
+  return [...defaultCats.filter(cat => !hiddenCats.includes(cat)), "Lesson", ...customCats];
+}
+
+// Function to update all category dropdowns
+function updateAllCategoryDropdowns() {
+  updatePracticeCategoryDropdown();
+  updateCategoryFilters();
+}
+
+// Update function to get visible categories
+function updatePracticeCategoryDropdown() {
+  if (!settings.instrument) {
+    const dropdowns = [
+      document.getElementById('practice-category'),
+      document.getElementById('manual-session-category')
+    ];
+    
+    dropdowns.forEach(dropdown => {
+      if (dropdown) {
+        dropdown.innerHTML = '<option value="">Please select an instrument in Settings</option>';
+        dropdown.disabled = true;
+      }
+    });
+    return;
+  }
+
+  // Get all visible categories for this instrument
+  const categories = getAllCategories(settings.instrument);
+  
+  const options = categories.map(category => 
+    `<option value="${category}">${category}</option>`
+  ).join('');
+  
+  // Update the practice category dropdown
+  const practiceCategory = document.getElementById('practice-category');
+  if (practiceCategory) {
+    practiceCategory.innerHTML = `
+      <option value="">--Select Practice Category--</option>
+      ${options}
+    `;
+    practiceCategory.disabled = false;
+  }
+  
+  // Update the manual session category dropdown
+  const manualSessionCategory = document.getElementById('manual-session-category');
+  if (manualSessionCategory) {
+    manualSessionCategory.innerHTML = `
+      <option value="">--Select Practice Category--</option>
+      ${options}
+    `;
+    manualSessionCategory.disabled = false;
+  }
+}
+
+// Update function to get visible categories for filter dropdowns
+function updateCategoryFilters() {
+  if (!settings.instrument) {
+    const dropdowns = [
+      document.getElementById('session-category-filter'),
+      document.getElementById('goal-category-filter'),
+      document.getElementById('dashboard-category-filter'),
+      document.getElementById('media-category-filter')
+    ];
+    
+    dropdowns.forEach(dropdown => {
+      if (dropdown) {
+        dropdown.innerHTML = '<option value="all">All Categories</option>';
+        dropdown.disabled = true;
+      }
+    });
+    return;
+  }
+
+  // Get all visible categories for this instrument
+  const categories = getAllCategories(settings.instrument);
+  
+  const options = categories.map(category => 
+    `<option value="${category}">${category}</option>`
+  ).join('');
+  
+  // Update filter dropdowns
+  const filterDropdowns = [
+    document.getElementById('session-category-filter'),
+    document.getElementById('goal-category-filter'),
+    document.getElementById('dashboard-category-filter'),
+    document.getElementById('media-category-filter')
+  ];
+  
+  filterDropdowns.forEach(dropdown => {
+    if (dropdown) {
+      dropdown.innerHTML = `
+        <option value="all">All Categories</option>
+        ${options}
+      `;
+      dropdown.disabled = false;
+    }
+  });
 }
 
 // ... rest of existing code ...
