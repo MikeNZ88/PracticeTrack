@@ -1789,6 +1789,93 @@
     <div id="sessions-tab" class="tab">
       <div class="card">
         <h2>Practice Sessions</h2>
+        <button id="add-manual-session" class="guide-button" style="margin-bottom: 20px;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          Add Manual Session
+        </button>
+        
+        <!-- Manual Session Form (initially hidden) -->
+        <div id="manual-session-form" class="card" style="display: none; margin-bottom: 20px;">
+          <h3>Add Manual Session</h3>
+          <div class="form-group">
+            <label for="manual-session-date" class="required-field">Date</label>
+            <div class="icon-input">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="16" y1="2" x2="16" y2="6"></line>
+                <line x1="8" y1="2" x2="8" y2="6"></line>
+                <line x1="3" y1="10" x2="21" y2="10"></line>
+              </svg>
+              <input type="date" id="manual-session-date" required>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="manual-session-hours" class="required-field">Duration</label>
+            <div style="display: flex; gap: 10px;">
+              <div class="icon-input" style="flex: 1;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+                <input type="number" id="manual-session-hours" min="0" max="24" placeholder="Hours" style="padding-left: 40px;">
+              </div>
+              <div class="icon-input" style="flex: 1;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+                <input type="number" id="manual-session-minutes" min="0" max="59" placeholder="Minutes" style="padding-left: 40px;">
+              </div>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="manual-session-category" class="required-field">Practice Category</label>
+            <div class="icon-input">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+              </svg>
+              <select id="manual-session-category" required>
+                <option value="">--Select Practice Category--</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="manual-session-notes">Notes (optional)</label>
+            <div class="icon-input">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+              </svg>
+              <textarea id="manual-session-notes" placeholder="Add any notes about your practice session..."></textarea>
+            </div>
+          </div>
+          
+          <div class="controls">
+            <button id="save-manual-session" class="save-btn">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                <polyline points="7 3 7 8 15 8"></polyline>
+              </svg>
+              Save Session
+            </button>
+            <button id="cancel-manual-session" class="cancel-btn">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+              Cancel
+            </button>
+          </div>
+        </div>
+        
         <div class="filter-controls">
           <div class="filter-group">
             <label for="session-date-filter">Time Period:</label>
@@ -2596,6 +2683,10 @@ function checkLocalStorage() {
         
         // Update metronome display
         elements.bpmDisplay.textContent = elements.tempoSlider.value;
+        
+        // Initialize category dropdowns
+        updateCategoryFilters();
+        updateManualSessionCategoryDropdown();
       }
       
       function setupEventListeners() {
@@ -2619,6 +2710,37 @@ function checkLocalStorage() {
       }
     });
         elements.sessionFilter.addEventListener('input', refreshSessionList);
+        
+    // Manual Session Controls
+    const addManualSessionBtn = document.getElementById('add-manual-session');
+    const manualSessionForm = document.getElementById('manual-session-form');
+    const saveManualSessionBtn = document.getElementById('save-manual-session');
+    const cancelManualSessionBtn = document.getElementById('cancel-manual-session');
+    
+    if (addManualSessionBtn) {
+      addManualSessionBtn.addEventListener('click', () => {
+        showManualSessionForm();
+      });
+    }
+    
+    if (cancelManualSessionBtn) {
+      cancelManualSessionBtn.addEventListener('click', () => {
+        hideManualSessionForm();
+      });
+    }
+    
+    if (saveManualSessionBtn) {
+      saveManualSessionBtn.addEventListener('click', () => {
+        saveManualSession();
+      });
+    }
+    
+    // Set today's date as default for manual session
+    const manualSessionDate = document.getElementById('manual-session-date');
+    if (manualSessionDate) {
+      const today = new Date().toISOString().split('T')[0];
+      manualSessionDate.value = today;
+    }
         
     // Goal management
     elements.goalName.addEventListener('input', () => {
@@ -5352,6 +5474,121 @@ function saveMedia(file, type, name) {
 }
 
 // ... existing code ...
+
+// Manual Session Functions
+function showManualSessionForm() {
+  const manualSessionForm = document.getElementById('manual-session-form');
+  const addManualSessionBtn = document.getElementById('add-manual-session');
+  
+  if (manualSessionForm && addManualSessionBtn) {
+    manualSessionForm.style.display = 'block';
+    addManualSessionBtn.style.display = 'none';
+    
+    // Reset the form
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('manual-session-date').value = today;
+    document.getElementById('manual-session-hours').value = '';
+    document.getElementById('manual-session-minutes').value = '';
+    document.getElementById('manual-session-category').selectedIndex = 0;
+    document.getElementById('manual-session-notes').value = '';
+    
+    // Make sure the category dropdown is populated
+    updateManualSessionCategoryDropdown();
+  }
+}
+
+function hideManualSessionForm() {
+  const manualSessionForm = document.getElementById('manual-session-form');
+  const addManualSessionBtn = document.getElementById('add-manual-session');
+  
+  if (manualSessionForm && addManualSessionBtn) {
+    manualSessionForm.style.display = 'none';
+    addManualSessionBtn.style.display = 'block';
+  }
+}
+
+function updateManualSessionCategoryDropdown() {
+  const manualSessionCategory = document.getElementById('manual-session-category');
+  if (!manualSessionCategory) return;
+  
+  if (!settings.instrument) {
+    manualSessionCategory.innerHTML = '<option value="">Please select an instrument in Settings</option>';
+    manualSessionCategory.disabled = true;
+    return;
+  }
+
+  const categories = [...instrumentCategories[settings.instrument] || [], "Lesson"];
+  const options = categories.map(category => 
+    `<option value="${category}">${category}</option>`
+  ).join('');
+  
+  manualSessionCategory.innerHTML = `
+    <option value="">--Select Practice Category--</option>
+    ${options}
+  `;
+  manualSessionCategory.disabled = false;
+}
+
+function saveManualSession() {
+  try {
+    // Get form values
+    const dateInput = document.getElementById('manual-session-date').value;
+    const hours = parseInt(document.getElementById('manual-session-hours').value) || 0;
+    const minutes = parseInt(document.getElementById('manual-session-minutes').value) || 0;
+    const category = document.getElementById('manual-session-category').value;
+    const notes = document.getElementById('manual-session-notes').value.trim();
+    
+    // Validate inputs
+    if (!dateInput) {
+      notify("Please select a date", "error");
+      return;
+    }
+    
+    if (hours === 0 && minutes === 0) {
+      notify("Please enter session duration", "error");
+      return;
+    }
+    
+    if (!category) {
+      notify("Please select a practice category", "error");
+      return;
+    }
+    
+    // Convert hours and minutes to milliseconds
+    const durationMs = (hours * 60 * 60 * 1000) + (minutes * 60 * 1000);
+    
+    // Create a date object from the input date, setting it to noon to avoid timezone issues
+    const sessionDate = new Date(dateInput);
+    sessionDate.setHours(12, 0, 0, 0);
+    
+    // Create session object
+    const session = {
+      id: Date.now(),
+      name: category,
+      duration: durationMs,
+      date: sessionDate.toISOString(),
+      notes: notes,
+      manual: true // Flag to indicate this was manually added
+    };
+    
+    // Add to sessions array
+    sessions.push(session);
+    localStorage.setItem("sessions", JSON.stringify(sessions));
+    
+    // Hide the form and update UI
+    hideManualSessionForm();
+    refreshSessionList();
+    updateDashboard();
+    
+    notify("Manual session added successfully!", "success");
+    
+  } catch (error) {
+    console.error("Error saving manual session:", error);
+    notify("There was an error saving the session. Please try again.", "error");
+  }
+}
+
+// ... rest of existing code ...
   </script>
   
 </body>
