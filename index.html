@@ -2106,6 +2106,7 @@
                 <option value="all">All Types</option>
                 <option value="photo">Photos</option>
                 <option value="video">Videos</option>
+                <option value="note">Notes</option>
               </select>
             </div>
           </div>
@@ -2114,99 +2115,11 @@
         <!-- Media gallery -->
         <div id="media-gallery" class="media-gallery">
           <!-- Media items will be added here dynamically -->
-          <div class="media-placeholder">
-            <p>No media recordings yet. Use the "Record" button to capture photos or videos.</p>
-          </div>
         </div>
       </div>
       
-      <!-- View Media Modal -->
-      <div id="view-media-modal" class="view-media-modal">
-        <div class="view-media-content">
-          <!-- Content will be added dynamically -->
-        </div>
-        <div class="view-media-controls">
-          <button id="close-view-media">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <line x1="18" y1="6" x2="6" y2="18"></line>
-              <line x1="6" y1="6" x2="18" y2="18"></line>
-            </svg>
-            Close
-          </button>
-          <button id="rename-media">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-            </svg>
-            Rename
-          </button>
-          <button id="delete-media">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="3 6 5 6 21 6"></polyline>
-              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-            </svg>
-            Delete
-          </button>
-        </div>
-      </div>
-      
-      <!-- Camera modal -->
-      <div id="camera-modal" class="camera-modal">
-        <div class="camera-container">
-          <video id="camera-preview" class="camera-preview" autoplay playsinline></video>
-          <div class="camera-controls">
-            <button id="switch-camera">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
-                <path d="M17 12h-2v-2"></path>
-                <path d="M9 10v2h2"></path>
-              </svg>
-            </button>
-            <button id="take-photo">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="10"></circle>
-              </svg>
-            </button>
-            <button id="start-recording">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="10"></circle>
-                <circle cx="12" cy="12" r="3"></circle>
-              </svg>
-            </button>
-            <button id="stop-recording" class="hidden">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="6" y="6" width="12" height="12" rx="1"></rect>
-              </svg>
-            </button>
-            <button id="close-camera">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="18" y1="6" x2="6" y2="18"></line>
-                <line x1="6" y1="6" x2="18" y2="18"></line>
-              </svg>
-            </button>
-          </div>
-        </div>
-      </div>
-      
-      <!-- Media preview modal -->
-      <div id="media-preview" class="media-preview">
-        <div class="camera-controls">
-          <button id="save-media">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-              <polyline points="17 21 17 13 7 13 7 21"></polyline>
-              <polyline points="7 3 7 8 15 8"></polyline>
-            </svg>
-          </button>
-          <button id="cancel-media">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <line x1="18" y1="6" x2="6" y2="18"></line>
-              <line x1="6" y1="6" x2="18" y2="18"></line>
-            </svg>
-          </button>
-        </div>
-        <img id="photo-preview" class="camera-preview hidden">
-        <video id="video-preview" class="camera-preview hidden" controls></video>
+      <div class="footer">
+        © Mike Nelson Guitar Lessons | <a href="https://mikenelsonguitarlessons.co.nz" target="_blank">mikenelsonguitarlessons.co.nz</a>
       </div>
     </div>
     
@@ -5325,33 +5238,26 @@ function viewMedia(media) {
 // Simple direct camera implementation
 document.addEventListener('DOMContentLoaded', function() {
   const cameraButton = document.getElementById('camera-button');
-  const saveNameButton = document.getElementById('save-name-button');
   const mediaNameInput = document.getElementById('media-name-input');
+  const saveNameButton = document.getElementById('save-name-button');
   const mediaGallery = document.getElementById('media-gallery');
   
-  // Initialize media records array from localStorage
+  // Media variables
   let mediaRecords = [];
+  let currentMedia = null;
+  
+  // Load saved records from localStorage
   try {
     const storedRecords = localStorage.getItem('mediaRecords');
     if (storedRecords) {
       mediaRecords = JSON.parse(storedRecords);
-      
-      // Display stored records
-      mediaRecords.forEach(record => {
-        const mediaItem = createMediaElement(record);
-        if (mediaGallery && mediaItem) {
-          if (mediaGallery.firstChild) {
-            mediaGallery.insertBefore(mediaItem, mediaGallery.firstChild);
-          } else {
-            mediaGallery.appendChild(mediaItem);
-          }
-        }
-      });
+      refreshMediaGallery();
     }
   } catch (error) {
     console.error('Error loading media records:', error);
   }
   
+  // Text-only recording (save name button)
   if (saveNameButton) {
     saveNameButton.addEventListener('click', function() {
       const mediaName = mediaNameInput.value.trim();
@@ -5368,158 +5274,451 @@ document.addEventListener('DOMContentLoaded', function() {
         type: 'note'
       };
       
-      // Add to records array
-      mediaRecords.push(mediaRecord);
-      
-      // Save to localStorage
-      localStorage.setItem('mediaRecords', JSON.stringify(mediaRecords));
-
-      // Create media item
-      const mediaItem = createMediaElement(mediaRecord);
-      
-      // Add to media list
-      if (mediaGallery && mediaItem) {
-        // Add to the beginning of the gallery (newest first)
-        if (mediaGallery.firstChild) {
-          mediaGallery.insertBefore(mediaItem, mediaGallery.firstChild);
-        } else {
-          mediaGallery.appendChild(mediaItem);
-        }
-      }
+      // Add to records array and save
+      saveMediaRecord(mediaRecord);
       
       // Clear the input
       mediaNameInput.value = '';
       
-      notify('Recording saved!', 'success');
+      notify('Text note saved!', 'success');
     });
   }
   
+  // Camera button functionality
   if (cameraButton) {
     cameraButton.addEventListener('click', function() {
-      // Get the name from input, or use default
-      const mediaName = mediaNameInput.value.trim() || `Recording ${new Date().toLocaleString()}`;
-      
-      // Copy media name to clipboard for later use
-      navigator.clipboard.writeText(mediaName).then(() => {
-        notify('Name copied to clipboard for your convenience', 'info');
-      }).catch(() => {
-        console.error('Failed to copy name to clipboard');
-      });
-      
-      // Create file input for camera capture
-      const input = document.createElement('input');
-      input.type = 'file';
-      input.accept = 'image/*,video/*'; // Accept both photos and videos
-      input.capture = 'environment'; // Use back camera
-      
-      input.onchange = function() {
-        if (this.files && this.files[0]) {
-          const file = this.files[0];
-          const type = file.type.startsWith('image/') ? 'photo' : 'video';
-          
-          // Create media record
-          const mediaRecord = {
-            id: 'media_' + Date.now(),
-            name: mediaName,
-            timestamp: Date.now(),
-            type: type,
-            fileName: file.name
-          };
-          
-          // Add to records array
-          mediaRecords.push(mediaRecord);
-          
-          // Save to localStorage
-          localStorage.setItem('mediaRecords', JSON.stringify(mediaRecords));
-          
-          // Create media item
-          const mediaItem = createMediaElement(mediaRecord);
-          
-          // Add to media list
-          if (mediaGallery && mediaItem) {
-            // Add to the beginning of the gallery (newest first)
-            if (mediaGallery.firstChild) {
-              mediaGallery.insertBefore(mediaItem, mediaGallery.firstChild);
-            } else {
-              mediaGallery.appendChild(mediaItem);
-            }
-          }
-          
-          notify(`${type === 'photo' ? 'Photo' : 'Video'} saved to your device`, 'success');
-        }
-      };
-      
-      input.click();
+      // Create options menu for camera
+      showCameraOptions();
     });
   }
   
-  // Handle media item deletion
-  if (mediaGallery) {
-    mediaGallery.addEventListener('click', function(e) {
-      const deleteBtn = e.target.closest('.delete-media-btn');
-      if (deleteBtn) {
-        const mediaItem = deleteBtn.closest('.media-item');
-        const mediaId = mediaItem?.getAttribute('data-id');
-        
-        if (mediaId && confirm('Delete this media record?')) {
-          // Remove from DOM
-          mediaItem.remove();
-          
-          // Remove from array
-          mediaRecords = mediaRecords.filter(record => record.id !== mediaId);
-          
-          // Save to localStorage
-          localStorage.setItem('mediaRecords', JSON.stringify(mediaRecords));
-          
-          notify('Media record deleted', 'success');
-        }
-      }
-    });
-  }
-  
-  // Helper function to create media element
-  function createMediaElement(mediaRecord) {
-    const mediaItem = document.createElement('div');
-    mediaItem.className = 'media-item';
-    mediaItem.setAttribute('data-id', mediaRecord.id);
-    mediaItem.style.padding = '10px';
-    mediaItem.style.margin = '10px 0';
-    mediaItem.style.backgroundColor = '#f5f5f5';
-    mediaItem.style.borderRadius = '5px';
+  // Show camera options menu (Photo or Video)
+  function showCameraOptions() {
+    // Create an overlay for the camera options
+    const optionsOverlay = document.createElement('div');
+    optionsOverlay.className = 'media-type-menu';
+    optionsOverlay.style.position = 'fixed';
+    optionsOverlay.style.top = '0';
+    optionsOverlay.style.left = '0';
+    optionsOverlay.style.width = '100%';
+    optionsOverlay.style.height = '100%';
+    optionsOverlay.style.backgroundColor = 'rgba(0,0,0,0.7)';
+    optionsOverlay.style.display = 'flex';
+    optionsOverlay.style.flexDirection = 'column';
+    optionsOverlay.style.justifyContent = 'center';
+    optionsOverlay.style.alignItems = 'center';
+    optionsOverlay.style.zIndex = '1000';
     
-    // Format the date
-    const date = new Date(mediaRecord.timestamp).toLocaleString();
-    
-    // Set the icon based on media type
-    let icon = '📝';
-    if (mediaRecord.type === 'photo') icon = '📷';
-    if (mediaRecord.type === 'video') icon = '🎥';
-    
-    // Set the content
-    mediaItem.innerHTML = `
-      <div style="display: flex; justify-content: space-between; align-items: center;">
-        <div style="font-weight: bold;">
-          ${icon} ${mediaRecord.name}
-        </div>
-        <div style="font-size: 12px; color: #666;">
-          ${date}
-        </div>
-      </div>
-      <div style="margin-top: 5px; font-size: 13px; color: #444;">
-        ${mediaRecord.fileName ? `Saved as: ${mediaRecord.fileName}` : 'Text record only'}
-      </div>
-      <div style="margin-top: 8px; display: flex; justify-content: flex-end; gap: 8px;">
-        <button class="copy-name-btn" style="padding: 5px 10px; background: #e3f2fd; color: #1565c0; border: none; border-radius: 4px; cursor: pointer;"
-          onclick="navigator.clipboard.writeText('${mediaRecord.name}')">
-          Copy Name
+    // Add options buttons
+    optionsOverlay.innerHTML = `
+      <div style="background-color: white; padding: 20px; border-radius: 10px; width: 80%; max-width: 300px;">
+        <h3 style="text-align: center; margin-top: 0;">Choose Media Type</h3>
+        <button id="take-photo-option" style="display: block; width: 100%; padding: 15px; margin: 10px 0; background-color: var(--primary-color); color: white; border: none; border-radius: 5px; font-size: 16px;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px; vertical-align: middle;">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+            <circle cx="8.5" cy="8.5" r="1.5"/>
+            <polyline points="21 15 16 10 5 21"/>
+          </svg>
+          Take Photo
         </button>
-        <button class="delete-media-btn" style="padding: 5px 10px; background: #ffebee; color: #e53935; border: none; border-radius: 4px; cursor: pointer;">
-          Delete
+        <button id="record-video-option" style="display: block; width: 100%; padding: 15px; margin: 10px 0; background-color: var(--secondary-color); color: white; border: none; border-radius: 5px; font-size: 16px;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px; vertical-align: middle;">
+            <polygon points="23 7 16 12 23 17 23 7"/>
+            <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+          </svg>
+          Record Video
+        </button>
+        <button id="cancel-media-option" style="display: block; width: 100%; padding: 15px; margin: 10px 0; background-color: #f5f5f5; color: #333; border: none; border-radius: 5px; font-size: 16px;">
+          Cancel
         </button>
       </div>
     `;
     
+    document.body.appendChild(optionsOverlay);
+    
+    // Add event listeners to the option buttons
+    document.getElementById('take-photo-option').addEventListener('click', function() {
+      document.body.removeChild(optionsOverlay);
+      captureMedia('photo');
+    });
+    
+    document.getElementById('record-video-option').addEventListener('click', function() {
+      document.body.removeChild(optionsOverlay);
+      captureMedia('video');
+    });
+    
+    document.getElementById('cancel-media-option').addEventListener('click', function() {
+      document.body.removeChild(optionsOverlay);
+    });
+  }
+  
+  // Capture media (photo or video)
+  function captureMedia(mediaType) {
+    // Create file input for camera capture
+    const input = document.createElement('input');
+    input.type = 'file';
+    
+    if (mediaType === 'photo') {
+      input.accept = 'image/*';
+      input.capture = 'environment'; // Use back camera
+    } else {
+      input.accept = 'video/*';
+      input.capture = true;
+    }
+    
+    input.onchange = function() {
+      if (this.files && this.files[0]) {
+        const file = this.files[0];
+        const type = file.type.startsWith('image/') ? 'photo' : 'video';
+        
+        // Store the file temporarily
+        currentMedia = {
+          file: file,
+          type: type
+        };
+        
+        // Prompt for name after capturing
+        promptForMediaName(type);
+      }
+    };
+    
+    input.click();
+  }
+  
+  // Prompt for media name
+  function promptForMediaName(mediaType) {
+    const defaultName = getDefaultName(mediaType);
+    
+    // Create an overlay for the name prompt
+    const nameOverlay = document.createElement('div');
+    nameOverlay.style.position = 'fixed';
+    nameOverlay.style.top = '0';
+    nameOverlay.style.left = '0';
+    nameOverlay.style.width = '100%';
+    nameOverlay.style.height = '100%';
+    nameOverlay.style.backgroundColor = 'rgba(0,0,0,0.7)';
+    nameOverlay.style.display = 'flex';
+    nameOverlay.style.flexDirection = 'column';
+    nameOverlay.style.justifyContent = 'center';
+    nameOverlay.style.alignItems = 'center';
+    nameOverlay.style.zIndex = '1001';
+    
+    // Add name input form
+    nameOverlay.innerHTML = `
+      <div style="background-color: white; padding: 20px; border-radius: 10px; width: 80%; max-width: 300px;">
+        <h3 style="text-align: center; margin-top: 0;">Name Your ${mediaType === 'photo' ? 'Photo' : 'Video'}</h3>
+        <input type="text" id="capture-name-input" placeholder="Enter a name..." value="${defaultName}" 
+               style="width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; font-size: 16px;">
+        <div style="display: flex; justify-content: space-between;">
+          <button id="save-capture" style="padding: 10px 15px; background-color: var(--primary-color); color: white; border: none; border-radius: 5px; font-size: 16px; flex: 1; margin-right: 5px;">
+            Save
+          </button>
+          <button id="cancel-capture" style="padding: 10px 15px; background-color: #f5f5f5; color: #333; border: none; border-radius: 5px; font-size: 16px; flex: 1; margin-left: 5px;">
+            Cancel
+          </button>
+        </div>
+      </div>
+    `;
+    
+    document.body.appendChild(nameOverlay);
+    
+    // Focus the input field
+    setTimeout(() => {
+      const nameInput = document.getElementById('capture-name-input');
+      if (nameInput) {
+        nameInput.focus();
+        nameInput.select(); // Select the default text
+      }
+    }, 100);
+    
+    // Add event listeners
+    document.getElementById('save-capture').addEventListener('click', function() {
+      const mediaName = document.getElementById('capture-name-input').value.trim() || defaultName;
+      saveCapture(mediaName);
+      document.body.removeChild(nameOverlay);
+    });
+    
+    document.getElementById('capture-name-input').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        const mediaName = document.getElementById('capture-name-input').value.trim() || defaultName;
+        saveCapture(mediaName);
+        document.body.removeChild(nameOverlay);
+      }
+    });
+    
+    document.getElementById('cancel-capture').addEventListener('click', function() {
+      document.body.removeChild(nameOverlay);
+      currentMedia = null;
+    });
+  }
+  
+  // Save captured media
+  function saveCapture(mediaName) {
+    if (!currentMedia) {
+      notify('Error: No media to save', 'error');
+      return;
+    }
+    
+    const file = currentMedia.file;
+    const type = currentMedia.type;
+    
+    // Create file extension based on media type
+    const fileExtension = type === 'photo' ? '.jpg' : '.mp4';
+    const safeFileName = mediaName.replace(/[^a-z0-9]/gi, '_') + fileExtension;
+    
+    // Create a downloadable URL from the file
+    const blobUrl = URL.createObjectURL(file);
+    
+    // Create and trigger download
+    const downloadLink = document.createElement('a');
+    downloadLink.href = blobUrl;
+    downloadLink.download = safeFileName;
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
+    
+    // Create media record
+    const mediaRecord = {
+      id: 'media_' + Date.now(),
+      name: mediaName,
+      timestamp: Date.now(),
+      type: type,
+      fileName: safeFileName
+    };
+    
+    // Save media record
+    saveMediaRecord(mediaRecord);
+    
+    // Reset current media
+    currentMedia = null;
+    
+    // Show success message
+    notify(`${type === 'photo' ? 'Photo' : 'Video'} saved as "${safeFileName}"`, 'success');
+    
+    // Check for iOS and show additional instructions if needed
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    if (isIOS) {
+      setTimeout(() => {
+        notify('On iOS: Tap and hold on the opened media, then select "Save to Photos"', 'info', 8000);
+      }, 1000);
+    }
+    
+    // Clean up blob URL
+    setTimeout(() => URL.revokeObjectURL(blobUrl), 100);
+  }
+  
+  // Save media record to localStorage and update UI
+  function saveMediaRecord(record) {
+    // Add to records array
+    mediaRecords.push(record);
+    
+    // Save to localStorage
+    localStorage.setItem('mediaRecords', JSON.stringify(mediaRecords));
+    
+    // Update the UI
+    refreshMediaGallery();
+  }
+  
+  // Refresh media gallery display
+  function refreshMediaGallery() {
+    if (!mediaGallery) return;
+    
+    // Sort records by timestamp (newest first)
+    const sortedRecords = [...mediaRecords].sort((a, b) => b.timestamp - a.timestamp);
+    
+    // Clear current gallery
+    mediaGallery.innerHTML = '';
+    
+    if (sortedRecords.length === 0) {
+      const placeholder = document.createElement('div');
+      placeholder.className = 'media-placeholder';
+      placeholder.innerHTML = '<p>No media recordings yet. Use the "Record" button to capture photos or videos.</p>';
+      mediaGallery.appendChild(placeholder);
+      return;
+    }
+    
+    // Add each record to the gallery
+    sortedRecords.forEach(record => {
+      const mediaItem = createMediaElement(record);
+      mediaGallery.appendChild(mediaItem);
+    });
+  }
+  
+  // Create media element for display
+  function createMediaElement(mediaRecord) {
+    const mediaItem = document.createElement('div');
+    mediaItem.className = 'media-item';
+    mediaItem.setAttribute('data-id', mediaRecord.id);
+    mediaItem.setAttribute('data-type', mediaRecord.type || 'note');
+    
+    // Format the date
+    const date = new Date(mediaRecord.timestamp);
+    const formattedShortDate = `${date.toLocaleDateString()}, ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+    
+    // Set the icon based on media type
+    let icon = '';
+    if (mediaRecord.type === 'photo') icon = '📷 ';
+    if (mediaRecord.type === 'video') icon = '🎥 ';
+    if (mediaRecord.type === 'note') icon = '📝 ';
+    
+    // Set the content with improved styling
+    mediaItem.innerHTML = `
+      <div style="padding: 15px; background-color: #f8f8f8; border-radius: 8px; margin-bottom: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+          <div style="font-weight: bold; font-size: 16px; margin-bottom: 5px;">
+            ${icon} ${mediaRecord.name}
+          </div>
+          <div style="font-size: 12px; color: #666; text-align: right;">
+            ${formattedShortDate}
+          </div>
+        </div>
+        
+        <div style="margin-top: 5px; font-size: 13px; color: #555;">
+          ${mediaRecord.fileName ? `Saved as: ${mediaRecord.fileName}` : 'Text record only'}
+        </div>
+        
+        <div style="margin-top: 10px; display: flex; justify-content: flex-end; gap: 10px;">
+          <button class="copy-name-btn" style="padding: 8px 12px; background: #e3f2fd; color: #1565c0; border: none; border-radius: 4px; cursor: pointer; font-size: 13px;">
+            Copy Name
+          </button>
+          <button class="delete-media-btn" style="padding: 8px 12px; background: #ffebee; color: #e53935; border: none; border-radius: 4px; cursor: pointer; font-size: 13px;">
+            Delete
+          </button>
+        </div>
+      </div>
+    `;
+    
+    // Add event listeners
+    mediaItem.querySelector('.copy-name-btn').addEventListener('click', function(e) {
+      e.stopPropagation(); // Prevent item click
+      
+      navigator.clipboard.writeText(mediaRecord.name)
+        .then(() => notify('Name copied to clipboard', 'success'))
+        .catch(() => notify('Failed to copy to clipboard', 'error'));
+    });
+    
+    mediaItem.querySelector('.delete-media-btn').addEventListener('click', function(e) {
+      e.stopPropagation(); // Prevent item click
+      
+      if (confirm('Delete this media record?')) {
+        // Remove from array
+        mediaRecords = mediaRecords.filter(record => record.id !== mediaRecord.id);
+        
+        // Save to localStorage
+        localStorage.setItem('mediaRecords', JSON.stringify(mediaRecords));
+        
+        // Update UI
+        refreshMediaGallery();
+        
+        notify('Media record deleted', 'success');
+      }
+    });
+    
     return mediaItem;
+  }
+  
+  // Set up media filters
+  const mediaDateFilter = document.getElementById('media-date-filter');
+  const mediaCategoryFilter = document.getElementById('media-category-filter');
+  const mediaTypeFilter = document.getElementById('media-type-filter');
+  
+  // Apply filters to media gallery
+  function applyMediaFilters() {
+    const dateFilter = mediaDateFilter ? mediaDateFilter.value : 'all';
+    const categoryFilter = mediaCategoryFilter ? mediaCategoryFilter.value : 'all';
+    const typeFilter = mediaTypeFilter ? mediaTypeFilter.value : 'all';
+    
+    // Get all media items
+    const mediaItems = document.querySelectorAll('.media-item');
+    let visibleCount = 0;
+    
+    mediaItems.forEach(item => {
+      const mediaId = item.getAttribute('data-id');
+      const mediaType = item.getAttribute('data-type') || 'note';
+      
+      // Find the media record
+      const mediaRecord = mediaRecords.find(record => record.id === mediaId);
+      if (!mediaRecord) return;
+      
+      let isVisible = true;
+      
+      // Apply date filter
+      if (dateFilter !== 'all') {
+        const recordDate = new Date(mediaRecord.timestamp);
+        const now = new Date();
+        
+        if (dateFilter === 'today') {
+          isVisible = isVisible && (
+            recordDate.getDate() === now.getDate() &&
+            recordDate.getMonth() === now.getMonth() &&
+            recordDate.getFullYear() === now.getFullYear()
+          );
+        } else if (dateFilter === 'week') {
+          const weekAgo = new Date(now);
+          weekAgo.setDate(now.getDate() - 7);
+          isVisible = isVisible && recordDate >= weekAgo;
+        } else if (dateFilter === 'month') {
+          const monthAgo = new Date(now);
+          monthAgo.setMonth(now.getMonth() - 1);
+          isVisible = isVisible && recordDate >= monthAgo;
+        } else if (dateFilter === 'year') {
+          const yearAgo = new Date(now);
+          yearAgo.setFullYear(now.getFullYear() - 1);
+          isVisible = isVisible && recordDate >= yearAgo;
+        }
+      }
+      
+      // Apply category filter
+      if (categoryFilter !== 'all' && mediaRecord.category) {
+        isVisible = isVisible && mediaRecord.category === categoryFilter;
+      }
+      
+      // Apply type filter
+      if (typeFilter !== 'all') {
+        isVisible = isVisible && mediaRecord.type === typeFilter;
+      }
+      
+      // Show/hide the item
+      item.style.display = isVisible ? 'block' : 'none';
+      
+      if (isVisible) {
+        visibleCount++;
+      }
+    });
+    
+    // Show placeholder if no items visible
+    const placeholder = document.querySelector('.media-placeholder');
+    if (placeholder) {
+      placeholder.style.display = visibleCount === 0 ? 'block' : 'none';
+    }
+  }
+  
+  // Set up filter event listeners
+  if (mediaDateFilter) {
+    mediaDateFilter.addEventListener('change', applyMediaFilters);
+  }
+  
+  if (mediaCategoryFilter) {
+    mediaCategoryFilter.addEventListener('change', applyMediaFilters);
+  }
+  
+  if (mediaTypeFilter) {
+    mediaTypeFilter.addEventListener('change', applyMediaFilters);
+  }
+  
+  // Generate default name for media
+  function getDefaultName(type) {
+    const now = new Date();
+    const datePart = `${now.getDate().toString().padStart(2, '0')}/${(now.getMonth() + 1).toString().padStart(2, '0')}/${now.getFullYear()}`;
+    const timePart = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+    
+    if (type === 'photo') {
+      return `Photo ${datePart} ${timePart}`;
+    } else if (type === 'video') {
+      return `Video ${datePart} ${timePart}`;
+    } else {
+      return `Recording ${datePart} ${timePart}`;
+    }
   }
 });
 
