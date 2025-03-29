@@ -52,6 +52,7 @@
       max-width: 1000px;
       margin: 0 auto;
       padding: 20px;
+      text-align: center;
     }
 
     .container {
@@ -59,6 +60,7 @@
       border-radius: var(--radius-lg);
       box-shadow: var(--shadow-md);
       padding: 20px;
+      text-align: center;
     }
 
     .logo-container {
@@ -182,6 +184,7 @@
       margin-bottom: 20px;
       box-shadow: var(--shadow-sm);
       transition: var(--transition);
+      text-align: center;
     }
 
     .card:hover {
@@ -335,6 +338,7 @@
 
     .form-group {
       margin-bottom: 1rem;
+      text-align: center;
     }
 
     .form-group label {
@@ -342,18 +346,19 @@
       margin-bottom: 8px;
       font-weight: 500;
       color: var(--text-color);
+      text-align: center;
     }
 
     .form-group input,
     .form-group select,
     .form-group textarea {
       width: 100%;
-      padding: 12px;
+      padding: 10px;
       border: 1px solid var(--border-color);
       border-radius: var(--radius-sm);
       background-color: var(--gray-100);
       transition: var(--transition);
-      font-family: inherit;
+      text-align: center;
     }
 
     .form-group input:focus,
@@ -376,9 +381,12 @@
     }
 
     .icon-input {
+      display: flex;
+      justify-content: center;
       position: relative;
+      width: 100%;
     }
-
+    
     .icon-input svg {
       position: absolute;
       left: 10px;
@@ -388,16 +396,19 @@
       width: 20px;
       height: 20px;
     }
-
+    
     .icon-input input,
     .icon-input select,
     .icon-input textarea {
+      width: 100%;
       padding-left: 40px;
+      text-align: center;
     }
-
-    .icon-input textarea + svg {
-      top: 22px;
-      transform: none;
+    
+    /* Adjust select dropdowns for better centering */
+    select {
+      text-align-last: center; /* Centers the selected item text */
+      padding-right: 30px; /* Space for the dropdown arrow */
     }
 
     .save-btn {
@@ -1623,6 +1634,232 @@
     .media-type-menu button:hover {
       background-color: #f0f0f0;
     }
+    
+    /* Lists and List Items */
+    ul, ol {
+      text-align: center;
+      padding-left: 0;
+      list-style-position: inside;
+    }
+    
+    li {
+      text-align: center;
+    }
+    
+    /* Session and Goal items */
+    .session-item, .goal-item {
+      text-align: center;
+    }
+    
+    /* Headers and Text Content */
+    h1, h2, h3, h4, h5, h6, p {
+      text-align: center;
+    }
+    
+    /* Table alignment */
+    table {
+      margin: 0 auto;
+      text-align: center;
+    }
+    
+    th, td {
+      text-align: center;
+    }
+    
+    /* Notifications */
+    .notification {
+      text-align: center;
+    }
+    
+    /* Custom dialog elements */
+    .modal-content {
+      text-align: center;
+    }
+    
+    /* Footer */
+    .footer {
+      text-align: center;
+    }
+    
+    /* Ensure dropdown text is centered */
+    select option {
+      text-align: center;
+    }
+    
+    /* Center category items */
+    .category-item {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    
+    .category-item .category-name {
+      text-align: center;
+    }
+    
+    .category-actions {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+    }
+    
+    /* Session and goal styling for better centered appearance */
+    .session-item {
+      text-align: center;
+      border-radius: var(--radius);
+      padding: 15px;
+      margin-bottom: 15px;
+      background-color: var(--gray-100);
+      transition: var(--transition);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    
+    .session-item:hover {
+      background-color: var(--gray-200);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-sm);
+    }
+    
+    .session-item .session-info {
+      width: 100%;
+      text-align: center;
+    }
+    
+    .session-item .session-header {
+      font-weight: bold;
+      margin-bottom: 5px;
+      font-size: 1.1rem;
+      color: var(--primary-color);
+    }
+    
+    .session-item .session-details {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+    
+    .session-item .session-notes {
+      font-style: italic;
+      color: var(--text-light);
+      margin-bottom: 10px;
+      padding: 5px;
+      border-left: 3px solid var(--primary-light);
+      background-color: rgba(255, 255, 255, 0.5);
+    }
+    
+    .session-item .session-actions {
+      margin-top: 10px;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+    }
+    
+    /* Goal items styling */
+    .goal-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 15px;
+      border-radius: var(--radius);
+      margin-bottom: 10px;
+      background-color: var(--gray-100);
+      transition: var(--transition);
+    }
+    
+    .goal-item:hover {
+      background-color: var(--gray-200);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-sm);
+    }
+    
+    .goal-item.completed {
+      background-color: var(--success-light);
+    }
+    
+    .goal-item .goal-checkbox {
+      margin-right: 10px;
+      cursor: pointer;
+    }
+    
+    .goal-item .goal-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+    
+    .goal-item .goal-actions {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    
+    /* Ensure icon inputs are properly centered */
+    .icon-input {
+      display: flex;
+      justify-content: center;
+      position: relative;
+      width: 100%;
+    }
+    
+    .icon-input svg {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-light);
+      width: 20px;
+      height: 20px;
+    }
+    
+    .icon-input input,
+    .icon-input select,
+    .icon-input textarea {
+      width: 100%;
+      padding-left: 40px;
+      text-align: center;
+    }
+    
+    /* Adjust select dropdowns for better centering */
+    select {
+      text-align-last: center; /* Centers the selected item text */
+      padding-right: 30px; /* Space for the dropdown arrow */
+    }
+    
+    /* Chart elements centering */
+    .chart-bar-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    
+    /* Media items centered */
+    .media-item {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    
+    /* Fix any flexbox layouts to ensure centered content */
+    .flex-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    
+    /* Ensure all divs have centered content by default */
+    div {
+      text-align: center;
+    }
   </style>
 </head>
 <body>
@@ -2207,15 +2444,16 @@
             </svg>
             Export Data
           </button>
-          <button id="import-data" class="save-btn">
+          <button id="import-data" class="save-btn" style="background-color: #f44336; color: white; border: none;">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
               <polyline points="17 8 12 3 7 8"></polyline>
               <line x1="12" y1="3" x2="12" y2="15"></line>
             </svg>
-            Import Data
+            Replace All Data
           </button>
           <input type="file" id="import-file" accept=".json" class="hidden">
+          <p class="warning-text" style="color: #c62828; font-weight: bold; font-size: 0.85rem; margin-top: 5px;">Warning: This will replace all your existing data and cannot be undone!</p>
         </div>
       </div>
       
