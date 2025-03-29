@@ -5327,6 +5327,30 @@ document.addEventListener('DOMContentLoaded', function() {
   const cameraButton = document.getElementById('camera-button');
   const saveNameButton = document.getElementById('save-name-button');
   const mediaNameInput = document.getElementById('media-name-input');
+  const mediaGallery = document.getElementById('media-gallery');
+  
+  // Initialize media records array from localStorage
+  let mediaRecords = [];
+  try {
+    const storedRecords = localStorage.getItem('mediaRecords');
+    if (storedRecords) {
+      mediaRecords = JSON.parse(storedRecords);
+      
+      // Display stored records
+      mediaRecords.forEach(record => {
+        const mediaItem = createMediaElement(record);
+        if (mediaGallery && mediaItem) {
+          if (mediaGallery.firstChild) {
+            mediaGallery.insertBefore(mediaItem, mediaGallery.firstChild);
+          } else {
+            mediaGallery.appendChild(mediaItem);
+          }
+        }
+      });
+    }
+  } catch (error) {
+    console.error('Error loading media records:', error);
+  }
   
   if (saveNameButton) {
     saveNameButton.addEventListener('click', function() {
@@ -5336,70 +5360,37 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
       }
 
+      // Create media record
+      const mediaRecord = {
+        id: 'media_' + Date.now(),
+        name: mediaName,
+        timestamp: Date.now(),
+        type: 'note'
+      };
+      
+      // Add to records array
+      mediaRecords.push(mediaRecord);
+      
+      // Save to localStorage
+      localStorage.setItem('mediaRecords', JSON.stringify(mediaRecords));
+
       // Create media item
-      const mediaItem = document.createElement('div');
-      mediaItem.className = 'media-item';
-      mediaItem.setAttribute('data-id', 'media_' + Date.now());
-      mediaItem.style.padding = '10px';
-      mediaItem.style.margin = '10px 0';
-      mediaItem.style.backgroundColor = '#f5f5f5';
-      mediaItem.style.borderRadius = '5px';
-      mediaItem.style.cursor = 'pointer';
-      
-      // Format the date
-      const date = new Date().toLocaleString();
-      
-      // Set the content
-      mediaItem.innerHTML = `
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-          <div style="font-weight: bold;">
-            📝 ${mediaName}
-          </div>
-          <div style="font-size: 12px; color: #666;">
-            ${date}
-          </div>
-        </div>
-        <div style="margin-top: 5px; font-size: 13px; color: #444;">
-          No comments added yet.
-        </div>
-        <div style="margin-top: 8px; text-align: right;">
-          <button class="delete-media-btn" style="padding: 5px 10px; background: #ffebee; color: #e53935; border: none; border-radius: 4px; cursor: pointer;">
-            Delete
-          </button>
-        </div>
-      `;
+      const mediaItem = createMediaElement(mediaRecord);
       
       // Add to media list
-      const mediaGallery = document.getElementById('media-gallery');
-      if (mediaGallery) {
+      if (mediaGallery && mediaItem) {
         // Add to the beginning of the gallery (newest first)
         if (mediaGallery.firstChild) {
           mediaGallery.insertBefore(mediaItem, mediaGallery.firstChild);
         } else {
           mediaGallery.appendChild(mediaItem);
         }
-        
-        // Add delete button event listener
-        const deleteBtn = mediaItem.querySelector('.delete-media-btn');
-        if (deleteBtn) {
-          deleteBtn.addEventListener('click', function() {
-            if (confirm('Delete this media?')) {
-              mediaGallery.removeChild(mediaItem);
-            }
-          });
-        }
       }
       
       // Clear the input
       mediaNameInput.value = '';
       
-      // Switch to media tab
-      const mediaTabButton = document.querySelector('[data-tab="media"]');
-      if (mediaTabButton) {
-        mediaTabButton.click();
-      }
-      
-      notify('Recording saved! Click Record to capture media.', 'success');
+      notify('Recording saved!', 'success');
     });
   }
   
@@ -5407,6 +5398,13 @@ document.addEventListener('DOMContentLoaded', function() {
     cameraButton.addEventListener('click', function() {
       // Get the name from input, or use default
       const mediaName = mediaNameInput.value.trim() || `Recording ${new Date().toLocaleString()}`;
+      
+      // Copy media name to clipboard for later use
+      navigator.clipboard.writeText(mediaName).then(() => {
+        notify('Name copied to clipboard for your convenience', 'info');
+      }).catch(() => {
+        console.error('Failed to copy name to clipboard');
+      });
       
       // Create file input for camera capture
       const input = document.createElement('input');
@@ -5418,123 +5416,112 @@ document.addEventListener('DOMContentLoaded', function() {
         if (this.files && this.files[0]) {
           const file = this.files[0];
           const type = file.type.startsWith('image/') ? 'photo' : 'video';
-          saveMedia(file, type, mediaName);
+          
+          // Create media record
+          const mediaRecord = {
+            id: 'media_' + Date.now(),
+            name: mediaName,
+            timestamp: Date.now(),
+            type: type,
+            fileName: file.name
+          };
+          
+          // Add to records array
+          mediaRecords.push(mediaRecord);
+          
+          // Save to localStorage
+          localStorage.setItem('mediaRecords', JSON.stringify(mediaRecords));
+          
+          // Create media item
+          const mediaItem = createMediaElement(mediaRecord);
+          
+          // Add to media list
+          if (mediaGallery && mediaItem) {
+            // Add to the beginning of the gallery (newest first)
+            if (mediaGallery.firstChild) {
+              mediaGallery.insertBefore(mediaItem, mediaGallery.firstChild);
+            } else {
+              mediaGallery.appendChild(mediaItem);
+            }
+          }
+          
+          notify(`${type === 'photo' ? 'Photo' : 'Video'} saved to your device`, 'success');
         }
       };
       
       input.click();
     });
   }
-});
-
-function saveMedia(file, type, name) {
-  if (!db) {
-    console.error('Database not initialized');
-    notify('Database not initialized', 'error');
-    return;
-  }
-
-  const mediaRecord = {
-    id: 'media_' + Date.now(),
-    type: type,
-    name: name,
-    fileName: file.name,
-    timestamp: Date.now(),
-    sessionId: getCurrentSessionId(),
-    comments: '' // Initialize empty comments
-  };
   
-  const transaction = db.transaction(['mediaFiles'], 'readwrite');
-  const store = transaction.objectStore('mediaFiles');
-  
-  const request = store.add(mediaRecord);
-  
-  request.onsuccess = function() {
-    notify(`${type === 'photo' ? 'Photo' : 'Video'} saved`, 'success');
-    
-    // Add to media list
-    const mediaGallery = document.getElementById('media-gallery');
-    if (mediaGallery) {
-      // Create media item
-      const mediaItem = document.createElement('div');
-      mediaItem.className = 'media-item';
-      mediaItem.setAttribute('data-id', mediaRecord.id);
-      mediaItem.style.padding = '10px';
-      mediaItem.style.margin = '10px 0';
-      mediaItem.style.backgroundColor = '#f5f5f5';
-      mediaItem.style.borderRadius = '5px';
-      mediaItem.style.cursor = 'pointer';
-      
-      // Set the icon based on media type
-      const icon = mediaRecord.type === 'photo' ? '📷' : '🎥';
-      
-      // Format the date
-      const date = new Date(mediaRecord.timestamp).toLocaleString();
-      
-      // Set the content
-      mediaItem.innerHTML = `
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-          <div style="font-weight: bold;">
-            ${icon} ${mediaRecord.name || 'Unnamed Recording'}
-          </div>
-          <div style="font-size: 12px; color: #666;">
-            ${date}
-          </div>
-        </div>
-        <div style="margin-top: 5px; font-size: 13px; color: #444;">
-          ${mediaRecord.comments || 'No comments added yet.'}
-        </div>
-        <div style="margin-top: 8px; text-align: right;">
-          <button class="delete-media-btn" data-id="${mediaRecord.id}" style="padding: 5px 10px; background: #ffebee; color: #e53935; border: none; border-radius: 4px; cursor: pointer;">
-            Delete
-          </button>
-        </div>
-      `;
-      
-      // Add to the beginning of the gallery (newest first)
-      if (mediaGallery.firstChild) {
-        mediaGallery.insertBefore(mediaItem, mediaGallery.firstChild);
-      } else {
-        mediaGallery.appendChild(mediaItem);
-      }
-      
-      // Add click event to view media
-      mediaItem.addEventListener('click', function(e) {
-        if (e.target.classList.contains('delete-media-btn') || e.target.closest('.delete-media-btn')) {
-          return;
-        }
-        if (typeof viewMedia === 'function') {
-          viewMedia(mediaRecord);
-        }
-      });
-      
-      // Add delete button event listener
-      const deleteBtn = mediaItem.querySelector('.delete-media-btn');
+  // Handle media item deletion
+  if (mediaGallery) {
+    mediaGallery.addEventListener('click', function(e) {
+      const deleteBtn = e.target.closest('.delete-media-btn');
       if (deleteBtn) {
-        deleteBtn.addEventListener('click', function() {
-          if (confirm('Delete this media?')) {
-            const id = this.getAttribute('data-id');
-            const transaction = db.transaction(['mediaFiles'], 'readwrite');
-            const store = transaction.objectStore('mediaFiles');
-            store.delete(id);
-            mediaGallery.removeChild(mediaItem);
-          }
-        });
+        const mediaItem = deleteBtn.closest('.media-item');
+        const mediaId = mediaItem?.getAttribute('data-id');
+        
+        if (mediaId && confirm('Delete this media record?')) {
+          // Remove from DOM
+          mediaItem.remove();
+          
+          // Remove from array
+          mediaRecords = mediaRecords.filter(record => record.id !== mediaId);
+          
+          // Save to localStorage
+          localStorage.setItem('mediaRecords', JSON.stringify(mediaRecords));
+          
+          notify('Media record deleted', 'success');
+        }
       }
-    }
-    
-    // Switch to media tab
-    const mediaTabButton = document.querySelector('[data-tab="media"]');
-    if (mediaTabButton) {
-      mediaTabButton.click();
-    }
-  };
+    });
+  }
   
-  request.onerror = function(event) {
-    console.error('Error saving media:', event.target.error);
-    notify('Error saving media', 'error');
-  };
-}
+  // Helper function to create media element
+  function createMediaElement(mediaRecord) {
+    const mediaItem = document.createElement('div');
+    mediaItem.className = 'media-item';
+    mediaItem.setAttribute('data-id', mediaRecord.id);
+    mediaItem.style.padding = '10px';
+    mediaItem.style.margin = '10px 0';
+    mediaItem.style.backgroundColor = '#f5f5f5';
+    mediaItem.style.borderRadius = '5px';
+    
+    // Format the date
+    const date = new Date(mediaRecord.timestamp).toLocaleString();
+    
+    // Set the icon based on media type
+    let icon = '📝';
+    if (mediaRecord.type === 'photo') icon = '📷';
+    if (mediaRecord.type === 'video') icon = '🎥';
+    
+    // Set the content
+    mediaItem.innerHTML = `
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div style="font-weight: bold;">
+          ${icon} ${mediaRecord.name}
+        </div>
+        <div style="font-size: 12px; color: #666;">
+          ${date}
+        </div>
+      </div>
+      <div style="margin-top: 5px; font-size: 13px; color: #444;">
+        ${mediaRecord.fileName ? `Saved as: ${mediaRecord.fileName}` : 'Text record only'}
+      </div>
+      <div style="margin-top: 8px; display: flex; justify-content: flex-end; gap: 8px;">
+        <button class="copy-name-btn" style="padding: 5px 10px; background: #e3f2fd; color: #1565c0; border: none; border-radius: 4px; cursor: pointer;"
+          onclick="navigator.clipboard.writeText('${mediaRecord.name}')">
+          Copy Name
+        </button>
+        <button class="delete-media-btn" style="padding: 5px 10px; background: #ffebee; color: #e53935; border: none; border-radius: 4px; cursor: pointer;">
+          Delete
+        </button>
+      </div>
+    `;
+    
+    return mediaItem;
+  }
+});
 
 // ... existing code ...
 
