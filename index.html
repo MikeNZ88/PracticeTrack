@@ -3314,32 +3314,234 @@ function updatePracticeChart(dateRange, categoryFilter) {
       function saveSettings() {
   try {
     const oldInstrument = settings.instrument;
-        settings.instrument = elements.instrument.value.trim();
-        settings.lessonDay = elements.lessonDay.value;
-        settings.theme = elements.themeSelect.value;
-        
-        localStorage.setItem("instrument", settings.instrument);
-        localStorage.setItem("lessonDay", settings.lessonDay);
-        localStorage.setItem("theme", settings.theme);
-        
-        applyTheme(settings.theme);
-        
-    // Update category filters if instrument changed
+    settings.instrument = elements.instrument.value.trim();
+    settings.lessonDay = elements.lessonDay.value;
+    settings.theme = elements.themeSelect.value;
+    
+    localStorage.setItem("instrument", settings.instrument);
+    localStorage.setItem("lessonDay", settings.lessonDay);
+    localStorage.setItem("theme", settings.theme);
+    
+    applyTheme(settings.theme);
+    
+    // Update category dropdowns if instrument changed
     if (oldInstrument !== settings.instrument) {
-      updateCategoryFilters();
+      console.log(`Instrument changed from ${oldInstrument} to ${settings.instrument}, updating category dropdowns...`);
+      
+      // Show loading overlay to indicate work in progress
+      const loadingOverlay = document.getElementById('loading-overlay');
+      if (loadingOverlay) {
+        document.querySelector('.loading-message').textContent = "Updating categories...";
+        loadingOverlay.classList.add('show');
+      }
+      
+      // Use setTimeout to allow the UI to update before doing the heavy work
+      setTimeout(() => {
+        try {
+          // Update instrument categories
+          if (!customCategories[settings.instrument]) {
+            customCategories[settings.instrument] = [];
+          }
+          
+          if (!hiddenCategories[settings.instrument]) {
+            hiddenCategories[settings.instrument] = [];
+          }
+          
+          // Update all category dropdowns
+          updateAllCategoryDropdowns();
+          
+          // Refresh category lists in settings tab
+          refreshCategoriesList();
+          
+          // Hide loading overlay
+          if (loadingOverlay) {
+            loadingOverlay.classList.remove('show');
+          }
+          
+          // Refresh all views without page reload
+          updateDashboard();
+          refreshSessionList();
+          refreshGoalList();
+          
+          // Update instrument display
+          if (elements.instrumentDisplay) {
+            elements.instrumentDisplay.textContent = settings.instrument || "None";
+          }
+          
+          // Update lesson day info
+          if (elements.lessonDayDisplay) {
+            elements.lessonDayDisplay.textContent = settings.lessonDay || "None";
+          }
+          
+          // Calculate days until next lesson
+          if (settings.lessonDay && elements.daysToLesson) {
+            const today = new Date();
+            const dayIndex = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+              .indexOf(settings.lessonDay);
+            
+            if (dayIndex !== -1) {
+              let daysUntil = dayIndex - today.getDay();
+              if (daysUntil <= 0) daysUntil += 7;
+              
+              elements.nextLessonText.style.display = "block";
+              elements.daysToLesson.textContent = daysUntil;
+            }
+          } else if (elements.nextLessonText) {
+            elements.nextLessonText.style.display = "none";
+          }
+          
+          notify("Settings saved successfully!", "success");
+        } catch (error) {
+          console.error("Error updating categories:", error);
+          if (loadingOverlay) {
+            loadingOverlay.classList.remove('show');
+          }
+          notify("Error updating categories. Please try again.", "error");
+        }
+      }, 100); // Short delay to allow UI update
+    } else {
+      // If instrument didn't change, just refresh views
+      updateDashboard();
+      refreshSessionList();
+      refreshGoalList();
+      notify("Settings saved successfully!", "success");
     }
     
-    // Refresh all views
-    updateDashboard();
-    refreshSessionList();
-    refreshGoalList();
-    
     elements.saveSettingsBtn.classList.remove('active-save');
-    notify("Settings saved successfully!", "success");
   } catch (error) {
     console.error("Error saving settings:", error);
     notify("Failed to save settings.", "error");
   }
+}
+
+// Replace or update the updateAllCategoryDropdowns function
+function updateAllCategoryDropdowns() {
+  // First ensure the data structures exist
+  if (!customCategories[settings.instrument]) {
+    customCategories[settings.instrument] = [];
+  }
+  
+  if (!hiddenCategories[settings.instrument]) {
+    hiddenCategories[settings.instrument] = [];
+  }
+
+  // Update all category-related dropdowns
+  updatePracticeCategoryDropdown();
+  updateCategoryFilters();
+  updateManualSessionCategoryDropdown();
+  
+  // Update category management UI
+  refreshCategoriesList();
+}
+
+// Make sure getAllCategories properly handles missing data structures
+function getAllCategories(instrument) {
+  if (!instrument) return [];
+  
+  // Get default categories
+  const defaultCats = instrumentCategories[instrument] || [];
+  
+  // Get hidden categories (ensure it exists)
+  if (!hiddenCategories[instrument]) {
+    hiddenCategories[instrument] = [];
+  }
+  const hiddenCats = hiddenCategories[instrument];
+  
+  // Get custom categories (ensure it exists)
+  if (!customCategories[instrument]) {
+    customCategories[instrument] = [];
+  }
+  const customCats = customCategories[instrument];
+  
+  // Combine all categories (excluding hidden ones)
+  return [...defaultCats.filter(cat => !hiddenCats.includes(cat)), "Lesson", ...customCats];
+}
+
+// Update the refreshCategoriesList function to handle missing data
+function refreshCategoriesList() {
+  const categoriesList = document.getElementById('categories-list');
+  const defaultCategoriesList = document.getElementById('default-categories-list');
+  
+  if (!categoriesList || !defaultCategoriesList) return;
+  
+  // Clear the lists
+  categoriesList.innerHTML = '';
+  defaultCategoriesList.innerHTML = '';
+  
+  if (!settings.instrument) {
+    categoriesList.innerHTML = '<p class="empty-message">Please select an instrument first</p>';
+    defaultCategoriesList.innerHTML = '<p class="empty-message">Please select an instrument first</p>';
+    return;
+  }
+  
+  // Ensure data structures exist
+  if (!customCategories[settings.instrument]) {
+    customCategories[settings.instrument] = [];
+  }
+  
+  if (!hiddenCategories[settings.instrument]) {
+    hiddenCategories[settings.instrument] = [];
+  }
+  
+  // Get custom categories for this instrument
+  const customCats = customCategories[settings.instrument] || [];
+  
+  // Show message if no custom categories
+  if (customCats.length === 0) {
+    categoriesList.innerHTML = '<p class="empty-message">No custom categories added yet</p>';
+  } else {
+    // Add custom categories
+    customCats.forEach(category => {
+      const div = document.createElement('div');
+      div.className = 'category-item';
+      div.innerHTML = `
+        <span class="category-name">${category}</span>
+        <div class="category-actions">
+          <button class="delete-btn" onclick="deleteCustomCategory('${category}')">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+            </svg>
+          </button>
+        </div>
+      `;
+      categoriesList.appendChild(div);
+    });
+  }
+  
+  // Get default categories and hidden status
+  const defaultCats = instrumentCategories[settings.instrument] || [];
+  const hiddenCats = hiddenCategories[settings.instrument] || [];
+  
+  // Add default categories
+  defaultCats.forEach(category => {
+    const isHidden = hiddenCats.includes(category);
+    const div = document.createElement('div');
+    div.className = 'category-item';
+    
+    if (isHidden) {
+      div.classList.add('hidden-category');
+    }
+    
+    div.innerHTML = `
+      <span class="category-name">${category}</span>
+      <div class="category-actions">
+        <button class="toggle-btn" onclick="toggleDefaultCategory('${category}')">
+          ${isHidden ? 
+            `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>` : 
+            `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+              <line x1="1" y1="1" x2="23" y2="23"></line>
+            </svg>`
+          }
+        </button>
+      </div>
+    `;
+    defaultCategoriesList.appendChild(div);
+  });
 }
 
 // Data export/import functions
@@ -3710,6 +3912,41 @@ function getDateRange(period) {
 document.addEventListener('DOMContentLoaded', () => {
   console.log('DOM fully loaded, initializing app...');
   initializeApp();
+  
+  // Restore active tab from localStorage if it exists
+  const activeTabId = localStorage.getItem("activeTab");
+  if (activeTabId) {
+    const tabToActivate = document.getElementById(activeTabId);
+    if (tabToActivate) {
+      // Get menu items
+      const menuItems = document.querySelectorAll('.menu-item');
+      const tabs = document.querySelectorAll('.tab');
+      
+      // Find the corresponding menu item
+      let menuItem;
+      menuItems.forEach(item => {
+        if (item.getAttribute('data-tab') === activeTabId.replace('-tab', '')) {
+          menuItem = item;
+        }
+      });
+      
+      // Activate the correct tab
+      if (menuItem) {
+        // First remove active from all
+        menuItems.forEach(item => item.classList.remove('active'));
+        tabs.forEach(tab => tab.classList.remove('active'));
+        
+        // Then set active on the right ones
+        menuItem.classList.add('active');
+        tabToActivate.classList.add('active');
+        
+        console.log(`Restored active tab: ${activeTabId}`);
+        
+        // Clear the stored tab
+        localStorage.removeItem("activeTab");
+      }
+    }
+  }
 });
 
 // Update category dropdowns when instrument changes
