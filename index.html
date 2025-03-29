@@ -1647,8 +1647,31 @@
     }
     
     /* Session and Goal items */
-    .session-item, .goal-item {
+    .session-item, .goal-item, .media-item {
       text-align: center;
+      border-radius: var(--radius);
+      padding: 15px;
+      margin-bottom: 15px;
+      background-color: var(--gray-100);
+      transition: var(--transition);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      height: auto;
+      min-height: 150px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    
+    /* Only stretch items with notes */
+    .session-item .session-notes:not(:empty) {
+      height: auto;
+    }
+    
+    .session-item:not(.has-notes) .session-notes,
+    .goal-item:not(.has-notes) .goal-content,
+    .media-item:not(.has-notes) .media-info {
+      max-height: none;
     }
     
     /* Headers and Text Content */
@@ -1847,6 +1870,52 @@
       display: flex;
       flex-direction: column;
       align-items: center;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      background-color: #fff;
+      transition: transform 0.2s, box-shadow 0.2s;
+      height: 280px; /* Fixed height for consistency */
+    }
+    
+    .media-preview {
+      height: 150px;
+      width: 100%;
+      background-color: #f5f5f5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    
+    .media-info {
+      padding: 12px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    
+    .media-name {
+      font-weight: bold;
+      font-size: 14px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: inline-block;
+      vertical-align: middle;
+    }
+    
+    .media-date {
+      font-size: 12px;
+      color: #666;
+      display: inline-block;
+      vertical-align: middle;
+      margin-left: 8px;
+    }
+    
+    .media-category {
+      font-size: 12px;
+      color: #666;
+      margin: 4px 0;
     }
     
     /* Fix any flexbox layouts to ensure centered content */
@@ -4855,7 +4924,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const formattedDate = `${mediaDate.toLocaleDateString()} ${mediaDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
       
       // Get media name (or use default)
-      const mediaName = media.name || `Unnamed ${media.type === 'photo' ? 'Photo' : 'Video'} ${mediaCounter++}`;
+      const mediaName = media.name || `Unnamed ${mediaCounter++}`;
       
       // Create preview based on media type
       let previewContent;
@@ -4879,7 +4948,7 @@ document.addEventListener('DOMContentLoaded', () => {
           ${previewContent}
         </div>
         <div class="media-info">
-          <div class="media-name">${typeIcon} ${mediaName}</div>
+          <div class="media-name">${mediaName}</div>
           <div class="media-date">${formattedDate}</div>
           <div class="media-category">${category}</div>
           <div class="media-actions">
