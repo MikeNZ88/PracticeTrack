@@ -445,13 +445,13 @@
     }
 
     .save-btn.active-save {
-      background-color: var(--success-color);
+      background-color: var(--success-color) !important;
       transform: translateY(-2px);
       box-shadow: var(--shadow-sm);
     }
 
     .save-btn.active-save:hover {
-      background-color: #43a047;
+      background-color: #43a047 !important;
     }
 
     /* Metronome */
@@ -3355,6 +3355,49 @@ function checkLocalStorage() {
     if (manualSessionDate) {
       const today = new Date().toISOString().split('T')[0];
       manualSessionDate.value = today;
+    }
+    
+    // Add validation for manual session form fields
+    const manualSessionHours = document.getElementById('manual-session-hours');
+    const manualSessionMinutes = document.getElementById('manual-session-minutes');
+    const manualSessionCategory = document.getElementById('manual-session-category');
+    
+    function validateManualSessionForm() {
+      const manualSessionHours = document.getElementById('manual-session-hours');
+      const manualSessionMinutes = document.getElementById('manual-session-minutes');
+      const manualSessionCategory = document.getElementById('manual-session-category');
+      const saveManualSessionBtn = document.getElementById('save-manual-session');
+      
+      if (!manualSessionHours || !manualSessionMinutes || !manualSessionCategory || !saveManualSessionBtn) {
+        console.error("Missing form elements for manual session validation");
+        return;
+      }
+      
+      const hours = parseInt(manualSessionHours.value) || 0;
+      const minutes = parseInt(manualSessionMinutes.value) || 0;
+      const category = manualSessionCategory.value;
+      
+      const isValid = (hours > 0 || minutes > 0) && category !== '';
+      console.log(`Manual session form validation: isValid=${isValid}, hours=${hours}, minutes=${minutes}, category=${category}`);
+      
+      if (isValid) {
+        saveManualSessionBtn.classList.add('active-save');
+      } else {
+        saveManualSessionBtn.classList.remove('active-save');
+      }
+    }
+    
+    // Add event listeners to form fields
+    if (manualSessionHours) {
+      manualSessionHours.addEventListener('input', validateManualSessionForm);
+    }
+    
+    if (manualSessionMinutes) {
+      manualSessionMinutes.addEventListener('input', validateManualSessionForm);
+    }
+    
+    if (manualSessionCategory) {
+      manualSessionCategory.addEventListener('change', validateManualSessionForm);
     }
         
     // Goal management
@@ -6607,6 +6650,7 @@ document.addEventListener('DOMContentLoaded', function() {
 function showManualSessionForm() {
   const manualSessionForm = document.getElementById('manual-session-form');
   const addManualSessionBtn = document.getElementById('add-manual-session');
+  const saveManualSessionBtn = document.getElementById('save-manual-session');
   
   if (manualSessionForm && addManualSessionBtn) {
     manualSessionForm.style.display = 'block';
@@ -6614,13 +6658,100 @@ function showManualSessionForm() {
     
     // Reset the form
     const today = new Date().toISOString().split('T')[0];
-    manualSessionForm.querySelector('input[name="manual-session-date"]').value = today;
-    manualSessionForm.querySelector('input[name="manual-session-hours"]').value = '';
-    manualSessionForm.querySelector('input[name="manual-session-minutes"]').value = '';
-    manualSessionForm.querySelector('select[name="manual-session-category"]').value = '';
-    manualSessionForm.querySelector('textarea[name="manual-session-notes"]').value = '';
+    document.getElementById('manual-session-date').value = today;
+    document.getElementById('manual-session-hours').value = '';
+    document.getElementById('manual-session-minutes').value = '';
+    document.getElementById('manual-session-category').selectedIndex = 0;
+    document.getElementById('manual-session-notes').value = '';
+    
+    // Make sure the category dropdown is populated
+    updatePracticeCategoryDropdown();
+    
+    // Reset the save button
+    if (saveManualSessionBtn) {
+      saveManualSessionBtn.classList.remove('active-save');
+    }
+    
+    // Run validation (will disable the button since form is empty)
+    console.log("Calling validateManualSessionForm");
+    validateManualSessionForm();
   }
 }
+
+function hideManualSessionForm() {
+  const manualSessionForm = document.getElementById('manual-session-form');
+  const addManualSessionBtn = document.getElementById('add-manual-session');
+  
+  if (manualSessionForm && addManualSessionBtn) {
+    manualSessionForm.style.display = 'none';
+    addManualSessionBtn.style.display = 'block';
+  }
+}
+
+function saveManualSession() {
+  console.log("saveManualSession called");
+  try {
+    // Get form values
+    const dateInput = document.getElementById('manual-session-date').value;
+    const hours = parseInt(document.getElementById('manual-session-hours').value) || 0;
+    const minutes = parseInt(document.getElementById('manual-session-minutes').value) || 0;
+    const category = document.getElementById('manual-session-category').value;
+    const notes = document.getElementById('manual-session-notes').value.trim();
+    
+    console.log(`Form values: date=${dateInput}, hours=${hours}, minutes=${minutes}, category=${category}`);
+    
+    // Validate inputs
+    if (!dateInput) {
+      notify("Please select a date", "error");
+      return;
+    }
+    
+    if (hours === 0 && minutes === 0) {
+      notify("Please enter session duration", "error");
+      return;
+    }
+    
+    if (!category) {
+      notify("Please select a practice category", "error");
+      return;
+    }
+    
+    // Convert hours and minutes to milliseconds
+    const durationMs = (hours * 60 * 60 * 1000) + (minutes * 60 * 1000);
+    
+    // Create a date object from the input date, setting it to noon to avoid timezone issues
+    const sessionDate = new Date(dateInput);
+    sessionDate.setHours(12, 0, 0, 0);
+    
+    // Create session object
+    const session = {
+      id: Date.now(),
+      name: category,
+      duration: durationMs,
+      date: sessionDate.toISOString(),
+      notes: notes,
+      manual: true // Flag to indicate this was manually added
+    };
+    
+    console.log("Created session object:", session);
+    
+    // Add to sessions array
+    sessions.push(session);
+    localStorage.setItem("sessions", JSON.stringify(sessions));
+    
+    // Hide the form and update UI
+    hideManualSessionForm();
+    refreshSessionList();
+    updateDashboard();
+    
+    notify("Manual session added successfully!", "success");
+    
+  } catch (error) {
+    console.error("Error saving manual session:", error);
+    notify("There was an error saving the session. Please try again.", "error");
+  }
+}
+
 
 // ... rest of existing code ...
   </script>
