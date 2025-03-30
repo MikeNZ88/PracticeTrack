@@ -2176,6 +2176,272 @@
         font-size: 1rem;
       }
     }
+
+    /* Mobile-Specific Optimizations */
+    @media (max-width: 768px) {
+      /* General adjustments */
+      .container {
+        padding: 15px;
+      }
+      
+      /* Header adjustments */
+      .app-logo {
+        font-size: 2rem;
+      }
+      
+      .tagline {
+        font-size: 1rem;
+      }
+      
+      /* Navigation adjustments */
+      .navigation {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none; /* For Firefox */
+        -ms-overflow-style: none; /* For Internet Explorer and Edge */
+      }
+      
+      .navigation::-webkit-scrollbar {
+        display: none; /* For Chrome, Safari, and Opera */
+      }
+      
+      .nav-item {
+        padding: 12px 15px;
+        white-space: nowrap;
+      }
+      
+      /* Filter adjustments */
+      .filters {
+        flex-direction: column;
+        padding: 15px;
+      }
+      
+      .filter-group {
+        width: 100%;
+      }
+      
+      /* Action bar adjustments */
+      .action-bar {
+        flex-wrap: wrap;
+      }
+      
+      .btn {
+        flex: 1 0 auto;
+        justify-content: center;
+      }
+      
+      /* Card adjustments */
+      .media-grid, .goals-grid, .stats-overview {
+        grid-template-columns: 1fr;
+      }
+      
+      .card-header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      
+      .card-timestamp {
+        align-items: flex-start;
+        margin-top: 5px;
+      }
+      
+      /* Timer adjustments */
+      .timer-display {
+        font-size: 3.5rem;
+        padding: 20px 30px;
+      }
+      
+      .timer-settings {
+        grid-template-columns: 1fr;
+      }
+      
+      /* Session adjustments */
+      .session-item {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      
+      .session-actions {
+        margin-top: 15px;
+        width: 100%;
+      }
+      
+      .session-detail {
+        font-size: 0.8rem;
+      }
+      
+      /* Touch-friendly adjustments */
+      .action-btn, .btn, select, input[type="text"], input[type="number"] {
+        min-height: 44px; /* Minimum recommended touch target size */
+      }
+      
+      /* Improved tap targets with more spacing */
+      .card-actions {
+        gap: 15px;
+      }
+      
+      /* Settings tab adjustments */
+      .settings-container {
+        padding: 20px 15px;
+      }
+    }
+
+    /* Extra small devices */
+    @media (max-width: 480px) {
+      .timer-display {
+        font-size: 2.8rem;
+        padding: 15px 20px;
+      }
+      
+      .btn {
+        padding: 8px 15px;
+      }
+      
+      .timer-btn {
+        width: 50px;
+        height: 50px;
+      }
+      
+      .section-title {
+        font-size: 1.5rem;
+      }
+    }
+
+    /* High pixel density device optimizations */
+    @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+      /* Adjust box-shadows to be more subtle on high-DPI screens */
+      :root {
+        --shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+      }
+    }
+
+    /* Ensure proper visibility in dark mode if browser supports it */
+    @media (prefers-color-scheme: dark) {
+      /* These are optional overrides for dark mode */
+      :root {
+        --light-gray: #2a2a2a;
+        --dark-gray: #f0f0f0;
+        --shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      }
+      
+      body {
+        background-color: #181818;
+        color: #f0f0f0;
+      }
+      
+      .media-card, .goal-card, .stat-card, .filters, .settings-container, .timer-display {
+        background: #2a2a2a;
+      }
+      
+      .card-text {
+        background-color: rgba(255, 248, 225, 0.05);
+        color: #e0e0e0;
+      }
+      
+      .card-header, .session-item {
+        border-bottom-color: #3a3a3a;
+      }
+      
+      .search-input, select, .form-control {
+        background-color: #333;
+        border-color: #444;
+        color: #f0f0f0;
+      }
+      
+      .search-input::placeholder {
+        color: #888;
+      }
+    }
+
+    /* Touch device specific optimizations */
+    @media (hover: none) {
+      /* Remove hover effects that might cause issues on touch devices */
+      .media-card:hover, .goal-card:hover, .stat-card:hover {
+        transform: none;
+        box-shadow: var(--shadow);
+      }
+      
+      /* Increase tap target size for important elements */
+      .nav-item, .action-btn, .card-actions button {
+        padding: 12px 16px;
+      }
+      
+      /* Add active state for touch feedback */
+      .btn:active, .action-btn:active {
+        transform: scale(0.98);
+        opacity: 0.9;
+      }
+    }
+
+    /* Screen reader and accessibility enhancements */
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+      border-width: 0;
+    }
+
+    /* Focus visible styles for keyboard navigation */
+    :focus-visible {
+      outline: 2px solid var(--primary-color);
+      outline-offset: 2px;
+    }
+
+    /* Enhanced Touch Interactions */
+    @media (hover: none) and (pointer: coarse) {
+      .btn, .menu-item, .filter-option, .card-header, .filter-toggle {
+        min-height: 44px; /* Minimum touch target size */
+      }
+      
+      input[type="checkbox"], input[type="radio"] {
+        transform: scale(1.2);
+        margin: 0 8px;
+      }
+      
+      select, input[type="text"], input[type="number"], textarea {
+        font-size: 16px; /* Prevent iOS zoom on focus */
+      }
+      
+      .menu {
+        gap: 5px;
+      }
+      
+      .menu-item {
+        padding: 12px 10px;
+      }
+    }
+
+    /* Print styles for sessions reports */
+    @media print {
+      body * {
+        visibility: hidden;
+      }
+      
+      #sessions-tab, #sessions-tab * {
+        visibility: visible;
+      }
+      
+      .menu, .btn:not(.export-btn), .filter-controls {
+        display: none !important;
+      }
+      
+      #sessions-tab {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+      }
+      
+      .session-card {
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+    }
   </style>
   
   <!-- Media Tab Note Functionality Fix -->
@@ -2656,6 +2922,15 @@
                 <option value="all">All Categories</option>
               </select>
             </div>
+            
+            <div class="filter-group" style="min-width: 180px;">
+              <label for="media-type-filter">Media Type:</label>
+              <select id="media-type-filter">
+                <option value="all">All Types</option>
+                <option value="photo">Photo</option>
+                <option value="video">Video</option>
+              </select>
+            </div>
           </div>
           <div class="form-group">
             <input type="text" id="media-filter" placeholder="Filter media...">
@@ -2663,7 +2938,7 @@
         </div>
         
         <!-- Media gallery -->
-        <div id="media-gallery" class="media-gallery" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; padding: 10px;">
+        <div id="media-gallery" class="media-gallery">
           <!-- Media items will be added here dynamically -->
         </div>
       </div>
@@ -6324,6 +6599,25 @@ document.addEventListener('DOMContentLoaded', function() {
           const mediaTabButton = document.querySelector('[data-tab="media"]');
           if (mediaTabButton) {
             mediaTabButton.click();
+            
+            // Reset filters so new media is visible
+            if (document.getElementById('media-type-filter')) {
+              document.getElementById('media-type-filter').value = 'all';
+            }
+            if (document.getElementById('media-category-filter')) {
+              document.getElementById('media-category-filter').value = 'all';  
+            }
+            if (document.getElementById('media-filter')) {
+              document.getElementById('media-filter').value = '';
+            }
+            if (document.getElementById('media-date-filter')) {
+              document.getElementById('media-date-filter').value = 'all';
+            }
+            
+            // Apply filters after resetting
+            if (typeof applyMediaFilters === 'function') {
+              applyMediaFilters();
+            }
           }
         }, 500);
       }
@@ -6368,6 +6662,12 @@ document.addEventListener('DOMContentLoaded', function() {
       const mediaItem = createMediaElement(record);
       mediaGallery.appendChild(mediaItem);
     });
+    
+    // Apply current filters after refreshing
+    setTimeout(() => {
+      applyMediaFilters();
+      refreshIcons();
+    }, 100);
   }
   
   // Create media element for display
@@ -7054,6 +7354,7 @@ function saveManualSession() {
       const mediaDateFilter = document.getElementById('media-date-filter');
       const mediaCategoryFilter = document.getElementById('media-category-filter');
       const mediaTypeFilter = document.getElementById('media-type-filter');
+      const viewMediaModal = document.getElementById('view-media-modal');
       
       // Apply filters to media gallery
       function applyMediaFilters() {
@@ -7062,6 +7363,7 @@ function saveManualSession() {
         const dateFilter = mediaDateFilter ? mediaDateFilter.value : 'all';
         const categoryFilter = mediaCategoryFilter ? mediaCategoryFilter.value : 'all';
         const typeFilter = mediaTypeFilter ? mediaTypeFilter.value : 'all';
+        const searchFilter = document.getElementById('media-filter') ? document.getElementById('media-filter').value.toLowerCase().trim() : '';
         
         // Get all media items
         const mediaItems = document.querySelectorAll('.media-item');
@@ -7113,6 +7415,13 @@ function saveManualSession() {
             isVisible = isVisible && mediaRecord.type === typeFilter;
           }
           
+          // Apply name search filter
+          if (searchFilter !== '') {
+            const nameMatch = mediaRecord.name && mediaRecord.name.toLowerCase().includes(searchFilter);
+            const fileNameMatch = mediaRecord.fileName && mediaRecord.fileName.toLowerCase().includes(searchFilter);
+            isVisible = isVisible && (nameMatch || fileNameMatch);
+          }
+          
           // Show/hide the item
           item.style.display = isVisible ? 'block' : 'none';
           
@@ -7125,6 +7434,14 @@ function saveManualSession() {
         const placeholder = document.querySelector('.media-placeholder');
         if (placeholder) {
           placeholder.style.display = visibleCount === 0 ? 'block' : 'none';
+          
+          if (visibleCount === 0) {
+            if (searchFilter || typeFilter !== 'all' || dateFilter !== 'all' || categoryFilter !== 'all') {
+              placeholder.innerHTML = '<p>No media recordings match the selected filters. Try adjusting or clearing your filters.</p>';
+            } else {
+              placeholder.innerHTML = '<p>No media recordings yet. Use the "Record" button to capture photos or videos.</p>';
+            }
+          }
         }
       }
       
@@ -7139,6 +7456,12 @@ function saveManualSession() {
       
       if (mediaTypeFilter) {
         mediaTypeFilter.addEventListener('change', applyMediaFilters);
+      }
+      
+      // Add event listener for text search filter
+      const mediaSearchFilter = document.getElementById('media-filter');
+      if (mediaSearchFilter) {
+        mediaSearchFilter.addEventListener('input', applyMediaFilters);
       }
     });
   </script>
