@@ -2671,7 +2671,7 @@
         theme: "default"
       };
       let customCategories = {}; // Format: {instrument: [category1, category2, ...]}
-      let hiddenCategories = {}; // Format: {instrument: [category1, category2, ...]}
+       // Format: {instrument: [category1, category2, ...]}
       let timerStatus = "stopped";
       let startTime = 0;
       let pausedTimeAccum = 0;
@@ -2922,6 +2922,19 @@ function initializeApp() {
     console.error('Failed to verify elements');
     notify('There was an error initializing the application.', 'error');
   }
+  
+  // Initialize custom categories
+  initializeCustomCategories();
+  
+  // Setup category management
+  const addCategoryBtn = document.getElementById('add-category-btn');
+  if (addCategoryBtn) {
+    addCategoryBtn.onclick = addCustomCategory;
+  }
+  
+  // Update UI based on loaded categories
+  refreshCategoriesList();
+  updateAllCategoryDropdowns();
 }
 
 function verifyElements() {
@@ -6454,7 +6467,12 @@ function showManualSessionForm() {
   <!-- Add Note Modal -->
   <div id="note-modal" class="modal" style="display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4);">
     <div class="modal-content" style="background-color: #fefefe; margin: 10% auto; padding: 20px; border-radius: 8px; width: 90%; max-width: 600px; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
-      <h2>Add New Note</h2>
+      <h2 id="note-modal-title">Add New Note</h2>
+      
+      <div class="form-group">
+        <label for="note-name">Note Name</label>
+        <input type="text" id="note-name" style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ddd; margin-bottom: 15px;">
+      </div>
       
       <div class="form-group">
         <label for="note-type">Note Type</label>
@@ -6468,6 +6486,8 @@ function showManualSessionForm() {
         <label for="note-content">Note Content</label>
         <textarea id="note-content" style="width: 100%; height: 200px; padding: 10px; border-radius: 4px; border: 1px solid #ddd; resize: vertical; font-family: inherit;"></textarea>
       </div>
+      
+      <input type="hidden" id="edit-note-id" value="">
       
       <div style="display: flex; justify-content: center; gap: 15px; margin-top: 20px;">
         <button id="save-note" class="save-btn">
@@ -6488,5 +6508,331 @@ function showManualSessionForm() {
       </div>
     </div>
   </div>
+  
+  <script>
+  // Category Management Functions
+  
+  
+  
+  // Function to get all categories for an instrument (including both default and custom)
+  function getInstrumentCategories(instrument) {
+    if (!instrument) return [];
+    
+    // Get default categories
+    const defaultCats = instrumentCategories[instrument] || [];
+    
+    // Get custom categories (ensure it exists)
+    if (!customCategories[instrument]) {
+      customCategories[instrument] = [];
+    }
+    const customCats = customCategories[instrument];
+    
+    // Return combined categories (includes both hidden and visible)
+    return [...defaultCats, "Lesson", ...customCats];
+  }
+
+  // Function to get visible categories (excluding hidden ones)
+  function getVisibleCategories(instrument) {
+    if (!instrument) return [];
+    
+    // Get default categories
+    const defaultCats = instrumentCategories[instrument] || [];
+    
+    // Get hidden categories (ensure it exists)
+    if (!hiddenCategories[instrument]) {
+      hiddenCategories[instrument] = [];
+    }
+    const hiddenCats = hiddenCategories[instrument];
+    
+    // Get custom categories (ensure it exists)
+    if (!customCategories[instrument]) {
+      customCategories[instrument] = [];
+    }
+    const customCats = customCategories[instrument];
+    
+    // Return combined categories (excluding hidden ones)
+    return [...defaultCats.filter(cat => !hiddenCats.includes(cat)), "Lesson", ...customCats];
+  }
+
+  // Add custom category function
+  function addCustomCategory() {
+    if (!settings.instrument) {
+      notify("Please select an instrument first", "error");
+      return;
+    }
+    
+    const newCategoryInput = document.getElementById('new-category-input');
+    if (!newCategoryInput) return;
+    
+    const newCategory = newCategoryInput.value.trim();
+    
+    if (!newCategory) {
+      notify("Please enter a category name", "error");
+      return;
+    }
+    
+    // Initialize the data structure if it doesn't exist
+    if (!customCategories[settings.instrument]) {
+      customCategories[settings.instrument] = [];
+    }
+    
+    // Check if category already exists (in default or custom)
+    const allCategories = getInstrumentCategories(settings.instrument);
+    if (allCategories.includes(newCategory)) {
+      notify("This category already exists", "error");
+      return;
+    }
+    
+    // Add the new category
+    customCategories[settings.instrument].push(newCategory);
+    localStorage.setItem("customCategories", JSON.stringify(customCategories));
+    
+    // Clear the input field
+    newCategoryInput.value = "";
+    
+    // Update UI
+    refreshCategoriesList();
+    updateAllCategoryDropdowns();
+    
+    notify("Category added successfully!", "success");
+  }
+
+  // Delete custom category function
+  function deleteCustomCategory(categoryName) {
+    if (!settings.instrument || !customCategories[settings.instrument]) {
+      return;
+    }
+    
+    const index = customCategories[settings.instrument].indexOf(categoryName);
+    if (index === -1) {
+      return;
+    }
+    
+    if (confirm(`Are you sure you want to delete the category "${categoryName}"?`)) {
+      customCategories[settings.instrument].splice(index, 1);
+      localStorage.setItem("customCategories", JSON.stringify(customCategories));
+      
+      refreshCategoriesList();
+      updateAllCategoryDropdowns();
+      
+      notify("Category deleted successfully!", "success");
+    }
+  }
+
+  // Toggle visibility of default categories
+  function toggleDefaultCategory(categoryName) {
+    if (!settings.instrument) {
+      return;
+    }
+    
+    // Ensure the hidden categories array exists
+    if (!hiddenCategories[settings.instrument]) {
+      hiddenCategories[settings.instrument] = [];
+    }
+    
+    const isHidden = hiddenCategories[settings.instrument].includes(categoryName);
+    
+    if (isHidden) {
+      // Remove from hidden categories (make visible)
+      hiddenCategories[settings.instrument] = hiddenCategories[settings.instrument].filter(cat => cat !== categoryName);
+      notify(`Category "${categoryName}" is now visible`, "success");
+    } else {
+      // Add to hidden categories
+      hiddenCategories[settings.instrument].push(categoryName);
+      notify(`Category "${categoryName}" is now hidden`, "success");
+    }
+    
+    // Save to localStorage
+    localStorage.setItem("hiddenCategories", JSON.stringify(hiddenCategories));
+    
+    // Update UI
+    refreshCategoriesList();
+    updateAllCategoryDropdowns();
+  }
+
+  // Initialize custom categories
+  function initializeCustomCategories() {
+    // Load custom categories from localStorage
+    const storedCustomCategories = localStorage.getItem("customCategories");
+    if (storedCustomCategories) {
+      customCategories = JSON.parse(storedCustomCategories);
+    } else {
+      customCategories = {};
+    }
+    
+    // Load hidden categories from localStorage
+    const storedHiddenCategories = localStorage.getItem("hiddenCategories");
+    if (storedHiddenCategories) {
+      hiddenCategories = JSON.parse(storedHiddenCategories);
+    } else {
+      hiddenCategories = {};
+    }
+  }
+
+  // Update all category dropdowns
+  function updateAllCategoryDropdowns() {
+    updatePracticeCategoryDropdown();
+    updateCategoryFilters();
+    updateManualSessionCategoryDropdown();
+  }
+
+  // Update the manual session category dropdown
+  function updateManualSessionCategoryDropdown() {
+    const manualSessionCategory = document.getElementById('manual-session-category');
+    
+    if (!manualSessionCategory) return;
+    
+    if (!settings.instrument) {
+      manualSessionCategory.innerHTML = '<option value="">Please select an instrument in Settings</option>';
+      manualSessionCategory.disabled = true;
+      return;
+    }
+    
+    // Get visible categories (excluding hidden ones)
+    const categories = getVisibleCategories(settings.instrument);
+    
+    // Create options HTML
+    const options = categories.map(category => 
+      `<option value="${category}">${category}</option>`
+    ).join('');
+    
+    // Update dropdown
+    manualSessionCategory.innerHTML = `
+      <option value="">--Select Practice Category--</option>
+      ${options}
+    `;
+    manualSessionCategory.disabled = false;
+  }
+
+  // Refresh categories list in UI
+  function refreshCategoriesList() {
+    const categoriesList = document.getElementById('categories-list');
+    const defaultCategoriesList = document.getElementById('default-categories-list');
+    
+    if (!categoriesList || !defaultCategoriesList) return;
+    
+    // Clear the lists
+    categoriesList.innerHTML = '';
+    defaultCategoriesList.innerHTML = '';
+    
+    if (!settings.instrument) {
+      categoriesList.innerHTML = '<p class="empty-message">Please select an instrument first</p>';
+      defaultCategoriesList.innerHTML = '<p class="empty-message">Please select an instrument first</p>';
+      return;
+    }
+    
+    // Ensure data structures exist
+    if (!customCategories[settings.instrument]) {
+      customCategories[settings.instrument] = [];
+    }
+    
+    if (!hiddenCategories[settings.instrument]) {
+      hiddenCategories[settings.instrument] = [];
+    }
+    
+    // Add custom categories
+    const customCats = customCategories[settings.instrument];
+    
+    if (customCats.length === 0) {
+      categoriesList.innerHTML = '<p class="empty-message">No custom categories added yet</p>';
+    } else {
+      // Display each custom category
+      customCats.forEach(category => {
+        const div = document.createElement('div');
+        div.className = 'category-item';
+        div.innerHTML = `
+          <span class="category-name">${category}</span>
+          <div class="category-actions">
+            <button class="delete-btn" data-category="${category}">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+              </svg>
+            </button>
+          </div>
+        `;
+        
+        // Add delete event listener
+        div.querySelector('.delete-btn').addEventListener('click', function() {
+          const categoryName = this.getAttribute('data-category');
+          deleteCustomCategory(categoryName);
+        });
+        
+        categoriesList.appendChild(div);
+      });
+    }
+    
+    // Add default categories
+    const defaultCats = instrumentCategories[settings.instrument] || [];
+    const hiddenCats = hiddenCategories[settings.instrument] || [];
+    
+    defaultCats.forEach(category => {
+      const isHidden = hiddenCats.includes(category);
+      const div = document.createElement('div');
+      div.className = isHidden ? 'category-item hidden-category' : 'category-item';
+      
+      div.innerHTML = `
+        <span class="category-name">${category}</span>
+        <div class="category-actions">
+          <button class="toggle-btn" data-category="${category}">
+            ${isHidden ? 
+              `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>` : 
+              `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                <line x1="1" y1="1" x2="23" y2="23"></line>
+              </svg>`
+            }
+          </button>
+        </div>
+      `;
+      
+      // Add toggle event listener
+      div.querySelector('.toggle-btn').addEventListener('click', function() {
+        const categoryName = this.getAttribute('data-category');
+        toggleDefaultCategory(categoryName);
+      });
+      
+      defaultCategoriesList.appendChild(div);
+    });
+    
+    // Also add the "Lesson" category to default list
+    const isLessonHidden = hiddenCats.includes("Lesson");
+    const lessonDiv = document.createElement('div');
+    lessonDiv.className = isLessonHidden ? 'category-item hidden-category' : 'category-item';
+    
+    lessonDiv.innerHTML = `
+      <span class="category-name">Lesson</span>
+      <div class="category-actions">
+        <button class="toggle-btn" data-category="Lesson">
+          ${isLessonHidden ? 
+            `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>` : 
+            `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+              <line x1="1" y1="1" x2="23" y2="23"></line>
+            </svg>`
+          }
+        </button>
+      </div>
+    `;
+    
+    // Add toggle event listener for Lesson category
+    lessonDiv.querySelector('.toggle-btn').addEventListener('click', function() {
+      toggleDefaultCategory("Lesson");
+    });
+    
+    defaultCategoriesList.appendChild(lessonDiv);
+  }
+
+  // Make these functions globally available
+  window.deleteCustomCategory = deleteCustomCategory;
+  window.toggleDefaultCategory = toggleDefaultCategory;
+  window.addCustomCategory = addCustomCategory;
+  </script>
 </body>
 </html>
