@@ -6244,157 +6244,93 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Capture media (photo or video)
   function captureMedia(mediaType) {
-    // Create file input for camera capture
+    console.log('Using direct device camera capture for', mediaType);
+    
+    // Create file input for native camera capture
     const input = document.createElement('input');
     input.type = 'file';
     
     if (mediaType === 'photo') {
       input.accept = 'image/*';
-      input.capture = 'environment'; // Use back camera
+      if (navigator.mediaDevices) {
+        input.capture = 'environment'; // Use back camera when possible
+      }
     } else {
       input.accept = 'video/*';
-      input.capture = true;
+      if (navigator.mediaDevices) {
+        input.capture = 'environment'; // Use back camera when possible
+      }
     }
     
-    input.onchange = function() {
-      if (this.files && this.files[0]) {
-        const file = this.files[0];
+    // Handle file selection
+    input.onchange = function(event) {
+      if (event.target.files && event.target.files[0]) {
+        const file = event.target.files[0];
         const type = file.type.startsWith('image/') ? 'photo' : 'video';
         
-        // Store the file temporarily
-        currentMedia = {
-          file: file,
-          type: type
+        // Generate a default name
+        const now = new Date();
+        const defaultName = type.charAt(0).toUpperCase() + type.slice(1) + ' ' + 
+                          now.toLocaleDateString('en-US', {
+                            day: '2-digit',
+                            month: 'short',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          });
+        
+        // Get the name from user or use default
+        const name = prompt('Enter a name for this recording:', defaultName) || defaultName;
+        
+        // Create a safe filename
+        const fileExtension = type === 'photo' ? '.jpg' : '.mp4';
+        const fileName = name.replace(/[^a-z0-9]/gi, '_') + fileExtension;
+        
+        // Create a downloadable URL
+        const blobUrl = URL.createObjectURL(file);
+        
+        // Create and trigger download
+        const downloadLink = document.createElement('a');
+        downloadLink.href = blobUrl;
+        downloadLink.download = fileName;
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        document.body.removeChild(downloadLink);
+        
+        // Create media record
+        const mediaRecord = {
+          id: 'media_' + Date.now(),
+          name: name,
+          timestamp: Date.now(),
+          type: type,
+          fileName: fileName
         };
         
-        // Prompt for name after capturing
-        promptForMediaName(type);
+        // Save media record
+        saveMediaRecord(mediaRecord);
+        
+        // Show success message
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+        if (isIOS) {
+          notify('Media saved. For iOS: tap and hold on the opened file, then select "Save to Photos"', 'info', 8000);
+        } else {
+          notify(`${type === 'photo' ? 'Photo' : 'Video'} saved as "${fileName}"`, 'success');
+        }
+        
+        // Clean up blob URL
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+        
+        // Switch to media tab after saving
+        setTimeout(() => {
+          const mediaTabButton = document.querySelector('[data-tab="media"]');
+          if (mediaTabButton) {
+            mediaTabButton.click();
+          }
+        }, 500);
       }
     };
     
+    // Trigger the file input click
     input.click();
-  }
-  
-  // Prompt for media name
-  function promptForMediaName(mediaType) {
-    const defaultName = getDefaultName(mediaType);
-    
-    // Create an overlay for the name prompt
-    const nameOverlay = document.createElement('div');
-    nameOverlay.style.position = 'fixed';
-    nameOverlay.style.top = '0';
-    nameOverlay.style.left = '0';
-    nameOverlay.style.width = '100%';
-    nameOverlay.style.height = '100%';
-    nameOverlay.style.backgroundColor = 'rgba(0,0,0,0.7)';
-    nameOverlay.style.display = 'flex';
-    nameOverlay.style.flexDirection = 'column';
-    nameOverlay.style.justifyContent = 'center';
-    nameOverlay.style.alignItems = 'center';
-    nameOverlay.style.zIndex = '1001';
-    
-    // Add name input form
-    nameOverlay.innerHTML = `
-      <div style="background-color: white; padding: 20px; border-radius: 10px; width: 80%; max-width: 300px;">
-        <h3 style="text-align: center; margin-top: 0;">Name Your ${mediaType === 'photo' ? 'Photo' : 'Video'}</h3>
-        <input type="text" id="capture-name-input" placeholder="Enter a name..." value="${defaultName}" 
-               style="width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; font-size: 16px;">
-        <div style="display: flex; justify-content: space-between;">
-          <button id="save-capture" style="padding: 10px 15px; background-color: var(--primary-color); color: white; border: none; border-radius: 5px; font-size: 16px; flex: 1; margin-right: 5px;">
-            Save
-          </button>
-          <button id="cancel-capture" style="padding: 10px 15px; background-color: #f5f5f5; color: #333; border: none; border-radius: 5px; font-size: 16px; flex: 1; margin-left: 5px;">
-            Cancel
-          </button>
-        </div>
-      </div>
-    `;
-    
-    document.body.appendChild(nameOverlay);
-    
-    // Focus the input field
-    setTimeout(() => {
-      const nameInput = document.getElementById('capture-name-input');
-      if (nameInput) {
-        nameInput.focus();
-        nameInput.select(); // Select the default text
-      }
-    }, 100);
-    
-    // Add event listeners
-    document.getElementById('save-capture').addEventListener('click', function() {
-      const mediaName = document.getElementById('capture-name-input').value.trim() || defaultName;
-      saveCapture(mediaName);
-      document.body.removeChild(nameOverlay);
-    });
-    
-    document.getElementById('capture-name-input').addEventListener('keypress', function(e) {
-      if (e.key === 'Enter') {
-        const mediaName = document.getElementById('capture-name-input').value.trim() || defaultName;
-        saveCapture(mediaName);
-        document.body.removeChild(nameOverlay);
-      }
-    });
-    
-    document.getElementById('cancel-capture').addEventListener('click', function() {
-      document.body.removeChild(nameOverlay);
-      currentMedia = null;
-    });
-  }
-  
-  // Save captured media
-  function saveCapture(mediaName) {
-    if (!currentMedia) {
-      notify('Error: No media to save', 'error');
-      return;
-    }
-    
-    const file = currentMedia.file;
-    const type = currentMedia.type;
-    
-    // Create file extension based on media type
-    const fileExtension = type === 'photo' ? '.jpg' : '.mp4';
-    const safeFileName = mediaName.replace(/[^a-z0-9]/gi, '_') + fileExtension;
-    
-    // Create a downloadable URL from the file
-    const blobUrl = URL.createObjectURL(file);
-    
-    // Create and trigger download
-    const downloadLink = document.createElement('a');
-    downloadLink.href = blobUrl;
-    downloadLink.download = safeFileName;
-    document.body.appendChild(downloadLink);
-    downloadLink.click();
-    document.body.removeChild(downloadLink);
-    
-    // Create media record
-    const mediaRecord = {
-      id: 'media_' + Date.now(),
-      name: mediaName,
-      timestamp: Date.now(),
-      type: type,
-      fileName: safeFileName
-    };
-    
-    // Save media record
-    saveMediaRecord(mediaRecord);
-    
-    // Reset current media
-    currentMedia = null;
-    
-    // Show success message
-    notify(`${type === 'photo' ? 'Photo' : 'Video'} saved as "${safeFileName}"`, 'success');
-    
-    // Check for iOS and show additional instructions if needed
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-    if (isIOS) {
-      setTimeout(() => {
-        notify('On iOS: Tap and hold on the opened media, then select "Save to Photos"', 'info', 8000);
-      }, 1000);
-    }
-    
-    // Clean up blob URL
-    setTimeout(() => URL.revokeObjectURL(blobUrl), 100);
   }
   
   // Save media record to localStorage and update UI
@@ -7221,6 +7157,5 @@ function saveManualSession() {
     }
   </script>
   <!-- Camera functionality fix -->
-  <script src="fix-camera.js"></script>
 </body>
 </html>
