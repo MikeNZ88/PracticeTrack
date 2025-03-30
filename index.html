@@ -1929,7 +1929,240 @@
     div {
       text-align: center;
     }
+
+    /* Mobile-optimized card styles */
+    .record-card {
+      background-color: #fff;
+      border-radius: 10px;
+      padding: 16px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+      border: 1px solid #e0e0e0;
+      margin-bottom: 15px;
+      overflow: hidden;
+      width: 100%;
+    }
+
+    .record-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .card-header {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 12px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #eee;
+    }
+
+    .title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 5px;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+
+    .card-title {
+      margin: 0;
+      color: #333;
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+
+    .card-date {
+      margin: 0;
+      color: #666;
+      font-size: 0.85rem;
+    }
+
+    .badge {
+      padding: 4px 10px;
+      border-radius: 16px;
+      font-weight: bold;
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap;
+    }
+
+    .badge-duration {
+      background-color: #e8f5e9;
+      color: #4caf50;
+    }
+
+    .badge-lesson {
+      background-color: #fff3e0;
+      color: #ff9800;
+    }
+
+    .badge-practice {
+      background-color: #e3f2fd;
+      color: #1976d2;
+    }
+
+    .badge-file-type {
+      background-color: #f0f0f0;
+      color: #555;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.8rem;
+    }
+
+    .card-notes {
+      background-color: #f9f9f9;
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+    }
+
+    .card-notes h4 {
+      margin: 0 0 5px 0;
+      color: #555;
+      font-size: 0.9rem;
+    }
+
+    .card-notes p {
+      margin: 0;
+      color: #555;
+      font-size: 0.9rem;
+      line-height: 1.4;
+    }
+
+    .file-info {
+      display: flex;
+      align-items: center;
+      padding: 10px;
+      background-color: #f9f9f9;
+      border-radius: 6px;
+      margin-bottom: 5px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .file-info svg {
+      margin-right: 10px;
+      flex-shrink: 0;
+    }
+
+    .file-info span {
+      font-size: 0.9rem;
+      color: #555;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .file-help-text {
+      font-size: 0.8rem;
+      color: #777;
+      font-style: italic;
+      margin: 5px 0 10px 0;
+    }
+
+    .goal-checkbox {
+      width: 22px;
+      height: 22px;
+      border-radius: 4px;
+      border: 2px solid #4154b3;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      flex-shrink: 0;
+      margin-top: 2px;
+      margin-right: 8px;
+    }
+
+    .goal-checkbox.checked {
+      background-color: #4154b3;
+    }
+
+    .goal-wrapper {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .goal-completed {
+      text-decoration: line-through;
+      opacity: 0.7;
+    }
+
+    .card-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.85rem;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+    }
+
+    .btn-edit {
+      background-color: #f0f0f0;
+      color: #333;
+    }
+
+    .btn-edit:hover {
+      background-color: #e0e0e0;
+    }
+
+    .btn-delete {
+      background-color: #ffebee;
+      color: #f44336;
+    }
+
+    .btn-delete:hover {
+      background-color: #ffcdd2;
+    }
+
+    .btn-copy {
+      background-color: #e3f2fd;
+      color: #1976d2;
+    }
+
+    .btn-copy:hover {
+      background-color: #bbdefb;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 480px) {
+      .record-card {
+        padding: 14px;
+      }
+      
+      .btn {
+        padding: 6px 10px;
+        font-size: 0.8rem;
+      }
+      
+      .card-title {
+        font-size: 1rem;
+      }
+    }
   </style>
+  
+  <!-- Media Tab Note Functionality Fix -->
+  <script src="src/media-tab-notes-fix.js"></script>
 </head>
 <body>
   <div class="container">
@@ -5807,8 +6040,9 @@ document.addEventListener('DOMContentLoaded', function() {
   const cameraButton = document.getElementById('camera-button');
   const addNoteButton = document.getElementById('add-note-button');
   const noteModal = document.getElementById('note-modal');
-  const noteType = document.getElementById('note-type');
-  const noteContent = document.getElementById('note-content');
+  const noteNameInput = document.getElementById('note-name');
+  const noteTypeSelect = document.getElementById('note-type');
+  const noteContentTextarea = document.getElementById('note-content');
   const saveNoteBtn = document.getElementById('save-note');
   const closeNoteBtn = document.getElementById('close-note');
   const mediaGallery = document.getElementById('media-gallery');
@@ -5828,19 +6062,21 @@ document.addEventListener('DOMContentLoaded', function() {
     console.error('Error loading media records:', error);
   }
   
-  // Add Note button functionality
+  // Add Note button functionality - Fix for issue #1
   if (addNoteButton) {
     addNoteButton.addEventListener('click', function() {
-      // Reset form fields
-      if (noteType) noteType.value = 'lesson';
-      if (noteContent) noteContent.value = '';
+      // Set default values
+      const defaultName = `Note ${new Date().toLocaleString()}`;
+      if (noteNameInput) noteNameInput.value = defaultName;
+      if (noteTypeSelect) noteTypeSelect.value = 'practice';
+      if (noteContentTextarea) noteContentTextarea.value = '';
       
       // Show the modal
       if (noteModal) noteModal.style.display = 'block';
     });
   }
   
-  // Close note modal
+  // Close note modal - Fix for issue #1
   if (closeNoteBtn && noteModal) {
     closeNoteBtn.addEventListener('click', () => {
       noteModal.style.display = 'none';
@@ -5854,27 +6090,32 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
   
-  // Save note button
+  // Enhanced save note functionality - Fix for issues #1 and #2
   if (saveNoteBtn) {
     saveNoteBtn.addEventListener('click', function() {
-      // Get note content and type
-      const content = noteContent.value.trim();
-      const type = noteType.value;
+      // Validate input
+      const name = noteNameInput.value.trim();
+      const type = noteTypeSelect.value;
+      const content = noteContentTextarea.value.trim();
       
-      if (!content) {
-        notify('Please enter note content', 'error');
+      if (!name) {
+        notify('Please enter a name for the note', 'error');
         return;
       }
       
-      // Create record object
+      if (!content) {
+        notify('Please enter content for the note', 'error');
+        return;
+      }
+      
+      // Create note record
       const record = {
-        id: Date.now().toString(),
+        id: 'media_note_' + Date.now(),
         type: 'note',
         noteType: type,
-        name: `${type.charAt(0).toUpperCase() + type.slice(1)} Note - ${new Date().toLocaleDateString()}`,
+        name: name,
         content: content,
-        timestamp: new Date().toISOString(),
-        fileName: null
+        timestamp: Date.now()
       };
       
       // Add to records array
@@ -5883,17 +6124,17 @@ document.addEventListener('DOMContentLoaded', function() {
       // Save to localStorage
       localStorage.setItem('mediaRecords', JSON.stringify(mediaRecords));
       
-      // Refresh the gallery
-      refreshMediaGallery();
-      
       // Close the modal
       noteModal.style.display = 'none';
       
-      // Notify user
+      // Refresh the gallery
+      refreshMediaGallery();
+      
+      // Show success notification
       notify('Note saved successfully', 'success');
     });
   }
-
+  
   // Camera button functionality
   if (cameraButton) {
     cameraButton.addEventListener('click', function() {
@@ -6163,7 +6404,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Format the date
     const date = new Date(mediaRecord.timestamp);
-    const formattedShortDate = `${date.toLocaleDateString()}, ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+    const formattedDate = `${date.toLocaleDateString()}, ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
     
     // Set the icon based on media type
     let icon = '';
@@ -6171,7 +6412,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (mediaRecord.type === 'video') icon = '🎥 ';
     if (mediaRecord.type === 'note') icon = '📝 ';
     
-    // Set the content with improved styling
+    // Create HTML for the media item
     let contentHtml = `
       <div style="padding: 15px; background-color: #f8f8f8; border-radius: 8px; margin-bottom: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
         <div style="display: flex; justify-content: space-between; align-items: flex-start;">
@@ -6179,10 +6420,10 @@ document.addEventListener('DOMContentLoaded', function() {
             ${icon} ${mediaRecord.name}
           </div>
           <div style="font-size: 12px; color: #666; text-align: right;">
-            ${formattedShortDate}
+            ${formattedDate}
           </div>
         </div>`;
-        
+    
     // Add note content preview if it's a note
     if (mediaRecord.type === 'note' && mediaRecord.content) {
       const noteBackground = mediaRecord.noteType === 'lesson' ? '#e8f5e9' : '#fff3e0';
@@ -6207,8 +6448,8 @@ document.addEventListener('DOMContentLoaded', function() {
     
     contentHtml += `
         <div style="margin-top: 10px; display: flex; justify-content: flex-end; gap: 10px;">
-          <button class="copy-name-btn" style="padding: 8px 12px; background: #e3f2fd; color: #1565c0; border: none; border-radius: 4px; cursor: pointer; font-size: 13px;">
-            Copy Name
+          <button class="view-btn" style="padding: 8px 12px; background: #e3f2fd; color: #1565c0; border: none; border-radius: 4px; cursor: pointer; font-size: 13px;">
+            View
           </button>
           <button class="delete-media-btn" style="padding: 8px 12px; background: #ffebee; color: #e53935; border: none; border-radius: 4px; cursor: pointer; font-size: 13px;">
             Delete
@@ -6220,14 +6461,6 @@ document.addEventListener('DOMContentLoaded', function() {
     mediaItem.innerHTML = contentHtml;
     
     // Add event listeners
-    mediaItem.querySelector('.copy-name-btn').addEventListener('click', function(e) {
-      e.stopPropagation(); // Prevent item click
-      
-      navigator.clipboard.writeText(mediaRecord.name)
-        .then(() => notify('Name copied to clipboard', 'success'))
-        .catch(() => notify('Failed to copy to clipboard', 'error'));
-    });
-    
     mediaItem.querySelector('.delete-media-btn').addEventListener('click', function(e) {
       e.stopPropagation(); // Prevent item click
       
@@ -6245,175 +6478,91 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
     
-    // Add click listener to view note or media
-    mediaItem.addEventListener('click', function() {
+    // Add view button functionality
+    mediaItem.querySelector('.view-btn').addEventListener('click', function(e) {
+      e.stopPropagation(); // Prevent item click
+      
       if (mediaRecord.type === 'note') {
         // Create a modal to view the full note
-        const noteViewModal = document.createElement('div');
-        noteViewModal.className = 'modal';
-        noteViewModal.style.display = 'block';
-        noteViewModal.style.position = 'fixed';
-        noteViewModal.style.zIndex = '9999';
-        noteViewModal.style.left = '0';
-        noteViewModal.style.top = '0';
-        noteViewModal.style.width = '100%';
-        noteViewModal.style.height = '100%';
-        noteViewModal.style.overflow = 'auto';
-        noteViewModal.style.backgroundColor = 'rgba(0,0,0,0.4)';
-        
-        const noteBackground = mediaRecord.noteType === 'lesson' ? '#e8f5e9' : '#fff3e0';
-        const noteBorder = mediaRecord.noteType === 'lesson' ? '#4caf50' : '#ff9800';
-        const noteTypeLabel = mediaRecord.noteType === 'lesson' ? 'Lesson Note' : 'Practice Note';
-        
-        noteViewModal.innerHTML = `
-          <div class="modal-content" style="background-color: #fefefe; margin: 10% auto; padding: 20px; border-radius: 8px; width: 90%; max-width: 600px; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-              <h2 style="margin: 0;">${icon} ${mediaRecord.name}</h2>
-              <button class="close-note-view" style="background: none; border: none; font-size: 24px; cursor: pointer;">&times;</button>
-            </div>
-            
-            <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
-              <div style="display: inline-block; font-size: 14px; font-weight: bold; padding: 4px 8px; background-color: ${noteBorder}; color: white; border-radius: 4px;">
-                ${noteTypeLabel}
-              </div>
-              <div style="font-size: 14px; color: #666;">
-                ${formattedShortDate}
-              </div>
-            </div>
-            
-            <div style="padding: 15px; background-color: ${noteBackground}; border-radius: 4px; margin-bottom: 20px; white-space: pre-wrap; text-align: left;">
-              ${mediaRecord.content}
-            </div>
-            
-            <div style="display: flex; justify-content: center;">
-              <button class="close-note-view-btn" style="padding: 10px 20px; background-color: #757575; color: white; border: none; border-radius: 4px; cursor: pointer;">
-                Close
-              </button>
-            </div>
-          </div>
-        `;
-        
-        document.body.appendChild(noteViewModal);
-        
-        // Add event listeners to close the modal
-        noteViewModal.querySelector('.close-note-view').addEventListener('click', function() {
-          document.body.removeChild(noteViewModal);
-        });
-        
-        noteViewModal.querySelector('.close-note-view-btn').addEventListener('click', function() {
-          document.body.removeChild(noteViewModal);
-        });
-        
-        noteViewModal.addEventListener('click', function(e) {
-          if (e.target === noteViewModal) {
-            document.body.removeChild(noteViewModal);
-          }
-        });
+        viewNoteDetails(mediaRecord);
       }
-      // You could add other media type handling here if needed
+    });
+    
+    // Add click listener to view note
+    mediaItem.addEventListener('click', function() {
+      if (mediaRecord.type === 'note') {
+        viewNoteDetails(mediaRecord);
+      }
     });
     
     return mediaItem;
   }
   
-  // Set up media filters
-  const mediaDateFilter = document.getElementById('media-date-filter');
-  const mediaCategoryFilter = document.getElementById('media-category-filter');
-  const mediaTypeFilter = document.getElementById('media-type-filter');
-  
-  // Apply filters to media gallery
-  function applyMediaFilters() {
-    const dateFilter = mediaDateFilter ? mediaDateFilter.value : 'all';
-    const categoryFilter = mediaCategoryFilter ? mediaCategoryFilter.value : 'all';
-    const typeFilter = mediaTypeFilter ? mediaTypeFilter.value : 'all';
+  // Function to display full note details
+  function viewNoteDetails(mediaRecord) {
+    const noteViewModal = document.createElement('div');
+    noteViewModal.className = 'modal';
+    noteViewModal.style.display = 'block';
+    noteViewModal.style.position = 'fixed';
+    noteViewModal.style.zIndex = '9999';
+    noteViewModal.style.left = '0';
+    noteViewModal.style.top = '0';
+    noteViewModal.style.width = '100%';
+    noteViewModal.style.height = '100%';
+    noteViewModal.style.overflow = 'auto';
+    noteViewModal.style.backgroundColor = 'rgba(0,0,0,0.4)';
     
-    // Get all media items
-    const mediaItems = document.querySelectorAll('.media-item');
-    let visibleCount = 0;
+    const noteBackground = mediaRecord.noteType === 'lesson' ? '#e8f5e9' : '#fff3e0';
+    const noteBorder = mediaRecord.noteType === 'lesson' ? '#4caf50' : '#ff9800';
+    const noteTypeLabel = mediaRecord.noteType === 'lesson' ? 'Lesson Note' : 'Practice Note';
+    const icon = '📝 ';
+    const date = new Date(mediaRecord.timestamp);
+    const formattedDate = `${date.toLocaleDateString()}, ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
     
-    mediaItems.forEach(item => {
-      const mediaId = item.getAttribute('data-id');
-      const mediaType = item.getAttribute('data-type') || 'note';
-      
-      // Find the media record
-      const mediaRecord = mediaRecords.find(record => record.id === mediaId);
-      if (!mediaRecord) return;
-      
-      let isVisible = true;
-      
-      // Apply date filter
-      if (dateFilter !== 'all') {
-        const recordDate = new Date(mediaRecord.timestamp);
-        const now = new Date();
+    noteViewModal.innerHTML = `
+      <div class="modal-content" style="background-color: #fefefe; margin: 10% auto; padding: 20px; border-radius: 8px; width: 90%; max-width: 600px; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+          <h2 style="margin: 0;">${icon} ${mediaRecord.name}</h2>
+          <button class="close-note-view" style="background: none; border: none; font-size: 24px; cursor: pointer;">&times;</button>
+        </div>
         
-        if (dateFilter === 'today') {
-          isVisible = isVisible && (
-            recordDate.getDate() === now.getDate() &&
-            recordDate.getMonth() === now.getMonth() &&
-            recordDate.getFullYear() === now.getFullYear()
-          );
-        } else if (dateFilter === 'week') {
-          const weekAgo = new Date(now);
-          weekAgo.setDate(now.getDate() - 7);
-          isVisible = isVisible && recordDate >= weekAgo;
-        } else if (dateFilter === 'month') {
-          const monthAgo = new Date(now);
-          monthAgo.setMonth(now.getMonth() - 1);
-          isVisible = isVisible && recordDate >= monthAgo;
-        } else if (dateFilter === 'year') {
-          const yearAgo = new Date(now);
-          yearAgo.setFullYear(now.getFullYear() - 1);
-          isVisible = isVisible && recordDate >= yearAgo;
-        }
-      }
-      
-      // Apply category filter
-      if (categoryFilter !== 'all' && mediaRecord.category) {
-        isVisible = isVisible && mediaRecord.category === categoryFilter;
-      }
-      
-      // Apply type filter
-      if (typeFilter !== 'all') {
-        isVisible = isVisible && mediaRecord.type === typeFilter;
-      }
-      
-      // Show/hide the item
-      item.style.display = isVisible ? 'block' : 'none';
-      
-      if (isVisible) {
-        visibleCount++;
-      }
+        <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+          <div style="display: inline-block; font-size: 14px; font-weight: bold; padding: 4px 8px; background-color: ${noteBorder}; color: white; border-radius: 4px;">
+            ${noteTypeLabel}
+          </div>
+          <div style="font-size: 14px; color: #666;">
+            ${formattedDate}
+          </div>
+        </div>
+        
+        <div style="padding: 15px; background-color: ${noteBackground}; border-radius: 4px; margin-bottom: 20px; white-space: pre-wrap; text-align: left;">
+          ${mediaRecord.content}
+        </div>
+        
+        <div style="display: flex; justify-content: center;">
+          <button class="close-note-view-btn" style="padding: 10px 20px; background-color: #757575; color: white; border: none; border-radius: 4px; cursor: pointer;">
+            Close
+          </button>
+        </div>
+      </div>
+    `;
+    
+    document.body.appendChild(noteViewModal);
+    
+    // Add event listeners to close the modal
+    noteViewModal.querySelector('.close-note-view').addEventListener('click', function() {
+      document.body.removeChild(noteViewModal);
     });
     
-    // Show placeholder if no items visible
-    const placeholder = document.querySelector('.media-placeholder');
-    if (placeholder) {
-      placeholder.style.display = visibleCount === 0 ? 'block' : 'none';
-    }
-  }
-  
-  // Set up filter event listeners
-  if (mediaDateFilter) {
-    mediaDateFilter.addEventListener('change', applyMediaFilters);
-  }
-  
-  if (mediaTypeFilter) {
-    mediaTypeFilter.addEventListener('change', applyMediaFilters);
-  }
-  
-  // Generate default name for media
-  function getDefaultName(type) {
-    const now = new Date();
-    const datePart = `${now.getDate().toString().padStart(2, '0')}/${(now.getMonth() + 1).toString().padStart(2, '0')}/${now.getFullYear()}`;
-    const timePart = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+    noteViewModal.querySelector('.close-note-view-btn').addEventListener('click', function() {
+      document.body.removeChild(noteViewModal);
+    });
     
-    if (type === 'photo') {
-      return `Photo ${datePart} ${timePart}`;
-    } else if (type === 'video') {
-      return `Video ${datePart} ${timePart}`;
-    } else {
-      return `Recording ${datePart} ${timePart}`;
-    }
+    noteViewModal.addEventListener('click', function(e) {
+      if (e.target === noteViewModal) {
+        document.body.removeChild(noteViewModal);
+      }
+    });
   }
 });
 
@@ -6561,14 +6710,8 @@ function showManualSessionForm() {
     // Add the new category
     customCategories[settings.instrument].push(newCategory);
     localStorage.setItem("customCategories", JSON.stringify(customCategories));
-    
-    // Clear the input field
-    newCategoryInput.value = "";
-    
-    // Update UI
     refreshCategoriesList();
-    updateAllCategoryDropdowns();
-    
+    updatePracticeCategoryDropdown();
     notify("Category added successfully!", "success");
   }
 
@@ -6579,9 +6722,7 @@ function showManualSessionForm() {
     }
     
     const index = customCategories[settings.instrument].indexOf(categoryName);
-    if (index === -1) {
-      return;
-    }
+    if (index === -1) return;
     
     if (confirm(`Are you sure you want to delete the category "${categoryName}"?`)) {
       customCategories[settings.instrument].splice(index, 1);
@@ -6808,6 +6949,101 @@ function showManualSessionForm() {
   window.deleteCustomCategory = deleteCustomCategory;
   window.toggleDefaultCategory = toggleDefaultCategory;
   window.addCustomCategory = addCustomCategory;
+  </script>
+
+  <script>
+    // Media Tab Functionality Fix
+    document.addEventListener('DOMContentLoaded', function() {
+      const mediaDateFilter = document.getElementById('media-date-filter');
+      const mediaCategoryFilter = document.getElementById('media-category-filter');
+      const mediaTypeFilter = document.getElementById('media-type-filter');
+      
+      // Apply filters to media gallery
+      function applyMediaFilters() {
+        if (!mediaRecords) return;
+        
+        const dateFilter = mediaDateFilter ? mediaDateFilter.value : 'all';
+        const categoryFilter = mediaCategoryFilter ? mediaCategoryFilter.value : 'all';
+        const typeFilter = mediaTypeFilter ? mediaTypeFilter.value : 'all';
+        
+        // Get all media items
+        const mediaItems = document.querySelectorAll('.media-item');
+        let visibleCount = 0;
+        
+        mediaItems.forEach(item => {
+          const mediaId = item.getAttribute('data-id');
+          const mediaType = item.getAttribute('data-type') || 'note';
+          
+          // Find the media record
+          const mediaRecord = mediaRecords.find(record => record.id === mediaId);
+          if (!mediaRecord) return;
+          
+          let isVisible = true;
+          
+          // Apply date filter
+          if (dateFilter !== 'all') {
+            const recordDate = new Date(mediaRecord.timestamp);
+            const now = new Date();
+            
+            if (dateFilter === 'today') {
+              isVisible = isVisible && (
+                recordDate.getDate() === now.getDate() &&
+                recordDate.getMonth() === now.getMonth() &&
+                recordDate.getFullYear() === now.getFullYear()
+              );
+            } else if (dateFilter === 'week') {
+              const weekAgo = new Date(now);
+              weekAgo.setDate(now.getDate() - 7);
+              isVisible = isVisible && recordDate >= weekAgo;
+            } else if (dateFilter === 'month') {
+              const monthAgo = new Date(now);
+              monthAgo.setMonth(now.getMonth() - 1);
+              isVisible = isVisible && recordDate >= monthAgo;
+            } else if (dateFilter === 'year') {
+              const yearAgo = new Date(now);
+              yearAgo.setFullYear(now.getFullYear() - 1);
+              isVisible = isVisible && recordDate >= yearAgo;
+            }
+          }
+          
+          // Apply category filter
+          if (categoryFilter !== 'all' && mediaRecord.category) {
+            isVisible = isVisible && mediaRecord.category === categoryFilter;
+          }
+          
+          // Apply type filter
+          if (typeFilter !== 'all') {
+            isVisible = isVisible && mediaRecord.type === typeFilter;
+          }
+          
+          // Show/hide the item
+          item.style.display = isVisible ? 'block' : 'none';
+          
+          if (isVisible) {
+            visibleCount++;
+          }
+        });
+        
+        // Show placeholder if no items visible
+        const placeholder = document.querySelector('.media-placeholder');
+        if (placeholder) {
+          placeholder.style.display = visibleCount === 0 ? 'block' : 'none';
+        }
+      }
+      
+      // Set up filter event listeners
+      if (mediaDateFilter) {
+        mediaDateFilter.addEventListener('change', applyMediaFilters);
+      }
+      
+      if (mediaCategoryFilter) {
+        mediaCategoryFilter.addEventListener('change', applyMediaFilters);
+      }
+      
+      if (mediaTypeFilter) {
+        mediaTypeFilter.addEventListener('change', applyMediaFilters);
+      }
+    });
   </script>
 </body>
 </html>
