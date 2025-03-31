@@ -166,32 +166,18 @@ const createMediaElement = (media) => {
     let content = '';
     switch (media.type) {
         case 'photo':
-            if (media.tempDisplayUrl) {
-                // Use the temporary URL for display if available (just added)
-                content = `<img src="${media.tempDisplayUrl}" alt="${media.notes || 'Practice photo'}">`;
-            } else if (media.localReference) {
-                // Show reference placeholder for photos
-                content = `<div class="media-placeholder">
-                    <i data-lucide="image"></i>
-                    <p class="reference-text">Photo Reference: ${media.filename}</p>
-                </div>`;
-            } else {
-                content = `<div class="media-placeholder"><i data-lucide="image"></i></div>`;
-            }
+            // Always show placeholder for photos
+            content = `<div class="media-placeholder">
+                <i data-lucide="image"></i>
+                <p class="reference-text">Photo Reference: ${media.filename}</p>
+            </div>`;
             break;
         case 'video':
-            if (media.tempDisplayUrl) {
-                // Use the temporary URL for display if available (just added)
-                content = `<video controls src="${media.tempDisplayUrl}"></video>`;
-            } else if (media.localReference) {
-                // Show reference placeholder for videos
-                content = `<div class="media-placeholder">
-                    <i data-lucide="video"></i>
-                    <p class="reference-text">Video Reference: ${media.filename}</p>
-                </div>`;
-            } else {
-                content = `<div class="media-placeholder"><i data-lucide="video"></i></div>`;
-            }
+            // Always show placeholder for videos
+            content = `<div class="media-placeholder">
+                <i data-lucide="video"></i>
+                <p class="reference-text">Video Reference: ${media.filename}</p>
+            </div>`;
             break;
         case 'note':
             content = `<div class="note-content">${media.content}</div>`;
@@ -401,18 +387,11 @@ const showNamingDialog = (file, type, extension) => {
             // For demonstration/testing purposes, we can store a URL if needed
             // In a real app, you'd want to save the file to the device storage
             if (type === 'photo' || type === 'video') {
-                // Don't store the actual file data in localStorage - just store a reference
-                // Instead of: media.url = e.target.result
-                
                 // Create a local reference with a timestamp to avoid conflicts
                 const localReference = `practicetrack_${type}_${Date.now()}.${extension}`;
                 media.localReference = localReference;
                 
-                // In a PWA or native app, you would typically use:
-                // - The File System API for web (if supported)
-                // - Native storage APIs for mobile apps
-                
-                // For this demo, we'll use a download link to save to device
+                // Save the file to the device using a download link
                 const downloadLink = document.createElement('a');
                 downloadLink.href = e.target.result;
                 downloadLink.download = filename;
@@ -423,8 +402,9 @@ const showNamingDialog = (file, type, extension) => {
                     document.body.removeChild(downloadLink);
                 }, 100);
                 
-                // For display purposes only - don't store this in localStorage
-                media.tempDisplayUrl = e.target.result;
+                // IMPORTANT: Do NOT store the data URL in any property
+                // Previous code had: media.tempDisplayUrl = e.target.result;
+                // which would store the full image/video in localStorage
             }
             
             // Save the media reference
@@ -435,7 +415,7 @@ const showNamingDialog = (file, type, extension) => {
             loadMedia();
             
             // Show success message
-            alert(`Your ${type} has been saved as ${filename}. The file should download to your device, and a reference has been stored in the app.`);
+            alert(`Your ${type} "${filename}" has been downloaded to your device. Only a reference has been stored in the app to save storage space.`);
         });
         
         // Handle cancel
