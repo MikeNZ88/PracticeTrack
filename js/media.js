@@ -19,10 +19,17 @@ const initializeMedia = () => {
         return;
     }
     
+    // Clear the media list before populating it
+    mediaList.innerHTML = '';
+    
     loadMedia();
     setupMediaButtons();
     setupMediaFilters();
     addMediaStyles();
+    
+    // Debugging - log media items after loading
+    const mediaItems = getItems('MEDIA') || [];
+    console.log(`Media list initialized with ${mediaItems.length} items`);
 };
 
 // Setup media filters
@@ -110,7 +117,12 @@ const loadMedia = () => {
     const media = getItems('MEDIA') || [];
     console.log(`Loading ${media.length} media items`);
     
-    if (!mediaList) return;
+    if (!mediaList) {
+        console.error('Media list element not found in loadMedia');
+        return;
+    }
+    
+    // Clear the existing content
     mediaList.innerHTML = '';
     
     if (media.length === 0) {
@@ -131,14 +143,18 @@ const loadMedia = () => {
     // Sort media by newest first
     media.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     
+    // Add each media item to the list
     media.forEach(item => {
         const mediaElement = createMediaElement(item);
         mediaList.appendChild(mediaElement);
     });
     
+    // Update icons
     if (typeof lucide !== 'undefined' && lucide.createIcons) {
         lucide.createIcons();
     }
+    
+    console.log(`Media list updated with ${media.length} items`);
 };
 
 // Create media element
@@ -377,6 +393,8 @@ const showNamingDialog = (file, type, extension) => {
             // Save the media reference
             saveItem('MEDIA', media);
             dialog.close();
+            
+            // Reload the media list to reflect the new media item
             loadMedia();
             
             // Show success message
@@ -736,4 +754,5 @@ const addMediaStyles = () => {
 };
 
 // Expose to global scope
-window.initializeMedia = initializeMedia; 
+window.initializeMedia = initializeMedia;
+window.loadMedia = loadMedia;  // Make loadMedia globally accessible 

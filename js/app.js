@@ -231,7 +231,16 @@ const initializePage = (pageId) => {
             break;
         case 'media':
             if (typeof window.initializeMedia === 'function') {
+                console.log('Initializing media page...');
                 window.initializeMedia();
+                
+                // Force a reload of media list after a brief delay
+                setTimeout(() => {
+                    if (typeof window.loadMedia === 'function') {
+                        console.log('Reloading media items...');
+                        window.loadMedia();
+                    }
+                }, 100);
             }
             break;
         case 'settings':
