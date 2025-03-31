@@ -314,12 +314,6 @@ const showNamingDialog = (file, type, extension) => {
         return;
     }
     
-    // Show loading indicator
-    const loadingMessage = document.createElement('div');
-    loadingMessage.className = 'loading-message';
-    loadingMessage.innerHTML = '<p>Processing media, please wait...</p>';
-    document.body.appendChild(loadingMessage);
-    
     // Create a dialog for naming
     const dialog = document.createElement('dialog');
     dialog.className = 'naming-dialog';
@@ -347,95 +341,57 @@ const showNamingDialog = (file, type, extension) => {
         </form>
     `;
     
-    // Read the file for preview purposes only
-    const reader = new FileReader();
-    reader.onload = (e) => {
-        // Remove loading message
-        document.body.removeChild(loadingMessage);
-        
-        // Show the dialog
-        document.body.appendChild(dialog);
-        dialog.showModal();
-        
-        // Focus the name input
-        setTimeout(() => {
-            const nameInput = document.getElementById('media-name');
-            if (nameInput) {
-                nameInput.focus();
-                nameInput.select();
-            }
-        }, 100);
-        
-        // Handle form submission
-        const form = dialog.querySelector('.naming-form');
-        form.addEventListener('submit', (evt) => {
-            evt.preventDefault();
-            
-            const filename = `${document.getElementById('media-name').value}.${extension}`;
-            const notes = document.getElementById('media-notes').value;
-            
-            // Create a reference to the media (not storing the actual file)
-            const media = {
-                id: `m-${Date.now()}`,
-                type,
-                filename,
-                notes,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString()
-            };
-            
-            // For demonstration/testing purposes, we can store a URL if needed
-            // In a real app, you'd want to save the file to the device storage
-            if (type === 'photo' || type === 'video') {
-                // Create a local reference with a timestamp to avoid conflicts
-                const localReference = `practicetrack_${type}_${Date.now()}.${extension}`;
-                media.localReference = localReference;
-                
-                // Save the file to the device using a download link
-                const downloadLink = document.createElement('a');
-                downloadLink.href = e.target.result;
-                downloadLink.download = filename;
-                downloadLink.style.display = 'none';
-                document.body.appendChild(downloadLink);
-                downloadLink.click();
-                setTimeout(() => {
-                    document.body.removeChild(downloadLink);
-                }, 100);
-                
-                // IMPORTANT: Do NOT store the data URL in any property
-                // Previous code had: media.tempDisplayUrl = e.target.result;
-                // which would store the full image/video in localStorage
-            }
-            
-            // Save the media reference
-            saveItem('MEDIA', media);
-            dialog.close();
-            
-            // Reload the media list to reflect the new media item
-            loadMedia();
-            
-            // Show success message
-            alert(`Your ${type} "${filename}" has been downloaded to your device. Only a reference has been stored in the app to save storage space.`);
-        });
-        
-        // Handle cancel
-        const cancelButton = dialog.querySelector('.cancel-button');
-        cancelButton.addEventListener('click', () => {
-            dialog.close();
-        });
-        
-        // Handle dialog close
-        dialog.addEventListener('close', () => {
-            dialog.remove();
-        });
-    };
+    document.body.appendChild(dialog);
+    dialog.showModal();
     
-    reader.onerror = () => {
-        document.body.removeChild(loadingMessage);
-        alert('Error processing the file. Please try again.');
-    };
+    // Focus the name input
+    setTimeout(() => {
+        const nameInput = document.getElementById('media-name');
+        if (nameInput) {
+            nameInput.focus();
+            nameInput.select();
+        }
+    }, 100);
     
-    reader.readAsDataURL(file);
+    // Handle form submission
+    const form = dialog.querySelector('.naming-form');
+    form.addEventListener('submit', (evt) => {
+        evt.preventDefault();
+        
+        const filename = `${document.getElementById('media-name').value}.${extension}`;
+        const notes = document.getElementById('media-notes').value;
+        
+        // Create a reference to the media (not storing the actual file)
+        const media = {
+            id: `m-${Date.now()}`,
+            type,
+            filename,
+            notes,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        };
+        
+        // Save the media reference
+        saveItem('MEDIA', media);
+        dialog.close();
+        
+        // Reload the media list to reflect the new media item
+        loadMedia();
+        
+        // Show success message
+        alert(`Your ${type} reference "${filename}" has been saved.`);
+    });
+    
+    // Handle cancel
+    const cancelButton = dialog.querySelector('.cancel-button');
+    cancelButton.addEventListener('click', () => {
+        dialog.close();
+    });
+    
+    // Handle dialog close
+    dialog.addEventListener('close', () => {
+        dialog.remove();
+    });
 };
 
 // Show note dialog
