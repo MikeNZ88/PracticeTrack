@@ -166,15 +166,29 @@ const createMediaElement = (media) => {
     let content = '';
     switch (media.type) {
         case 'photo':
-            if (media.url) {
-                content = `<img src="${media.url}" alt="${media.notes || 'Practice photo'}">`;
+            if (media.tempDisplayUrl) {
+                // Use the temporary URL for display if available (just added)
+                content = `<img src="${media.tempDisplayUrl}" alt="${media.notes || 'Practice photo'}">`;
+            } else if (media.localReference) {
+                // Show reference placeholder for photos
+                content = `<div class="media-placeholder">
+                    <i data-lucide="image"></i>
+                    <p class="reference-text">Photo Reference: ${media.filename}</p>
+                </div>`;
             } else {
                 content = `<div class="media-placeholder"><i data-lucide="image"></i></div>`;
             }
             break;
         case 'video':
-            if (media.url) {
-                content = `<video controls src="${media.url}"></video>`;
+            if (media.tempDisplayUrl) {
+                // Use the temporary URL for display if available (just added)
+                content = `<video controls src="${media.tempDisplayUrl}"></video>`;
+            } else if (media.localReference) {
+                // Show reference placeholder for videos
+                content = `<div class="media-placeholder">
+                    <i data-lucide="video"></i>
+                    <p class="reference-text">Video Reference: ${media.filename}</p>
+                </div>`;
             } else {
                 content = `<div class="media-placeholder"><i data-lucide="video"></i></div>`;
             }
@@ -387,7 +401,30 @@ const showNamingDialog = (file, type, extension) => {
             // For demonstration/testing purposes, we can store a URL if needed
             // In a real app, you'd want to save the file to the device storage
             if (type === 'photo' || type === 'video') {
-                media.url = e.target.result; // This is just for preview in this demo
+                // Don't store the actual file data in localStorage - just store a reference
+                // Instead of: media.url = e.target.result
+                
+                // Create a local reference with a timestamp to avoid conflicts
+                const localReference = `practicetrack_${type}_${Date.now()}.${extension}`;
+                media.localReference = localReference;
+                
+                // In a PWA or native app, you would typically use:
+                // - The File System API for web (if supported)
+                // - Native storage APIs for mobile apps
+                
+                // For this demo, we'll use a download link to save to device
+                const downloadLink = document.createElement('a');
+                downloadLink.href = e.target.result;
+                downloadLink.download = filename;
+                downloadLink.style.display = 'none';
+                document.body.appendChild(downloadLink);
+                downloadLink.click();
+                setTimeout(() => {
+                    document.body.removeChild(downloadLink);
+                }, 100);
+                
+                // For display purposes only - don't store this in localStorage
+                media.tempDisplayUrl = e.target.result;
             }
             
             // Save the media reference
@@ -398,7 +435,7 @@ const showNamingDialog = (file, type, extension) => {
             loadMedia();
             
             // Show success message
-            alert(`Your ${type} has been saved as ${filename}`);
+            alert(`Your ${type} has been saved as ${filename}. The file should download to your device, and a reference has been stored in the app.`);
         });
         
         // Handle cancel
@@ -610,15 +647,26 @@ const addMediaStyles = () => {
         .media-placeholder {
             height: 200px;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
             background: #f9f9f9;
             color: #aaa;
+            padding: 20px;
+            text-align: center;
         }
         
         .media-placeholder svg {
             width: 48px;
             height: 48px;
+            margin-bottom: 10px;
+        }
+        
+        .reference-text {
+            font-size: 0.9em;
+            color: #777;
+            margin-top: 10px;
+            word-break: break-word;
         }
         
         .note-content {
