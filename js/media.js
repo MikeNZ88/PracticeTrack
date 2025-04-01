@@ -1,210 +1,102 @@
-// DOM Elements
-let mediaList;
-let mediaSearchInput;
-let mediaCategoryFilter;
-let mediaDateRangeInputs;
-const addPhotoButton = document.getElementById('add-photo');
-const addVideoButton = document.getElementById('add-video');
-const addNoteButton = document.getElementById('add-note');
-const mediaContainer = document.querySelector('.media-container');
+/**
+ * Media Module
+ * Manages practice media using the common UI framework
+ */
+
+// Media data storage
+let mediaDialog = null;
+
+/**
+ * Initialize media page
+ */
+function initializeMedia() {
+    console.log('Initializing media page');
+    
+    // Use the UI framework to initialize the media page
+    window.UI.initRecordPage({
+        pageId: 'media',
+        recordType: 'MEDIA',
+        listContainerId: 'media-list',
+        searchInputSelector: '.search-input',
+        dateInputsSelector: '.date-input',
+        emptyStateMessage: 'No media yet. Add photos, videos, or notes to track your progress.',
+        emptyStateIcon: 'image',
+        createRecordElementFn: createMediaElement
+    });
+    
+    // Set up media buttons
+    setupMediaButtons();
+    
+    // Add media-specific styles
+    addMediaStyles();
+}
 
 // Device detection
 const isMobileDevice = () => {
     return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 };
 
-// Initialize media page
-const initializeMedia = () => {
-    console.log('Initializing media page');
+/**
+ * Create a media element for the UI
+ * @param {Object} media - The media data
+ * @returns {HTMLElement} - The media element
+ */
+function createMediaElement(media) {
+    const mediaElement = document.createElement('div');
+    mediaElement.className = 'media-card';
+    mediaElement.dataset.id = media.id;
     
-    // Get DOM elements
-    mediaList = document.getElementById('media-list');
-    mediaSearchInput = document.querySelector('.media-search-input');
-    mediaCategoryFilter = document.querySelector('.media-category-filter');
-    mediaDateRangeInputs = document.querySelectorAll('.media-date-input');
-    
-    if (!mediaList) {
-        console.error('Media list element not found');
-        return;
-    }
-    
-    // Clear the media list before populating it
-    mediaList.innerHTML = '';
-    
-    loadMedia();
-    setupMediaButtons();
-    setupMediaFilters();
-    addMediaStyles();
-    
-    // Debugging - log media items after loading
-    const mediaItems = getItems('MEDIA') || [];
-    console.log(`Media list initialized with ${mediaItems.length} items`);
-    console.log('Media page initialized successfully');
-};
-
-// Setup media filters
-const setupMediaFilters = () => {
-    // Add filters before media list if they don't exist
-    if (!document.querySelector('.media-filters')) {
-        const filtersDiv = document.createElement('div');
-        filtersDiv.className = 'filters media-filters';
-        filtersDiv.innerHTML = `
-            <input type="text" class="search-input" placeholder="Search media...">
-            <div class="date-range">
-                <input type="date" class="date-input" placeholder="Start Date">
-                <input type="date" class="date-input" placeholder="End Date">
-            </div>
-        `;
-        
-        // Insert before media list
-        if (mediaContainer) {
-            mediaContainer.insertBefore(filtersDiv, mediaList);
-            
-            // Add event listeners
-            const searchInput = filtersDiv.querySelector('.search-input');
-            const dateInputs = filtersDiv.querySelectorAll('.date-input');
-            
-            searchInput.addEventListener('input', applyMediaFilters);
-            dateInputs.forEach(input => input.addEventListener('change', applyMediaFilters));
-        }
-    }
-};
-
-// Apply media filters
-const applyMediaFilters = () => {
-    const searchInput = document.querySelector('.media-filters .search-input');
-    const dateInputs = document.querySelectorAll('.media-filters .date-input');
-    
-    if (!searchInput || dateInputs.length < 2) return;
-    
-    const searchTerm = searchInput.value.toLowerCase();
-    const startDate = dateInputs[0].value ? new Date(dateInputs[0].value) : null;
-    const endDate = dateInputs[1].value ? new Date(dateInputs[1].value) : null;
-    
-    if (endDate) {
-        // Set end date to end of day
-        endDate.setHours(23, 59, 59, 999);
-    }
-    
-    const mediaItems = document.querySelectorAll('.media-card');
-    
-    mediaItems.forEach(item => {
-        const mediaId = item.dataset.id;
-        const media = getItemById('MEDIA', mediaId);
-        
-        if (!media) return;
-        
-        let visible = true;
-        
-        // Filter by search term
-        if (searchTerm) {
-            const mediaName = media.filename || '';
-            const mediaNotes = media.notes || '';
-            const mediaContent = media.content || '';
-            
-            visible = mediaName.toLowerCase().includes(searchTerm) || 
-                     mediaNotes.toLowerCase().includes(searchTerm) ||
-                     mediaContent.toLowerCase().includes(searchTerm);
-        }
-        
-        // Filter by date range
-        if (visible && startDate) {
-            const mediaDate = new Date(media.createdAt);
-            visible = mediaDate >= startDate;
-        }
-        
-        if (visible && endDate) {
-            const mediaDate = new Date(media.createdAt);
-            visible = mediaDate <= endDate;
-        }
-        
-        item.style.display = visible ? '' : 'none';
-    });
-};
-
-// Load and display media
-const loadMedia = () => {
-    const media = getItems('MEDIA') || [];
-    console.log(`Loading ${media.length} media items`);
-    
-    if (!mediaList) {
-        console.error('Media list element not found in loadMedia');
-        return;
-    }
-    
-    // Clear the existing content
-    mediaList.innerHTML = '';
-    
-    if (media.length === 0) {
-        const emptyState = document.createElement('div');
-        emptyState.className = 'empty-state';
-        emptyState.innerHTML = `
-            <i data-lucide="image"></i>
-            <p>No media yet. Add photos, videos, or notes to track your progress.</p>
-        `;
-        mediaList.appendChild(emptyState);
-        
-        if (typeof lucide !== 'undefined' && lucide.createIcons) {
-            lucide.createIcons();
-        }
-        return;
-    }
-    
-    // Sort media by newest first
-    media.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-    
-    // Add each media item to the list
-    media.forEach(item => {
-        const mediaElement = createMediaElement(item);
-        mediaList.appendChild(mediaElement);
-    });
-    
-    // Update icons
-    if (typeof lucide !== 'undefined' && lucide.createIcons) {
-        lucide.createIcons();
-    }
-    
-    console.log(`Media list updated with ${media.length} items`);
-};
-
-// Create media element
-const createMediaElement = (media) => {
-    const div = document.createElement('div');
-    div.className = 'card media-card';
-    div.dataset.id = media.id;
-    
+    // Format content based on media type
     let content = '';
     switch (media.type) {
         case 'photo':
-            // Always show placeholder for photos
-            content = `<div class="media-placeholder">
-                <i data-lucide="image"></i>
-                <p class="reference-text">Photo Reference: ${media.filename}</p>
-            </div>`;
+            if (media.content) {
+                // Display actual photo if content is available
+                content = `<div class="media-image">
+                    <img src="${media.content}" alt="${media.name || 'Photo'}" />
+                </div>`;
+            } else {
+                // Fallback to placeholder
+                content = `<div class="media-placeholder">
+                    <i data-lucide="image"></i>
+                    <p class="reference-text">${media.filename || 'Photo Reference'}</p>
+                </div>`;
+            }
             break;
         case 'video':
-            // Always show placeholder for videos
-            content = `<div class="media-placeholder">
-                <i data-lucide="video"></i>
-                <p class="reference-text">Video Reference: ${media.filename}</p>
-            </div>`;
+            if (media.content) {
+                // Display actual video if content is available
+                content = `<div class="media-video">
+                    <video controls>
+                        <source src="${media.content}" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                </div>`;
+            } else {
+                // Fallback to placeholder
+                content = `<div class="media-placeholder">
+                    <i data-lucide="video"></i>
+                    <p class="reference-text">${media.filename || 'Video Reference'}</p>
+                </div>`;
+            }
             break;
         case 'note':
-            content = `<div class="note-content">${media.content}</div>`;
+            content = `<div class="note-content">${media.content || ''}</div>`;
             break;
     }
     
+    // Format date
     const date = new Date(media.createdAt).toLocaleDateString();
     const time = new Date(media.createdAt).toLocaleTimeString();
     
-    div.innerHTML = `
+    mediaElement.innerHTML = `
         <div class="media-header">
             <span class="media-date">${date} at ${time}</span>
             <div class="media-actions">
-                <button class="icon-button edit-notes" data-id="${media.id}">
+                <button class="icon-button edit-media" title="Edit Media">
                     <i data-lucide="edit"></i>
                 </button>
-                <button class="icon-button delete-media" data-id="${media.id}">
+                <button class="icon-button delete-media" title="Delete Media">
                     <i data-lucide="trash-2"></i>
                 </button>
             </div>
@@ -213,6 +105,7 @@ const createMediaElement = (media) => {
             ${content}
         </div>
         <div class="media-info">
+            ${media.name ? `<p class="media-name">${media.name}</p>` : ''}
             ${media.filename ? `<p class="media-filename">${media.filename}</p>` : ''}
             <div class="media-notes">
                 ${media.notes ? `<p>${media.notes}</p>` : '<p class="empty-note">Add notes...</p>'}
@@ -221,631 +114,581 @@ const createMediaElement = (media) => {
     `;
     
     // Add event listeners
-    const deleteButton = div.querySelector('.delete-media');
-    if (deleteButton) {
-        deleteButton.addEventListener('click', () => deleteMedia(media.id));
-    }
-    
-    const editButton = div.querySelector('.edit-notes');
+    const editButton = mediaElement.querySelector('.edit-media');
     if (editButton) {
         editButton.addEventListener('click', () => editMediaNotes(media));
     }
     
-    return div;
-};
-
-// Setup media buttons
-const setupMediaButtons = () => {
-    const isMobile = isMobileDevice();
-    
-    if (addPhotoButton) {
-        if (isMobile) {
-            // Mobile: Use device camera
-            addPhotoButton.addEventListener('click', capturePhoto);
-        } else {
-            // Desktop: Disable camera functionality
-            addPhotoButton.classList.add('disabled');
-            addPhotoButton.title = 'Camera functionality is only available on mobile devices';
-            addPhotoButton.addEventListener('click', showDesktopCameraMessage);
-        }
+    const deleteButton = mediaElement.querySelector('.delete-media');
+    if (deleteButton) {
+        deleteButton.addEventListener('click', () => deleteMedia(media.id));
     }
     
-    if (addVideoButton) {
-        if (isMobile) {
-            // Mobile: Use device camera
-            addVideoButton.addEventListener('click', captureVideo);
-        } else {
-            // Desktop: Disable camera functionality
-            addVideoButton.classList.add('disabled');
-            addVideoButton.title = 'Camera functionality is only available on mobile devices';
-            addVideoButton.addEventListener('click', showDesktopCameraMessage);
-        }
-    }
-    
-    if (addNoteButton) {
-        addNoteButton.addEventListener('click', () => showNoteDialog());
-    }
-};
+    return mediaElement;
+}
 
-// Show message for desktop users
-const showDesktopCameraMessage = () => {
-    alert('Camera functionality is only available on mobile devices.');
-};
-
-// Capture photo using device camera
-const capturePhoto = () => {
-    // Create a hidden file input for camera
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'image/*';
-    input.capture = 'camera'; // This will open the camera on supported mobile devices
-    
-    input.onchange = (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        
-        // Get the file extension
-        const extension = file.name.split('.').pop().toLowerCase();
-        
-        // Show naming dialog after capture
-        showNamingDialog(file, 'photo', extension);
-    };
-    
-    input.click();
-};
-
-// Capture video using device camera
-const captureVideo = () => {
-    // Create a hidden file input for camera
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'video/*';
-    input.capture = 'camcorder'; // This will open the video camera on supported mobile devices
-    
-    input.onchange = (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        
-        // Get the file extension
-        const extension = file.name.split('.').pop().toLowerCase();
-        
-        // Show naming dialog after capture
-        showNamingDialog(file, 'video', extension);
-    };
-    
-    input.click();
-};
-
-// Show naming dialog after capture
-const showNamingDialog = (file, type, extension) => {
-    const fileSize = file.size / 1024 / 1024; // size in MB
-    if (fileSize > 5) {
-        alert('File is too large. Please choose a file under 5MB.');
+/**
+ * Show naming dialog after capturing/selecting media
+ * @param {File} file - The media file
+ * @param {string} type - Media type (photo or video)
+ */
+function showNamingDialog(file, type) {
+    // Check file size - limit to 5MB
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxSize) {
+        alert(`File is too large. Please select a file smaller than 5MB.`);
         return;
     }
     
-    // Create a dialog for naming
-    const dialog = document.createElement('dialog');
-    dialog.className = 'naming-dialog';
-    
-    // Create a sensible default name
-    const defaultName = `practice_${type}_${new Date().toISOString().split('T')[0]}`;
-    
-    dialog.innerHTML = `
-        <form class="naming-form">
-            <h2>Name Your ${type.charAt(0).toUpperCase() + type.slice(1)}</h2>
-            <p>Please provide a name for this ${type} to help you identify it later.</p>
-            <div class="form-group">
-                <label for="media-name">Name</label>
-                <input type="text" id="media-name" value="${defaultName}" required>
-                <span class="extension">.${extension}</span>
-            </div>
-            <div class="form-group">
-                <label for="media-notes">Notes (optional)</label>
-                <textarea id="media-notes" rows="3"></textarea>
-            </div>
-            <div class="dialog-actions">
-                <button type="button" class="secondary-button cancel-button">Cancel</button>
-                <button type="submit" class="primary-button">Save</button>
-            </div>
-        </form>
-    `;
-    
-    document.body.appendChild(dialog);
-    dialog.showModal();
-    
-    // Focus the name input
-    setTimeout(() => {
-        const nameInput = document.getElementById('media-name');
-        if (nameInput) {
-            nameInput.focus();
-            nameInput.select();
+    // Prepare fields for the dialog
+    const fields = [
+        {
+            type: 'text',
+            id: 'media-name',
+            label: 'Name',
+            required: true
+        },
+        {
+            type: 'textarea',
+            id: 'media-notes',
+            label: 'Notes',
+            rows: 4
         }
-    }, 100);
+    ];
     
-    // Handle form submission
-    const form = dialog.querySelector('.naming-form');
-    form.addEventListener('submit', (evt) => {
-        evt.preventDefault();
-        
-        const filename = `${document.getElementById('media-name').value}.${extension}`;
-        const notes = document.getElementById('media-notes').value;
-        
-        // Create a reference to the media (not storing the actual file)
-        const media = {
-            id: `m-${Date.now()}`,
-            type,
-            filename,
-            notes,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-        };
-        
-        // Save the media reference
-        saveItem('MEDIA', media);
-        dialog.close();
-        
-        // Reload the media list to reflect the new media item
-        loadMedia();
-        
-        // Show success message
-        alert(`Your ${type} reference "${filename}" has been saved.`);
-    });
-    
-    // Handle cancel
-    const cancelButton = dialog.querySelector('.cancel-button');
-    cancelButton.addEventListener('click', () => {
-        dialog.close();
-    });
-    
-    // Handle dialog close
-    dialog.addEventListener('close', () => {
-        dialog.remove();
-    });
-};
-
-// Show note dialog
-const showNoteDialog = (existingNote = null) => {
-    const dialog = document.createElement('dialog');
-    dialog.className = 'note-dialog';
-    dialog.innerHTML = `
-        <form class="note-form">
-            <h2>${existingNote ? 'Edit' : 'Add'} Note</h2>
-            <div class="form-group">
-                <label for="note-content">Content</label>
-                <textarea id="note-content" required>${existingNote?.content || ''}</textarea>
-            </div>
-            <div class="form-group">
-                <label for="note-notes">Additional Notes</label>
-                <textarea id="note-notes">${existingNote?.notes || ''}</textarea>
-            </div>
-            <div class="dialog-actions">
-                <button type="button" class="secondary-button cancel-button">Cancel</button>
-                <button type="submit" class="primary-button">Save</button>
-            </div>
-        </form>
-    `;
-    
-    document.body.appendChild(dialog);
-    dialog.showModal();
-    
-    // Handle form submission
-    const form = dialog.querySelector('.note-form');
-    form.addEventListener('submit', (e) => {
-        e.preventDefault();
-        
-        const content = document.getElementById('note-content').value;
-        const notes = document.getElementById('note-notes').value;
-        
-        if (existingNote) {
-            // Update existing note
-            existingNote.content = content;
-            existingNote.notes = notes;
-            existingNote.updatedAt = new Date().toISOString();
+    // Create dialog using UI framework
+    const dialog = window.UI.createStandardDialog({
+        title: `New ${type.charAt(0).toUpperCase() + type.slice(1)}`,
+        fields: fields,
+        onSubmit: (dialog, e) => {
+            const form = e.target;
+            const nameInput = form.querySelector('#media-name');
+            const notesInput = form.querySelector('#media-notes');
             
-            saveItem('MEDIA', existingNote);
-        } else {
-            // Create new note
-            const media = {
-                id: `m-${Date.now()}`,
-                type: 'note',
-                content,
-                notes,
-                filename: `note_${new Date().toISOString().split('T')[0]}.txt`,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString()
+            if (!nameInput.value.trim()) {
+                alert('Please enter a name for this media');
+                return;
+            }
+            
+            // Read file and convert to data URL
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                // Create media object
+                const newMedia = {
+                    id: `media_${Date.now()}`,
+                    type: type,
+                    name: nameInput.value.trim(),
+                    content: event.target.result,
+                    notes: notesInput.value,
+                    filename: file.name,
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString()
+                };
+                
+                // Save the new media
+                if (window.addItem) {
+                    window.addItem('MEDIA', newMedia);
+                } else {
+                    saveMedia(newMedia);
+                }
+                
+                dialog.close();
+                
+                // Reload media list
+                window.UI.loadRecords('media', {
+                    recordType: 'MEDIA',
+                    createRecordElementFn: createMediaElement
+                });
+                
+                // Show success message
+                if (window.showNotification) {
+                    window.showNotification(`${type.charAt(0).toUpperCase() + type.slice(1)} Added`, 
+                        `Your ${type} has been saved.`);
+                }
             };
             
-            saveItem('MEDIA', media);
-        }
-        
-        dialog.close();
-        loadMedia();
+            reader.onerror = function() {
+                console.error('Error reading file');
+                alert('Error reading file. Please try again.');
+            };
+            
+            reader.readAsDataURL(file);
+        },
+        onCancel: (dialog) => dialog.close(),
+        submitButtonText: 'Save',
+        cancelButtonText: 'Cancel'
     });
     
-    // Handle cancel
-    const cancelButton = dialog.querySelector('.cancel-button');
-    cancelButton.addEventListener('click', () => dialog.close());
-    
-    // Handle dialog close
-    dialog.addEventListener('close', () => dialog.remove());
-};
+    dialog.showModal();
+}
 
-// Edit media notes
-const editMediaNotes = (media) => {
+/**
+ * Setup photo capture functionality
+ */
+function setupPhotoCapture() {
+    const photoBtn = document.getElementById('add-photo');
+    if (!photoBtn) return;
+    
+    if (isMobileDevice()) {
+        // Mobile: Direct camera capture
+        photoBtn.addEventListener('click', () => {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+            input.capture = 'environment'; // Use the back camera
+            
+            input.onchange = function(e) {
+                if (e.target.files && e.target.files[0]) {
+                    showNamingDialog(e.target.files[0], 'photo');
+                }
+            };
+            
+            input.click();
+        });
+    } else {
+        // Desktop: File selection
+        photoBtn.addEventListener('click', () => {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+            
+            input.onchange = function(e) {
+                if (e.target.files && e.target.files[0]) {
+                    showNamingDialog(e.target.files[0], 'photo');
+                }
+            };
+            
+            input.click();
+        });
+    }
+}
+
+/**
+ * Setup video capture functionality
+ */
+function setupVideoCapture() {
+    const videoBtn = document.getElementById('add-video');
+    if (!videoBtn) return;
+    
+    if (isMobileDevice()) {
+        // Mobile: Direct camera capture
+        videoBtn.addEventListener('click', () => {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'video/*';
+            input.capture = 'environment'; // Use the back camera
+            
+            input.onchange = function(e) {
+                if (e.target.files && e.target.files[0]) {
+                    showNamingDialog(e.target.files[0], 'video');
+                }
+            };
+            
+            input.click();
+        });
+    } else {
+        // Desktop: File selection
+        videoBtn.addEventListener('click', () => {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'video/*';
+            
+            input.onchange = function(e) {
+                if (e.target.files && e.target.files[0]) {
+                    showNamingDialog(e.target.files[0], 'video');
+                }
+            };
+            
+            input.click();
+        });
+    }
+}
+
+// Set up media buttons with individual handlers
+function setupMediaButtons() {
+    console.log('Setting up media buttons');
+    
+    // Setup photo capture
+    setupPhotoCapture();
+    
+    // Setup video capture
+    setupVideoCapture();
+    
+    // Setup note creation
+    const noteBtn = document.getElementById('add-note');
+    if (noteBtn) {
+        noteBtn.addEventListener('click', () => showNoteDialog());
+    }
+}
+
+/**
+ * Show dialog for adding a new note
+ * @param {Object} existingNote - Optional existing note for editing
+ */
+function showNoteDialog(existingNote = null) {
+    // Set up form fields
+    const fields = [
+        {
+            type: 'textarea',
+            id: 'note-content',
+            label: 'Content',
+            rows: 6,
+            value: existingNote ? existingNote.content || '' : ''
+        },
+        {
+            type: 'textarea',
+            id: 'note-notes',
+            label: 'Additional Notes',
+            rows: 3,
+            value: existingNote ? existingNote.notes || '' : ''
+        }
+    ];
+    
+    // Create dialog using UI framework
+    const dialog = window.UI.createStandardDialog({
+        title: existingNote ? 'Edit Note' : 'Add Note',
+        fields: fields,
+        onSubmit: (dialog, e) => {
+            const form = e.target;
+            const contentInput = form.querySelector('#note-content');
+            const notesInput = form.querySelector('#note-notes');
+            
+            const content = contentInput.value;
+            const notes = notesInput.value;
+            
+            if (existingNote) {
+                // Update existing note
+                existingNote.content = content;
+                existingNote.notes = notes;
+                existingNote.updatedAt = new Date().toISOString();
+                
+                // Save the updated note
+                if (window.updateItem) {
+                    window.updateItem('MEDIA', existingNote.id, existingNote);
+                } else {
+                    saveMedia(existingNote);
+                }
+            } else {
+                // Create new note
+                const newNote = {
+                    id: `media_${Date.now()}`,
+                    type: 'note',
+                    content: content,
+                    notes: notes,
+                    filename: `note_${new Date().toISOString().split('T')[0]}.txt`,
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString()
+                };
+                
+                // Save the new note
+                if (window.addItem) {
+                    window.addItem('MEDIA', newNote);
+                } else {
+                    saveMedia(newNote);
+                }
+            }
+            
+            dialog.close();
+            
+            // Reload media list
+            window.UI.loadRecords('media', {
+                recordType: 'MEDIA',
+                createRecordElementFn: createMediaElement
+            });
+            
+            // Show success message
+            if (window.showNotification) {
+                window.showNotification(existingNote ? 'Note Updated' : 'Note Added', 
+                    existingNote ? 'Your note has been updated.' : 'Your note has been added.');
+            }
+        },
+        onCancel: (dialog) => dialog.close(),
+        submitButtonText: 'Save',
+        cancelButtonText: 'Cancel'
+    });
+    
+    dialog.showModal();
+}
+
+/**
+ * Edit media notes
+ * @param {Object} media - The media to edit
+ */
+function editMediaNotes(media) {
+    // For note type, use the note dialog
     if (media.type === 'note') {
         showNoteDialog(media);
         return;
     }
     
-    const dialog = document.createElement('dialog');
-    dialog.className = 'edit-dialog';
-    dialog.innerHTML = `
-        <form class="edit-form">
-            <h2>Edit Details</h2>
-            ${media.filename ? `
-            <div class="form-group">
-                <label>Filename</label>
-                <p class="filename-display">${media.filename}</p>
-            </div>
-            ` : ''}
-            <div class="form-group">
-                <label for="media-notes">Notes</label>
-                <textarea id="media-notes" rows="4">${media.notes || ''}</textarea>
-            </div>
-            <div class="dialog-actions">
-                <button type="button" class="secondary-button cancel-button">Cancel</button>
-                <button type="submit" class="primary-button">Save</button>
-            </div>
-        </form>
-    `;
+    // For photos and videos, show a simpler dialog
+    const fields = [
+        {
+            type: 'text',
+            id: 'media-filename',
+            label: 'Filename',
+            value: media.filename || '',
+            disabled: true
+        },
+        {
+            type: 'textarea',
+            id: 'media-notes',
+            label: 'Notes',
+            rows: 4,
+            value: media.notes || ''
+        }
+    ];
     
-    document.body.appendChild(dialog);
-    dialog.showModal();
-    
-    // Handle form submission
-    const form = dialog.querySelector('.edit-form');
-    form.addEventListener('submit', (e) => {
-        e.preventDefault();
-        
-        media.notes = document.getElementById('media-notes').value;
-        media.updatedAt = new Date().toISOString();
-        
-        saveItem('MEDIA', media);
-        dialog.close();
-        loadMedia();
+    // Create dialog using UI framework
+    const dialog = window.UI.createStandardDialog({
+        title: `Edit ${media.type.charAt(0).toUpperCase() + media.type.slice(1)} Details`,
+        fields: fields,
+        onSubmit: (dialog, e) => {
+            const form = e.target;
+            const notesInput = form.querySelector('#media-notes');
+            
+            // Update media object
+            media.notes = notesInput.value;
+            media.updatedAt = new Date().toISOString();
+            
+            // Save updates
+            if (window.updateItem) {
+                window.updateItem('MEDIA', media.id, media);
+            } else {
+                saveMedia(media);
+            }
+            
+            dialog.close();
+            
+            // Reload media list
+            window.UI.loadRecords('media', {
+                recordType: 'MEDIA',
+                createRecordElementFn: createMediaElement
+            });
+            
+            // Show success message
+            if (window.showNotification) {
+                window.showNotification('Media Updated', 'Your media details have been updated.');
+            }
+        },
+        onCancel: (dialog) => dialog.close(),
+        submitButtonText: 'Save',
+        cancelButtonText: 'Cancel'
     });
     
-    // Handle cancel
-    const cancelButton = dialog.querySelector('.cancel-button');
-    cancelButton.addEventListener('click', () => dialog.close());
-    
-    // Handle dialog close
-    dialog.addEventListener('close', () => dialog.remove());
-};
+    dialog.showModal();
+}
 
-// Handle media upload (fallback for desktop)
-const handleMediaUpload = (event, type) => {
-    const file = event.target.files[0];
-    if (!file) return;
+/**
+ * Delete a media item
+ * @param {string} mediaId - The ID of the media to delete
+ */
+async function deleteMedia(mediaId) {
+    // Confirm deletion using UI framework
+    const confirmed = await window.UI.confirmDialog({
+        title: 'Delete Media',
+        message: 'Are you sure you want to delete this media?',
+        confirmText: 'Delete',
+        cancelText: 'Cancel',
+        isDestructive: true
+    });
     
-    // Get the file extension
-    const extension = file.name.split('.').pop().toLowerCase();
+    if (!confirmed) return;
     
-    // Show naming dialog
-    showNamingDialog(file, type, extension);
-};
-
-// Delete media
-const deleteMedia = (mediaId) => {
-    if (confirm('Are you sure you want to delete this media?')) {
-        deleteItem('MEDIA', mediaId);
-        loadMedia();
+    try {
+        // Use data layer if available
+        if (window.deleteItem) {
+            window.deleteItem('MEDIA', mediaId);
+        } else {
+            // Legacy localStorage handling
+            let mediaItems = [];
+            try {
+                const stored = localStorage.getItem('practiceTrack_media');
+                if (stored) {
+                    mediaItems = JSON.parse(stored);
+                }
+            } catch (e) {
+                console.error('Error reading media:', e);
+                return;
+            }
+            
+            // Filter out the deleted media
+            mediaItems = mediaItems.filter(item => item.id !== mediaId);
+            
+            // Save back to storage
+            localStorage.setItem('practiceTrack_media', JSON.stringify(mediaItems));
+        }
+        
+        // Reload media list
+        window.UI.loadRecords('media', {
+            recordType: 'MEDIA',
+            createRecordElementFn: createMediaElement
+        });
+        
+        // Show success message
+        if (window.showNotification) {
+            window.showNotification('Media Deleted', 'The media has been deleted.');
+        }
+    } catch (error) {
+        console.error('Error deleting media:', error);
+        alert('Error deleting media. Please try again.');
     }
-};
+}
 
-// Add CSS styles for media
-const addMediaStyles = () => {
-    const style = document.createElement('style');
-    style.textContent = `
-        .media-filters {
-            margin-bottom: 20px;
+/**
+ * Save media to localStorage (legacy method)
+ * @param {Object} media - The media to save
+ */
+function saveMedia(media) {
+    const storageKey = 'practiceTrack_media';
+    let mediaItems = [];
+    
+    try {
+        const stored = localStorage.getItem(storageKey);
+        if (stored) {
+            mediaItems = JSON.parse(stored);
         }
-        
-        .media-list {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 20px;
-            margin-top: 20px;
-        }
-        
+    } catch (e) {
+        console.error('Error reading media:', e);
+        mediaItems = [];
+    }
+    
+    // Find existing item or add new
+    const index = mediaItems.findIndex(item => item.id === media.id);
+    if (index !== -1) {
+        mediaItems[index] = media;
+    } else {
+        mediaItems.push(media);
+    }
+    
+    // Save to localStorage
+    localStorage.setItem(storageKey, JSON.stringify(mediaItems));
+}
+
+/**
+ * Add media-specific styles
+ */
+function addMediaStyles() {
+    // Create a style element if it doesn't exist
+    let styleEl = document.getElementById('media-styles');
+    if (!styleEl) {
+        styleEl = document.createElement('style');
+        styleEl.id = 'media-styles';
+        document.head.appendChild(styleEl);
+    }
+    
+    // Add media-specific CSS
+    styleEl.textContent = `
         .media-card {
-            border: 1px solid #eee;
+            border: 1px solid #ddd;
             border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            background: #fff;
+            padding: 15px;
+            margin-bottom: 15px;
+            background-color: #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
         
         .media-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 10px;
-            background: #f5f5f5;
-            border-bottom: 1px solid #eee;
+            margin-bottom: 10px;
+        }
+        
+        .media-date {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .media-actions {
+            display: flex;
+            gap: 8px;
         }
         
         .media-content {
-            max-height: 250px;
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            margin-bottom: 15px;
         }
         
-        .media-content img, 
-        .media-content video {
-            width: 100%;
-            object-fit: cover;
+        .media-image img {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 4px;
+            display: block;
+            margin: 0 auto;
+        }
+        
+        .media-video video {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 4px;
+            display: block;
+            margin: 0 auto;
         }
         
         .media-placeholder {
-            height: 200px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            background: #f9f9f9;
-            color: #aaa;
+            background-color: #f9f9f9;
             padding: 20px;
+            border-radius: 4px;
             text-align: center;
         }
         
-        .media-placeholder svg {
-            width: 48px;
-            height: 48px;
+        .media-placeholder i {
+            color: #999;
             margin-bottom: 10px;
+            width: 40px;
+            height: 40px;
         }
         
         .reference-text {
-            font-size: 0.9em;
-            color: #777;
-            margin-top: 10px;
-            word-break: break-word;
+            color: #666;
+            font-size: 14px;
+            margin: 0;
         }
         
         .note-content {
+            background-color: #ffffd0;
             padding: 15px;
-            width: 100%;
-            min-height: 100px;
-            background: #f9f9f9;
+            border-radius: 4px;
             white-space: pre-wrap;
+            min-height: 100px;
         }
         
-        .media-info {
-            padding: 10px;
+        .media-name {
+            font-weight: bold;
+            font-size: 16px;
+            margin: 0 0 5px 0;
         }
         
         .media-filename {
-            font-weight: bold;
-            margin-bottom: 5px;
-            word-break: break-all;
-        }
-        
-        .media-notes {
-            font-size: 0.9em;
-            color: #555;
-            border-top: 1px solid #eee;
-            padding-top: 5px;
-        }
-        
-        .empty-note {
-            color: #aaa;
+            color: #666;
+            font-size: 14px;
+            margin: 0 0 10px 0;
             font-style: italic;
         }
         
-        .icon-button {
-            background: none;
-            border: none;
-            cursor: pointer;
-            color: #555;
-            padding: 5px;
-            border-radius: 4px;
-        }
-        
-        .icon-button:hover {
-            background: #eee;
-        }
-        
-        .empty-state {
-            text-align: center;
-            padding: 40px;
-            color: #888;
-        }
-        
-        .empty-state svg {
-            width: 48px;
-            height: 48px;
-            margin-bottom: 10px;
-        }
-        
-        .loading-message {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(255, 255, 255, 0.8);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-        }
-        
-        .naming-dialog,
-        .note-dialog,
-        .edit-dialog {
-            padding: 20px;
-            border-radius: 8px;
-            border: 1px solid #eee;
-            box-shadow: 0 2px 20px rgba(0,0,0,0.2);
-            max-width: 500px;
-            width: 100%;
-        }
-        
-        .naming-form,
-        .note-form,
-        .edit-form {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-        
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-        
-        .form-group label {
-            font-weight: bold;
-        }
-        
-        .form-group input,
-        .form-group textarea {
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
-        
-        .extension {
-            color: #888;
-            display: inline-block;
-            margin-left: 5px;
-        }
-        
-        .filename-display {
-            padding: 8px;
-            background: #f5f5f5;
-            border-radius: 4px;
-            word-break: break-all;
-        }
-        
-        .dialog-actions {
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
+        .media-notes {
+            border-top: 1px solid #eee;
+            padding-top: 10px;
             margin-top: 10px;
         }
         
-        .disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
+        .empty-note {
+            color: #999;
+            font-style: italic;
         }
     `;
-    document.head.appendChild(style);
-};
-
-// Make functions available globally
-window.initializeMedia = initializeMedia;
-window.loadMedia = loadMedia;
-window.setupMediaButtons = setupMediaButtons;
-window.setupMediaFilters = setupMediaFilters;
-window.addMediaStyles = addMediaStyles;
-
-function updateMediaList(mediaItems) {
-    console.log('Updating media list');
-    
-    // Get current instrument from settings
-    let settings = window.getItems('SETTINGS');
-    settings = Array.isArray(settings) && settings.length > 0 ? settings[0] : {};
-    const currentInstrument = settings.primaryInstrument || '';
-    console.log('Current instrument for media:', currentInstrument);
-    
-    // Filter media by current instrument
-    if (currentInstrument && mediaItems) {
-        mediaItems = mediaItems.filter(item => item.instrument === currentInstrument);
-        console.log(`Filtered to ${mediaItems.length} media items for instrument: ${currentInstrument}`);
-    }
-    
-    // Get media list container
-    const mediaList = document.getElementById('media-list');
-    if (!mediaList) {
-        console.error('Media list container not found');
-        return;
-    }
-    
-    // Clear existing media items
-    mediaList.innerHTML = '';
-    
-    // Show message if no media
-    if (!mediaItems || mediaItems.length === 0) {
-        const noMedia = document.createElement('div');
-        noMedia.className = 'no-media';
-        noMedia.textContent = currentInstrument ? 
-            `No media found for ${currentInstrument}` : 
-            'No media found';
-        mediaList.appendChild(noMedia);
-        return;
-    }
-    
-    // Sort media by date (newest first)
-    mediaItems.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-    
-    // Add media items to list
-    mediaItems.forEach(item => {
-        const mediaElement = createMediaElement(item);
-        if (mediaElement) {
-            mediaList.appendChild(mediaElement);
-        }
-    });
-    
-    // Refresh icons
-    if (window.lucide && window.lucide.createIcons) {
-        window.lucide.createIcons();
-    }
 }
 
-function addMediaItem(mediaData) {
-    try {
-        // Get current instrument from settings
-        let settings = window.getItems('SETTINGS');
-        settings = Array.isArray(settings) && settings.length > 0 ? settings[0] : {};
-        const currentInstrument = settings.primaryInstrument || '';
-        
-        if (!currentInstrument) {
-            alert('Please select an instrument in settings before adding media');
-            return null;
-        }
-        
-        // Create media object with instrument
-        const mediaItem = {
-            id: `m-${Date.now()}`,
-            type: mediaData.type,
-            title: mediaData.title,
-            content: mediaData.content,
-            description: mediaData.description || '',
-            categoryId: mediaData.categoryId,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-            instrument: currentInstrument
-        };
-        
-        console.log('Adding new media item for instrument:', currentInstrument, mediaItem);
-        
-        // Get existing media
-        let mediaItems = getItems('MEDIA') || [];
-        
-        // Add new item
-        mediaItems.push(mediaItem);
-        
-        // Save back to storage
-        setItems('MEDIA', mediaItems);
-        
-        return mediaItem;
-    } catch (error) {
-        console.error('Error adding media item:', error);
-        return null;
+// Initialize when page changes to media
+document.addEventListener('pageChanged', (e) => {
+    if (e.detail === 'media') {
+        initializeMedia();
     }
-} 
+});
+
+// Make function available globally
+window.initializeMedia = initializeMedia; 
