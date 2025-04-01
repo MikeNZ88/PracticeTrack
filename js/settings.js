@@ -94,13 +94,49 @@ const setupCategoryManager = () => {
         addCategoryBtn.addEventListener('click', addNewCategory);
     }
     
+    // Ensure default categories exist
+    ensureDefaultCategories();
+    
     // Display categories
     populateCategoriesList();
+    
+    // Add event listener to instrument dropdown
+    if (primaryInstrumentSelect) {
+        primaryInstrumentSelect.addEventListener('change', populateCategoriesList);
+    }
     
     // Initialize Lucide icons
     if (typeof lucide !== 'undefined' && lucide.createIcons) {
         lucide.createIcons();
     }
+};
+
+// Ensure default categories exist
+const ensureDefaultCategories = () => {
+    const defaultCategoryIds = ['c-1', 'c-2', 'c-3', 'c-4', 'c-5'];
+    const defaultCategoryNames = ['Scales', 'Technique', 'Repertoire', 'Sight Reading', 'Theory'];
+    
+    const existingCategories = getItems('CATEGORIES') || [];
+    const existingIds = existingCategories.map(cat => cat.id);
+    
+    // Check each default category
+    defaultCategoryIds.forEach((id, index) => {
+        if (!existingIds.includes(id)) {
+            // This default category is missing, create it
+            const newCategory = {
+                id: id,
+                name: defaultCategoryNames[index],
+                isHidden: false,
+                isDefault: true,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            };
+            
+            // Save the new category
+            saveItem('CATEGORIES', newCategory);
+            console.log(`Created missing default category: ${defaultCategoryNames[index]}`);
+        }
+    });
 };
 
 // Add new category
@@ -121,11 +157,11 @@ const addNewCategory = () => {
         return;
     }
     
-    // Create new category
+    // Create new category - explicitly set isHidden to false
     const newCategory = {
         id: 'c-' + Date.now(),
         name: categoryName,
-        isHidden: false,
+        isHidden: false, // Explicitly set to false, not undefined
         isDefault: false,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
@@ -133,12 +169,18 @@ const addNewCategory = () => {
     
     // Save category
     saveItem('CATEGORIES', newCategory);
+    console.log(`New category added: ${categoryName}`, newCategory);
     
     // Clear input
     newCategoryInput.value = '';
     
     // Refresh categories list
     populateCategoriesList();
+    
+    // Also update timer categories
+    if (typeof window.updateTimerCategories === 'function') {
+        window.updateTimerCategories();
+    }
 };
 
 // Populate instrument dropdown
@@ -189,12 +231,66 @@ const populateCategoriesList = () => {
         categoriesContainer.innerHTML = '';
     }
     
+    // Get ALL categories regardless of hidden status
     const categories = getItems('CATEGORIES') || [];
+    console.log('Categories found:', categories.length);
     
-    // Check if each category is a default category
+    // Fix any potentially corrupted isHidden values (convert undefined/null to false)
+    categories.forEach(cat => {
+        if (cat.isHidden !== true) {
+            cat.isHidden = false;
+        }
+    });
+    
+    // Check for each category if it's a default
     const defaultCategoryIds = ['c-1', 'c-2', 'c-3', 'c-4', 'c-5'];
+    
+    // Group categories
+    const customVisible = [];
+    const customHidden = [];
+    const defaultVisible = [];
+    const defaultHidden = [];
+    
+    // Categorize items
     categories.forEach(category => {
         const isDefault = defaultCategoryIds.includes(category.id);
+        const isHidden = category.isHidden === true;
+        
+        // Add to the appropriate array
+        if (isDefault) {
+            if (isHidden) {
+                defaultHidden.push(category);
+            } else {
+                defaultVisible.push(category);
+            }
+        } else {
+            if (isHidden) {
+                customHidden.push(category);
+            } else {
+                customVisible.push(category);
+            }
+        }
+    });
+    
+    // Sort each group alphabetically
+    const sortByName = (a, b) => a.name.localeCompare(b.name);
+    customVisible.sort(sortByName);
+    customHidden.sort(sortByName);
+    defaultVisible.sort(sortByName);
+    defaultHidden.sort(sortByName);
+    
+    // Order: 1) custom visible 2) default visible 3) custom hidden 4) default hidden
+    const orderedCategories = [
+        ...customVisible,
+        ...defaultVisible,
+        ...customHidden,
+        ...defaultHidden
+    ];
+    
+    // Display all categories
+    orderedCategories.forEach(category => {
+        const isDefault = defaultCategoryIds.includes(category.id);
+        const isHidden = category.isHidden === true;
         
         const div = document.createElement('div');
         div.className = 'category-item';
@@ -202,11 +298,12 @@ const populateCategoriesList = () => {
             <span class="category-name">
                 ${category.name}
                 ${isDefault ? '<span class="default-badge">Default</span>' : ''}
+                ${isHidden ? '<span class="hidden-badge">Hidden</span>' : ''}
             </span>
             <div class="category-actions">
-                <button type="button" class="visibility-toggle ${category.isHidden ? 'hidden' : ''}" 
-                        data-id="${category.id}" data-hidden="${category.isHidden}">
-                    <i data-lucide="${category.isHidden ? 'eye-off' : 'eye'}"></i>
+                <button type="button" class="visibility-toggle ${isHidden ? 'hidden' : ''}" 
+                        data-id="${category.id}" data-hidden="${isHidden}">
+                    <i data-lucide="${isHidden ? 'eye-off' : 'eye'}"></i>
                 </button>
                 ${!isDefault ? `
                 <button type="button" class="delete-category" data-id="${category.id}">
@@ -236,26 +333,6 @@ const populateCategoriesList = () => {
     if (typeof lucide !== 'undefined' && lucide.createIcons) {
         lucide.createIcons();
     }
-    
-    // Add some basic styling for category items
-    const categoryItems = document.querySelectorAll('.category-item');
-    categoryItems.forEach(item => {
-        item.style.display = 'flex';
-        item.style.justifyContent = 'space-between';
-        item.style.alignItems = 'center';
-        item.style.padding = '8px 0';
-        item.style.borderBottom = '1px solid #eee';
-    });
-    
-    // Style the default badge
-    const defaultBadges = document.querySelectorAll('.default-badge');
-    defaultBadges.forEach(badge => {
-        badge.style.fontSize = '0.7em';
-        badge.style.padding = '2px 5px';
-        badge.style.marginLeft = '5px';
-        badge.style.backgroundColor = '#eee';
-        badge.style.borderRadius = '4px';
-    });
 };
 
 // Delete a category (non-default only)
@@ -283,23 +360,49 @@ const setupThemeButtons = () => {
 
 // Toggle category visibility
 const toggleCategoryVisibility = (categoryId) => {
-    const category = getItemById('CATEGORIES', categoryId);
-    if (!category) return;
+    console.log(`Toggling visibility for category ${categoryId}`);
     
-    category.isHidden = !category.isHidden;
+    // Get the category
+    const category = getItemById('CATEGORIES', categoryId);
+    if (!category) {
+        console.error(`Category not found: ${categoryId}`);
+        return;
+    }
+    
+    // Get current state and toggle it - explicitly check for true/false
+    const isCurrentlyHidden = category.isHidden === true;
+    console.log(`Category "${category.name}" is currently ${isCurrentlyHidden ? 'hidden' : 'visible'}`);
+    
+    // Toggle the isHidden property with explicit boolean
+    category.isHidden = isCurrentlyHidden ? false : true;
+    console.log(`Setting category "${category.name}" to ${category.isHidden ? 'hidden' : 'visible'}`);
+    
+    // Save the updated category
     saveItem('CATEGORIES', category);
     
-    // Update UI
-    const toggle = document.querySelector(`.visibility-toggle[data-id="${categoryId}"]`);
-    if (toggle) {
-        toggle.dataset.hidden = category.isHidden;
-        toggle.classList.toggle('hidden', category.isHidden);
-        toggle.innerHTML = `<i data-lucide="${category.isHidden ? 'eye-off' : 'eye'}"></i>`;
-        
-        if (typeof lucide !== 'undefined' && lucide.createIcons) {
-            lucide.createIcons();
-        }
-    }
+    // Also update settings with hidden categories
+    updateHiddenCategoriesInSettings();
+    
+    // Refresh the categories display
+    populateCategoriesList();
+};
+
+// Update hidden categories in settings
+const updateHiddenCategoriesInSettings = () => {
+    const settings = getItems('SETTINGS')[0] || {};
+    const categories = getItems('CATEGORIES') || [];
+    
+    // Get IDs of hidden categories
+    const hiddenCategoryIds = categories
+        .filter(cat => cat.isHidden === true)
+        .map(cat => cat.id);
+    
+    console.log(`Found ${hiddenCategoryIds.length} hidden categories to save in settings`);
+    settings.hiddenCategories = hiddenCategoryIds;
+    settings.updatedAt = new Date().toISOString();
+    
+    // Save settings
+    saveItem('SETTINGS', settings);
 };
 
 // Handle settings form submission
@@ -309,7 +412,7 @@ const handleSettingsSubmit = (e) => {
     
     const settings = getItems('SETTINGS')[0] || {};
     
-    // Update settings
+    // Update basic settings
     if (primaryInstrumentSelect) {
         settings.primaryInstrument = primaryInstrumentSelect.value;
     }
@@ -322,20 +425,24 @@ const handleSettingsSubmit = (e) => {
         settings.lessonTime = lessonTimeInput.value;
     }
     
-    // Get hidden categories
-    settings.hiddenCategories = Array.from(document.querySelectorAll('.visibility-toggle[data-hidden="true"]'))
-        .map(toggle => toggle.dataset.id);
-    
     // Get theme
     const activeThemeButton = document.querySelector('.theme-button.active');
     if (activeThemeButton) {
         settings.theme = activeThemeButton.dataset.theme;
     }
     
+    // Update hidden categories as well
+    updateHiddenCategoriesInSettings();
+    
     settings.updatedAt = new Date().toISOString();
     
     // Save settings
     saveItem('SETTINGS', settings);
+    
+    // Refresh the timer page categories dropdown
+    if (typeof window.updateTimerCategories === 'function') {
+        window.updateTimerCategories();
+    }
     
     // Show success state
     const submitButton = settingsForm.querySelector('button[type="submit"]');
@@ -441,6 +548,35 @@ const addStyles = () => {
             font-size: 0.9em;
             color: #666;
             margin-top: 5px;
+        }
+        .category-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .default-badge, .hidden-badge {
+            font-size: 0.7em;
+            padding: 2px 5px;
+            margin-left: 5px;
+            border-radius: 4px;
+        }
+        .default-badge {
+            background-color: #eee;
+        }
+        .hidden-badge {
+            background-color: #ffeeee;
+            color: #cc5555;
+        }
+        .success {
+            background-color: #4caf50 !important;
+            color: white !important;
+        }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(65, 84, 179, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(65, 84, 179, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(65, 84, 179, 0); }
         }
     `;
     document.head.appendChild(style);

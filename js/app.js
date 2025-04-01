@@ -58,6 +58,14 @@ const initializeApp = () => {
         setupNavigation();
         console.log('Navigation setup complete');
         
+        // Add event listener for the header settings button
+        const headerSettingsButton = document.getElementById('header-settings-button');
+        if (headerSettingsButton) {
+            headerSettingsButton.addEventListener('click', () => {
+                navigateToPage('settings');
+            });
+        }
+        
         // Navigate to initial page and initialize timer
         console.log('Navigating to initial page...');
         navigateToPage('timer');
@@ -196,37 +204,10 @@ const initializePage = (pageId) => {
             break;
         case 'stats':
             console.log('Initializing stats page...');
-            
-            // Add direct stats display as a fallback
-            try {
-                // First try the normal initialization
-                if (typeof window.initializeStats === 'function') {
-                    console.log('Calling standard initializeStats function');
-                    window.initializeStats();
-                } else {
-                    throw new Error('initializeStats function not found');
-                }
-                
-                // Add a backup approach that will run after a delay
-                setTimeout(() => {
-                    console.log('Running delayed stats check...');
-                    const statsPage = document.getElementById('stats-page');
-                    const statsGrid = document.querySelector('.stats-grid');
-                    
-                    // If no stats content is visible, create emergency stats
-                    if (statsPage && (!statsGrid || statsGrid.children.length === 0)) {
-                        console.log('Stats grid empty, creating emergency stats display');
-                        createEmergencyStatsDisplay(statsPage);
-                    }
-                }, 500);
-            } catch (error) {
-                console.error('Error initializing stats:', error);
-                
-                // Create emergency stats display
-                const statsPage = document.getElementById('stats-page');
-                if (statsPage) {
-                    createEmergencyStatsDisplay(statsPage);
-                }
+            if (typeof window.initializeStats === 'function') {
+                window.initializeStats();
+            } else {
+                console.error('initializeStats function not found');
             }
             break;
         case 'media':
@@ -249,71 +230,6 @@ const initializePage = (pageId) => {
             }
             break;
     }
-};
-
-// Create emergency stats display if the normal one fails
-const createEmergencyStatsDisplay = (statsPage) => {
-    console.log('Creating emergency stats display');
-    
-    // Get or create stats container
-    let statsContainer = statsPage.querySelector('.stats-container');
-    if (!statsContainer) {
-        statsContainer = document.createElement('div');
-        statsContainer.className = 'stats-container';
-        statsPage.appendChild(statsContainer);
-    }
-    
-    // Create sample sessions
-    const sampleSessions = [
-        { duration: 3600, categoryId: 'c-1' }, // 1 hour
-        { duration: 1800, categoryId: 'c-2' }, // 30 mins
-        { duration: 2700, categoryId: 'c-3' }  // 45 mins
-    ];
-    
-    // Calculate simple statistics
-    const totalTime = sampleSessions.reduce((sum, session) => sum + session.duration, 0);
-    const avgTime = Math.round(totalTime / sampleSessions.length);
-    
-    // Format time
-    const formatTime = (seconds) => {
-        const hours = Math.floor(seconds / 3600);
-        const minutes = Math.floor((seconds % 3600) / 60);
-        return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
-    };
-    
-    // Create emergency stats display
-    const emergencyDisplay = document.createElement('div');
-    emergencyDisplay.className = 'emergency-stats';
-    emergencyDisplay.style.backgroundColor = '#f5f5f5';
-    emergencyDisplay.style.padding = '20px';
-    emergencyDisplay.style.borderRadius = '8px';
-    emergencyDisplay.style.margin = '20px 0';
-    emergencyDisplay.style.textAlign = 'center';
-    
-    emergencyDisplay.innerHTML = `
-        <h2 style="margin-bottom:20px;">Practice Statistics</h2>
-        <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
-            <div style="background-color:#fff; padding:15px; border-radius:8px; box-shadow:0 2px 4px rgba(0,0,0,0.1);">
-                <h3>Total Practice Time</h3>
-                <p style="font-size:1.5em; font-weight:bold; color:#4154b3;">${formatTime(totalTime)}</p>
-            </div>
-            <div style="background-color:#fff; padding:15px; border-radius:8px; box-shadow:0 2px 4px rgba(0,0,0,0.1);">
-                <h3>Avg. Session Time</h3>
-                <p style="font-size:1.5em; font-weight:bold; color:#4154b3;">${formatTime(avgTime)}</p>
-            </div>
-            <div style="background-color:#fff; padding:15px; border-radius:8px; box-shadow:0 2px 4px rgba(0,0,0,0.1);">
-                <h3>Practice Sessions</h3>
-                <p style="font-size:1.5em; font-weight:bold; color:#4154b3;">${sampleSessions.length}</p>
-            </div>
-        </div>
-        <p style="margin-top:15px; font-style:italic; color:#666;">Emergency Stats Display</p>
-    `;
-    
-    // Add to container
-    statsContainer.innerHTML = ''; // Clear existing content
-    statsContainer.appendChild(emergencyDisplay);
-    
-    console.log('Emergency stats display created successfully');
 };
 
 // Initialize on DOM load

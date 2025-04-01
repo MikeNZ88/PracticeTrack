@@ -336,7 +336,7 @@ class Timer {
     loadCategories() {
         try {
             console.log('Loading categories...');
-            const categories = window.getItems('categories') || [];
+            const categories = window.getItems('CATEGORIES') || [];
             console.log('Found categories:', categories);
             
             // Clear existing options
@@ -352,7 +352,7 @@ class Timer {
             
             // Add categories
             categories.forEach(category => {
-                if (!category.isHidden) {
+                if (category.isHidden !== true) {
                     const option = document.createElement('option');
                     option.value = category.id;
                     option.textContent = category.name;
@@ -387,4 +387,12 @@ class Timer {
 }
 
 // Create and export timer instance
-window.timer = new Timer(); 
+window.timer = new Timer();
+
+// Function to update timer categories from settings page
+window.updateTimerCategories = function() {
+    if (window.timer) {
+        console.log('Refreshing timer categories from settings');
+        window.timer.loadCategories();
+    }
+}; 

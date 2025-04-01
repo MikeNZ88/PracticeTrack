@@ -146,6 +146,34 @@ body {
     margin: 0 auto;
 }
 
+/* Header Settings Button */
+.header-settings-button {
+    position: absolute;
+    top: 50%;
+    right: var(--space-md);
+    transform: translateY(-50%);
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    border-radius: var(--radius-full);
+    color: white;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background var(--transition-normal);
+}
+
+.header-settings-button:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.header-settings-button i {
+    width: 24px;
+    height: 24px;
+}
+
 /* Navigation - Completely Redesigned */
 .main-nav {
     display: flex;
@@ -1750,4 +1778,23 @@ textarea:focus {
 .empty-state p {
     color: var(--text-medium);
     margin-bottom: var(--space-lg);
+}
+
+/* Remove settings from main nav and mobile nav */
+.nav-item[data-page="settings"] {
+    display: none !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+    .header-settings-button {
+        width: 36px;
+        height: 36px;
+        right: var(--space-sm);
+    }
+    
+    .header-settings-button i {
+        width: 20px;
+        height: 20px;
+    }
 }
