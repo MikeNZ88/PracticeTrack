@@ -51,13 +51,13 @@ function createMediaElement(media) {
     switch (media.type) {
         case 'photo':
             content = `<div class="media-image">
-                <img src="${media.filePath}" alt="${media.name || 'Photo'}" />
+                <img src="${media.uri}" alt="${media.name || 'Photo'}" />
             </div>`;
             break;
         case 'video':
             content = `<div class="media-video">
                 <video controls>
-                    <source src="${media.filePath}" type="${media.fileType}">
+                    <source src="${media.uri}" type="${media.fileType}">
                     Your browser does not support the video tag.
                 </video>
             </div>`;
@@ -153,7 +153,7 @@ function showNamingDialog(file, type) {
                 notes: notesInput.value,
                 filename: file.name,
                 fileType: file.type,
-                filePath: URL.createObjectURL(file), // Create a temporary URL for display
+                uri: URL.createObjectURL(file),
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString()
             };
@@ -204,7 +204,36 @@ function setupPhotoCapture() {
             
             input.onchange = function(e) {
                 if (e.target.files && e.target.files[0]) {
-                    showNamingDialog(e.target.files[0], 'photo');
+                    const file = e.target.files[0];
+                    // Create media object with reference to device file
+                    const newMedia = {
+                        id: `media_${Date.now()}`,
+                        type: 'photo',
+                        name: file.name,
+                        filename: file.name,
+                        fileType: file.type,
+                        uri: URL.createObjectURL(file),
+                        createdAt: new Date().toISOString(),
+                        updatedAt: new Date().toISOString()
+                    };
+                    
+                    // Save media reference to localStorage
+                    if (window.addItem) {
+                        window.addItem('MEDIA', newMedia);
+                    } else {
+                        saveMedia(newMedia);
+                    }
+                    
+                    // Reload media list
+                    window.UI.loadRecords('media', {
+                        recordType: 'MEDIA',
+                        createRecordElementFn: createMediaElement
+                    });
+                    
+                    // Show success message
+                    if (window.showNotification) {
+                        window.showNotification('Photo Added', 'Your photo has been saved.');
+                    }
                 }
             };
             
@@ -219,7 +248,36 @@ function setupPhotoCapture() {
             
             input.onchange = function(e) {
                 if (e.target.files && e.target.files[0]) {
-                    showNamingDialog(e.target.files[0], 'photo');
+                    const file = e.target.files[0];
+                    // Create media object with reference to device file
+                    const newMedia = {
+                        id: `media_${Date.now()}`,
+                        type: 'photo',
+                        name: file.name,
+                        filename: file.name,
+                        fileType: file.type,
+                        uri: URL.createObjectURL(file),
+                        createdAt: new Date().toISOString(),
+                        updatedAt: new Date().toISOString()
+                    };
+                    
+                    // Save media reference to localStorage
+                    if (window.addItem) {
+                        window.addItem('MEDIA', newMedia);
+                    } else {
+                        saveMedia(newMedia);
+                    }
+                    
+                    // Reload media list
+                    window.UI.loadRecords('media', {
+                        recordType: 'MEDIA',
+                        createRecordElementFn: createMediaElement
+                    });
+                    
+                    // Show success message
+                    if (window.showNotification) {
+                        window.showNotification('Photo Added', 'Your photo has been saved.');
+                    }
                 }
             };
             
@@ -245,7 +303,36 @@ function setupVideoCapture() {
             
             input.onchange = function(e) {
                 if (e.target.files && e.target.files[0]) {
-                    showNamingDialog(e.target.files[0], 'video');
+                    const file = e.target.files[0];
+                    // Create media object with reference to device file
+                    const newMedia = {
+                        id: `media_${Date.now()}`,
+                        type: 'video',
+                        name: file.name,
+                        filename: file.name,
+                        fileType: file.type,
+                        uri: URL.createObjectURL(file),
+                        createdAt: new Date().toISOString(),
+                        updatedAt: new Date().toISOString()
+                    };
+                    
+                    // Save media reference to localStorage
+                    if (window.addItem) {
+                        window.addItem('MEDIA', newMedia);
+                    } else {
+                        saveMedia(newMedia);
+                    }
+                    
+                    // Reload media list
+                    window.UI.loadRecords('media', {
+                        recordType: 'MEDIA',
+                        createRecordElementFn: createMediaElement
+                    });
+                    
+                    // Show success message
+                    if (window.showNotification) {
+                        window.showNotification('Video Added', 'Your video has been saved.');
+                    }
                 }
             };
             
@@ -260,7 +347,36 @@ function setupVideoCapture() {
             
             input.onchange = function(e) {
                 if (e.target.files && e.target.files[0]) {
-                    showNamingDialog(e.target.files[0], 'video');
+                    const file = e.target.files[0];
+                    // Create media object with reference to device file
+                    const newMedia = {
+                        id: `media_${Date.now()}`,
+                        type: 'video',
+                        name: file.name,
+                        filename: file.name,
+                        fileType: file.type,
+                        uri: URL.createObjectURL(file),
+                        createdAt: new Date().toISOString(),
+                        updatedAt: new Date().toISOString()
+                    };
+                    
+                    // Save media reference to localStorage
+                    if (window.addItem) {
+                        window.addItem('MEDIA', newMedia);
+                    } else {
+                        saveMedia(newMedia);
+                    }
+                    
+                    // Reload media list
+                    window.UI.loadRecords('media', {
+                        recordType: 'MEDIA',
+                        createRecordElementFn: createMediaElement
+                    });
+                    
+                    // Show success message
+                    if (window.showNotification) {
+                        window.showNotification('Video Added', 'Your video has been saved.');
+                    }
                 }
             };
             
