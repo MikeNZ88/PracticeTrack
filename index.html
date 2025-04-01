@@ -44,6 +44,10 @@
                 <i data-lucide="image"></i>
                 Media
             </button>
+            <button class="nav-item" data-page="settings">
+                <i data-lucide="settings"></i>
+                Settings
+            </button>
         </nav>
 
         <!-- Main Content Area -->
@@ -143,31 +147,24 @@
                 </div>
             </section>
 
-            <!-- Stats Page -->
+            <!-- Stats Page - Clean Implementation -->
             <section id="stats-page" class="page">
                 <div class="page-header">
                     <h1>Practice Statistics</h1>
                 </div>
                 <div class="filters">
-                    <select class="stats-category-filter">
+                    <select id="category-filter" class="stats-category-filter">
                         <option value="">All Categories</option>
-                        <option value="c-1">Scales</option>
-                        <option value="c-2">Technique</option>
-                        <option value="c-3">Repertoire</option>
-                        <option value="c-4">Sight Reading</option>
-                        <option value="c-5">Theory</option>
+                        <!-- Categories loaded dynamically -->
                     </select>
                     <div class="date-range">
-                        <input type="date" class="stats-date-input" required placeholder="Start Date">
-                        <input type="date" class="stats-date-input" required placeholder="End Date">
+                        <input type="date" id="start-date" class="stats-date-input" placeholder="Start Date">
+                        <input type="date" id="end-date" class="stats-date-input" placeholder="End Date">
                     </div>
-                    <button id="apply-stats-filters" class="primary-button filter-button">
-                        <i data-lucide="filter"></i> Apply Filters
-                    </button>
                 </div>
                 
                 <div class="stats-container">
-                    <!-- Stats content will be dynamically generated -->
+                    <!-- Stats will be displayed here -->
                 </div>
             </section>
 
@@ -205,8 +202,15 @@
                 <div class="settings-container">
                     <form id="settings-form" class="settings-form">
                         <div class="form-group">
-                            <label for="primary-instrument">Instrument</label>
-                            <select id="primary-instrument" name="primaryInstrument"></select>
+                            <label>Instruments (Select up to 3)</label>
+                            <div class="instruments-container">
+                                <div class="selected-instruments">
+                                    <!-- Selected instruments will be displayed here -->
+                                </div>
+                                <select id="instrument-select" class="instrument-select">
+                                    <option value="">Add an instrument</option>
+                                </select>
+                            </div>
                         </div>
                         <div class="form-group">
                             <label for="lesson-day">Lesson Day</label>
@@ -217,9 +221,20 @@
                             <input type="time" id="lesson-time" name="lessonTime">
                         </div>
                         <div class="form-group">
-                            <label>Hidden Categories</label>
+                            <label>Categories</label>
+                            <div class="categories-header">
+                                <button type="button" class="secondary-button" id="add-default-categories">
+                                    <i data-lucide="plus"></i> Add Default Categories
+                                </button>
+                            </div>
                             <div id="categories-list" class="categories-list">
                                 <!-- Categories will be populated here -->
+                            </div>
+                            <div class="add-category-form">
+                                <input type="text" id="new-category-name" placeholder="New category name">
+                                <button type="button" id="add-category-btn" class="secondary-button">
+                                    <i data-lucide="plus"></i> Add
+                                </button>
                             </div>
                         </div>
                         <button type="submit" class="primary-button">Save Settings</button>
@@ -395,236 +410,250 @@
     <script src="js/timer.js"></script>
     <script src="js/sessions.js"></script>
     <script src="js/goals.js"></script>
-    <script src="js/stats.js"></script>
     <script src="js/media.js"></script>
     <script src="js/settings.js"></script>
+    <script src="js/stats.js"></script>
     <script src="js/app.js"></script>
     <script>
         // Initialize Lucide icons
         lucide.createIcons();
         
-        // IMMEDIATE STATS INITIALIZATION - Don't wait for anything
-        if (typeof window.initStats === 'function') {
-            console.log('Running initStats immediately');
-            window.initStats();
-        }
-        
-        // Direct fix for stats display
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('DOM loaded, setting up direct stats fix');
-            
-            // Immediately call the direct function
-            setTimeout(() => {
-                if (typeof window.displayPracticeTimeStats === 'function') {
-                    window.displayPracticeTimeStats();
-                    console.log('Direct practice time stats displayed');
-                }
-            }, 50);
-            
-            // Force initialize stats immediately
-            setTimeout(() => {
-                // Force dismiss any error popups
-                try {
-                    document.querySelectorAll('.dialog, .popup, .modal, [role="dialog"]').forEach(dialog => {
-                        if (dialog.textContent && (dialog.textContent.includes('Failed to') || 
-                            dialog.textContent.includes('error') || 
-                            dialog.textContent.includes('Error'))) {
-                            console.log('Found error dialog, attempting to dismiss');
-                            // Try to click OK button if exists
-                            const okButton = dialog.querySelector('button, .btn, [type="button"]');
-                            if (okButton) {
-                                console.log('Clicking OK button');
-                                okButton.click();
-                            } else {
-                                // Try to remove it directly
-                                console.log('Removing error dialog directly');
-                                dialog.remove();
-                            }
+        // Simple error handling function that doesn't interfere with normal operation
+        window.handleStatsError = function() {
+            console.log('Checking for stats errors');
+            try {
+                const statsPage = document.getElementById('stats-page');
+                if (statsPage && statsPage.classList.contains('active')) {
+                    const statsContainer = statsPage.querySelector('.stats-container');
+                    if (statsContainer && statsContainer.innerHTML === '') {
+                        console.log('Empty stats container detected, initializing stats');
+                        if (typeof window.initializeStats === 'function') {
+                            window.initializeStats();
                         }
-                    });
-                } catch (e) {
-                    console.log('Error cleaning up dialogs:', e);
+                    }
+                }
+            } catch (e) {
+                console.error('Error in handleStatsError:', e);
+            }
+        };
+        
+        // Run error handler periodically
+        setInterval(window.handleStatsError, 3000);
+        
+        // Populate categories in all dropdowns
+        window.populateCategories = function() {
+            const categoryDropdowns = document.querySelectorAll('.stats-category-filter');
+            if (!categoryDropdowns.length) return;
+            
+            // Get categories from localStorage
+            let categories = [];
+            try {
+                const categoriesData = localStorage.getItem('practice_categories');
+                if (categoriesData) {
+                    categories = JSON.parse(categoriesData);
+                }
+            } catch (error) {
+                console.error('Error getting categories:', error);
+            }
+            
+            if (!categories || !categories.length) {
+                categories = [
+                    { id: 'c-1', name: 'Scales', isHidden: false },
+                    { id: 'c-2', name: 'Technique', isHidden: false },
+                    { id: 'c-3', name: 'Repertoire', isHidden: false },
+                    { id: 'c-4', name: 'Sight Reading', isHidden: false },
+                    { id: 'c-5', name: 'Theory', isHidden: false }
+                ];
+            }
+            
+            // Filter out hidden categories
+            categories = categories.filter(cat => !cat.isHidden);
+            
+            // Populate each dropdown
+            categoryDropdowns.forEach(dropdown => {
+                // Clear dropdown first, keeping the "All Categories" option
+                while (dropdown.options.length > 1) {
+                    dropdown.remove(1);
                 }
                 
-                if (typeof window.initStats === 'function') {
-                    // Reset initialization flag to force it to run
-                    window.statsInitialized = false;
-                    window.initStats();
-                    console.log('Stats initialized directly');
-                }
-            }, 100);
+                // Add categories
+                categories.forEach(category => {
+                    const option = document.createElement('option');
+                    option.value = category.id;
+                    option.textContent = category.name;
+                    dropdown.appendChild(option);
+                });
+            });
+        };
+        
+        // Run on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            window.populateCategories();
+        });
+    </script>
+
+    <!-- Direct fix for stats display -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded, setting up direct stats fix');
             
             // Add event listener for stats tab clicks
             const statsTab = document.querySelector('.nav-item[data-page="stats"]');
             if (statsTab) {
-                statsTab.addEventListener('click', function() {
-                    console.log('Stats tab clicked');
-                    // Reset initialization flag to force initialization
-                    window.statsInitialized = false;
-                    // Initialize stats
-                    if (typeof window.initStats === 'function') {
-                        window.initStats();
-                    }
-                });
-            }
-            
-            // Add direct click handler for the apply stats filters button
-            const applyStatsFiltersBtn = document.getElementById('apply-stats-filters');
-            if (applyStatsFiltersBtn) {
-                applyStatsFiltersBtn.addEventListener('click', function() {
-                    console.log('Apply stats filters button clicked');
-                    
-                    // Get filter values
-                    const categoryFilter = document.querySelector('.stats-category-filter');
-                    const dateInputs = document.querySelectorAll('.stats-date-input');
-                    
-                    const category = categoryFilter ? categoryFilter.value : '';
-                    const startDate = dateInputs && dateInputs.length > 0 ? dateInputs[0].value : '';
-                    const endDate = dateInputs && dateInputs.length > 1 ? dateInputs[1].value : '';
-                    
-                    console.log('Applying filters with:', { category, startDate, endDate });
-                    
-                    // Show loading state
-                    applyStatsFiltersBtn.innerHTML = '<i data-lucide="loader"></i> Applying...';
-                    applyStatsFiltersBtn.disabled = true;
-                    
-                    // Apply filters with DIRECT DOM ACCESS - Guaranteed to work
-                    setTimeout(function() {
-                        try {
-                            // Get all sessions directly from localStorage
-                            let sessions = [];
-                            
-                            // Try multiple localStorage keys
-                            const possibleKeys = ['practice_sessions', 'SESSIONS', 'sessions'];
-                            for (const key of possibleKeys) {
-                                const data = localStorage.getItem(key);
-                                if (data) {
-                                    const parsed = JSON.parse(data);
-                                    if (Array.isArray(parsed) && parsed.length > 0) {
-                                        console.log(`Found ${parsed.length} sessions in button click`);
-                                        sessions = parsed;
-                                        break;
-                                    }
-                                }
-                            }
-                            
-                            // If no sessions found, create sample data
-                            if (!sessions || sessions.length === 0) {
-                                console.log('No sessions found, using samples');
-                                sessions = [
-                                    {
-                                        id: 'sample-1',
-                                        categoryId: 'c-1',
-                                        duration: 3600, // 1 hour
-                                        startTime: new Date().toISOString()
-                                    },
-                                    {
-                                        id: 'sample-2',
-                                        categoryId: 'c-2',
-                                        duration: 1800, // 30 minutes
-                                        startTime: new Date(Date.now() - 86400000).toISOString() // Yesterday
-                                    },
-                                    {
-                                        id: 'sample-3',
-                                        categoryId: 'c-3',
-                                        duration: 2700, // 45 minutes
-                                        startTime: new Date(Date.now() - 172800000).toISOString() // 2 days ago
-                                    }
-                                ];
-                            }
-                            
-                            // Apply filters manually
-                            let filtered = [...sessions];
-                            
-                            // Filter by category
-                            if (category) {
-                                filtered = filtered.filter(session => session.categoryId === category);
-                            }
-                            
-                            // Filter by date range
-                            if (startDate) {
-                                const startDateTime = new Date(startDate);
-                                filtered = filtered.filter(session => {
-                                    if (!session.startTime) return false;
-                                    return new Date(session.startTime) >= startDateTime;
-                                });
-                            }
-                            
-                            if (endDate) {
-                                const endDateTime = new Date(endDate);
-                                endDateTime.setHours(23, 59, 59, 999);
-                                filtered = filtered.filter(session => {
-                                    if (!session.startTime) return false;
-                                    return new Date(session.startTime) <= endDateTime;
-                                });
-                            }
-                            
-                            console.log(`Found ${filtered.length} sessions after filtering`);
-                            
-                            // Call API method if available
-                            if (typeof window.updateStatsDisplay === 'function') {
-                                window.updateStatsDisplay(filtered);
-                            } else {
-                                // Direct display if API not available
-                                const statsContainer = document.querySelector('.stats-container');
-                                if (statsContainer) {
-                                    // Calculate stats
-                                    const totalDuration = filtered.reduce((sum, s) => sum + (parseInt(s.duration) || 0), 0);
-                                    const avgDuration = filtered.length > 0 ? Math.round(totalDuration / filtered.length) : 0;
-                                    const maxDuration = filtered.length > 0 ? Math.max(...filtered.map(s => parseInt(s.duration) || 0)) : 0;
-                                    
-                                    // Format time
-                                    const formatTime = (seconds) => {
-                                        seconds = parseInt(seconds) || 0;
-                                        const hours = Math.floor(seconds / 3600);
-                                        const minutes = Math.floor((seconds % 3600) / 60);
-                                        return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
-                                    };
-                                    
-                                    // Update DOM directly
-                                    statsContainer.innerHTML = `
-                                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 30px;">
-                                            <div style="background-color: #f5f5f5; border-radius: 8px; padding: 20px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                                                <h3 style="margin-bottom: 10px; font-size: 16px; color: #555;">Total Practice Time</h3>
-                                                <div style="font-size: 24px; font-weight: bold; color: #3b7ff5; margin-bottom: 8px;">${formatTime(totalDuration)}</div>
-                                                <div style="font-size: 14px; color: #777;">${filtered.length} session${filtered.length !== 1 ? 's' : ''}</div>
-                                            </div>
-                                            <div style="background-color: #f5f5f5; border-radius: 8px; padding: 20px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                                                <h3 style="margin-bottom: 10px; font-size: 16px; color: #555;">Average Session</h3>
-                                                <div style="font-size: 24px; font-weight: bold; color: #3b7ff5; margin-bottom: 8px;">${formatTime(avgDuration)}</div>
-                                                <div style="font-size: 14px; color: #777;">per practice session</div>
-                                            </div>
-                                            <div style="background-color: #f5f5f5; border-radius: 8px; padding: 20px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                                                <h3 style="margin-bottom: 10px; font-size: 16px; color: #555;">Number of Sessions</h3>
-                                                <div style="font-size: 24px; font-weight: bold; color: #3b7ff5; margin-bottom: 8px;">${filtered.length}</div>
-                                                <div style="font-size: 14px; color: #777;">total practice sessions</div>
-                                            </div>
-                                        </div>
-                                    `;
-                                }
-                            }
-                        } catch (error) {
-                            console.error('Error in direct filter handling:', error);
-                        }
-                        
-                        // Reset button
-                        applyStatsFiltersBtn.innerHTML = '<i data-lucide="filter"></i> Apply Filters';
-                        applyStatsFiltersBtn.disabled = false;
-                        lucide.createIcons();
-                    }, 300);
-                });
+                statsTab.addEventListener('click', directFixStats);
             }
             
             // Check if stats page is already active
             setTimeout(() => {
                 if (document.querySelector('#stats-page.active')) {
-                    if (typeof window.initStats === 'function') {
-                        // Reset initialization flag to force it to run
-                        window.statsInitialized = false;
-                        window.initStats();
-                    }
+                    directFixStats();
                 }
             }, 500);
+            
+            // Direct fix function
+            function directFixStats() {
+                console.log('Directly fixing stats display with simple approach');
+                
+                // Get stats page
+                const statsPage = document.getElementById('stats-page');
+                if (!statsPage) {
+                    console.error('Stats page not found');
+                    return;
+                }
+                
+                // Get or create stats container
+                let statsContainer = statsPage.querySelector('.stats-container');
+                if (!statsContainer) {
+                    statsContainer = document.createElement('div');
+                    statsContainer.className = 'stats-container';
+                    statsPage.appendChild(statsContainer);
+                }
+                
+                // Add apply button to filters
+                const filtersSection = statsPage.querySelector('.filters');
+                if (filtersSection && !filtersSection.querySelector('.apply-stats-btn')) {
+                    const applyBtn = document.createElement('button');
+                    applyBtn.className = 'primary-button apply-stats-btn';
+                    applyBtn.textContent = 'Apply Filters';
+                    applyBtn.style.marginLeft = '10px';
+                    filtersSection.appendChild(applyBtn);
+                    
+                    // Add click handler
+                    applyBtn.addEventListener('click', function() {
+                        // Get filter values
+                        const categoryFilter = statsPage.querySelector('.stats-category-filter');
+                        const dateInputs = statsPage.querySelectorAll('.stats-date-input');
+                        
+                        const category = categoryFilter ? categoryFilter.value : '';
+                        const startDate = dateInputs[0] ? dateInputs[0].value : '';
+                        const endDate = dateInputs[1] ? dateInputs[1].value : '';
+                        
+                        // Get sessions
+                        let sessions = [];
+                        try {
+                            sessions = JSON.parse(localStorage.getItem('practice_sessions')) || [];
+                        } catch (e) {
+                            console.error('Error loading sessions:', e);
+                        }
+                        
+                        // Filter sessions
+                        let filtered = [...sessions];
+                        
+                        if (category) {
+                            filtered = filtered.filter(s => s.categoryId === category);
+                        }
+                        
+                        if (startDate) {
+                            const startTime = new Date(startDate).setHours(0,0,0,0);
+                            filtered = filtered.filter(s => {
+                                if (!s.startTime) return false;
+                                return new Date(s.startTime).getTime() >= startTime;
+                            });
+                        }
+                        
+                        if (endDate) {
+                            const endTime = new Date(endDate).setHours(23,59,59,999);
+                            filtered = filtered.filter(s => {
+                                if (!s.startTime) return false;
+                                return new Date(s.startTime).getTime() <= endTime;
+                            });
+                        }
+                        
+                        // Create simple stats display
+                        displayStats(filtered);
+                    });
+                }
+                
+                // Set default dates if not set
+                const dateInputs = statsPage.querySelectorAll('.stats-date-input');
+                if (dateInputs && dateInputs.length >= 2) {
+                    if (!dateInputs[0].value || !dateInputs[1].value) {
+                        const today = new Date();
+                        const thirtyDaysAgo = new Date();
+                        thirtyDaysAgo.setDate(today.getDate() - 30);
+                        
+                        dateInputs[0].value = thirtyDaysAgo.toISOString().split('T')[0];
+                        dateInputs[1].value = today.toISOString().split('T')[0];
+                    }
+                }
+                
+                // Apply initial filters
+                setTimeout(() => {
+                    const applyBtn = statsPage.querySelector('.apply-stats-btn');
+                    if (applyBtn) applyBtn.click();
+                }, 100);
+                
+                // Function to display stats
+                function displayStats(sessions) {
+                    // Clear container
+                    statsContainer.innerHTML = '';
+                    
+                    // No sessions
+                    if (!sessions || sessions.length === 0) {
+                        statsContainer.innerHTML = '<div style="text-align:center; padding:40px; color:#666;">No practice sessions found for the selected filters.</div>';
+                        return;
+                    }
+                    
+                    // Calculate basic stats
+                    const totalSeconds = sessions.reduce((sum, s) => sum + (parseInt(s.duration) || 0), 0);
+                    const avgSeconds = Math.round(totalSeconds / sessions.length);
+                    
+                    // Format time
+                    function formatTime(sec) {
+                        const hrs = Math.floor(sec / 3600);
+                        const mins = Math.floor((sec % 3600) / 60);
+                        return hrs > 0 ? `${hrs}h ${mins}m` : `${mins}m`;
+                    }
+                    
+                    // Create stats grid
+                    const statsGrid = document.createElement('div');
+                    statsGrid.className = 'stats-grid';
+                    statsGrid.style.display = 'grid';
+                    statsGrid.style.gridTemplateColumns = 'repeat(3, 1fr)';
+                    statsGrid.style.gap = '20px';
+                    statsGrid.style.margin = '20px 0';
+                    
+                    statsGrid.innerHTML = `
+                        <div class="stat-card" style="background-color:#f5f5f5; padding:20px; border-radius:8px; text-align:center; box-shadow:0 2px 4px rgba(0,0,0,0.1);">
+                            <h3>Total Practice Time</h3>
+                            <p style="font-size:24px; font-weight:bold; color:#4154b3;">${formatTime(totalSeconds)}</p>
+                        </div>
+                        <div class="stat-card" style="background-color:#f5f5f5; padding:20px; border-radius:8px; text-align:center; box-shadow:0 2px 4px rgba(0,0,0,0.1);">
+                            <h3>Avg. Session Time</h3>
+                            <p style="font-size:24px; font-weight:bold; color:#4154b3;">${formatTime(avgSeconds)}</p>
+                        </div>
+                        <div class="stat-card" style="background-color:#f5f5f5; padding:20px; border-radius:8px; text-align:center; box-shadow:0 2px 4px rgba(0,0,0,0.1);">
+                            <h3>Practice Sessions</h3>
+                            <p style="font-size:24px; font-weight:bold; color:#4154b3;">${sessions.length}</p>
+                        </div>
+                    `;
+                    
+                    statsContainer.appendChild(statsGrid);
+                }
+            }
+            
+            // Make function available globally
+            window.directFixStats = directFixStats;
         });
     </script>
 </body>

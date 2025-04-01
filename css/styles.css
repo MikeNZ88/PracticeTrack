@@ -1869,6 +1869,12 @@ textarea:focus {
     display: flex !important;
 }
 
+/* Ensure settings tab is visible in both navigations */
+.main-nav .nav-item[data-page="settings"],
+.mobile-nav .nav-item[data-page="settings"] {
+    display: flex !important;
+}
+
 /* Responsive adjustments */
 @media (max-width: 480px) {
     .header-settings-button {

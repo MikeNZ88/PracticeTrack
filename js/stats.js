@@ -1,27 +1,22 @@
-// Stats Module - Complete rewrite for maximum reliability
-// ====================================================
+// Simple and robust stats functionality
+// Eliminates complex initialization chains and redundant code
 
-// Default categories when none are found in storage
-const DEFAULT_CATEGORIES = [
-    { id: 'c-1', name: 'Scales', isHidden: false },
-    { id: 'c-2', name: 'Technique', isHidden: false },
-    { id: 'c-3', name: 'Repertoire', isHidden: false },
-    { id: 'c-4', name: 'Sight Reading', isHidden: false },
-    { id: 'c-5', name: 'Theory', isHidden: false }
-];
+// DOM Elements
+const statsContainer = document.querySelector('.stats-container');
+const categoryFilter = document.querySelector('.stats-category-filter');
+const dateInputs = document.querySelectorAll('.stats-date-input');
+const applyFiltersBtn = document.getElementById('apply-stats-filters');
 
-// Track if we've already initialized to prevent duplicate initialization
-// Make it a global variable so it can be reset from outside
-window.statsInitialized = false;
+// Format time in hours and minutes
+function formatTime(seconds) {
+    if (!seconds) return '0m';
+    seconds = parseInt(seconds);
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+}
 
-// ====================================================
-// INITIALIZATION
-// ====================================================
-
-/**
- * Main entry point - initialize stats functionality
- * This will be called from multiple places to ensure it runs
- */
+// Stats Module
 function initStats() {
     console.log('Initializing stats module');
     
@@ -61,133 +56,86 @@ function initStats() {
     displayStats(sessions);
 }
 
-/**
- * Set up the category filter dropdown
- */
-function setupCategoryFilter() {
-    console.log('Setting up category filter');
-    const categoryFilter = document.getElementById('category-filter');
-    if (!categoryFilter) {
-        console.error('Category filter not found');
+function displayStats(sessions) {
+    console.log('Displaying stats for sessions:', sessions);
+    
+    const container = document.querySelector('.stats-container');
+    if (!container) {
+        console.error('Stats container not found');
         return;
     }
     
-    // Get current instrument from settings
-    let settings = window.getItems('SETTINGS');
-    settings = Array.isArray(settings) && settings.length > 0 ? settings[0] : {};
-    const currentInstrument = settings.primaryInstrument || '';
+    // Calculate stats
+    const totalTime = sessions.reduce((sum, session) => sum + (session.duration || 0), 0);
+    const avgTime = Math.round(totalTime / sessions.length);
+    const maxTime = Math.max(...sessions.map(s => s.duration || 0));
+    const sessionsThisWeek = sessions.filter(session => {
+        const sessionDate = new Date(session.startTime);
+        const today = new Date();
+        const weekStart = new Date(today.setDate(today.getDate() - today.getDay()));
+        weekStart.setHours(0, 0, 0, 0);
+        return sessionDate >= weekStart;
+    }).length;
     
-    // Get categories for current instrument
-    let categories = window.getItems('CATEGORIES');
-    if (currentInstrument) {
-        categories = categories.filter(cat => 
-            !cat.isHidden && 
-            (!cat.instrumentIds || cat.instrumentIds.includes(currentInstrument))
-        );
-    }
-    
-    // Clear existing options
-    categoryFilter.innerHTML = '';
-    
-    // Add "All Categories" option
-    const allOption = document.createElement('option');
-    allOption.value = 'all';
-    allOption.textContent = 'All Categories';
-    categoryFilter.appendChild(allOption);
-    
-    // Add category options
-    categories.forEach(category => {
-        const option = document.createElement('option');
-        option.value = category.id;
-        option.textContent = category.name;
-        categoryFilter.appendChild(option);
-    });
-}
-
-/**
- * Set up default date range (last 7 days) if not already set
- */
-function setupDefaultDateRange() {
-    console.log('Setting up default date range');
-    const startDateInput = document.getElementById('start-date');
-    const endDateInput = document.getElementById('end-date');
-    
-    if (!startDateInput || !endDateInput) {
-        console.error('Date inputs not found');
-        return;
-    }
-    
-    // Set end date to today
-    const today = new Date();
-    const endDate = today.toISOString().split('T')[0];
-    endDateInput.value = endDate;
-    
-    // Set start date to 30 days ago
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(today.getDate() - 30);
-    const startDate = thirtyDaysAgo.toISOString().split('T')[0];
-    startDateInput.value = startDate;
-}
-
-/**
- * Set up the apply button with event listener
- */
-function setupApplyButton() {
-    console.log('Setting up apply button');
-    const applyButton = document.getElementById('apply-stats-filters');
-    if (!applyButton) {
-        console.error('Apply button not found');
-        return;
-    }
-    
-    // Remove any existing click listeners
-    const newButton = applyButton.cloneNode(true);
-    applyButton.parentNode.replaceChild(newButton, applyButton);
-    
-    // Add click listener
-    newButton.addEventListener('click', () => {
-        console.log('Apply button clicked');
-        
-        // Show loading state
-        const originalText = newButton.innerHTML;
-        newButton.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i> Applying...';
-        if (window.lucide) window.lucide.createIcons();
-        
-        // Apply filters after a short delay to allow UI to update
-        setTimeout(() => {
-            applyFilters();
-            
-            // Reset button state
-            newButton.innerHTML = originalText;
-            if (window.lucide) window.lucide.createIcons();
-        }, 100);
+    console.log('Calculated stats:', {
+        totalTime,
+        avgTime,
+        maxTime,
+        sessionsThisWeek
     });
     
-    // Initialize Lucide icons
-    if (window.lucide) window.lucide.createIcons();
+    // Create stats grid
+    container.innerHTML = `
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>Total Practice Time</h3>
+                <div class="stat-value">${formatDuration(totalTime)}</div>
+                <div class="stat-description">Total time spent practicing</div>
+            </div>
+            <div class="stat-card">
+                <h3>Average Session</h3>
+                <div class="stat-value">${formatDuration(avgTime)}</div>
+                <div class="stat-description">Average duration per session</div>
+            </div>
+            <div class="stat-card">
+                <h3>Longest Session</h3>
+                <div class="stat-value">${formatDuration(maxTime)}</div>
+                <div class="stat-description">Duration of longest practice session</div>
+            </div>
+            <div class="stat-card">
+                <h3>Sessions This Week</h3>
+                <div class="stat-value">${sessionsThisWeek}</div>
+                <div class="stat-description">Number of practice sessions this week</div>
+            </div>
+        </div>
+    `;
 }
 
-/**
- * Get current filter values from the form
- */
-function getFilterValues() {
-    const categoryFilter = document.querySelector('.stats-category-filter');
-    const dateInputs = document.querySelectorAll('.stats-date-input');
+function displayEmptyState(container, instrument) {
+    console.log('Displaying empty state');
+    const message = instrument ? 
+        `No practice sessions found for ${instrument}. Start practicing to see your stats!` :
+        'No practice sessions found. Start practicing to see your stats!';
+        
+    container.innerHTML = `
+        <div class="empty-state">
+            <i data-lucide="bar-chart-2"></i>
+            <p>${message}</p>
+        </div>
+    `;
     
-    return {
-        category: categoryFilter ? categoryFilter.value : '',
-        startDate: dateInputs && dateInputs.length > 0 ? dateInputs[0].value : '',
-        endDate: dateInputs && dateInputs.length > 1 ? dateInputs[1].value : ''
-    };
+    if (window.lucide && window.lucide.createIcons) {
+        window.lucide.createIcons();
+    }
 }
 
-// ====================================================
-// DATA HANDLING
-// ====================================================
+function formatDuration(seconds) {
+    if (!seconds) return '0m';
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+}
 
-/**
- * Apply filters and display stats
- */
 function applyFilters() {
     console.log('Applying filters...');
     
@@ -265,217 +213,11 @@ function applyFilters() {
     displayStats(sessions);
 }
 
-/**
- * Get all sessions from storage with fallbacks
- */
-function getAllSessions() {
-    console.log('Getting all sessions');
-    
-    try {
-        // Get sessions from localStorage
-        const data = localStorage.getItem('practice_sessions');
-        console.log('Raw session data:', data);
-        
-        if (!data) {
-            console.log('No sessions found in storage');
-            return [];
-        }
-        
-        const sessions = JSON.parse(data);
-        console.log(`Found ${sessions.length} sessions`);
-        
-        if (!Array.isArray(sessions)) {
-            console.error('Sessions data is not an array');
-            return [];
-        }
-        
-        return sessions;
-    } catch (error) {
-        console.error('Error getting sessions:', error);
-        return [];
-    }
-}
-
-/**
- * Generate sample session data for testing
- */
-function generateSampleData() {
-    console.log('Generating sample session data');
-    
-    // Use real categories if available, otherwise use defaults
-    const categories = getFromStorage('CATEGORIES') || DEFAULT_CATEGORIES;
-    const categoryIds = categories.map(cat => cat.id);
-    
-    // Generate data for the last week
-    const sessions = [];
-    const today = new Date();
-    
-    for (let i = 6; i >= 0; i--) {
-        const date = new Date(today);
-        date.setDate(date.getDate() - i);
-        
-        const categoryId = categoryIds[Math.floor(Math.random() * categoryIds.length)];
-        const duration = Math.floor(Math.random() * 60 + 30) * 60; // 30-90 minutes in seconds
-        
-        sessions.push({
-            id: `sample-${i}`,
-            categoryId: categoryId,
-            startTime: date.toISOString(),
-            duration: duration,
-            notes: `Sample practice session ${i+1}`,
-            isManual: true,
-            isLesson: i % 7 === 0 // Make one day a lesson
-        });
-    }
-    
-    return sessions;
-}
-
-/**
- * Get items from storage with validation and error handling
- */
-function getFromStorage(key) {
-    try {
-        // Try the getItems function first if it exists
-        if (typeof getItems === 'function') {
-            const items = getItems(key);
-            if (items) return items;
-        }
-        
-        // Fall back to direct localStorage access
-        const data = localStorage.getItem(key);
-        return data ? JSON.parse(data) : null;
-    } catch (error) {
-        console.error(`Error getting ${key} from storage:`, error);
-        return null;
-    }
-}
-
-// ====================================================
-// DISPLAY FUNCTIONS
-// ====================================================
-
-/**
- * Display stats based on filtered sessions
- */
-function displayStats(sessions) {
-    const container = document.querySelector('.stats-container');
-    if (!container) return;
-    
-    // Calculate stats
-    const totalTime = sessions.reduce((sum, session) => sum + (session.duration || 0), 0);
-    const avgTime = Math.round(totalTime / sessions.length);
-    const maxTime = Math.max(...sessions.map(s => s.duration || 0));
-    const sessionsThisWeek = sessions.filter(session => {
-        const sessionDate = new Date(session.startTime);
-        const today = new Date();
-        const weekStart = new Date(today.setDate(today.getDate() - today.getDay()));
-        weekStart.setHours(0, 0, 0, 0);
-        return sessionDate >= weekStart;
-    }).length;
-    
-    // Create stats grid
-    container.innerHTML = `
-        <div class="stats-grid">
-            <div class="stat-card">
-                <h3>Total Practice Time</h3>
-                <div class="stat-value">${formatDuration(totalTime)}</div>
-                <div class="stat-description">Total time spent practicing</div>
-            </div>
-            <div class="stat-card">
-                <h3>Average Session</h3>
-                <div class="stat-value">${formatDuration(avgTime)}</div>
-                <div class="stat-description">Average duration per session</div>
-            </div>
-            <div class="stat-card">
-                <h3>Longest Session</h3>
-                <div class="stat-value">${formatDuration(maxTime)}</div>
-                <div class="stat-description">Duration of longest practice session</div>
-            </div>
-            <div class="stat-card">
-                <h3>Sessions This Week</h3>
-                <div class="stat-value">${sessionsThisWeek}</div>
-                <div class="stat-description">Number of practice sessions this week</div>
-            </div>
-        </div>
-    `;
-}
-
-function createStatsContainer() {
-    const container = document.createElement('div');
-    container.className = 'stats-container';
-    const mainContent = document.querySelector('main');
-    if (mainContent) {
-        mainContent.appendChild(container);
-    }
-    return container;
-}
-
-function displayEmptyState(container, instrument) {
-    const message = instrument ? 
-        `No practice sessions found for ${instrument}. Start practicing to see your stats!` :
-        'No practice sessions found. Start practicing to see your stats!';
-        
-    container.innerHTML = `
-        <div class="empty-state">
-            <i data-lucide="bar-chart-2"></i>
-            <p>${message}</p>
-        </div>
-    `;
-    
-    if (window.lucide && window.lucide.createIcons) {
-        window.lucide.createIcons();
-    }
-}
-
-/**
- * Format duration in seconds to readable format
- */
-function formatDuration(seconds) {
-    if (!seconds) return '0m';
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
-}
-
-/**
- * Show error message in the stats container
- */
-function showErrorMessage(message) {
-    const container = getStatsContainer();
-    if (!container) return;
-    
-    const errorDiv = document.createElement('div');
-    errorDiv.className = 'error-message';
-    errorDiv.style.backgroundColor = '#ffebee';
-    errorDiv.style.color = '#d32f2f';
-    errorDiv.style.padding = '15px';
-    errorDiv.style.borderRadius = '8px';
-    errorDiv.style.marginBottom = '20px';
-    errorDiv.style.textAlign = 'center';
-    
-    errorDiv.innerHTML = `
-        <i data-lucide="alert-triangle" style="margin-right: 8px; vertical-align: middle;"></i>
-        <span>${message}</span>
-    `;
-    
-    container.innerHTML = '';
-    container.appendChild(errorDiv);
-    
-    if (typeof lucide !== 'undefined' && lucide.createIcons) {
-        lucide.createIcons();
-    }
-}
-
-// ====================================================
-// INITIALIZATION TRIGGERS
-// ====================================================
-
 // Initialize on DOMContentLoaded
 document.addEventListener('DOMContentLoaded', () => {
     console.log('Stats page loaded, initializing...');
     
-    // Initialize stats
+    // Initialize stats display
     initStats();
     
     // Set up filters
@@ -489,108 +231,172 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// Make functions available to window object for external access
+// Make functions available globally
 window.initStats = initStats;
 window.applyFilters = applyFilters;
-window.setupStatsFilters = function() {
-    console.log('Setting up stats filters');
-    setupCategoryFilter();
-    setupDefaultDateRange();
-    setupApplyButton();
+
+// Add styles for stats elements
+const addStatsStyles = () => {
+    const style = document.createElement('style');
+    style.textContent = `
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        
+        .stat-card {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        
+        .stat-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 8px;
+        }
+        
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #3b7ff5;
+            margin-bottom: 4px;
+        }
+        
+        .stat-description {
+            font-size: 12px;
+            color: #888;
+        }
+        
+        .sessions-by-category {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 40px;
+        }
+        
+        .sessions-by-category h3 {
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        
+        .category-bar-item {
+            display: grid;
+            grid-template-columns: 150px 1fr 80px;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .category-bar-label {
+            font-weight: 500;
+            font-size: 14px;
+            color: #444;
+        }
+        
+        .category-bar-container {
+            position: relative;
+            height: 24px;
+            background-color: #eee;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        
+        .category-bar {
+            height: 100%;
+            background: linear-gradient(to right, #3b7ff5, #5f9bff);
+            border-radius: 12px;
+        }
+        
+        .category-bar-value {
+            position: absolute;
+            top: 50%;
+            left: 12px;
+            transform: translateY(-50%);
+            font-size: 12px;
+            font-weight: 600;
+            color: white;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        }
+        
+        .category-bar-count {
+            font-size: 13px;
+            color: #666;
+            text-align: right;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #888;
+        }
+        
+        .empty-state svg {
+            width: 48px;
+            height: 48px;
+            margin-bottom: 15px;
+            color: #bbb;
+        }
+        
+        .empty-state h3 {
+            margin-bottom: 10px;
+            color: #555;
+        }
+        
+        .loading-stats {
+            text-align: center;
+            padding: 40px;
+            color: #888;
+            font-style: italic;
+        }
+        
+        @media (max-width: 768px) {
+            .category-bar-item {
+                grid-template-columns: 1fr;
+                gap: 5px;
+                margin-bottom: 25px;
+            }
+            
+            .category-bar-count {
+                text-align: left;
+            }
+        }
+    `;
+    document.head.appendChild(style);
 };
-window.updateStatsDisplay = updateStatsDisplay;
 
-// A direct, simplified function to guarantee stats display
-function displayPracticeTimeStats() {
-    console.log('DIRECT FUNCTION: Displaying practice time stats');
-    
-    try {
-        // Get stats container
-        const statsPage = document.getElementById('stats-page');
-        if (!statsPage) return;
-        
-        // Get or create stats container - DO NOT CLEAR IT
-        let statsContainer = statsPage.querySelector('.stats-container');
-        if (!statsContainer) {
-            statsContainer = document.createElement('div');
-            statsContainer.className = 'stats-container';
-            statsPage.appendChild(statsContainer);
+// Add styles when DOM content is loaded
+document.addEventListener('DOMContentLoaded', addStatsStyles);
+
+// Initialize when the stats tab is shown
+document.addEventListener('DOMContentLoaded', function() {
+    // Set up visibility observer for the stats page
+    const statsPage = document.getElementById('stats-page');
+    if (statsPage) {
+        // Check if we should initialize right away
+        if (statsPage.classList.contains('active')) {
+            initStats();
         }
         
-        // DO NOT CLEAR THE CONTAINER - Leave our hardcoded stats in place
-        // statsContainer.innerHTML = '';
-        
-        console.log('Stats display completed successfully');
-    } catch (error) {
-        console.error('Error in direct stats display:', error);
-    }
-}
-
-// Make the direct function available globally
-window.displayPracticeTimeStats = displayPracticeTimeStats;
-
-/**
- * Update the stats display with the filtered data - GUARANTEED TO WORK
- */
-function updateStatsDisplay(sessions) {
-    console.log('Updating stats display with sessions:', sessions);
-    
-    // Get current instrument from settings
-    let settings = window.getItems('SETTINGS');
-    settings = Array.isArray(settings) && settings.length > 0 ? settings[0] : {};
-    const currentInstrument = settings.primaryInstrument || '';
-    console.log('Current instrument for stats:', currentInstrument);
-    
-    // Filter sessions by current instrument
-    if (currentInstrument && sessions) {
-        sessions = sessions.filter(session => session.instrument === currentInstrument);
-        console.log(`Filtered to ${sessions.length} sessions for instrument: ${currentInstrument}`);
-    }
-    
-    // Get or create stats container
-    const container = getStatsContainer();
-    if (!container) {
-        console.error('Stats container not found and could not be created');
-        return;
-    }
-    
-    // Clear existing content
-    container.innerHTML = '';
-    
-    // Show empty state if no sessions
-    if (!sessions || sessions.length === 0) {
-        displayEmptyState(container, currentInstrument);
-        return;
-    }
-    
-    try {
-        // Create stats grid
-        const statsGrid = createStatsGrid(sessions);
-        container.appendChild(statsGrid);
-        
-        // Create sessions table
-        const sessionsTable = createSessionsTable(sessions);
-        container.appendChild(sessionsTable);
-        
-        // Create charts container
-        const chartsContainer = document.createElement('div');
-        chartsContainer.className = 'charts-container';
-        container.appendChild(chartsContainer);
-        
-        // Create practice time chart
-        createPracticeTimeChart(chartsContainer, sessions);
-        
-        // Create category distribution chart
-        createCategoryDistributionChart(chartsContainer, sessions);
-        
-        // Refresh Lucide icons
-        if (window.lucide && window.lucide.createIcons) {
-            window.lucide.createIcons();
+        // Set up click handler for the stats tab
+        const statsTab = document.querySelector('.nav-item[data-page="stats"]');
+        if (statsTab) {
+            statsTab.addEventListener('click', function() {
+                console.log('Stats tab clicked, initializing stats');
+                setTimeout(initStats, 0); // Initialize after the page is shown
+            });
         }
-        
-        console.log('Stats display updated successfully');
-    } catch (error) {
-        console.error('Error updating stats display:', error);
-        showErrorMessage('Error displaying statistics. Please try again.');
     }
-}
+});
