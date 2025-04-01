@@ -206,56 +206,139 @@ const setupCategoryManager = () => {
     }
 };
 
-// Reset all categories
+// Reset categories to defaults
 const resetCategories = (confirmReset = true) => {
-    // Confirm unless silent reset was requested
-    if (confirmReset && !confirm('Are you sure you want to reset all categories to default? This will delete any custom categories.')) {
+    // Skip confirmation if explicitly disabled (for automatic cleanup)
+    if (confirmReset && !confirm('This will reset all categories to their default state. Custom categories will be deleted. Continue?')) {
         return;
     }
     
-    console.log('Resetting categories to default');
+    console.log('Resetting categories to defaults');
     
-    // Clear all categories
-    localStorage.removeItem('practice_categories');
-    
-    // Get instrument
-    let settings = getItems('SETTINGS');
-    settings = Array.isArray(settings) && settings.length > 0 ? settings[0] : {};
-    const instrument = settings.primaryInstrument || '';
-    
-    // Re-add default categories from data.js
-    if (window.defaultCategories) {
-        window.defaultCategories.forEach(cat => {
-            // Only add categories relevant to the instrument
-            if (!instrument || !cat.instrumentIds || cat.instrumentIds.includes(instrument)) {
-                const category = {
-                    id: cat.id,
-                    name: cat.name,
-                    isHidden: false,
-                    isDefault: true,
-                    instrumentIds: cat.instrumentIds,
-                    createdAt: new Date().toISOString(),
-                    updatedAt: new Date().toISOString()
-                };
-                saveItem('CATEGORIES', category);
+    try {
+        // Get current settings to preserve hidden categories if they exist
+        const settings = getItems('SETTINGS');
+        const currentSettings = Array.isArray(settings) && settings.length > 0 ? settings[0] : null;
+        
+        // Get instruments
+        const instruments = [
+            'piano', 'guitar', 'violin', 'drums', 'voice', 
+            'bass', 'flute', 'saxophone', 'trumpet', 'cello'
+        ];
+        
+        // Default categories for all instruments
+        const defaultCategories = [
+            {
+                id: 'c-1',
+                name: 'Technique',
+                isDefault: true,
+                isHidden: false,
+                instrumentIds: instruments,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            },
+            {
+                id: 'c-2',
+                name: 'Repertoire',
+                isDefault: true,
+                isHidden: false,
+                instrumentIds: instruments,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            },
+            {
+                id: 'c-3',
+                name: 'Sight Reading',
+                isDefault: true,
+                isHidden: false,
+                instrumentIds: instruments,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            },
+            {
+                id: 'c-4',
+                name: 'Theory',
+                isDefault: true,
+                isHidden: false,
+                instrumentIds: instruments,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            },
+            {
+                id: 'c-5',
+                name: 'Ear Training',
+                isDefault: true,
+                isHidden: false,
+                instrumentIds: instruments,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
             }
+        ];
+        
+        // Additional instrument-specific categories
+        defaultCategories.push(
+            {
+                id: 'c-6',
+                name: 'Scales',
+                isDefault: true,
+                isHidden: false,
+                instrumentIds: ['piano', 'guitar', 'violin', 'flute', 'saxophone', 'trumpet', 'cello', 'bass'],
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            },
+            {
+                id: 'c-7',
+                name: 'Improvisation',
+                isDefault: true,
+                isHidden: false,
+                instrumentIds: ['piano', 'guitar', 'saxophone', 'trumpet', 'drums', 'bass'],
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            }
+        );
+        
+        // Clear all existing categories
+        localStorage.removeItem(STORAGE_KEYS.CATEGORIES);
+        
+        // Save default categories
+        defaultCategories.forEach(category => {
+            // If we have settings with hidden categories, restore the hidden state
+            if (currentSettings && 
+                currentSettings.hiddenCategories && 
+                currentSettings.hiddenCategories.includes(category.id)) {
+                category.isHidden = true;
+            }
+            
+            saveItem('CATEGORIES', category);
         });
-    }
-    
-    // Update settings
-    updateHiddenCategoriesInSettings();
-    
-    // Refresh categories list
-    populateCategoriesList();
-    
-    // Also update timer categories
-    if (typeof window.updateTimerCategories === 'function') {
-        window.updateTimerCategories();
-    }
-    
-    // Show alert unless silent
-    if (confirmReset) {
-        alert('Categories have been reset to default.');
+        
+        // Refresh categories list
+        populateCategoriesList();
+        
+        // Update timer categories
+        if (typeof window.updateTimerCategories === 'function') {
+            window.updateTimerCategories();
+        }
+        
+        // Update sessions filters
+        if (typeof window.refreshSessionsFilters === 'function') {
+            window.refreshSessionsFilters();
+        }
+        
+        // Update goals filters 
+        if (typeof window.setupGoalsFilters === 'function') {
+            window.setupGoalsFilters();
+        }
+        
+        // Update stats filters
+        if (typeof window.setupStatsFilters === 'function') {
+            window.setupStatsFilters();
+        }
+        
+        console.log('Categories reset complete');
+    } catch (error) {
+        console.error('Error resetting categories:', error);
+        alert('An error occurred while resetting categories');
     }
 };
 
@@ -1055,4 +1138,13 @@ const handleClearAllData = () => {
             alert('An error occurred while clearing data');
         }
     }
-}; 
+};
+
+// Expose functions to window object
+window.initializeSettings = initializeSettings;
+window.loadSettings = loadSettings;
+window.setupCategoryManager = setupCategoryManager;
+window.resetCategories = resetCategories;
+window.showCategory = showCategory;
+window.hideCategory = hideCategory;
+window.updateHiddenCategoriesInSettings = updateHiddenCategoriesInSettings; 

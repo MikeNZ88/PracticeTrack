@@ -194,6 +194,20 @@ class Timer {
                 return;
             }
 
+            // Get settings for current instrument
+            let settings = window.getItems('SETTINGS');
+            settings = Array.isArray(settings) && settings.length > 0 ? settings[0] : {};
+            const currentInstrument = settings.primaryInstrument || '';
+            
+            if (!currentInstrument) {
+                alert('Please select an instrument in settings before recording a session');
+                return;
+            }
+            
+            // Get existing sessions
+            let sessions = window.getItems('SESSIONS');
+            console.log('Current sessions:', sessions);
+            
             // Create session object
             const session = {
                 id: `s-${Date.now()}`,
@@ -204,45 +218,21 @@ class Timer {
                 isManual: false,
                 isLesson: false,
                 createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString()
+                updatedAt: new Date().toISOString(),
+                instrument: currentInstrument
             };
             
-            console.log('Attempting to save session:', session);
+            console.log('New session:', session);
             
-            // Get existing sessions
-            let sessions = [];
-            try {
-                const data = localStorage.getItem('practice_sessions');
-                console.log('Raw localStorage data:', data);
-                sessions = data ? JSON.parse(data) : [];
-                console.log('Parsed sessions:', sessions);
-            } catch (error) {
-                console.error('Error getting existing sessions:', error);
-                sessions = [];
-            }
-            
-            // Add new session
+            // Add new session and save
             sessions.push(session);
+            const saved = window.saveItems('SESSIONS', sessions);
             
-            // Save back to localStorage
-            try {
-                const sessionsJson = JSON.stringify(sessions);
-                console.log('Saving sessions to localStorage:', sessionsJson);
-                localStorage.setItem('practice_sessions', sessionsJson);
-                
-                // Verify the save
-                const savedData = localStorage.getItem('practice_sessions');
-                console.log('Verified saved data:', savedData);
-                
-                if (!savedData) {
-                    throw new Error('Failed to verify saved data');
-                }
-                
-                console.log('Session saved successfully');
-            } catch (error) {
-                console.error('Error saving to localStorage:', error);
-                throw error;
+            if (!saved) {
+                throw new Error('Failed to save session');
             }
+            
+            console.log('Session saved successfully');
             
             // Show success message
             this.saveButton.classList.add('success');
@@ -250,7 +240,7 @@ class Timer {
                 this.saveButton.classList.remove('success');
             }, 2000);
 
-            // Reset after saving
+            // Reset timer
             this.resetTimer();
             
             // Update sessions list if on sessions page
@@ -273,15 +263,15 @@ class Timer {
                 }
             }
             
+            // Update stats if on stats page
+            const statsContainer = document.querySelector('.stats-container');
+            if (statsContainer && window.initStats) {
+                console.log('Updating stats display...');
+                window.initStats();
+            }
+            
         } catch (error) {
             console.error('Error saving session:', error);
-            console.error('Error details:', {
-                message: error.message,
-                stack: error.stack,
-                timeElapsed: this.timeElapsed,
-                categoryId: this.categorySelect.value,
-                startTime: this.startTime
-            });
             alert('Error saving session. Please try again.');
         }
     }

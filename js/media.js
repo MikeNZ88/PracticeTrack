@@ -740,3 +740,99 @@ const addMediaStyles = () => {
 // Expose to global scope
 window.initializeMedia = initializeMedia;
 window.loadMedia = loadMedia;  // Make loadMedia globally accessible 
+
+function updateMediaList(mediaItems) {
+    console.log('Updating media list');
+    
+    // Get current instrument from settings
+    let settings = window.getItems('SETTINGS');
+    settings = Array.isArray(settings) && settings.length > 0 ? settings[0] : {};
+    const currentInstrument = settings.primaryInstrument || '';
+    console.log('Current instrument for media:', currentInstrument);
+    
+    // Filter media by current instrument
+    if (currentInstrument && mediaItems) {
+        mediaItems = mediaItems.filter(item => item.instrument === currentInstrument);
+        console.log(`Filtered to ${mediaItems.length} media items for instrument: ${currentInstrument}`);
+    }
+    
+    // Get media list container
+    const mediaList = document.getElementById('media-list');
+    if (!mediaList) {
+        console.error('Media list container not found');
+        return;
+    }
+    
+    // Clear existing media items
+    mediaList.innerHTML = '';
+    
+    // Show message if no media
+    if (!mediaItems || mediaItems.length === 0) {
+        const noMedia = document.createElement('div');
+        noMedia.className = 'no-media';
+        noMedia.textContent = currentInstrument ? 
+            `No media found for ${currentInstrument}` : 
+            'No media found';
+        mediaList.appendChild(noMedia);
+        return;
+    }
+    
+    // Sort media by date (newest first)
+    mediaItems.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    
+    // Add media items to list
+    mediaItems.forEach(item => {
+        const mediaElement = createMediaElement(item);
+        if (mediaElement) {
+            mediaList.appendChild(mediaElement);
+        }
+    });
+    
+    // Refresh icons
+    if (window.lucide && window.lucide.createIcons) {
+        window.lucide.createIcons();
+    }
+}
+
+function addMediaItem(mediaData) {
+    try {
+        // Get current instrument from settings
+        let settings = window.getItems('SETTINGS');
+        settings = Array.isArray(settings) && settings.length > 0 ? settings[0] : {};
+        const currentInstrument = settings.primaryInstrument || '';
+        
+        if (!currentInstrument) {
+            alert('Please select an instrument in settings before adding media');
+            return null;
+        }
+        
+        // Create media object with instrument
+        const mediaItem = {
+            id: `m-${Date.now()}`,
+            type: mediaData.type,
+            title: mediaData.title,
+            content: mediaData.content,
+            description: mediaData.description || '',
+            categoryId: mediaData.categoryId,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            instrument: currentInstrument
+        };
+        
+        console.log('Adding new media item for instrument:', currentInstrument, mediaItem);
+        
+        // Get existing media
+        let mediaItems = getItems('MEDIA') || [];
+        
+        // Add new item
+        mediaItems.push(mediaItem);
+        
+        // Save back to storage
+        setItems('MEDIA', mediaItems);
+        
+        return mediaItem;
+    } catch (error) {
+        console.error('Error adding media item:', error);
+        return null;
+    }
+} 

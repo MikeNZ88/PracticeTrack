@@ -110,106 +110,16 @@ const getItems = (type) => {
             return [];
         }
         
-        // Try to get data from primary key
+        // Get data from storage
         const data = localStorage.getItem(key);
+        console.log(`Getting ${key}:`, data);
         
-        // If looking for sessions and no data found, try alternative keys
-        if (!data || data === '[]' || data === 'null') {
-            console.log(`No data found for ${key}, checking alternates...`);
-            
-            // For sessions, try all possible keys
-            if (normalizedType === 'SESSIONS') {
-                // Possible keys to check
-                const alternateKeys = ['sessions', 'practice_sessions', 'SESSIONS', 'practicetrack_sessions'];
-                
-                for (const altKey of alternateKeys) {
-                    const altData = localStorage.getItem(altKey);
-                    if (altData && altData !== '[]' && altData !== 'null') {
-                        console.log(`Found sessions under alternate key: ${altKey}`);
-                        try {
-                            const parsed = JSON.parse(altData);
-                            if (Array.isArray(parsed) && parsed.length > 0) {
-                                // Also save to the primary key
-                                localStorage.setItem(key, altData);
-                                return parsed;
-                            }
-                        } catch (e) {
-                            console.error(`Error parsing data from ${altKey}:`, e);
-                        }
-                    }
-                }
-                
-                // If still no data found, create sample sessions
-                console.log('No session data found, creating samples');
-                const sampleSessions = [
-                    {
-                        id: 's-1',
-                        categoryId: 'c-1',
-                        startTime: new Date().toISOString(),
-                        duration: 3600, // 1 hour
-                        notes: 'Sample practice session',
-                        isManual: true,
-                        isLesson: false,
-                        createdAt: new Date().toISOString(),
-                        updatedAt: new Date().toISOString()
-                    },
-                    {
-                        id: 's-2',
-                        categoryId: 'c-2',
-                        startTime: new Date(Date.now() - 86400000).toISOString(), // Yesterday
-                        duration: 1800, // 30 minutes
-                        notes: 'Sample practice session 2',
-                        isManual: true,
-                        isLesson: false,
-                        createdAt: new Date(Date.now() - 86400000).toISOString(),
-                        updatedAt: new Date(Date.now() - 86400000).toISOString()
-                    },
-                    {
-                        id: 's-3',
-                        categoryId: 'c-3',
-                        startTime: new Date(Date.now() - 172800000).toISOString(), // 2 days ago
-                        duration: 2700, // 45 minutes
-                        notes: 'Sample practice session 3',
-                        isManual: true,
-                        isLesson: false,
-                        createdAt: new Date(Date.now() - 172800000).toISOString(),
-                        updatedAt: new Date(Date.now() - 172800000).toISOString()
-                    }
-                ];
-                
-                // Save sample sessions to all potential keys
-                const sampleJSON = JSON.stringify(sampleSessions);
-                localStorage.setItem(key, sampleJSON);
-                localStorage.setItem('practice_sessions', sampleJSON);
-                localStorage.setItem('sessions', sampleJSON);
-                
-                return sampleSessions;
-            }
-            
-            // For categories, if none found, use defaults
-            if (normalizedType === 'CATEGORIES') {
-                // Save default categories
-                localStorage.setItem(key, JSON.stringify(defaultCategories));
-                return defaultCategories;
-            }
-            
-            return [];
-        }
-        
-        return data ? JSON.parse(data) : [];
+        // Parse and return data
+        const items = data ? JSON.parse(data) : [];
+        console.log(`Found ${items.length} items for ${key}`);
+        return items;
     } catch (error) {
-        console.error(`Error getting items for type ${type}:`, error);
-        
-        // If there's an error for sessions, return sample data
-        if (type.toUpperCase() === 'SESSIONS') {
-            return sampleSessions;
-        }
-        
-        // If there's an error for categories, return defaults
-        if (type.toUpperCase() === 'CATEGORIES') {
-            return defaultCategories;
-        }
-        
+        console.error(`Error getting ${type}:`, error);
         return [];
     }
 };
@@ -220,25 +130,26 @@ const getItemById = (type, id) => {
     return items.find(item => item.id === id);
 };
 
-// Save an item (create or update)
-const saveItem = (type, item) => {
+// Save items of a specific type
+const saveItems = (type, items) => {
     try {
-        const key = STORAGE_KEYS[type.toUpperCase()];
-        if (!key) return;
+        // Get the storage key for the type
+        const normalizedType = type.toUpperCase();
+        const key = STORAGE_KEYS[normalizedType];
         
-        let items = getItems(type);
-        const index = items.findIndex(i => i.id === item.id);
-        
-        if (index >= 0) {
-            items[index] = item;
-        } else {
-            items.push(item);
+        if (!key) {
+            console.error(`Invalid storage key for type: ${type}`);
+            return false;
         }
         
-        localStorage.setItem(key, JSON.stringify(items));
+        // Save to storage
+        const data = JSON.stringify(items);
+        localStorage.setItem(key, data);
+        console.log(`Saved ${items.length} items to ${key}`);
+        return true;
     } catch (error) {
-        console.error(`Error saving item for type ${type}:`, error);
-        throw error;
+        console.error(`Error saving ${type}:`, error);
+        return false;
     }
 };
 
@@ -391,41 +302,31 @@ const pruneOldMediaIfNeeded = () => {
     }
 };
 
-// Initialize data
+// Initialize data store
 const initializeData = () => {
-    console.log('Initializing data layer...');
+    console.log('Initializing data store');
     
-    // Check if any categories exist, if not, create defaults
+    // Initialize categories if none exist
     const categories = getItems('CATEGORIES');
     if (!categories || categories.length === 0) {
-        console.log('No categories found, creating defaults...');
-        defaultCategories.forEach(category => {
-            saveItem('CATEGORIES', category);
-        });
+        console.log('No categories found, initializing defaults');
+        saveItems('CATEGORIES', defaultCategories);
     }
     
-    // Check if settings exist, if not, create defaults
+    // Initialize settings if none exist
     const settings = getItems('SETTINGS');
     if (!settings || settings.length === 0) {
-        console.log('No settings found, creating defaults...');
-        saveItem('SETTINGS', defaultSettings);
+        console.log('No settings found, initializing defaults');
+        saveItems('SETTINGS', [defaultSettings]);
     }
     
-    // Check if sessions exist
-    const sessions = getItems('SESSIONS');
-    if (!sessions || sessions.length === 0) {
-        console.log('No sessions found, initializing with sample data');
-        localStorage.setItem(STORAGE_KEYS.SESSIONS, JSON.stringify(sampleSessions));
-    }
-    
-    console.log('Data initialization complete');
+    console.log('Data store initialized');
 };
 
-// Expose functions to window object
-window.initializeData = initializeData;
+// Make functions available globally
 window.getItems = getItems;
 window.getItemById = getItemById;
-window.saveItem = saveItem;
+window.saveItems = saveItems;
 window.deleteItem = deleteItem;
 window.updateItem = updateItem;
 window.clearAllData = clearAllData;
@@ -436,6 +337,8 @@ window.validateGoal = validateGoal;
 window.validateMediaReference = validateMediaReference;
 window.checkStorageCapacity = checkStorageCapacity;
 window.defaultCategories = defaultCategories;
+window.initializeData = initializeData;
+window.STORAGE_KEYS = STORAGE_KEYS;
 
 // Initialize data layer immediately when script loads
 document.addEventListener('DOMContentLoaded', () => {

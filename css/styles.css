@@ -2147,3 +2147,45 @@ textarea:focus {
 .theme-dark .delete-category:hover {
     background-color: rgba(255, 255, 255, 0.05);
 }
+
+#stats-page .filters {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    margin-bottom: var(--space-lg);
+    flex-wrap: wrap;
+}
+
+#stats-page .filter-button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    height: 45px;
+    margin-left: auto;
+}
+
+#stats-page .stats-category-filter {
+    min-width: 200px;
+}
+
+@media (max-width: 768px) {
+    #stats-page .filters {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    #stats-page .filter-button {
+        margin-left: 0;
+        margin-top: var(--space-sm);
+        width: 100%;
+        justify-content: center;
+    }
+    
+    #stats-page .date-range {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-sm);
+        width: 100%;
+    }
+}

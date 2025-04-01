@@ -18,6 +18,18 @@ const loadGoals = (filters = {}) => {
     const goals = getItems('GOALS') || [];
     goalsList.innerHTML = '';
     
+    // Get current instrument from settings
+    let settings = window.getItems('SETTINGS');
+    settings = Array.isArray(settings) && settings.length > 0 ? settings[0] : {};
+    const currentInstrument = settings.primaryInstrument || '';
+    console.log('Current instrument for goals:', currentInstrument);
+    
+    // Filter goals by current instrument
+    if (currentInstrument && goals) {
+        goals = goals.filter(goal => goal.instrument === currentInstrument);
+        console.log(`Filtered to ${goals.length} goals for instrument: ${currentInstrument}`);
+    }
+    
     // Apply filters
     let filteredGoals = [...goals];
     
@@ -450,4 +462,48 @@ const addGoalStyles = () => {
 document.addEventListener('DOMContentLoaded', addGoalStyles);
 
 // Export function to global scope
-window.initializeGoals = initializeGoals; 
+window.initializeGoals = initializeGoals;
+
+function createGoal(goalData) {
+    try {
+        // Get current instrument from settings
+        let settings = window.getItems('SETTINGS');
+        settings = Array.isArray(settings) && settings.length > 0 ? settings[0] : {};
+        const currentInstrument = settings.primaryInstrument || '';
+        
+        if (!currentInstrument) {
+            alert('Please select an instrument in settings before creating a goal');
+            return null;
+        }
+        
+        // Create goal object with instrument
+        const goal = {
+            id: `g-${Date.now()}`,
+            title: goalData.title,
+            description: goalData.description || '',
+            categoryId: goalData.categoryId,
+            targetDuration: goalData.targetDuration || 0,
+            dueDate: goalData.dueDate || null,
+            completed: false,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            instrument: currentInstrument
+        };
+        
+        console.log('Creating new goal for instrument:', currentInstrument, goal);
+        
+        // Get existing goals
+        let goals = getItems('GOALS') || [];
+        
+        // Add new goal
+        goals.push(goal);
+        
+        // Save back to storage
+        setItems('GOALS', goals);
+        
+        return goal;
+    } catch (error) {
+        console.error('Error creating goal:', error);
+        return null;
+    }
+} 

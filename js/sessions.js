@@ -483,4 +483,57 @@ window.showSessionDialog = showSessionDialog;
 window.handleSessionSubmit = handleSessionSubmit;
 window.editSession = editSession;
 window.deleteSession = deleteSession;
-window.refreshSessionsFilters = refreshFilters; 
+window.refreshSessionsFilters = refreshFilters;
+
+function updateSessionsList(sessions) {
+    console.log('Updating sessions list');
+    
+    // Get current instrument from settings
+    let settings = window.getItems('SETTINGS');
+    settings = Array.isArray(settings) && settings.length > 0 ? settings[0] : {};
+    const currentInstrument = settings.primaryInstrument || '';
+    console.log('Current instrument for sessions:', currentInstrument);
+    
+    // Filter sessions by current instrument
+    if (currentInstrument && sessions) {
+        sessions = sessions.filter(session => session.instrument === currentInstrument);
+        console.log(`Filtered to ${sessions.length} sessions for instrument: ${currentInstrument}`);
+    }
+    
+    // Get sessions list container
+    const sessionsList = document.getElementById('sessions-list');
+    if (!sessionsList) {
+        console.error('Sessions list container not found');
+        return;
+    }
+    
+    // Clear existing sessions
+    sessionsList.innerHTML = '';
+    
+    // Show message if no sessions
+    if (!sessions || sessions.length === 0) {
+        const noSessions = document.createElement('div');
+        noSessions.className = 'no-sessions';
+        noSessions.textContent = currentInstrument ? 
+            `No practice sessions found for ${currentInstrument}` : 
+            'No practice sessions found';
+        sessionsList.appendChild(noSessions);
+        return;
+    }
+    
+    // Sort sessions by date (newest first)
+    sessions.sort((a, b) => new Date(b.startTime) - new Date(a.startTime));
+    
+    // Add sessions to list
+    sessions.forEach(session => {
+        const sessionElement = createSessionElement(session);
+        if (sessionElement) {
+            sessionsList.appendChild(sessionElement);
+        }
+    });
+    
+    // Refresh icons
+    if (window.lucide && window.lucide.createIcons) {
+        window.lucide.createIcons();
+    }
+} 
