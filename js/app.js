@@ -26,8 +26,12 @@ const areAllModulesInitialized = () => {
 const initializeApp = () => {
     console.log('Initializing app');
     
-    // Initialize data layer
-    initializeDataLayer();
+    // Initialize data layer first
+    if (typeof window.initializeData === 'function') {
+        window.initializeData(); // Use data.js's function if available
+    } else {
+        initializeDataLayer(); // Fallback to local implementation
+    }
     
     // Setup navigation
     setupNavigation();
@@ -38,15 +42,6 @@ const initializeApp = () => {
     // Initialize Lucide icons
     if (typeof lucide !== 'undefined' && lucide.createIcons) {
         lucide.createIcons();
-    }
-    
-    // Initialize timer if on timer page
-    if (document.querySelector('.timer-container')) {
-        console.log('Initializing timer from app');
-        if (typeof window.initTimer === 'function') {
-            window.initTimer();
-            moduleStates.timer = true;
-        }
     }
     
     // Navigate to initial page
@@ -60,8 +55,17 @@ const initializeDataLayer = () => {
     console.log('Initializing data layer');
     
     try {
+        // Import keys from data.js if available
+        const KEYS = window.STORAGE_KEYS || {
+            CATEGORIES: 'practiceTrack_categories',
+            SESSIONS: 'practiceTrack_sessions',
+            GOALS: 'practiceTrack_goals',
+            MEDIA: 'practiceTrack_media',
+            SETTINGS: 'practiceTrack_settings'
+        };
+        
         // Ensure localStorage has practiceTrack_categories
-        const categories = JSON.parse(localStorage.getItem('practiceTrack_categories')) || [];
+        const categories = JSON.parse(localStorage.getItem(KEYS.CATEGORIES)) || [];
         if (categories.length === 0) {
             // Add some default categories
             const defaultCategories = [
@@ -71,14 +75,14 @@ const initializeDataLayer = () => {
                 { id: 'cat_sightreading', name: 'Sight-reading', custom: false },
                 { id: 'cat_theory', name: 'Theory', custom: false }
             ];
-            localStorage.setItem('practiceTrack_categories', JSON.stringify(defaultCategories));
+            localStorage.setItem(KEYS.CATEGORIES, JSON.stringify(defaultCategories));
             console.log('Added default categories');
         }
         
         // Ensure localStorage has practiceTrack_sessions
-        const sessions = JSON.parse(localStorage.getItem('practiceTrack_sessions')) || [];
+        const sessions = JSON.parse(localStorage.getItem(KEYS.SESSIONS)) || [];
         if (!Array.isArray(sessions)) {
-            localStorage.setItem('practiceTrack_sessions', JSON.stringify([]));
+            localStorage.setItem(KEYS.SESSIONS, JSON.stringify([]));
             console.log('Initialized empty sessions array');
         }
         
@@ -213,31 +217,39 @@ window.navigateToPage = navigateToPage = (page) => {
     // Initialize page-specific content
     switch (page) {
         case 'settings':
-            if (typeof window.initializeSettings === 'function' && !moduleStates.settings) {
+            if (typeof window.initializeSettings === 'function') {
                 window.initializeSettings();
                 moduleStates.settings = true;
             }
             break;
         case 'stats':
-            if (typeof window.initializeStats === 'function' && !moduleStates.stats) {
+            if (typeof window.initializeStats === 'function') {
                 window.initializeStats();
                 moduleStates.stats = true;
             }
             break;
         case 'sessions':
-            if (typeof window.initializeSessions === 'function' && !moduleStates.sessions) {
+            // Always make sure data is initialized first
+            if (typeof window.initializeData === 'function') {
+                window.initializeData();
+            }
+            
+            // Then initialize sessions page
+            if (typeof window.initializeSessions === 'function') {
                 window.initializeSessions();
                 moduleStates.sessions = true;
+            } else {
+                console.error('Sessions initialization function not found');
             }
             break;
         case 'goals':
-            if (typeof window.initializeGoals === 'function' && !moduleStates.goals) {
+            if (typeof window.initializeGoals === 'function') {
                 window.initializeGoals();
                 moduleStates.goals = true;
             }
             break;
         case 'media':
-            if (typeof window.initializeMedia === 'function' && !moduleStates.media) {
+            if (typeof window.initializeMedia === 'function') {
                 window.initializeMedia();
                 moduleStates.media = true;
             }
@@ -281,7 +293,21 @@ window.updateCategoryDropdowns = function() {
     console.log('Updating all category dropdowns');
     
     // Dispatch a categoriesChanged event for other modules to listen to
-    document.dispatchEvent(new Event('categoriesChanged'));
+    document.dispatchEvent(new CustomEvent('categoriesChanged', {
+        detail: { timestamp: new Date().toISOString() }
+    }));
+    console.log('categoriesChanged event dispatched');
+    
+    // Show a debug notification
+    if (window.showNotification) {
+        window.showNotification('Categories updated', 'All category dropdowns have been refreshed');
+    }
+    
+    // Ensure categories are properly updated in sessions page if it's the current page
+    if (currentPage === 'sessions' && typeof window.initializeSessions === 'function') {
+        console.log('Reinitializing sessions page after category update');
+        window.initializeSessions();
+    }
     
     // Also update the Timer instance if it exists
     if (window.timer && typeof window.timer.loadCategories === 'function') {
@@ -306,31 +332,62 @@ window.updateCategoryDropdowns = function() {
 // Listen for categoriesChanged event
 document.addEventListener('categoriesChanged', (event) => {
     console.log('Categories changed event received:', event.detail);
-    updateCategoryDropdowns();
+    // Don't call updateCategoryDropdowns here to avoid circular reference
 });
 
-// Set up global access to the updateCategoryDropdowns function
-window.updateCategoryDropdowns = updateCategoryDropdowns;
-
+// Only keep the initialization at the top of the file - remove duplicate initialization at the bottom
 // Initialize app when DOM is loaded
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
         console.log('DOM loaded, initializing app');
-        initNavigation();
-        
-        // Initialize category dropdowns
-        updateCategoryDropdowns();
+        initializeApp();
     });
 } else {
     console.log('DOM already loaded, initializing app immediately');
-    initNavigation();
-    
-    // Initialize category dropdowns
-    updateCategoryDropdowns();
+    initializeApp();
 }
 
 // Make functions available to window object
 window.initializeApp = initializeApp;
 window.setupNavigation = setupNavigation;
 window.navigateToPage = navigateToPage;
-window.initializeTheme = initializeTheme; 
+window.initializeTheme = initializeTheme;
+
+// Simple notification function for debugging
+window.showNotification = function(title, message) {
+    console.log(`NOTIFICATION: ${title} - ${message}`);
+    
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = 'debug-notification';
+    notification.innerHTML = `
+        <h4>${title}</h4>
+        <p>${message}</p>
+    `;
+    
+    // Add styles
+    notification.style.position = 'fixed';
+    notification.style.bottom = '20px';
+    notification.style.right = '20px';
+    notification.style.backgroundColor = '#4CAF50';
+    notification.style.color = 'white';
+    notification.style.padding = '10px 20px';
+    notification.style.borderRadius = '4px';
+    notification.style.boxShadow = '0 2px 4px rgba(0,0,0,0.2)';
+    notification.style.zIndex = '9999';
+    notification.style.maxWidth = '300px';
+    
+    // Add to document
+    document.body.appendChild(notification);
+    
+    // Remove after 3 seconds
+    setTimeout(() => {
+        notification.style.opacity = '0';
+        notification.style.transition = 'opacity 0.5s';
+        
+        // Remove from DOM after fade out
+        setTimeout(() => {
+            document.body.removeChild(notification);
+        }, 500);
+    }, 3000);
+}; 

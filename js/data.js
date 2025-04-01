@@ -358,6 +358,12 @@ const pruneOldMediaIfNeeded = () => {
 const initializeData = () => {
     console.log('Initializing data layer');
     
+    // Check if already initialized
+    if (window._dataLayerInitialized) {
+        console.log('Data layer already initialized, skipping');
+        return true;
+    }
+    
     try {
         // Initialize settings if not exists
         let settings = getItems('SETTINGS')[0];
@@ -394,6 +400,9 @@ const initializeData = () => {
             saveItems('MEDIA', []);
         }
         
+        // Mark as initialized
+        window._dataLayerInitialized = true;
+        
         console.log('Data layer initialized successfully');
         return true;
     } catch (error) {
@@ -418,14 +427,6 @@ window.checkStorageCapacity = checkStorageCapacity;
 window.initializeData = initializeData;
 window.AVAILABLE_INSTRUMENTS = AVAILABLE_INSTRUMENTS;
 window.DEFAULT_CATEGORIES = DEFAULT_CATEGORIES;
+window.STORAGE_KEYS = STORAGE_KEYS; // Export the storage keys
 
-// Initialize data layer immediately when script loads
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-        console.log('DOM loaded, initializing data layer');
-        initializeData();
-    });
-} else {
-    console.log('DOM already loaded, initializing data layer immediately');
-    initializeData();
-} 
+// Remove auto-initialization to allow app.js to control initialization sequence 

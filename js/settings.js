@@ -245,7 +245,7 @@ const notifyCategoriesChanged = () => {
 };
 
 // Handle adding a new category
-const handleAddCategory = () => {
+function handleAddCategory() {
     console.log('Adding new category');
     
     if (!newCategoryInput || !newCategoryInput.value.trim()) {
@@ -286,12 +286,17 @@ const handleAddCategory = () => {
         console.log('Dispatching categoriesChanged event');
         document.dispatchEvent(new Event('categoriesChanged'));
         
+        // Also call the global update function if available
+        if (typeof window.updateCategoryDropdowns === 'function') {
+            window.updateCategoryDropdowns();
+        }
+        
         alert('Category added successfully');
     } catch (error) {
         console.error('Error adding category:', error);
         alert('Failed to add category');
     }
-};
+}
 
 // Handle editing a category
 const handleEditCategory = (categoryId) => {
@@ -339,7 +344,7 @@ const handleEditCategory = (categoryId) => {
 };
 
 // Handle deleting a category
-const handleDeleteCategory = (categoryId) => {
+function handleDeleteCategory(categoryId) {
     console.log('Deleting category:', categoryId);
     
     if (!categoryId) {
@@ -376,12 +381,17 @@ const handleDeleteCategory = (categoryId) => {
         console.log('Dispatching categoriesChanged event');
         document.dispatchEvent(new Event('categoriesChanged'));
         
+        // Also call the global update function if available
+        if (typeof window.updateCategoryDropdowns === 'function') {
+            window.updateCategoryDropdowns();
+        }
+        
         alert('Category deleted successfully');
     } catch (error) {
         console.error('Error deleting category:', error);
         alert('Failed to delete category');
     }
-};
+}
 
 // Load categories
 function loadCategories() {
