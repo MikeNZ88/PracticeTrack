@@ -5,12 +5,24 @@
 
 // Media data storage
 let mediaDialog = null;
+let mediaDirectoryHandle = null;
 
 /**
  * Initialize media page
  */
-function initializeMedia() {
+async function initializeMedia() {
     console.log('Initializing media page');
+    
+    // Request permission to access media directory
+    try {
+        mediaDirectoryHandle = await window.showDirectoryPicker({
+            id: 'mediaDirectory',
+            mode: 'readwrite',
+            startIn: 'pictures'
+        });
+    } catch (error) {
+        console.error('Error accessing media directory:', error);
+    }
     
     // Use the UI framework to initialize the media page
     window.UI.initRecordPage({
@@ -50,35 +62,17 @@ function createMediaElement(media) {
     let content = '';
     switch (media.type) {
         case 'photo':
-            if (media.content) {
-                // Display actual photo if content is available
-                content = `<div class="media-image">
-                    <img src="${media.content}" alt="${media.name || 'Photo'}" />
-                </div>`;
-            } else {
-                // Fallback to placeholder
-                content = `<div class="media-placeholder">
-                    <i data-lucide="image"></i>
-                    <p class="reference-text">${media.filename || 'Photo Reference'}</p>
-                </div>`;
-            }
+            content = `<div class="media-image">
+                <img src="${media.filePath}" alt="${media.name || 'Photo'}" />
+            </div>`;
             break;
         case 'video':
-            if (media.content) {
-                // Display actual video if content is available
-                content = `<div class="media-video">
-                    <video controls>
-                        <source src="${media.content}" type="video/mp4">
-                        Your browser does not support the video tag.
-                    </video>
-                </div>`;
-            } else {
-                // Fallback to placeholder
-                content = `<div class="media-placeholder">
-                    <i data-lucide="video"></i>
-                    <p class="reference-text">${media.filename || 'Video Reference'}</p>
-                </div>`;
-            }
+            content = `<div class="media-video">
+                <video controls>
+                    <source src="${media.filePath}" type="${media.fileType}">
+                    Your browser does not support the video tag.
+                </video>
+            </div>`;
             break;
         case 'note':
             content = `<div class="note-content">${media.content || ''}</div>`;
@@ -133,13 +127,6 @@ function createMediaElement(media) {
  * @param {string} type - Media type (photo or video)
  */
 function showNamingDialog(file, type) {
-    // Check file size - limit to 5MB
-    const maxSize = 5 * 1024 * 1024; // 5MB
-    if (file.size > maxSize) {
-        alert(`File is too large. Please select a file smaller than 5MB.`);
-        return;
-    }
-    
     // Prepare fields for the dialog
     const fields = [
         {
@@ -160,7 +147,7 @@ function showNamingDialog(file, type) {
     const dialog = window.UI.createStandardDialog({
         title: `New ${type.charAt(0).toUpperCase() + type.slice(1)}`,
         fields: fields,
-        onSubmit: (dialog, e) => {
+        onSubmit: async (dialog, e) => {
             const form = e.target;
             const nameInput = form.querySelector('#media-name');
             const notesInput = form.querySelector('#media-notes');
@@ -170,22 +157,44 @@ function showNamingDialog(file, type) {
                 return;
             }
             
-            // Read file and convert to data URL
-            const reader = new FileReader();
-            reader.onload = function(event) {
+            try {
+                // Create a unique filename
+                const timestamp = new Date().getTime();
+                const extension = file.name.split('.').pop();
+                const newFilename = `${nameInput.value.trim().replace(/[^a-z0-9]/gi, '_').toLowerCase()}_${timestamp}.${extension}`;
+                
+                // Save file to device storage
+                let fileHandle;
+                if (mediaDirectoryHandle) {
+                    fileHandle = await mediaDirectoryHandle.getFileHandle(newFilename, { create: true });
+                    const writable = await fileHandle.createWritable();
+                    await writable.write(file);
+                } else {
+                    // Fallback to downloading the file if directory access is not available
+                    const blob = new Blob([file], { type: file.type });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = newFilename;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                }
+                
                 // Create media object
                 const newMedia = {
-                    id: `media_${Date.now()}`,
+                    id: `media_${timestamp}`,
                     type: type,
                     name: nameInput.value.trim(),
-                    content: event.target.result,
                     notes: notesInput.value,
-                    filename: file.name,
+                    filename: newFilename,
+                    fileType: file.type,
                     createdAt: new Date().toISOString(),
                     updatedAt: new Date().toISOString()
                 };
                 
-                // Save the new media
+                // Save media reference to localStorage
                 if (window.addItem) {
                     window.addItem('MEDIA', newMedia);
                 } else {
@@ -205,14 +214,10 @@ function showNamingDialog(file, type) {
                     window.showNotification(`${type.charAt(0).toUpperCase() + type.slice(1)} Added`, 
                         `Your ${type} has been saved.`);
                 }
-            };
-            
-            reader.onerror = function() {
-                console.error('Error reading file');
-                alert('Error reading file. Please try again.');
-            };
-            
-            reader.readAsDataURL(file);
+            } catch (error) {
+                console.error('Error saving media:', error);
+                alert('Error saving media. Please try again.');
+            }
         },
         onCancel: (dialog) => dialog.close(),
         submitButtonText: 'Save',
@@ -496,7 +501,7 @@ async function deleteMedia(mediaId) {
     if (!confirmed) return;
     
     try {
-        // Use data layer if available
+        // Delete reference from localStorage
         if (window.deleteItem) {
             window.deleteItem('MEDIA', mediaId);
         } else {
@@ -688,6 +693,13 @@ document.addEventListener('pageChanged', (e) => {
     if (e.detail === 'media') {
         initializeMedia();
     }
+});
+
+// Initialize IndexedDB when the page loads
+document.addEventListener('DOMContentLoaded', () => {
+    initMediaDB().catch(error => {
+        console.error('Error initializing media database:', error);
+    });
 });
 
 // Make function available globally
