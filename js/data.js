@@ -1,62 +1,121 @@
 // Data Access Layer
 const SCHEMA_VERSION = 1;
 
-// Default Data
-const defaultCategories = [
-    { 
-        id: 'c-1', 
-        name: 'Technique', 
-        isHidden: false,
-        isDefault: true,
-        instrumentIds: ['piano', 'guitar', 'violin', 'drums', 'voice', 'flute', 'clarinet', 'trumpet', 'bass', 'cello', 'saxophone']
-    },
-    { 
-        id: 'c-2', 
-        name: 'Repertoire', 
-        isHidden: false,
-        isDefault: true,
-        instrumentIds: ['piano', 'guitar', 'violin', 'drums', 'voice', 'flute', 'clarinet', 'trumpet', 'bass', 'cello', 'saxophone']
-    },
-    { 
-        id: 'c-3', 
-        name: 'Music Theory', 
-        isHidden: false,
-        isDefault: true,
-        instrumentIds: ['piano', 'guitar', 'violin', 'drums', 'voice', 'flute', 'clarinet', 'trumpet', 'bass', 'cello', 'saxophone']
-    },
-    { 
-        id: 'c-4', 
-        name: 'Ear Training', 
-        isHidden: false,
-        isDefault: true,
-        instrumentIds: ['piano', 'guitar', 'violin', 'drums', 'voice', 'flute', 'clarinet', 'trumpet', 'bass', 'cello', 'saxophone']
-    },
-    { 
-        id: 'c-5', 
-        name: 'Sight Reading', 
-        isHidden: false,
-        isDefault: true,
-        instrumentIds: ['piano', 'guitar', 'violin', 'flute', 'clarinet', 'trumpet', 'bass', 'cello']
-    },
-    { 
-        id: 'c-6', 
-        name: 'Improvisation', 
-        isHidden: false,
-        isDefault: true,
-        instrumentIds: ['piano', 'guitar', 'violin', 'drums', 'trumpet', 'bass', 'saxophone']
-    },
-    { 
-        id: 'c-7', 
-        name: 'Lesson', 
-        isHidden: false,
-        isDefault: true,
-        instrumentIds: ['piano', 'guitar', 'violin', 'drums', 'voice', 'flute', 'clarinet', 'trumpet', 'bass', 'cello', 'saxophone']
-    }
+// Available Instruments
+const AVAILABLE_INSTRUMENTS = [
+    { id: 'piano', name: 'Piano' },
+    { id: 'guitar', name: 'Guitar' },
+    { id: 'violin', name: 'Violin' },
+    { id: 'drums', name: 'Drums' },
+    { id: 'voice', name: 'Voice' },
+    { id: 'flute', name: 'Flute' },
+    { id: 'clarinet', name: 'Clarinet' },
+    { id: 'trumpet', name: 'Trumpet' },
+    { id: 'bass', name: 'Bass' },
+    { id: 'cello', name: 'Cello' },
+    { id: 'saxophone', name: 'Saxophone' }
 ];
 
+// Default Categories by Instrument
+const DEFAULT_CATEGORIES = {
+    piano: [
+        { id: 'c-1', name: 'Technique', isDefault: true },
+        { id: 'c-2', name: 'Repertoire', isDefault: true },
+        { id: 'c-3', name: 'Music Theory', isDefault: true },
+        { id: 'c-4', name: 'Ear Training', isDefault: true },
+        { id: 'c-5', name: 'Sight Reading', isDefault: true },
+        { id: 'c-6', name: 'Improvisation', isDefault: true },
+        { id: 'c-7', name: 'Lesson', isDefault: true }
+    ],
+    guitar: [
+        { id: 'c-1', name: 'Technique', isDefault: true },
+        { id: 'c-2', name: 'Repertoire', isDefault: true },
+        { id: 'c-3', name: 'Music Theory', isDefault: true },
+        { id: 'c-4', name: 'Ear Training', isDefault: true },
+        { id: 'c-5', name: 'Sight Reading', isDefault: true },
+        { id: 'c-6', name: 'Improvisation', isDefault: true },
+        { id: 'c-7', name: 'Lesson', isDefault: true }
+    ],
+    violin: [
+        { id: 'c-1', name: 'Technique', isDefault: true },
+        { id: 'c-2', name: 'Repertoire', isDefault: true },
+        { id: 'c-3', name: 'Music Theory', isDefault: true },
+        { id: 'c-4', name: 'Ear Training', isDefault: true },
+        { id: 'c-5', name: 'Sight Reading', isDefault: true },
+        { id: 'c-7', name: 'Lesson', isDefault: true }
+    ],
+    drums: [
+        { id: 'c-1', name: 'Technique', isDefault: true },
+        { id: 'c-2', name: 'Repertoire', isDefault: true },
+        { id: 'c-3', name: 'Music Theory', isDefault: true },
+        { id: 'c-4', name: 'Ear Training', isDefault: true },
+        { id: 'c-6', name: 'Improvisation', isDefault: true },
+        { id: 'c-7', name: 'Lesson', isDefault: true }
+    ],
+    voice: [
+        { id: 'c-1', name: 'Technique', isDefault: true },
+        { id: 'c-2', name: 'Repertoire', isDefault: true },
+        { id: 'c-3', name: 'Music Theory', isDefault: true },
+        { id: 'c-4', name: 'Ear Training', isDefault: true },
+        { id: 'c-7', name: 'Lesson', isDefault: true }
+    ],
+    flute: [
+        { id: 'c-1', name: 'Technique', isDefault: true },
+        { id: 'c-2', name: 'Repertoire', isDefault: true },
+        { id: 'c-3', name: 'Music Theory', isDefault: true },
+        { id: 'c-4', name: 'Ear Training', isDefault: true },
+        { id: 'c-5', name: 'Sight Reading', isDefault: true },
+        { id: 'c-7', name: 'Lesson', isDefault: true }
+    ],
+    clarinet: [
+        { id: 'c-1', name: 'Technique', isDefault: true },
+        { id: 'c-2', name: 'Repertoire', isDefault: true },
+        { id: 'c-3', name: 'Music Theory', isDefault: true },
+        { id: 'c-4', name: 'Ear Training', isDefault: true },
+        { id: 'c-5', name: 'Sight Reading', isDefault: true },
+        { id: 'c-7', name: 'Lesson', isDefault: true }
+    ],
+    trumpet: [
+        { id: 'c-1', name: 'Technique', isDefault: true },
+        { id: 'c-2', name: 'Repertoire', isDefault: true },
+        { id: 'c-3', name: 'Music Theory', isDefault: true },
+        { id: 'c-4', name: 'Ear Training', isDefault: true },
+        { id: 'c-5', name: 'Sight Reading', isDefault: true },
+        { id: 'c-6', name: 'Improvisation', isDefault: true },
+        { id: 'c-7', name: 'Lesson', isDefault: true }
+    ],
+    bass: [
+        { id: 'c-1', name: 'Technique', isDefault: true },
+        { id: 'c-2', name: 'Repertoire', isDefault: true },
+        { id: 'c-3', name: 'Music Theory', isDefault: true },
+        { id: 'c-4', name: 'Ear Training', isDefault: true },
+        { id: 'c-5', name: 'Sight Reading', isDefault: true },
+        { id: 'c-6', name: 'Improvisation', isDefault: true },
+        { id: 'c-7', name: 'Lesson', isDefault: true }
+    ],
+    cello: [
+        { id: 'c-1', name: 'Technique', isDefault: true },
+        { id: 'c-2', name: 'Repertoire', isDefault: true },
+        { id: 'c-3', name: 'Music Theory', isDefault: true },
+        { id: 'c-4', name: 'Ear Training', isDefault: true },
+        { id: 'c-5', name: 'Sight Reading', isDefault: true },
+        { id: 'c-7', name: 'Lesson', isDefault: true }
+    ],
+    saxophone: [
+        { id: 'c-1', name: 'Technique', isDefault: true },
+        { id: 'c-2', name: 'Repertoire', isDefault: true },
+        { id: 'c-3', name: 'Music Theory', isDefault: true },
+        { id: 'c-4', name: 'Ear Training', isDefault: true },
+        { id: 'c-5', name: 'Sight Reading', isDefault: true },
+        { id: 'c-6', name: 'Improvisation', isDefault: true },
+        { id: 'c-7', name: 'Lesson', isDefault: true }
+    ]
+};
+
+// Default Settings
 const defaultSettings = {
     id: 's-1',
-    primaryInstrument: '',
+    instruments: [],
     lessonDay: '',
     lessonTime: '',
     createdAt: new Date().toISOString(),
@@ -101,7 +160,6 @@ const STORAGE_KEYS = {
 // Get all items of a specific type
 const getItems = (type) => {
     try {
-        // Get the storage key for the type
         const normalizedType = type.toUpperCase();
         const key = STORAGE_KEYS[normalizedType];
         
@@ -110,11 +168,7 @@ const getItems = (type) => {
             return [];
         }
         
-        // Get data from storage
         const data = localStorage.getItem(key);
-        console.log(`Getting ${key}:`, data);
-        
-        // Parse and return data
         const items = data ? JSON.parse(data) : [];
         console.log(`Found ${items.length} items for ${key}`);
         return items;
@@ -133,7 +187,6 @@ const getItemById = (type, id) => {
 // Save items of a specific type
 const saveItems = (type, items) => {
     try {
-        // Get the storage key for the type
         const normalizedType = type.toUpperCase();
         const key = STORAGE_KEYS[normalizedType];
         
@@ -142,7 +195,6 @@ const saveItems = (type, items) => {
             return false;
         }
         
-        // Save to storage
         const data = JSON.stringify(items);
         localStorage.setItem(key, data);
         console.log(`Saved ${items.length} items to ${key}`);
@@ -302,28 +354,55 @@ const pruneOldMediaIfNeeded = () => {
     }
 };
 
-// Initialize data store
+// Initialize data layer
 const initializeData = () => {
-    console.log('Initializing data store');
+    console.log('Initializing data layer');
     
-    // Initialize categories if none exist
-    const categories = getItems('CATEGORIES');
-    if (!categories || categories.length === 0) {
-        console.log('No categories found, initializing defaults');
-        saveItems('CATEGORIES', defaultCategories);
+    try {
+        // Initialize settings if not exists
+        let settings = getItems('SETTINGS')[0];
+        if (!settings) {
+            settings = { ...defaultSettings };
+            saveItems('SETTINGS', [settings]);
+        }
+        
+        // Initialize categories if not exists
+        let categories = getItems('CATEGORIES');
+        if (!categories.length) {
+            // Get selected instruments from settings
+            const selectedInstruments = settings.instruments || [];
+            
+            // Add default categories for each selected instrument
+            selectedInstruments.forEach(instrumentId => {
+                if (DEFAULT_CATEGORIES[instrumentId]) {
+                    categories.push(...DEFAULT_CATEGORIES[instrumentId]);
+                }
+            });
+            
+            // Save categories
+            saveItems('CATEGORIES', categories);
+        }
+        
+        // Initialize other data types if needed
+        if (!getItems('SESSIONS').length) {
+            saveItems('SESSIONS', []);
+        }
+        if (!getItems('GOALS').length) {
+            saveItems('GOALS', []);
+        }
+        if (!getItems('MEDIA').length) {
+            saveItems('MEDIA', []);
+        }
+        
+        console.log('Data layer initialized successfully');
+        return true;
+    } catch (error) {
+        console.error('Error initializing data layer:', error);
+        return false;
     }
-    
-    // Initialize settings if none exist
-    const settings = getItems('SETTINGS');
-    if (!settings || settings.length === 0) {
-        console.log('No settings found, initializing defaults');
-        saveItems('SETTINGS', [defaultSettings]);
-    }
-    
-    console.log('Data store initialized');
 };
 
-// Make functions available globally
+// Make functions available to window object
 window.getItems = getItems;
 window.getItemById = getItemById;
 window.saveItems = saveItems;
@@ -336,12 +415,17 @@ window.validateSession = validateSession;
 window.validateGoal = validateGoal;
 window.validateMediaReference = validateMediaReference;
 window.checkStorageCapacity = checkStorageCapacity;
-window.defaultCategories = defaultCategories;
 window.initializeData = initializeData;
-window.STORAGE_KEYS = STORAGE_KEYS;
+window.AVAILABLE_INSTRUMENTS = AVAILABLE_INSTRUMENTS;
+window.DEFAULT_CATEGORIES = DEFAULT_CATEGORIES;
 
 // Initialize data layer immediately when script loads
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('DOM loaded, initializing data layer immediately');
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        console.log('DOM loaded, initializing data layer');
+        initializeData();
+    });
+} else {
+    console.log('DOM already loaded, initializing data layer immediately');
     initializeData();
-}); 
+} 

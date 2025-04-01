@@ -1,14 +1,21 @@
 // DOM Elements
-const sessionsList = document.getElementById('sessions-list');
-const searchInput = document.querySelector('.search-input');
-const categoryFilter = document.querySelector('.category-filter');
-const dateRangeInputs = document.querySelectorAll('.date-input');
-let sessionDialog; // Will be created dynamically
-let sessionForm; // Will be created dynamically
+let sessionsList;
+let searchInput;
+let categoryFilter;
+let dateRangeInputs;
+let sessionDialog;
+let sessionForm;
 
 // Initialize sessions page
 const initializeSessions = () => {
     console.log('Initializing sessions page...');
+    
+    // Get DOM elements
+    sessionsList = document.getElementById('sessions-list');
+    searchInput = document.querySelector('.search-input');
+    categoryFilter = document.querySelector('.category-filter');
+    dateRangeInputs = document.querySelectorAll('.date-input');
+    
     if (!sessionsList) {
         console.error('Sessions list element not found!');
         return;
@@ -40,9 +47,26 @@ const createSessionDialog = () => {
     sessionDialog = document.createElement('dialog');
     sessionDialog.className = 'session-dialog';
     
-    // Get visible categories (not hidden)
-    const categories = getItems('CATEGORIES').filter(cat => !cat.isHidden) || [];
-    console.log(`Found ${categories.length} visible categories for session dialog`);
+    // Get settings for instruments
+    let settings = window.getItems('SETTINGS');
+    settings = Array.isArray(settings) && settings.length > 0 ? settings[0] : {};
+    const selectedInstruments = settings.instruments || [];
+    
+    // Get categories for selected instruments
+    const categories = window.getItems('CATEGORIES') || [];
+    const visibleCategories = categories.filter(cat => 
+        selectedInstruments.includes(cat.instrumentId)
+    );
+    
+    console.log(`Found ${visibleCategories.length} visible categories for session dialog`);
+    
+    // Group categories by instrument
+    const categoriesByInstrument = {};
+    selectedInstruments.forEach(instrumentId => {
+        categoriesByInstrument[instrumentId] = visibleCategories.filter(cat => 
+            cat.instrumentId === instrumentId
+        );
+    });
     
     // Create form HTML
     sessionDialog.innerHTML = `
@@ -52,9 +76,19 @@ const createSessionDialog = () => {
                 <label for="session-category">Category</label>
                 <select id="session-category" name="category" required>
                     <option value="">Select Category</option>
-                    ${categories.map(category => 
-                        `<option value="${category.id}">${category.name}</option>`
-                    ).join('')}
+                    ${selectedInstruments.map(instrumentId => {
+                        const instrumentCategories = categoriesByInstrument[instrumentId];
+                        if (!instrumentCategories.length) return '';
+                        
+                        const instrument = window.AVAILABLE_INSTRUMENTS.find(i => i.id === instrumentId);
+                        return `
+                            <optgroup label="${instrument ? instrument.name : instrumentId}">
+                                ${instrumentCategories.map(category => 
+                                    `<option value="${category.id}">${category.name}</option>`
+                                ).join('')}
+                            </optgroup>
+                        `;
+                    }).join('')}
                 </select>
             </div>
             <div class="form-group">
@@ -102,7 +136,7 @@ const createSessionDialog = () => {
     document.body.appendChild(sessionDialog);
 };
 
-// Update session dialog categories to filter out hidden ones
+// Update session dialog categories
 const updateSessionDialogCategories = () => {
     if (!sessionDialog) return;
     
@@ -110,25 +144,52 @@ const updateSessionDialogCategories = () => {
     const categorySelect = sessionDialog.querySelector('#session-category');
     if (!categorySelect) return;
     
-    // Get visible categories
-    const categories = getItems('CATEGORIES').filter(cat => !cat.isHidden) || [];
+    // Get settings for instruments
+    let settings = window.getItems('SETTINGS');
+    settings = Array.isArray(settings) && settings.length > 0 ? settings[0] : {};
+    const selectedInstruments = settings.instruments || [];
+    
+    // Get categories for selected instruments
+    const categories = window.getItems('CATEGORIES') || [];
+    const visibleCategories = categories.filter(cat => 
+        selectedInstruments.includes(cat.instrumentId)
+    );
     
     // Store current selection
     const currentValue = categorySelect.value;
     
+    // Group categories by instrument
+    const categoriesByInstrument = {};
+    selectedInstruments.forEach(instrumentId => {
+        categoriesByInstrument[instrumentId] = visibleCategories.filter(cat => 
+            cat.instrumentId === instrumentId
+        );
+    });
+    
     // Clear current options
     categorySelect.innerHTML = '<option value="">Select Category</option>';
     
-    // Add new options
-    categories.forEach(category => {
-        const option = document.createElement('option');
-        option.value = category.id;
-        option.textContent = category.name;
-        categorySelect.appendChild(option);
+    // Add new options grouped by instrument
+    selectedInstruments.forEach(instrumentId => {
+        const instrumentCategories = categoriesByInstrument[instrumentId];
+        if (!instrumentCategories.length) return;
+        
+        const instrument = window.AVAILABLE_INSTRUMENTS.find(i => i.id === instrumentId);
+        const optgroup = document.createElement('optgroup');
+        optgroup.label = instrument ? instrument.name : instrumentId;
+        
+        instrumentCategories.forEach(category => {
+            const option = document.createElement('option');
+            option.value = category.id;
+            option.textContent = category.name;
+            optgroup.appendChild(option);
+        });
+        
+        categorySelect.appendChild(optgroup);
     });
     
     // Restore selection if still valid
-    if (currentValue && categories.some(c => c.id === currentValue)) {
+    if (currentValue && visibleCategories.some(c => c.id === currentValue)) {
         categorySelect.value = currentValue;
     }
 };
@@ -144,7 +205,7 @@ const loadSessions = (filters = {}) => {
             return;
         }
         
-        let sessions = getItems('SESSIONS');
+        let sessions = window.getItems('SESSIONS');
         console.log('Retrieved sessions:', sessions);
         
         if (!Array.isArray(sessions)) {
@@ -156,7 +217,7 @@ const loadSessions = (filters = {}) => {
         if (filters.search) {
             const searchTerm = filters.search.toLowerCase();
             sessions = sessions.filter(session => {
-                const category = getItemById('CATEGORIES', session.categoryId);
+                const category = window.getItemById('CATEGORIES', session.categoryId);
                 return category && (category.name.toLowerCase().includes(searchTerm) ||
                        session.notes.toLowerCase().includes(searchTerm));
             });
@@ -222,17 +283,24 @@ const formatTime = (seconds) => {
 
 // Create session element
 const createSessionElement = (session) => {
-    const category = getItemById('CATEGORIES', session.categoryId);
+    const category = window.getItemById('CATEGORIES', session.categoryId);
     if (!category) {
         console.error('Category not found for session:', session);
         return null;
     }
     
+    // Get instrument name
+    const instrument = window.AVAILABLE_INSTRUMENTS.find(i => i.id === category.instrumentId);
+    const instrumentName = instrument ? instrument.name : category.instrumentId;
+    
     const div = document.createElement('div');
     div.className = 'card session-card';
     div.innerHTML = `
         <div class="session-header">
-            <h3>${category.name}</h3>
+            <div class="session-title">
+                <h3>${category.name}</h3>
+                <span class="session-instrument">${instrumentName}</span>
+            </div>
             <span class="session-date">${new Date(session.startTime).toLocaleDateString()}</span>
         </div>
         <div class="session-details">
@@ -248,38 +316,33 @@ const createSessionElement = (session) => {
                 </button>
             ` : ''}
             <button class="icon-button delete-session" data-id="${session.id}">
-                <i data-lucide="trash"></i>
+                <i data-lucide="trash-2"></i>
             </button>
         </div>
     `;
     
     // Add event listeners
-    if (session.isManual) {
-        const editButton = div.querySelector('.edit-session');
+    const editButton = div.querySelector('.edit-session');
+    if (editButton) {
         editButton.addEventListener('click', () => editSession(session));
     }
     
     const deleteButton = div.querySelector('.delete-session');
-    deleteButton.addEventListener('click', () => deleteSession(session.id));
+    if (deleteButton) {
+        deleteButton.addEventListener('click', () => deleteSession(session.id));
+    }
     
     return div;
 };
 
 // Setup filters
 const setupFilters = () => {
-    // Populate category filter
-    const categories = getItems('CATEGORIES');
-    categoryFilter.innerHTML = '<option value="">All Categories</option>';
-    categories.forEach(category => {
-        if (!category.isHidden) {
-            const option = document.createElement('option');
-            option.value = category.id;
-            option.textContent = category.name;
-            categoryFilter.appendChild(option);
-        }
-    });
+    if (!searchInput || !categoryFilter || !dateRangeInputs.length) {
+        console.error('Missing filter elements');
+        return;
+    }
     
-    // Add filter event listeners
+    // Add input event listeners
     searchInput.addEventListener('input', applyFilters);
     categoryFilter.addEventListener('change', applyFilters);
     dateRangeInputs.forEach(input => {
@@ -290,7 +353,7 @@ const setupFilters = () => {
 // Apply filters
 const applyFilters = () => {
     const filters = {
-        search: searchInput.value,
+        search: searchInput.value.trim(),
         category: categoryFilter.value,
         startDate: dateRangeInputs[0].value,
         endDate: dateRangeInputs[1].value
@@ -306,184 +369,133 @@ const editSession = (session) => {
 
 // Delete session
 const deleteSession = (sessionId) => {
-    if (confirm('Are you sure you want to delete this session?')) {
-        deleteItem('SESSIONS', sessionId);
-        loadSessions();
-    }
+    if (!confirm('Are you sure you want to delete this session?')) return;
+    
+    window.deleteItem('SESSIONS', sessionId);
+    loadSessions();
 };
 
 // Format date
 const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString(undefined, {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-    });
+    return new Date(dateString).toLocaleDateString();
 };
 
 // Format duration
 const formatDuration = (seconds) => {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    
-    if (hours > 0) {
-        return `${hours}h ${minutes}m`;
-    }
-    return `${minutes}m`;
+    return formatTime(seconds);
 };
 
 // Show session dialog
 const showSessionDialog = (session = null) => {
-    // Make sure dialog exists
     if (!sessionDialog) {
         createSessionDialog();
     }
     
-    // Update categories to ensure hidden ones are filtered out
-    updateSessionDialogCategories();
-    
-    const title = session ? 'Edit Session' : 'Add Manual Session';
-    const submitText = session ? 'Save Changes' : 'Add Session';
-    
-    sessionDialog.querySelector('h2').textContent = title;
-    sessionForm.querySelector('button[type="submit"]').textContent = submitText;
+    // Reset form
+    sessionForm.reset();
     
     if (session) {
-        // For editing existing session
-        if (session.id) {
-            sessionForm.dataset.sessionId = session.id;
-        }
-        sessionForm.querySelector('#session-category').value = session.categoryId || '';
-        sessionForm.querySelector('#session-date').value = session.startTime ? session.startTime.split('T')[0] : '';
-        sessionForm.querySelector('#session-time').value = session.startTime ? session.startTime.split('T')[1].slice(0, 5) : '';
-        sessionForm.querySelector('#session-duration').value = session.duration || 30;
+        // Populate form with session data
+        sessionForm.querySelector('#session-category').value = session.categoryId;
+        sessionForm.querySelector('#session-date').value = formatDate(session.startTime);
+        sessionForm.querySelector('#session-time').value = new Date(session.startTime).toLocaleTimeString('en-US', { hour12: false });
+        sessionForm.querySelector('#session-duration').value = Math.floor(session.duration / 60);
         sessionForm.querySelector('#session-notes').value = session.notes || '';
         sessionForm.querySelector('#session-is-lesson').checked = session.isLesson || false;
-    } else {
-        // For new session, pre-fill with current date/time
-        const now = new Date();
-        const dateStr = now.toISOString().split('T')[0];
-        const timeStr = now.toTimeString().slice(0, 5);
         
-        sessionForm.reset();
+        // Add session ID to form for update
+        sessionForm.dataset.sessionId = session.id;
+    } else {
+        // Remove session ID for new session
         delete sessionForm.dataset.sessionId;
-        sessionForm.querySelector('#session-date').value = dateStr;
-        sessionForm.querySelector('#session-time').value = timeStr;
-        sessionForm.querySelector('#session-duration').value = 30; // Default 30 minutes
     }
     
     // Show dialog
-    if (typeof sessionDialog.showModal === 'function') {
-        sessionDialog.showModal();
-    } else {
-        // Fallback for browsers that don't support dialog element
-        sessionDialog.style.display = 'block';
-        sessionDialog.setAttribute('open', '');
-        // Add backdrop
-        const backdrop = document.createElement('div');
-        backdrop.className = 'dialog-backdrop';
-        document.body.appendChild(backdrop);
-        backdrop.addEventListener('click', () => {
-            sessionDialog.style.display = 'none';
-            sessionDialog.removeAttribute('open');
-            backdrop.remove();
-        });
-    }
+    sessionDialog.showModal();
 };
 
 // Handle session form submission
 const handleSessionSubmit = (e) => {
     e.preventDefault();
     
-    try {
-        // Get form data
-        const formData = new FormData(sessionForm);
-        const sessionId = sessionForm.dataset.sessionId;
-        
-        // Validate required fields
-        const category = formData.get('category');
-        const date = formData.get('date');
-        const time = formData.get('time');
-        const duration = formData.get('duration');
-        
-        if (!category) {
-            alert('Please select a category');
-            return;
-        }
-        if (!date || !time) {
-            alert('Please enter date and time');
-            return;
-        }
-        if (!duration || duration <= 0) {
-            alert('Please enter a valid duration');
-            return;
-        }
-        
-        // Create session object
-        const session = {
-            id: sessionId || `s-${Date.now()}`,
-            categoryId: category,
-            startTime: `${date}T${time}:00.000Z`,
-            duration: parseInt(duration),
-            notes: formData.get('notes') || '',
-            isLesson: formData.get('isLesson') === 'on',
-            isManual: true,
-            createdAt: sessionId ? getItemById('SESSIONS', sessionId).createdAt : new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-        };
-        
-        // Validate session
-        const errors = validateSession(session);
-        if (errors.length > 0) {
-            alert(errors.join('\n'));
-            return;
-        }
-        
-        // Save session
-        console.log('Saving session:', session);
-        saveItem('SESSIONS', session);
-        
-        // Close dialog and reload sessions
-        sessionDialog.close();
-        loadSessions();
-        
-        // Show success message
-        const successMessage = document.createElement('div');
-        successMessage.className = 'success-message';
-        successMessage.textContent = 'Session saved successfully';
-        document.querySelector('.sessions-container').appendChild(successMessage);
-        setTimeout(() => successMessage.remove(), 3000);
-        
-    } catch (error) {
-        console.error('Error saving session:', error);
-        alert('Error saving session. Please try again.');
+    // Get form data
+    const formData = new FormData(sessionForm);
+    const categoryId = formData.get('category');
+    const date = formData.get('date');
+    const time = formData.get('time');
+    const duration = parseInt(formData.get('duration')) * 60; // Convert minutes to seconds
+    const notes = formData.get('notes');
+    const isLesson = formData.get('isLesson') === 'on';
+    
+    // Get category to determine instrument
+    const category = window.getItemById('CATEGORIES', categoryId);
+    if (!category) {
+        alert('Invalid category selected');
+        return;
     }
+    
+    // Create session object
+    const session = {
+        id: sessionForm.dataset.sessionId || `s-${Date.now()}`,
+        categoryId: categoryId,
+        instrumentId: category.instrumentId,
+        startTime: `${date}T${time}`,
+        duration: duration,
+        notes: notes,
+        isManual: true,
+        isLesson: isLesson,
+        createdAt: sessionForm.dataset.sessionId ? 
+            window.getItemById('SESSIONS', sessionForm.dataset.sessionId).createdAt : 
+            new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+    };
+    
+    // Save session
+    if (sessionForm.dataset.sessionId) {
+        window.updateItem('SESSIONS', session);
+    } else {
+        window.saveItems('SESSIONS', session);
+    }
+    
+    // Close dialog and refresh list
+    sessionDialog.close();
+    loadSessions();
 };
 
-// Update filters when category visibility changes 
-// (This can be called after category visibility changes in settings)
+// Refresh filters
 const refreshFilters = () => {
-    setupFilters(); // Refresh the filters dropdown
-    updateSessionDialogCategories(); // Refresh the session dialog dropdown
+    // Reset search input
+    if (searchInput) {
+        searchInput.value = '';
+    }
+    
+    // Reset category filter
+    if (categoryFilter) {
+        categoryFilter.value = '';
+    }
+    
+    // Reset date range inputs
+    dateRangeInputs.forEach(input => {
+        input.value = '';
+    });
+    
+    // Reload sessions
+    loadSessions();
 };
 
-// Initialize on page load
+// Initialize sessions page
 initializeSessions();
 
-// Expose functions to window object
+// Make functions available globally
 window.initializeSessions = initializeSessions;
 window.loadSessions = loadSessions;
-window.createSessionElement = createSessionElement;
-window.setupFilters = setupFilters;
-window.applyFilters = applyFilters;
-window.showSessionDialog = showSessionDialog;
-window.handleSessionSubmit = handleSessionSubmit;
+window.createSessionDialog = createSessionDialog;
+window.updateSessionDialogCategories = updateSessionDialogCategories;
 window.editSession = editSession;
 window.deleteSession = deleteSession;
-window.refreshSessionsFilters = refreshFilters;
+window.showSessionDialog = showSessionDialog;
+window.handleSessionSubmit = handleSessionSubmit;
+window.refreshFilters = refreshFilters;
 
 function updateSessionsList(sessions) {
     console.log('Updating sessions list');

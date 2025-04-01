@@ -1,5 +1,8 @@
 // DOM Elements
-const mediaList = document.getElementById('media-list');
+let mediaList;
+let mediaSearchInput;
+let mediaCategoryFilter;
+let mediaDateRangeInputs;
 const addPhotoButton = document.getElementById('add-photo');
 const addVideoButton = document.getElementById('add-video');
 const addNoteButton = document.getElementById('add-note');
@@ -13,6 +16,12 @@ const isMobileDevice = () => {
 // Initialize media page
 const initializeMedia = () => {
     console.log('Initializing media page');
+    
+    // Get DOM elements
+    mediaList = document.getElementById('media-list');
+    mediaSearchInput = document.querySelector('.media-search-input');
+    mediaCategoryFilter = document.querySelector('.media-category-filter');
+    mediaDateRangeInputs = document.querySelectorAll('.media-date-input');
     
     if (!mediaList) {
         console.error('Media list element not found');
@@ -30,6 +39,7 @@ const initializeMedia = () => {
     // Debugging - log media items after loading
     const mediaItems = getItems('MEDIA') || [];
     console.log(`Media list initialized with ${mediaItems.length} items`);
+    console.log('Media page initialized successfully');
 };
 
 // Setup media filters
@@ -737,9 +747,12 @@ const addMediaStyles = () => {
     document.head.appendChild(style);
 };
 
-// Expose to global scope
+// Make functions available globally
 window.initializeMedia = initializeMedia;
-window.loadMedia = loadMedia;  // Make loadMedia globally accessible 
+window.loadMedia = loadMedia;
+window.setupMediaButtons = setupMediaButtons;
+window.setupMediaFilters = setupMediaFilters;
+window.addMediaStyles = addMediaStyles;
 
 function updateMediaList(mediaItems) {
     console.log('Updating media list');

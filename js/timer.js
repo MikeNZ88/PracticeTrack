@@ -194,13 +194,13 @@ class Timer {
                 return;
             }
 
-            // Get settings for current instrument
+            // Get settings for current instruments
             let settings = window.getItems('SETTINGS');
             settings = Array.isArray(settings) && settings.length > 0 ? settings[0] : {};
-            const currentInstrument = settings.primaryInstrument || '';
+            const selectedInstruments = settings.instruments || [];
             
-            if (!currentInstrument) {
-                alert('Please select an instrument in settings before recording a session');
+            if (!selectedInstruments.length) {
+                alert('Please select at least one instrument in settings before recording a session');
                 return;
             }
             
@@ -219,7 +219,7 @@ class Timer {
                 isLesson: false,
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString(),
-                instrument: currentInstrument
+                instruments: selectedInstruments
             };
             
             console.log('New session:', session);
@@ -248,164 +248,145 @@ class Timer {
             if (sessionsList) {
                 console.log('Updating sessions list...');
                 // Create and append new session element
-                const sessionElement = window.createSessionElement(session);
-                if (sessionElement) {
-                    // Insert at the beginning of the list
-                    if (sessionsList.firstChild) {
-                        sessionsList.insertBefore(sessionElement, sessionsList.firstChild);
-                    } else {
-                        sessionsList.appendChild(sessionElement);
-                    }
-                    // Update Lucide icons
-                    if (window.lucide && window.lucide.createIcons) {
-                        window.lucide.createIcons();
-                    }
-                }
+                const sessionElement = this.createSessionElement(session);
+                sessionsList.insertBefore(sessionElement, sessionsList.firstChild);
             }
-            
-            // Update stats if on stats page
-            const statsContainer = document.querySelector('.stats-container');
-            if (statsContainer && window.initStats) {
-                console.log('Updating stats display...');
-                window.initStats();
-            }
-            
         } catch (error) {
             console.error('Error saving session:', error);
-            alert('Error saving session. Please try again.');
+            alert('Failed to save session. Please try again.');
         }
     }
 
     resetTimer() {
         console.log('Resetting timer');
-        this.isRunning = false;
-        this.isPaused = false;
-        clearInterval(this.timerInterval);
+        this.stopTimer();
         this.timeElapsed = 0;
         this.startTime = null;
         this.updateDisplay();
         this.updateButtonStates();
         this.categorySelect.disabled = false;
-        this.categorySelect.value = '';
         this.sessionNotes.value = '';
     }
 
-    // Format time in HH:MM:SS
     formatTime(seconds) {
-        const hours = Math.floor(seconds / 3600);
-        const minutes = Math.floor((seconds % 3600) / 60);
-        const remainingSeconds = seconds % 60;
-        
-        return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+        const hrs = Math.floor(seconds / 3600);
+        const mins = Math.floor((seconds % 3600) / 60);
+        const secs = seconds % 60;
+        return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
     }
 
-    // Update timer display
     updateDisplay() {
-        console.log('Updating display, timeElapsed:', this.timeElapsed);
-        
-        // Update timer display
         this.timerDisplay.textContent = this.formatTime(this.timeElapsed);
         
-        // Update progress bar (completes one full cycle every minute)
-        const progress = (this.timeElapsed % 60) / 60 * 100;
+        // Update progress bar
+        const progress = (this.timeElapsed % 3600) / 3600 * 100;
         this.progressBar.style.width = `${progress}%`;
-        
-        // Add visual feedback classes
-        if (this.isRunning) {
-            this.timerDisplay.classList.add('running');
-            this.timerDisplay.classList.remove('paused');
-        } else if (this.isPaused || this.timeElapsed > 0) {
-            this.timerDisplay.classList.remove('running');
-            this.timerDisplay.classList.add('paused');
-        } else {
-            this.timerDisplay.classList.remove('running', 'paused');
-        }
     }
 
-    // Load categories
     loadCategories() {
-        try {
-            console.log('Loading categories...');
-            const allCategories = window.getItems('CATEGORIES') || [];
-            console.log('Found categories:', allCategories.length);
-            
-            // Get current instrument from settings
-            let settings = window.getItems('SETTINGS');
-            settings = Array.isArray(settings) && settings.length > 0 ? settings[0] : {};
-            const currentInstrument = settings.primaryInstrument || '';
-            console.log('Current instrument:', currentInstrument);
-            
-            // Filter categories based on instrument
-            const categories = allCategories.filter(category => {
-                // Skip hidden categories - ensure this works correctly
-                if (category.isHidden === true) {
-                    console.log(`Filtering out hidden category: ${category.name}`);
-                    return false;
-                }
-                
-                // Include if it's a custom category (not default)
-                if (!category.isDefault) return true;
-                
-                // Include if no instrument is selected
-                if (!currentInstrument) return true;
-                
-                // Include if it has no instrumentIds property
-                if (!category.instrumentIds) return true;
-                
-                // Include if the current instrument is in its instrumentIds
-                return category.instrumentIds.includes(currentInstrument);
-            });
-            
-            console.log(`Categories for instrument "${currentInstrument}":`, categories.length);
-            console.log('Visible categories:', categories.map(c => c.name).join(', '));
-            
-            // Clear existing options
-            while (this.categorySelect.firstChild) {
-                this.categorySelect.removeChild(this.categorySelect.firstChild);
-            }
-            
-            // Add default option
-            const defaultOption = document.createElement('option');
-            defaultOption.value = '';
-            defaultOption.textContent = 'Select Practice Category';
-            this.categorySelect.appendChild(defaultOption);
-            
-            // Add categories
-            categories.forEach(category => {
-                const option = document.createElement('option');
-                option.value = category.id;
-                option.textContent = category.name;
-                this.categorySelect.appendChild(option);
-            });
-            
-            console.log('Categories loaded successfully');
-        } catch (error) {
-            console.error('Error loading categories:', error);
-            throw error;
+        console.log('Loading categories for timer');
+        
+        // Get settings for instruments
+        let settings = window.getItems('SETTINGS');
+        settings = Array.isArray(settings) && settings.length > 0 ? settings[0] : {};
+        const selectedInstruments = settings.instruments || [];
+        
+        if (!selectedInstruments.length) {
+            console.log('No instruments selected, adding default option');
+            this.categorySelect.innerHTML = '<option value="">Select Practice Category</option>';
+            return;
         }
+        
+        // Get all categories
+        let categories = window.getItems('CATEGORIES');
+        
+        // Clear existing options except the first one
+        while (this.categorySelect.options.length > 1) {
+            this.categorySelect.remove(1);
+        }
+        
+        // Group categories by instrument
+        const categoriesByInstrument = {};
+        selectedInstruments.forEach(instrumentId => {
+            categoriesByInstrument[instrumentId] = categories.filter(cat => 
+                cat.instrumentId === instrumentId
+            );
+        });
+        
+        // Add categories to select element
+        selectedInstruments.forEach(instrumentId => {
+            const instrumentCategories = categoriesByInstrument[instrumentId];
+            if (instrumentCategories.length) {
+                // Add instrument header
+                const headerOption = document.createElement('option');
+                headerOption.value = '';
+                headerOption.disabled = true;
+                headerOption.textContent = `--- ${window.AVAILABLE_INSTRUMENTS.find(i => i.id === instrumentId).name} ---`;
+                this.categorySelect.appendChild(headerOption);
+                
+                // Add categories for this instrument
+                instrumentCategories.forEach(category => {
+                    const option = document.createElement('option');
+                    option.value = category.id;
+                    option.textContent = category.name;
+                    this.categorySelect.appendChild(option);
+                });
+            }
+        });
+        
+        console.log('Categories loaded successfully');
     }
 
-    // Reset display
     resetDisplay() {
-        console.log('Resetting display');
-        this.timeElapsed = 0;
-        this.isRunning = false;
-        this.isPaused = false;
-        if (this.timerInterval) {
-            clearInterval(this.timerInterval);
-            this.timerInterval = null;
-        }
-        this.updateDisplay();
+        this.timerDisplay.textContent = '00:00:00';
+        this.progressBar.style.width = '0%';
         this.updateButtonStates();
+    }
+
+    createSessionElement(session) {
+        const sessionElement = document.createElement('div');
+        sessionElement.className = 'session-item';
+        sessionElement.dataset.id = session.id;
         
-        // Reset form elements
-        if (this.categorySelect) this.categorySelect.value = '';
-        if (this.sessionNotes) this.sessionNotes.value = '';
+        // Get category name
+        const categories = window.getItems('CATEGORIES');
+        const category = categories.find(c => c.id === session.categoryId);
+        const categoryName = category ? category.name : 'Unknown Category';
+        
+        // Get instrument names
+        const instrumentNames = session.instruments
+            .map(id => window.AVAILABLE_INSTRUMENTS.find(i => i.id === id)?.name)
+            .filter(Boolean)
+            .join(', ');
+        
+        // Format duration
+        const duration = this.formatTime(session.duration);
+        
+        // Format date
+        const date = new Date(session.startTime);
+        const dateStr = date.toLocaleDateString();
+        const timeStr = date.toLocaleTimeString();
+        
+        sessionElement.innerHTML = `
+            <div class="session-header">
+                <div class="session-title">
+                    <span class="session-category">${categoryName}</span>
+                    <span class="session-instruments">${instrumentNames}</span>
+                </div>
+                <div class="session-time">${duration}</div>
+            </div>
+            <div class="session-details">
+                <div class="session-date">${dateStr} ${timeStr}</div>
+                ${session.notes ? `<div class="session-notes">${session.notes}</div>` : ''}
+            </div>
+        `;
+        
+        return sessionElement;
     }
 }
 
-// Create and export timer instance
-window.timer = new Timer();
+// Make Timer class available globally
+window.Timer = Timer;
 
 // Function to update timer categories from settings page
 window.updateTimerCategories = function() {

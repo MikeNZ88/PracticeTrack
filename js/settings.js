@@ -1,18 +1,31 @@
 // DOM Elements
-const settingsForm = document.getElementById('settings-form');
-const instrumentSelect = document.getElementById('instrument-select');
-const selectedInstrumentsContainer = document.querySelector('.selected-instruments');
-const categoriesList = document.getElementById('categories-list');
-const addDefaultCategoriesBtn = document.getElementById('add-default-categories');
-const newCategoryInput = document.getElementById('new-category-name');
-const addCategoryBtn = document.getElementById('add-category-btn');
-const exportDataBtn = document.getElementById('export-data');
-const importDataBtn = document.getElementById('import-data');
+let settingsForm;
+let instrumentSelect;
+let selectedInstrumentsContainer;
+let categoriesList;
+let addDefaultCategoriesBtn;
+let newCategoryInput;
+let addCategoryBtn;
+let exportDataBtn;
+let importDataBtn;
+let lessonDaySelect;
+let lessonTimeInput;
+let defaultCategoriesDialog;
+let selectedInstrumentId = null;
 
-// Available instruments
+// Available instruments with IDs and names
 const AVAILABLE_INSTRUMENTS = [
-    'piano', 'guitar', 'violin', 'drums', 'voice', 'flute', 
-    'clarinet', 'trumpet', 'bass', 'cello', 'saxophone'
+    { id: 'piano', name: 'Piano' },
+    { id: 'guitar', name: 'Guitar' },
+    { id: 'violin', name: 'Violin' },
+    { id: 'drums', name: 'Drums' },
+    { id: 'voice', name: 'Voice' },
+    { id: 'flute', name: 'Flute' },
+    { id: 'clarinet', name: 'Clarinet' },
+    { id: 'trumpet', name: 'Trumpet' },
+    { id: 'bass', name: 'Bass' },
+    { id: 'cello', name: 'Cello' },
+    { id: 'saxophone', name: 'Saxophone' }
 ];
 
 // Default categories per instrument
@@ -52,16 +65,6 @@ const cleanupStorage = () => {
             if (invalidCategories.length > 0) {
                 console.warn('Found invalid categories, resetting to defaults');
                 needsReset = true;
-            } else {
-                // Check for missing default categories
-                const defaultIds = ['c-1', 'c-2', 'c-3', 'c-4', 'c-5', 'c-6', 'c-7'];
-                const foundIds = categories.map(cat => cat.id);
-                const missingIds = defaultIds.filter(id => !foundIds.includes(id));
-                
-                if (missingIds.length > 0) {
-                    console.warn('Missing default categories:', missingIds);
-                    needsReset = true;
-                }
             }
         }
         
@@ -75,23 +78,15 @@ const cleanupStorage = () => {
         let settings = window.getItems('SETTINGS');
         if (settings.length === 0) {
             console.log('No settings found, will create defaults');
-            window.saveItems('SETTINGS', [{
+            window.setItems('SETTINGS', [{
                 id: 's-1',
-                primaryInstrument: '',
+                instruments: [],
                 lessonDay: '',
                 lessonTime: '',
-                hiddenCategories: [],
                 theme: 'light',
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString()
             }]);
-        } else {
-            settings = settings[0];
-            if (!settings.hasOwnProperty('hiddenCategories')) {
-                settings.hiddenCategories = [];
-                window.saveItems('SETTINGS', [settings]);
-                console.log('Fixed settings - added hiddenCategories array');
-            }
         }
         
         return true;
@@ -105,414 +100,757 @@ const cleanupStorage = () => {
 const initializeSettings = () => {
     console.log('Initializing settings page');
     
-    // First, clean up any corrupted data
-    cleanupStorage();
-    
-    // Then load settings and set up UI
-    loadSettings();
-    setupInstrumentManager();
-    setupCategoryManager();
-    addStyles();
-    
-    // Set up form submission handler
-    if (settingsForm) {
-        settingsForm.addEventListener('submit', handleSettingsSubmit);
-    } else {
-        console.error('Settings form not found');
+    try {
+        // Get DOM elements
+        settingsForm = document.getElementById('settings-form');
+        instrumentSelect = document.getElementById('instrument-select');
+        selectedInstrumentsContainer = document.querySelector('.selected-instruments');
+        categoriesList = document.getElementById('categories-list');
+        addDefaultCategoriesBtn = document.getElementById('add-default-categories');
+        newCategoryInput = document.getElementById('new-category-name');
+        addCategoryBtn = document.getElementById('add-category-btn');
+        exportDataBtn = document.getElementById('export-data');
+        importDataBtn = document.getElementById('import-data');
+        lessonDaySelect = document.getElementById('lesson-day');
+        lessonTimeInput = document.getElementById('lesson-time');
+        defaultCategoriesDialog = document.getElementById('default-categories-dialog');
+        
+        // Validate required elements
+        if (!instrumentSelect || !selectedInstrumentsContainer || !categoriesList || !addDefaultCategoriesBtn || !defaultCategoriesDialog) {
+            console.error('Required DOM elements not found:', {
+                instrumentSelect: !!instrumentSelect,
+                selectedInstrumentsContainer: !!selectedInstrumentsContainer,
+                categoriesList: !!categoriesList,
+                addDefaultCategoriesBtn: !!addDefaultCategoriesBtn,
+                defaultCategoriesDialog: !!defaultCategoriesDialog
+            });
+            return;
+        }
+        
+        // First, clean up any corrupted data
+        cleanupStorage();
+        
+        // Then load settings and set up UI
+        loadSettings();
+        setupInstrumentManager();
+        setupEventListeners();
+        setupDefaultCategoriesDialog();
+        addStyles();
+        
+        // Initialize Lucide icons
+        if (typeof lucide !== 'undefined' && lucide.createIcons) {
+            lucide.createIcons();
+        }
+        
+        console.log('Settings page initialized successfully');
+    } catch (error) {
+        console.error('Error initializing settings:', error);
     }
-    
-    // Set up data management buttons
-    if (exportDataBtn) {
-        exportDataBtn.addEventListener('click', handleExportData);
+};
+
+// Set up default categories dialog
+const setupDefaultCategoriesDialog = () => {
+    try {
+        if (!defaultCategoriesDialog) {
+            console.error('Default categories dialog not found');
+            return;
+        }
+        
+        // Get dialog elements
+        const instrumentList = defaultCategoriesDialog.querySelector('.instrument-list');
+        const closeBtn = defaultCategoriesDialog.querySelector('[data-close]');
+        const addBtn = defaultCategoriesDialog.querySelector('[data-add]');
+        
+        if (!instrumentList || !closeBtn || !addBtn) {
+            console.error('Required dialog elements not found');
+            return;
+        }
+        
+        // Get current settings
+        let settings = window.getItems('SETTINGS');
+        settings = Array.isArray(settings) && settings.length > 0 ? settings[0] : null;
+        
+        if (!settings || !settings.instruments || settings.instruments.length === 0) {
+            console.log('No instruments selected');
+            return;
+        }
+        
+        // Clear and populate instrument list
+        instrumentList.innerHTML = '';
+        settings.instruments.forEach(instrumentId => {
+            const instrumentItem = document.createElement('div');
+            instrumentItem.className = 'instrument-item';
+            instrumentItem.dataset.instrument = instrumentId;
+            
+            const radio = document.createElement('input');
+            radio.type = 'radio';
+            radio.name = 'instrument';
+            radio.value = instrumentId;
+            radio.id = `radio-${instrumentId}`;
+            
+            const label = document.createElement('label');
+            label.htmlFor = `radio-${instrumentId}`;
+            label.textContent = instrumentId;
+            
+            instrumentItem.appendChild(radio);
+            instrumentItem.appendChild(label);
+            instrumentList.appendChild(instrumentItem);
+            
+            // Add click handler
+            instrumentItem.addEventListener('click', () => {
+                // Clear all selected states
+                instrumentList.querySelectorAll('.instrument-item').forEach(item => {
+                    item.classList.remove('selected');
+                });
+                // Set selected state
+                instrumentItem.classList.add('selected');
+                // Check radio button
+                radio.checked = true;
+                selectedInstrumentId = instrumentId;
+            });
+        });
+        
+        // Add button handlers
+        closeBtn.addEventListener('click', () => {
+            defaultCategoriesDialog.close();
+            selectedInstrumentId = null;
+        });
+        
+        addBtn.addEventListener('click', () => {
+            if (!selectedInstrumentId) {
+                alert('Please select an instrument');
+                return;
+            }
+            
+            handleAddDefaultCategories(selectedInstrumentId);
+            defaultCategoriesDialog.close();
+            selectedInstrumentId = null;
+        });
+        
+        // Add click outside to close
+        defaultCategoriesDialog.addEventListener('click', (e) => {
+            if (e.target === defaultCategoriesDialog) {
+                defaultCategoriesDialog.close();
+                selectedInstrumentId = null;
+            }
+        });
+        
+        console.log('Default categories dialog setup complete');
+    } catch (error) {
+        console.error('Error setting up default categories dialog:', error);
     }
-    
-    if (importDataBtn) {
-        importDataBtn.addEventListener('click', handleImportData);
+};
+
+// Show default categories dialog
+const showDefaultCategoriesDialog = () => {
+    try {
+        if (!defaultCategoriesDialog) {
+            console.error('Default categories dialog not found');
+            return;
+        }
+        
+        // Get current settings
+        let settings = window.getItems('SETTINGS');
+        settings = Array.isArray(settings) && settings.length > 0 ? settings[0] : null;
+        
+        if (!settings || !settings.instruments || settings.instruments.length === 0) {
+            alert('Please select at least one instrument first');
+            return;
+        }
+        
+        // Reset selected instrument
+        selectedInstrumentId = null;
+        
+        // Setup dialog before showing
+        setupDefaultCategoriesDialog();
+        
+        // Show dialog
+        defaultCategoriesDialog.showModal();
+        
+        console.log('Showing default categories dialog');
+    } catch (error) {
+        console.error('Error showing default categories dialog:', error);
     }
-    
-    // Set up clear data buttons
-    const clearInstrumentDataBtn = document.getElementById('clear-instrument-data');
-    if (clearInstrumentDataBtn) {
-        clearInstrumentDataBtn.addEventListener('click', handleClearInstrumentData);
+};
+
+// Handle instrument selection
+const handleInstrumentSelect = () => {
+    try {
+        if (!instrumentSelect) return;
+        
+        const selectedInstrument = instrumentSelect.value;
+        if (!selectedInstrument) return;
+        
+        // Get current settings
+        let settings = window.getItems('SETTINGS');
+        settings = Array.isArray(settings) && settings.length > 0 ? settings[0] : {
+            id: 's-1',
+            instruments: [],
+            lessonDay: '',
+            lessonTime: '',
+            theme: 'light',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        };
+        
+        // Check if instrument is already selected
+        if (settings.instruments.includes(selectedInstrument)) {
+            alert('This instrument is already selected');
+            instrumentSelect.value = '';
+            return;
+        }
+        
+        // Check maximum instruments limit
+        if (settings.instruments.length >= 3) {
+            alert('You can only select up to 3 instruments');
+            instrumentSelect.value = '';
+            return;
+        }
+        
+        // Add instrument to settings
+        settings.instruments.push(selectedInstrument);
+        settings.updatedAt = new Date().toISOString();
+        
+        // Save settings
+        window.setItems('SETTINGS', [settings]);
+        
+        // Update UI
+        updateSelectedInstruments(settings.instruments);
+        instrumentSelect.value = '';
+        
+        // Add default categories for the new instrument
+        const defaultCategories = window.DEFAULT_CATEGORIES[selectedInstrument] || [];
+        if (defaultCategories.length > 0) {
+            if (confirm('Would you like to add default categories for this instrument?')) {
+                handleAddDefaultCategories(selectedInstrument);
+            }
+        }
+        
+        // Reload categories
+        loadCategories();
+    } catch (error) {
+        console.error('Error handling instrument selection:', error);
     }
-    
-    const clearAllDataBtn = document.getElementById('clear-all-data');
-    if (clearAllDataBtn) {
-        clearAllDataBtn.addEventListener('click', handleClearAllData);
+};
+
+// Handle adding default categories
+const handleAddDefaultCategories = (instrumentId) => {
+    try {
+        if (!instrumentId) return;
+        
+        // Get current categories
+        let categories = window.getItems('CATEGORIES') || [];
+        
+        // Get default categories for the instrument
+        const defaultCategories = window.DEFAULT_CATEGORIES[instrumentId] || [];
+        if (!defaultCategories.length) {
+            console.warn('No default categories found for instrument:', instrumentId);
+            return;
+        }
+        
+        // Add each default category if it doesn't already exist
+        let addedCount = 0;
+        defaultCategories.forEach(category => {
+            const exists = categories.some(cat => 
+                cat.instrumentId === instrumentId && 
+                cat.name.toLowerCase() === category.name.toLowerCase()
+            );
+            
+            if (!exists) {
+                categories.push({
+                    id: `c-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                    name: category.name,
+                    instrumentId: instrumentId,
+                    isDefault: true,
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString()
+                });
+                addedCount++;
+            }
+        });
+        
+        if (addedCount > 0) {
+            // Save categories
+            window.setItems('CATEGORIES', categories);
+            
+            // Reload categories
+            loadCategories();
+            
+            // Show success message
+            alert(`Added ${addedCount} default categories for ${instrumentId}`);
+        } else {
+            alert('All default categories already exist for this instrument');
+        }
+    } catch (error) {
+        console.error('Error adding default categories:', error);
+    }
+};
+
+// Handle adding a new category
+const handleAddCategory = () => {
+    try {
+        if (!newCategoryInput || !instrumentSelect) return;
+        
+        const newCategoryName = newCategoryInput.value.trim();
+        const selectedInstrument = instrumentSelect.value;
+        
+        // Validate input
+        if (!newCategoryName) {
+            alert('Please enter a category name');
+            return;
+        }
+        
+        if (!selectedInstrument) {
+            alert('Please select an instrument for the category');
+            return;
+        }
+        
+        // Get current categories
+        let categories = window.getItems('CATEGORIES') || [];
+        
+        // Check if category already exists for this instrument
+        const exists = categories.some(cat => 
+            cat.instrumentId === selectedInstrument && 
+            cat.name.toLowerCase() === newCategoryName.toLowerCase()
+        );
+        
+        if (exists) {
+            alert('This category already exists for the selected instrument');
+            return;
+        }
+        
+        // Create new category
+        const newCategory = {
+            id: `c-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            name: newCategoryName,
+            instrumentId: selectedInstrument,
+            isDefault: false,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        };
+        
+        // Add category
+        categories.push(newCategory);
+        
+        // Save categories
+        window.setItems('CATEGORIES', categories);
+        
+        // Clear input and reset instrument select
+        newCategoryInput.value = '';
+        instrumentSelect.value = '';
+        
+        // Reload categories
+        loadCategories();
+        
+        // Show success message
+        alert('Category added successfully');
+    } catch (error) {
+        console.error('Error adding category:', error);
+    }
+};
+
+// Setup event listeners
+const setupEventListeners = () => {
+    try {
+        console.log('Setting up event listeners');
+        
+        // Remove existing listeners first
+        if (addDefaultCategoriesBtn) {
+            const newBtn = addDefaultCategoriesBtn.cloneNode(true);
+            addDefaultCategoriesBtn.parentNode.replaceChild(newBtn, addDefaultCategoriesBtn);
+            addDefaultCategoriesBtn = newBtn;
+            addDefaultCategoriesBtn.addEventListener('click', showDefaultCategoriesDialog);
+        }
+        
+        if (addCategoryBtn) {
+            const newBtn = addCategoryBtn.cloneNode(true);
+            addCategoryBtn.parentNode.replaceChild(newBtn, addCategoryBtn);
+            addCategoryBtn = newBtn;
+            addCategoryBtn.addEventListener('click', handleAddCategory);
+        }
+        
+        if (newCategoryInput) {
+            const newInput = newCategoryInput.cloneNode(true);
+            newCategoryInput.parentNode.replaceChild(newInput, newCategoryInput);
+            newCategoryInput = newInput;
+            newCategoryInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleAddCategory();
+                }
+            });
+        }
+        
+        // Data management buttons
+        if (exportDataBtn) {
+            const newBtn = exportDataBtn.cloneNode(true);
+            exportDataBtn.parentNode.replaceChild(newBtn, exportDataBtn);
+            exportDataBtn = newBtn;
+            exportDataBtn.addEventListener('click', handleExportData);
+        }
+        
+        if (importDataBtn) {
+            const newBtn = importDataBtn.cloneNode(true);
+            importDataBtn.parentNode.replaceChild(newBtn, importDataBtn);
+            importDataBtn = newBtn;
+            importDataBtn.addEventListener('click', handleImportData);
+        }
+        
+        // Clear data buttons
+        const clearInstrumentDataBtn = document.getElementById('clear-instrument-data');
+        if (clearInstrumentDataBtn) {
+            const newBtn = clearInstrumentDataBtn.cloneNode(true);
+            clearInstrumentDataBtn.parentNode.replaceChild(newBtn, clearInstrumentDataBtn);
+            newBtn.addEventListener('click', handleClearInstrumentData);
+        }
+        
+        const clearAllDataBtn = document.getElementById('clear-all-data');
+        if (clearAllDataBtn) {
+            const newBtn = clearAllDataBtn.cloneNode(true);
+            clearAllDataBtn.parentNode.replaceChild(newBtn, clearAllDataBtn);
+            newBtn.addEventListener('click', handleClearAllData);
+        }
+        
+        // Lesson day and time changes
+        if (lessonDaySelect) {
+            const newSelect = lessonDaySelect.cloneNode(true);
+            lessonDaySelect.parentNode.replaceChild(newSelect, lessonDaySelect);
+            lessonDaySelect = newSelect;
+            lessonDaySelect.addEventListener('change', handleSettingsSubmit);
+        }
+        
+        if (lessonTimeInput) {
+            const newInput = lessonTimeInput.cloneNode(true);
+            lessonTimeInput.parentNode.replaceChild(newInput, lessonTimeInput);
+            lessonTimeInput = newInput;
+            lessonTimeInput.addEventListener('change', handleSettingsSubmit);
+        }
+        
+        console.log('Event listeners setup complete');
+    } catch (error) {
+        console.error('Error setting up event listeners:', error);
     }
 };
 
 // Load settings
 const loadSettings = () => {
-    // Get settings from storage
-    let settings = window.getItems('SETTINGS');
-    settings = Array.isArray(settings) && settings.length > 0 ? settings[0] : {
-        id: 's-1',
-        instruments: [],
-        lessonDay: '',
-        lessonTime: '',
-        theme: 'light',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-    };
-    
-    console.log('Loading settings:', settings);
-    
-    // Populate instruments
-    populateInstrumentsDropdown(settings.instruments || []);
-    
-    // Populate lesson day select
-    populateLessonDayDropdown(settings.lessonDay);
-    
-    // Set lesson time
-    if (lessonTimeInput) {
-        lessonTimeInput.value = settings.lessonTime || '';
-    }
-    
-    // Initialize Lucide icons
-    if (typeof lucide !== 'undefined' && lucide.createIcons) {
-        lucide.createIcons();
+    try {
+        // Get current settings
+        let settings = window.getItems('SETTINGS');
+        settings = Array.isArray(settings) && settings.length > 0 ? settings[0] : {
+            id: 's-1',
+            instruments: [],
+            lessonDay: '',
+            lessonTime: '',
+            theme: 'light',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        };
+        
+        // Populate lesson day dropdown
+        populateLessonDayDropdown(settings.lessonDay);
+        
+        // Set lesson time
+        if (lessonTimeInput) {
+            lessonTimeInput.value = settings.lessonTime || '';
+        }
+        
+        // Load categories
+        loadCategories();
+        
+        // Add change handlers for lesson day and time
+        if (lessonDaySelect) {
+            lessonDaySelect.addEventListener('change', handleSettingsSubmit);
+        }
+        if (lessonTimeInput) {
+            lessonTimeInput.addEventListener('change', handleSettingsSubmit);
+        }
+    } catch (error) {
+        console.error('Error loading settings:', error);
     }
 };
 
-// Setup instrument manager
-const setupInstrumentManager = () => {
-    if (!instrumentSelect) return;
+// Populate lesson day dropdown
+const populateLessonDayDropdown = (selectedDay) => {
+    if (!lessonDaySelect) return;
     
-    // Populate instrument dropdown with available instruments
-    AVAILABLE_INSTRUMENTS.forEach(instrument => {
+    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    lessonDaySelect.innerHTML = '<option value="">Select Day</option>';
+    
+    days.forEach(day => {
         const option = document.createElement('option');
-        option.value = instrument;
-        option.textContent = instrument.charAt(0).toUpperCase() + instrument.slice(1);
-        instrumentSelect.appendChild(option);
+        option.value = day;
+        option.textContent = day;
+        option.selected = day === selectedDay;
+        lessonDaySelect.appendChild(option);
     });
-    
-    // Add change handler for instrument selection
-    instrumentSelect.addEventListener('change', handleInstrumentSelect);
 };
 
-// Handle instrument selection
-const handleInstrumentSelect = (e) => {
-    const selectedInstrument = e.target.value;
-    if (!selectedInstrument) return;
-    
-    // Get current settings
-    let settings = window.getItems('SETTINGS');
-    settings = Array.isArray(settings) && settings.length > 0 ? settings[0] : {};
-    const instruments = settings.instruments || [];
-    
-    // Check if already selected
-    if (instruments.includes(selectedInstrument)) {
-        alert('This instrument is already selected');
-        return;
+// Set up instrument manager
+const setupInstrumentManager = () => {
+    try {
+        // Get current settings
+        let settings = window.getItems('SETTINGS');
+        settings = Array.isArray(settings) && settings.length > 0 ? settings[0] : null;
+        
+        // Populate instruments dropdown
+        populateInstrumentsDropdown();
+        
+        // Update selected instruments display
+        if (settings && settings.instruments) {
+            updateSelectedInstruments(settings.instruments);
+        }
+        
+        // Add event listener for instrument selection
+        if (instrumentSelect) {
+            instrumentSelect.addEventListener('change', handleInstrumentSelect);
+        }
+    } catch (error) {
+        console.error('Error setting up instrument manager:', error);
     }
-    
-    // Check if max instruments reached
-    if (instruments.length >= 3) {
-        alert('You can only select up to 3 instruments');
-        return;
+};
+
+// Populate instruments dropdown
+const populateInstrumentsDropdown = () => {
+    try {
+        if (!instrumentSelect) return;
+        
+        // Clear existing options
+        instrumentSelect.innerHTML = '';
+        
+        // Add default option
+        const defaultOption = document.createElement('option');
+        defaultOption.value = '';
+        defaultOption.textContent = 'Select an instrument';
+        instrumentSelect.appendChild(defaultOption);
+        
+        // Get current settings
+        let settings = window.getItems('SETTINGS');
+        settings = Array.isArray(settings) && settings.length > 0 ? settings[0] : null;
+        const selectedInstruments = settings?.instruments || [];
+        
+        // Add available instruments that aren't already selected
+        AVAILABLE_INSTRUMENTS.forEach(instrument => {
+            if (!selectedInstruments.includes(instrument)) {
+                const option = document.createElement('option');
+                option.value = instrument;
+                option.textContent = instrument;
+                instrumentSelect.appendChild(option);
+            }
+        });
+    } catch (error) {
+        console.error('Error populating instruments dropdown:', error);
     }
-    
-    // Add instrument
-    instruments.push(selectedInstrument);
-    settings.instruments = instruments;
-    window.saveItems('SETTINGS', [settings]);
-    
-    // Update UI
-    updateSelectedInstruments(instruments);
-    populateInstrumentsDropdown(instruments);
-    
-    // Reset select
-    instrumentSelect.value = '';
 };
 
 // Update selected instruments display
-const updateSelectedInstruments = (instruments) => {
-    if (!selectedInstrumentsContainer) return;
-    
-    selectedInstrumentsContainer.innerHTML = instruments.map(instrument => `
-        <div class="selected-instrument">
-            <span>${instrument.charAt(0).toUpperCase() + instrument.slice(1)}</span>
-            <button type="button" class="remove-instrument" data-instrument="${instrument}">
-                <i data-lucide="x"></i>
-            </button>
-        </div>
-    `).join('');
-    
-    // Add remove handlers
-    selectedInstrumentsContainer.querySelectorAll('.remove-instrument').forEach(btn => {
-        btn.addEventListener('click', () => removeInstrument(btn.dataset.instrument));
-    });
-    
-    // Initialize Lucide icons
-    if (typeof lucide !== 'undefined' && lucide.createIcons) {
-        lucide.createIcons();
+const updateSelectedInstruments = (instruments = []) => {
+    try {
+        if (!selectedInstrumentsContainer) return;
+        
+        // Clear existing instruments
+        selectedInstrumentsContainer.innerHTML = '';
+        
+        // Add each instrument with remove button
+        instruments.forEach(instrument => {
+            const instrumentElement = document.createElement('div');
+            instrumentElement.className = 'selected-instrument';
+            
+            const instrumentName = document.createElement('span');
+            instrumentName.textContent = instrument;
+            instrumentElement.appendChild(instrumentName);
+            
+            const removeButton = document.createElement('button');
+            removeButton.className = 'remove-instrument';
+            removeButton.innerHTML = '×';
+            removeButton.addEventListener('click', () => removeInstrument(instrument));
+            instrumentElement.appendChild(removeButton);
+            
+            selectedInstrumentsContainer.appendChild(instrumentElement);
+        });
+        
+        // Update instruments dropdown
+        populateInstrumentsDropdown();
+    } catch (error) {
+        console.error('Error updating selected instruments:', error);
     }
 };
 
 // Remove instrument
-const removeInstrument = (instrument) => {
-    let settings = window.getItems('SETTINGS');
-    settings = Array.isArray(settings) && settings.length > 0 ? settings[0] : {};
-    const instruments = settings.instruments || [];
-    
-    // Remove instrument
-    settings.instruments = instruments.filter(i => i !== instrument);
-    window.saveItems('SETTINGS', [settings]);
-    
-    // Update UI
-    updateSelectedInstruments(settings.instruments);
-    populateInstrumentsDropdown(settings.instruments);
+const removeInstrument = (instrumentToRemove) => {
+    try {
+        // Get current settings
+        let settings = window.getItems('SETTINGS');
+        settings = Array.isArray(settings) && settings.length > 0 ? settings[0] : null;
+        
+        if (!settings) return;
+        
+        // Remove instrument from settings
+        settings.instruments = settings.instruments.filter(instrument => instrument !== instrumentToRemove);
+        settings.updatedAt = new Date().toISOString();
+        
+        // Save settings
+        window.setItems('SETTINGS', [settings]);
+        
+        // Update UI
+        updateSelectedInstruments(settings.instruments);
+        
+        // Reload categories to remove instrument's categories
+        loadCategories();
+    } catch (error) {
+        console.error('Error removing instrument:', error);
+    }
 };
 
-// Populate instruments dropdown
-const populateInstrumentsDropdown = (selectedInstruments) => {
-    if (!instrumentSelect) return;
-    
-    // Clear existing options except the first one
-    while (instrumentSelect.options.length > 1) {
-        instrumentSelect.remove(1);
-    }
-    
-    // Add available instruments that aren't selected
-    AVAILABLE_INSTRUMENTS.forEach(instrument => {
-        if (!selectedInstruments.includes(instrument)) {
-            const option = document.createElement('option');
-            option.value = instrument;
-            option.textContent = instrument.charAt(0).toUpperCase() + instrument.slice(1);
-            instrumentSelect.appendChild(option);
+// Load categories
+const loadCategories = () => {
+    try {
+        if (!categoriesList) return;
+        
+        // Clear existing categories
+        categoriesList.innerHTML = '';
+        
+        // Get current settings and categories
+        let settings = window.getItems('SETTINGS');
+        settings = Array.isArray(settings) && settings.length > 0 ? settings[0] : null;
+        let categories = window.getItems('CATEGORIES') || [];
+        
+        if (!settings || !settings.instruments || settings.instruments.length === 0) {
+            categoriesList.innerHTML = '<p>Please select at least one instrument first.</p>';
+            return;
         }
-    });
-};
-
-// Setup category manager
-const setupCategoryManager = () => {
-    if (!categoriesList) {
-        console.error('Categories list element not found');
-        return;
-    }
-    
-    // Add event listener for add default categories button
-    if (addDefaultCategoriesBtn) {
-        addDefaultCategoriesBtn.addEventListener('click', addDefaultCategories);
-    }
-    
-    // Add event listener for add category button
-    if (addCategoryBtn) {
-        addCategoryBtn.addEventListener('click', addNewCategory);
-    }
-    
-    // Display categories
-    populateCategoriesList();
-};
-
-// Add default categories
-const addDefaultCategories = () => {
-    let settings = window.getItems('SETTINGS');
-    settings = Array.isArray(settings) && settings.length > 0 ? settings[0] : {};
-    const instruments = settings.instruments || [];
-    
-    if (instruments.length === 0) {
-        alert('Please select at least one instrument first');
-        return;
-    }
-    
-    // Get existing categories
-    let categories = window.getItems('CATEGORIES') || [];
-    const existingIds = new Set(categories.map(cat => cat.id));
-    
-    // Add default categories for each instrument
-    instruments.forEach(instrument => {
-        const defaultCats = DEFAULT_CATEGORIES[instrument] || [];
-        defaultCats.forEach(catName => {
-            const id = `c-${instrument}-${catName.toLowerCase().replace(/\s+/g, '-')}`;
-            if (!existingIds.has(id)) {
-                categories.push({
-                    id,
-                    name: `${instrument.charAt(0).toUpperCase() + instrument.slice(1)} - ${catName}`,
-                    instrument,
-                    isDefault: true,
-                    createdAt: new Date().toISOString(),
-                    updatedAt: new Date().toISOString()
-                });
-                existingIds.add(id);
-            }
+        
+        // Group categories by instrument
+        const categoriesByInstrument = {};
+        settings.instruments.forEach(instrument => {
+            categoriesByInstrument[instrument] = categories.filter(cat => cat.instrumentId === instrument);
         });
-    });
-    
-    // Save categories
-    window.saveItems('CATEGORIES', categories);
-    
-    // Update UI
-    populateCategoriesList();
+        
+        // Create sections for each instrument's categories
+        settings.instruments.forEach(instrument => {
+            const instrumentCategories = categoriesByInstrument[instrument];
+            
+            // Create instrument section
+            const section = document.createElement('div');
+            section.className = 'categories-section';
+            
+            // Add instrument header
+            const header = document.createElement('h3');
+            header.textContent = `${instrument} Categories`;
+            section.appendChild(header);
+            
+            // Add categories
+            if (instrumentCategories.length > 0) {
+                const list = document.createElement('ul');
+                list.className = 'categories-list';
+                
+                instrumentCategories.forEach(category => {
+                    const item = document.createElement('li');
+                    item.className = 'category-item';
+                    
+                    const name = document.createElement('span');
+                    name.textContent = category.name;
+                    item.appendChild(name);
+                    
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.className = 'delete-category';
+                    deleteBtn.innerHTML = '×';
+                    deleteBtn.addEventListener('click', () => handleDeleteCategory(category.id));
+                    item.appendChild(deleteBtn);
+                    
+                    list.appendChild(item);
+                });
+                
+                section.appendChild(list);
+            } else {
+                const empty = document.createElement('p');
+                empty.textContent = 'No categories added yet.';
+                section.appendChild(empty);
+            }
+            
+            categoriesList.appendChild(section);
+        });
+    } catch (error) {
+        console.error('Error loading categories:', error);
+    }
 };
 
-// Add new category
-const addNewCategory = () => {
-    if (!newCategoryInput) return;
-    
-    const categoryName = newCategoryInput.value.trim();
-    if (!categoryName) {
-        alert('Please enter a category name');
-        return;
-    }
-    
-    // Get current instrument
-    let settings = window.getItems('SETTINGS');
-    settings = Array.isArray(settings) && settings.length > 0 ? settings[0] : {};
-    const instruments = settings.instruments || [];
-    
-    if (instruments.length === 0) {
-        alert('Please select at least one instrument first');
-        return;
-    }
-    
-    // Create new category
-    const newCategory = {
-        id: `c-custom-${Date.now()}`,
-        name: categoryName,
-        instrument: instruments[0], // Use first instrument for custom categories
-        isDefault: false,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-    };
-    
-    // Save category
-    window.saveItems('CATEGORIES', newCategory);
-    
-    // Clear input
-    newCategoryInput.value = '';
-    
-    // Update UI
-    populateCategoriesList();
-};
-
-// Populate categories list
-const populateCategoriesList = () => {
-    if (!categoriesList) return;
-    
-    // Get categories
-    const categories = window.getItems('CATEGORIES') || [];
-    
-    // Sort categories by instrument and name
-    categories.sort((a, b) => {
-        if (a.instrument !== b.instrument) {
-            return a.instrument.localeCompare(b.instrument);
+// Handle deleting a category
+const handleDeleteCategory = (categoryId) => {
+    try {
+        if (!categoryId) return;
+        
+        // Confirm deletion
+        if (!confirm('Are you sure you want to delete this category?')) {
+            return;
         }
-        return a.name.localeCompare(b.name);
-    });
-    
-    // Group categories by instrument
-    const groupedCategories = categories.reduce((acc, cat) => {
-        if (!acc[cat.instrument]) {
-            acc[cat.instrument] = [];
-        }
-        acc[cat.instrument].push(cat);
-        return acc;
-    }, {});
-    
-    // Create HTML
-    let html = '';
-    Object.entries(groupedCategories).forEach(([instrument, cats]) => {
-        html += `
-            <div class="instrument-categories">
-                <h4>${instrument.charAt(0).toUpperCase() + instrument.slice(1)}</h4>
-                ${cats.map(cat => `
-                    <div class="category-item">
-                        <span class="category-name">${cat.name}</span>
-                        ${!cat.isDefault ? `
-                            <button type="button" class="delete-category" data-id="${cat.id}">
-                                <i data-lucide="trash-2"></i>
-                            </button>
-                        ` : ''}
-                    </div>
-                `).join('')}
-            </div>
-        `;
-    });
-    
-    // Update UI
-    categoriesList.innerHTML = html;
-    
-    // Add delete handlers
-    categoriesList.querySelectorAll('.delete-category').forEach(btn => {
-        btn.addEventListener('click', () => deleteCategory(btn.dataset.id));
-    });
-    
-    // Initialize Lucide icons
-    if (typeof lucide !== 'undefined' && lucide.createIcons) {
-        lucide.createIcons();
-    }
-};
-
-// Delete category
-const deleteCategory = (categoryId) => {
-    if (confirm('Are you sure you want to delete this category? This cannot be undone.')) {
-        window.deleteItem('CATEGORIES', categoryId);
-        populateCategoriesList();
+        
+        // Get current categories
+        let categories = window.getItems('CATEGORIES') || [];
+        
+        // Remove category
+        categories = categories.filter(cat => cat.id !== categoryId);
+        
+        // Save categories
+        window.setItems('CATEGORIES', categories);
+        
+        // Reload categories
+        loadCategories();
+        
+        // Show success message
+        alert('Category deleted successfully');
+    } catch (error) {
+        console.error('Error deleting category:', error);
     }
 };
 
 // Handle settings form submission
 const handleSettingsSubmit = (e) => {
-    e.preventDefault();
-    console.log('Settings form submitted');
-    
-    // Get settings
-    let settings = window.getItems('SETTINGS');
-    settings = Array.isArray(settings) && settings.length > 0 ? settings[0] : {
-        id: 's-1',
-        createdAt: new Date().toISOString()
-    };
-    
-    // Update settings
-    if (lessonDaySelect) {
-        settings.lessonDay = lessonDaySelect.value;
-    }
-    
-    if (lessonTimeInput) {
-        settings.lessonTime = lessonTimeInput.value;
-    }
-    
-    settings.updatedAt = new Date().toISOString();
-    
-    // Save settings
-    const saved = window.saveItems('SETTINGS', [settings]);
-    
-    if (!saved) {
-        console.error('Failed to save settings');
-        alert('Failed to save settings. Please try again.');
-        return;
-    }
-    
-    console.log('Settings saved successfully:', settings);
-    
-    // Show success state
-    const submitButton = settingsForm.querySelector('button[type="submit"]');
-    if (submitButton) {
-        const originalText = submitButton.textContent;
-        submitButton.classList.add('success');
-        submitButton.textContent = 'Settings Saved!';
+    try {
+        // Get current settings
+        let settings = window.getItems('SETTINGS');
+        settings = Array.isArray(settings) && settings.length > 0 ? settings[0] : {
+            id: 's-1',
+            instruments: [],
+            lessonDay: '',
+            lessonTime: '',
+            theme: 'light',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        };
+
+        // Update settings
+        if (lessonDaySelect) {
+            settings.lessonDay = lessonDaySelect.value;
+        }
+        if (lessonTimeInput) {
+            settings.lessonTime = lessonTimeInput.value;
+        }
+
+        // Save settings
+        window.saveItems('SETTINGS', [settings]);
         
-        setTimeout(() => {
-            submitButton.classList.remove('success');
-            submitButton.textContent = originalText;
-        }, 2000);
+        // Update timer categories if timer exists
+        if (typeof window.updateTimerCategories === 'function') {
+            window.updateTimerCategories();
+        }
+        
+        // Show success message
+        alert('Settings saved successfully');
+    } catch (error) {
+        console.error('Error saving settings:', error);
+        alert('Error saving settings. Please try again.');
     }
 };
 
-// Handle export data
+// Handle data export
 const handleExportData = () => {
-    console.log('Exporting data');
-    
     const data = {
-        version: 1,
-        exportDate: new Date().toISOString(),
+        settings: window.getItems('SETTINGS'),
+        categories: window.getItems('CATEGORIES'),
         sessions: window.getItems('SESSIONS'),
         goals: window.getItems('GOALS'),
-        categories: window.getItems('CATEGORIES'),
-        media: window.getItems('MEDIA'),
-        settings: window.getItems('SETTINGS')[0] || {}
+        media: window.getItems('MEDIA')
     };
     
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -526,12 +864,12 @@ const handleExportData = () => {
     URL.revokeObjectURL(url);
 };
 
-// Handle import data
+// Handle data import
 const handleImportData = () => {
-    console.log('Importing data');
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = '.json';
+    
     input.onchange = (e) => {
         const file = e.target.files[0];
         if (!file) return;
@@ -540,13 +878,23 @@ const handleImportData = () => {
         reader.onload = (event) => {
             try {
                 const data = JSON.parse(event.target.result);
-                if (typeof window.importData === 'function') {
-                    window.importData(data);
-                    alert('Data imported successfully!');
-                    location.reload();
-                } else {
-                    alert('Import function not available. Please refresh the page and try again.');
+                
+                // Validate data structure
+                if (!data.settings || !data.categories) {
+                    throw new Error('Invalid backup file format');
                 }
+                
+                // Import data
+                window.saveItems('SETTINGS', data.settings);
+                window.saveItems('CATEGORIES', data.categories);
+                if (data.sessions) window.saveItems('SESSIONS', data.sessions);
+                if (data.goals) window.saveItems('GOALS', data.goals);
+                if (data.media) window.saveItems('MEDIA', data.media);
+                
+                // Reload settings
+                loadSettings();
+                
+                alert('Data imported successfully');
             } catch (error) {
                 console.error('Error importing data:', error);
                 alert('Error importing data. Please check the file format.');
@@ -554,121 +902,285 @@ const handleImportData = () => {
         };
         reader.readAsText(file);
     };
+    
     input.click();
 };
 
-// Add CSS styles programmatically
+// Handle clearing instrument data
+const handleClearInstrumentData = () => {
+    if (!confirm('Are you sure you want to clear all data for the selected instruments? This cannot be undone.')) return;
+    
+    // Get current settings
+    let settings = window.getItems('SETTINGS');
+    settings = Array.isArray(settings) && settings.length > 0 ? settings[0] : {};
+    const selectedInstruments = settings.instruments || [];
+    
+    // Clear categories for selected instruments
+    let categories = window.getItems('CATEGORIES') || [];
+    categories = categories.filter(cat => !selectedInstruments.includes(cat.instrumentId));
+    window.saveItems('CATEGORIES', categories);
+    
+    // Clear sessions for selected instruments
+    let sessions = window.getItems('SESSIONS') || [];
+    sessions = sessions.filter(session => 
+        !session.instruments || !session.instruments.some(id => selectedInstruments.includes(id))
+    );
+    window.saveItems('SESSIONS', sessions);
+    
+    // Clear goals for selected instruments
+    let goals = window.getItems('GOALS') || [];
+    goals = goals.filter(goal => 
+        !goal.instruments || !goal.instruments.some(id => selectedInstruments.includes(id))
+    );
+    window.saveItems('GOALS', goals);
+    
+    // Update UI
+    loadCategories();
+    
+    alert('Instrument data cleared successfully');
+};
+
+// Handle clearing all data
+const handleClearAllData = () => {
+    if (!confirm('Are you sure you want to clear ALL data? This action cannot be undone.')) return;
+    
+    // Clear all data
+    window.saveItems('SETTINGS', [{
+        id: 's-1',
+        instruments: [],
+        lessonDay: '',
+        lessonTime: '',
+        theme: 'light',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+    }]);
+    window.saveItems('CATEGORIES', []);
+    window.saveItems('SESSIONS', []);
+    window.saveItems('GOALS', []);
+    window.saveItems('MEDIA', []);
+    
+    // Reset UI
+    loadSettings();
+    
+    alert('All data cleared successfully');
+};
+
+// Add styles
 const addStyles = () => {
-    const style = document.createElement('style');
-    style.textContent = `
-        .instruments-container {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
+    const styles = `
+        .settings-section {
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .settings-section h2 {
+            margin: 0 0 1rem;
+            font-size: 1.25rem;
+            color: #333;
+        }
+        
+        .settings-row {
+            margin-bottom: 1rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #555;
+        }
+        
+        .form-group select,
+        .form-group input {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
         }
         
         .selected-instruments {
             display: flex;
             flex-wrap: wrap;
-            gap: 8px;
+            gap: 0.5rem;
+            margin-top: 1rem;
         }
         
         .selected-instrument {
             display: flex;
             align-items: center;
-            gap: 8px;
-            padding: 6px 12px;
-            background-color: #f0f0f0;
-            border-radius: 4px;
-            font-size: 0.9em;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: #f5f5f5;
+            border-radius: 20px;
+            font-size: 0.875rem;
         }
         
-        .remove-instrument {
-            background: none;
-            border: none;
-            color: #666;
-            cursor: pointer;
-            padding: 2px;
-            border-radius: 4px;
+        .selected-instrument .instrument-name {
+            color: #333;
+        }
+        
+        .selected-instrument .remove-instrument {
             display: flex;
             align-items: center;
             justify-content: center;
-        }
-        
-        .remove-instrument:hover {
-            color: #f44336;
-            background-color: #fff0f0;
-        }
-        
-        .instrument-categories {
-            margin-bottom: 20px;
-        }
-        
-        .instrument-categories h4 {
-            margin: 0 0 10px 0;
-            color: #666;
-            font-size: 0.9em;
-        }
-        
-        .category-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 8px 12px;
-            background-color: #f9f9f9;
-            border-radius: 4px;
-            margin-bottom: 8px;
-        }
-        
-        .category-item:hover {
-            background-color: #f0f0f0;
-        }
-        
-        .delete-category {
-            background: none;
+            width: 20px;
+            height: 20px;
+            padding: 0;
             border: none;
+            background: none;
             color: #666;
             cursor: pointer;
-            padding: 4px;
-            border-radius: 4px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            transition: color 0.2s;
         }
         
-        .delete-category:hover {
-            color: #f44336;
-            background-color: #fff0f0;
+        .selected-instrument .remove-instrument:hover {
+            color: #ff4444;
+        }
+        
+        .categories-container {
+            margin-top: 1rem;
+        }
+        
+        .categories-list {
+            margin: 1rem 0;
         }
         
         .add-category-form {
             display: flex;
-            gap: 10px;
-            margin-top: 15px;
+            gap: 0.5rem;
+            margin-top: 1rem;
         }
         
         .add-category-form input {
             flex: 1;
-            padding: 8px;
+            padding: 0.5rem;
             border: 1px solid #ddd;
             border-radius: 4px;
+            font-size: 1rem;
         }
         
-        .add-category-form input:focus {
-            outline: none;
-            border-color: #4154b3;
+        .data-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .clear-data-section {
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px solid #eee;
+        }
+        
+        .clear-data-section h4 {
+            margin: 0 0 1rem;
+            color: #333;
+        }
+        
+        .warning-button {
+            background: #ff9800;
+            color: white;
+        }
+        
+        .danger-button {
+            background: #f44336;
+            color: white;
+        }
+        
+        .settings-dialog {
+            padding: 1.5rem;
+            border: none;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .settings-dialog::backdrop {
+            background: rgba(0, 0, 0, 0.5);
+        }
+        
+        .settings-dialog h2 {
+            margin: 0 0 1rem;
+            font-size: 1.25rem;
+            color: #333;
+        }
+        
+        .settings-dialog p {
+            margin: 0 0 1rem;
+            color: #666;
+        }
+        
+        .instrument-list {
+            margin: 1rem 0;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .instrument-item {
+            display: flex;
+            align-items: center;
+            padding: 0.5rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .instrument-item:hover {
+            background: #f5f5f5;
+        }
+        
+        .instrument-item.selected {
+            background: #e3f2fd;
+        }
+        
+        .instrument-item input[type="radio"] {
+            margin-right: 0.5rem;
+        }
+        
+        .dialog-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 1.5rem;
         }
     `;
-    document.head.appendChild(style);
+    
+    // Add styles to document
+    const styleSheet = document.createElement('style');
+    styleSheet.textContent = styles;
+    document.head.appendChild(styleSheet);
 };
 
-// Expose functions to window object
+// Initialize settings page when DOM is loaded
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        console.log('DOM loaded, initializing settings page');
+        if (document.getElementById('settings-page')) {
+            initializeSettings();
+        }
+    });
+} else {
+    console.log('DOM already loaded, initializing settings page immediately');
+    if (document.getElementById('settings-page')) {
+        initializeSettings();
+    }
+}
+
+// Make functions available globally
 window.initializeSettings = initializeSettings;
 window.loadSettings = loadSettings;
 window.setupInstrumentManager = setupInstrumentManager;
 window.setupCategoryManager = setupCategoryManager;
-window.addDefaultCategories = addDefaultCategories;
-window.addNewCategory = addNewCategory;
+window.handleAddDefaultCategories = handleAddDefaultCategories;
+window.handleAddCategory = handleAddCategory;
 window.deleteCategory = deleteCategory;
+window.handleSettingsSubmit = handleSettingsSubmit;
+window.handleExportData = handleExportData;
+window.handleImportData = handleImportData;
 window.handleClearInstrumentData = handleClearInstrumentData;
 window.handleClearAllData = handleClearAllData; 

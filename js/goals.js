@@ -1,33 +1,44 @@
 // DOM Elements
-const goalsList = document.getElementById('goals-list');
-const addGoalButton = document.getElementById('add-goal-btn');
-const goalsSearchInput = document.querySelector('.goals-search-input');
-const goalsCategoryFilter = document.querySelector('.goals-category-filter');
-const goalsStatusFilter = document.querySelector('.goals-status-filter');
+let goalsList;
+let addGoalButton;
+let goalsSearchInput;
+let goalsCategoryFilter;
+let goalsStatusFilter;
 
 // Initialize goals page
 const initializeGoals = () => {
     console.log('Initializing goals page');
+    
+    // Get DOM elements
+    goalsList = document.getElementById('goals-list');
+    addGoalButton = document.getElementById('add-goal-btn');
+    goalsSearchInput = document.querySelector('.goals-search-input');
+    goalsCategoryFilter = document.querySelector('.goals-category-filter');
+    goalsStatusFilter = document.querySelector('.goals-status-filter');
+    
     loadGoals();
     setupAddGoalButton();
     setupGoalsFilters();
+    console.log('Goals page initialized successfully');
 };
 
 // Load and display goals
 const loadGoals = (filters = {}) => {
-    const goals = getItems('GOALS') || [];
+    const goals = window.getItems('GOALS') || [];
     goalsList.innerHTML = '';
     
-    // Get current instrument from settings
+    // Get current settings
     let settings = window.getItems('SETTINGS');
     settings = Array.isArray(settings) && settings.length > 0 ? settings[0] : {};
-    const currentInstrument = settings.primaryInstrument || '';
-    console.log('Current instrument for goals:', currentInstrument);
+    const selectedInstruments = settings.instruments || [];
+    console.log('Selected instruments for goals:', selectedInstruments);
     
-    // Filter goals by current instrument
-    if (currentInstrument && goals) {
-        goals = goals.filter(goal => goal.instrument === currentInstrument);
-        console.log(`Filtered to ${goals.length} goals for instrument: ${currentInstrument}`);
+    // Filter goals by selected instruments
+    if (selectedInstruments.length && goals) {
+        goals = goals.filter(goal => 
+            goal.instruments.some(id => selectedInstruments.includes(id))
+        );
+        console.log(`Filtered to ${goals.length} goals for selected instruments`);
     }
     
     // Apply filters
@@ -97,16 +108,45 @@ const loadGoals = (filters = {}) => {
 
 // Setup goals filters
 const setupGoalsFilters = () => {
-    // Populate category filter
-    const categories = getItems('CATEGORIES') || [];
+    // Get current settings
+    let settings = window.getItems('SETTINGS');
+    settings = Array.isArray(settings) && settings.length > 0 ? settings[0] : {};
+    const selectedInstruments = settings.instruments || [];
+    
+    // Get categories for selected instruments
+    const categories = window.getItems('CATEGORIES') || [];
+    const visibleCategories = categories.filter(cat => 
+        selectedInstruments.includes(cat.instrumentId)
+    );
+    
+    // Group categories by instrument
+    const categoriesByInstrument = {};
+    selectedInstruments.forEach(instrumentId => {
+        categoriesByInstrument[instrumentId] = visibleCategories.filter(cat => 
+            cat.instrumentId === instrumentId
+        );
+    });
+    
+    // Clear existing options
     goalsCategoryFilter.innerHTML = '<option value="">All Categories</option>';
-    categories.forEach(category => {
-        if (!category.isHidden) {
+    
+    // Add categories grouped by instrument
+    selectedInstruments.forEach(instrumentId => {
+        const instrumentCategories = categoriesByInstrument[instrumentId];
+        if (!instrumentCategories.length) return;
+        
+        const instrument = window.AVAILABLE_INSTRUMENTS.find(i => i.id === instrumentId);
+        const optgroup = document.createElement('optgroup');
+        optgroup.label = instrument ? instrument.name : instrumentId;
+        
+        instrumentCategories.forEach(category => {
             const option = document.createElement('option');
             option.value = category.id;
             option.textContent = category.name;
-            goalsCategoryFilter.appendChild(option);
-        }
+            optgroup.appendChild(option);
+        });
+        
+        goalsCategoryFilter.appendChild(optgroup);
     });
     
     // Add filter event listeners
@@ -125,7 +165,7 @@ const setupGoalsFilters = () => {
 // Apply goals filters
 const applyGoalsFilters = () => {
     const filters = {
-        search: goalsSearchInput.value,
+        search: goalsSearchInput.value.trim(),
         category: goalsCategoryFilter.value,
         status: goalsStatusFilter ? goalsStatusFilter.value : 'active'
     };
@@ -143,10 +183,13 @@ const createGoalElement = (goal) => {
     
     // Get category name if categoryId exists
     let categoryName = '';
+    let instrumentName = '';
     if (goal.categoryId) {
-        const category = getItemById('CATEGORIES', goal.categoryId);
+        const category = window.getItemById('CATEGORIES', goal.categoryId);
         if (category) {
             categoryName = category.name;
+            const instrument = window.AVAILABLE_INSTRUMENTS.find(i => i.id === category.instrumentId);
+            instrumentName = instrument ? instrument.name : category.instrumentId;
         }
     }
     
@@ -170,7 +213,12 @@ const createGoalElement = (goal) => {
             Due: ${new Date(goal.dueDate).toLocaleDateString()}
             ${isOverdue(goal) ? '<span class="overdue-badge">Overdue</span>' : ''}
         </p>` : ''}
-        ${categoryName ? `<p class="goal-category">${categoryName}</p>` : ''}
+        ${categoryName ? `
+            <p class="goal-category">
+                <span class="category-name">${categoryName}</span>
+                <span class="instrument-name">${instrumentName}</span>
+            </p>
+        ` : ''}
         ${goal.notes ? `<p class="goal-notes">${goal.notes}</p>` : ''}
         ${goal.completed ? `<p class="completed-date">Completed: ${new Date(goal.completedAt || goal.updatedAt).toLocaleDateString()}</p>` : ''}
     `;
@@ -210,6 +258,7 @@ const setupAddGoalButton = () => {
                 text: '',
                 completed: false,
                 categoryId: null,
+                instruments: [],
                 dueDate: null,
                 notes: '',
                 createdAt: new Date().toISOString(),
@@ -228,8 +277,24 @@ const editGoal = (goal) => {
     const dialog = document.createElement('dialog');
     dialog.className = 'goal-dialog';
     
-    // Get categories for dropdown
-    const categories = getItems('CATEGORIES') || [];
+    // Get current settings
+    let settings = window.getItems('SETTINGS');
+    settings = Array.isArray(settings) && settings.length > 0 ? settings[0] : {};
+    const selectedInstruments = settings.instruments || [];
+    
+    // Get categories for selected instruments
+    const categories = window.getItems('CATEGORIES') || [];
+    const visibleCategories = categories.filter(cat => 
+        selectedInstruments.includes(cat.instrumentId)
+    );
+    
+    // Group categories by instrument
+    const categoriesByInstrument = {};
+    selectedInstruments.forEach(instrumentId => {
+        categoriesByInstrument[instrumentId] = visibleCategories.filter(cat => 
+            cat.instrumentId === instrumentId
+        );
+    });
     
     dialog.innerHTML = `
         <form class="goal-form">
@@ -242,11 +307,21 @@ const editGoal = (goal) => {
                 <label for="goal-category">Category (Optional)</label>
                 <select id="goal-category">
                     <option value="">No Category</option>
-                    ${categories.map(category => 
-                        `<option value="${category.id}" ${goal.categoryId === category.id ? 'selected' : ''}>
-                            ${category.name}
-                        </option>`
-                    ).join('')}
+                    ${selectedInstruments.map(instrumentId => {
+                        const instrumentCategories = categoriesByInstrument[instrumentId];
+                        if (!instrumentCategories.length) return '';
+                        
+                        const instrument = window.AVAILABLE_INSTRUMENTS.find(i => i.id === instrumentId);
+                        return `
+                            <optgroup label="${instrument ? instrument.name : instrumentId}">
+                                ${instrumentCategories.map(category => 
+                                    `<option value="${category.id}" ${goal.categoryId === category.id ? 'selected' : ''}>
+                                        ${category.name}
+                                    </option>`
+                                ).join('')}
+                            </optgroup>
+                        `;
+                    }).join('')}
                 </select>
             </div>
             <div class="form-group">
@@ -255,255 +330,307 @@ const editGoal = (goal) => {
             </div>
             <div class="form-group">
                 <label for="goal-notes">Notes (Optional)</label>
-                <textarea id="goal-notes">${goal.notes || ''}</textarea>
+                <textarea id="goal-notes" rows="4">${goal.notes || ''}</textarea>
             </div>
-            ${goal.completed ? `
-            <div class="form-group">
-                <label>
-                    <input type="checkbox" id="goal-completed" checked>
-                    Mark as completed
-                </label>
-            </div>` : ''}
             <div class="dialog-actions">
-                <button type="button" class="secondary-button cancel-button">Cancel</button>
-                <button type="submit" class="primary-button">Save</button>
+                <button type="button" class="secondary-button" id="cancel-goal-btn">Cancel</button>
+                <button type="submit" class="primary-button">Save Goal</button>
             </div>
         </form>
     `;
     
-    document.body.appendChild(dialog);
-    dialog.showModal();
-    
-    // Handle form submission
-    const form = dialog.querySelector('.goal-form');
-    
-    // Prevent spacebar from triggering unwanted actions in form fields
-    form.addEventListener('keydown', (e) => {
-        if (e.key === ' ' && e.target.tagName !== 'SELECT') {
-            e.stopPropagation();
-        }
-    });
-    
+    // Add form submission handler
+    const form = dialog.querySelector('form');
     form.addEventListener('submit', (e) => {
         e.preventDefault();
         
-        const text = document.getElementById('goal-text').value;
-        const categoryId = document.getElementById('goal-category').value || null;
-        const dueDate = document.getElementById('goal-due-date').value;
-        const notes = document.getElementById('goal-notes').value;
+        // Get form data
+        const formData = new FormData(form);
+        const categoryId = formData.get('category');
         
-        // Check if completed checkbox exists and is checked
-        const completedCheckbox = document.getElementById('goal-completed');
-        const completed = completedCheckbox ? completedCheckbox.checked : goal.completed;
-        
-        goal.text = text;
-        goal.categoryId = categoryId;
-        goal.dueDate = dueDate || null;
-        goal.notes = notes;
-        goal.completed = completed;
-        goal.updatedAt = new Date().toISOString();
-        
-        // Set completedAt timestamp when completed
-        if (completed && !goal.completedAt) {
-            goal.completedAt = new Date().toISOString();
-        } else if (!completed) {
-            goal.completedAt = null;
+        // Get category to determine instrument
+        const category = window.getItemById('CATEGORIES', categoryId);
+        if (category) {
+            goal.instruments = [category.instrumentId];
         }
         
-        saveItem('GOALS', goal);
+        // Update goal data
+        goal.text = formData.get('text');
+        goal.categoryId = categoryId;
+        goal.dueDate = formData.get('due-date') || null;
+        goal.notes = formData.get('notes');
+        goal.updatedAt = new Date().toISOString();
+        
+        // Save goal
+        if (goal.id.startsWith('g-')) {
+            window.saveItems('GOALS', goal);
+        } else {
+            window.updateItem('GOALS', goal);
+        }
+        
+        // Close dialog and refresh list
         dialog.close();
-        applyGoalsFilters(); // Use this instead of loadGoals() to maintain filters
+        loadGoals();
     });
     
-    // Handle cancel
-    const cancelButton = dialog.querySelector('.cancel-button');
-    cancelButton.addEventListener('click', () => dialog.close());
+    // Add cancel button handler
+    const cancelButton = dialog.querySelector('#cancel-goal-btn');
+    cancelButton.addEventListener('click', () => {
+        dialog.close();
+    });
     
-    // Handle dialog close
-    dialog.addEventListener('close', () => dialog.remove());
+    // Add dialog to page and show it
+    document.body.appendChild(dialog);
+    dialog.showModal();
 };
 
 // Toggle goal completion
 const toggleGoal = (goalId) => {
-    const goal = getItemById('GOALS', goalId);
-    if (goal) {
-        goal.completed = !goal.completed;
-        goal.updatedAt = new Date().toISOString();
-        
-        // Set completedAt timestamp when completed
-        if (goal.completed) {
-            goal.completedAt = new Date().toISOString();
-        } else {
-            goal.completedAt = null;
-        }
-        
-        saveItem('GOALS', goal);
-        applyGoalsFilters(); // Use this instead of loadGoals() to maintain filters
+    const goal = window.getItemById('GOALS', goalId);
+    if (!goal) return;
+    
+    goal.completed = !goal.completed;
+    if (goal.completed) {
+        goal.completedAt = new Date().toISOString();
     }
+    goal.updatedAt = new Date().toISOString();
+    
+    window.updateItem('GOALS', goal);
+    loadGoals();
 };
 
 // Delete goal
 const deleteGoal = (goalId) => {
-    if (confirm('Are you sure you want to delete this goal?')) {
-        deleteItem('GOALS', goalId);
-        applyGoalsFilters(); // Use this instead of loadGoals() to maintain filters
-    }
+    if (!confirm('Are you sure you want to delete this goal?')) return;
+    
+    window.deleteItem('GOALS', goalId);
+    loadGoals();
 };
 
-// Add CSS styles for goals
+// Add styles
 const addGoalStyles = () => {
     const style = document.createElement('style');
     style.textContent = `
         .goal-card {
-            margin-bottom: 15px;
-            padding: 15px;
-            border-radius: 8px;
-            border: 1px solid #eee;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            transition: background-color 0.3s;
+            margin-bottom: 1rem;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            background-color: var(--color-background-alt);
         }
         
         .goal-card.completed {
-            background-color: #f9f9f9;
-            border-left: 4px solid #4caf50;
+            opacity: 0.7;
         }
         
         .goal-header {
             display: flex;
-            align-items: flex-start;
-            gap: 10px;
-            margin-bottom: 10px;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 0.5rem;
         }
         
         .goal-checkbox-container {
-            display: flex;
-            align-items: center;
-            margin-top: 2px;
+            position: relative;
+            width: 1.5rem;
+            height: 1.5rem;
         }
         
         .goal-checkbox {
-            margin: 0;
+            position: absolute;
+            opacity: 0;
             cursor: pointer;
+            height: 0;
+            width: 0;
+        }
+        
+        .checkbox-label {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 1.5rem;
+            width: 1.5rem;
+            background-color: var(--color-background);
+            border: 2px solid var(--color-primary);
+            border-radius: 0.25rem;
+            cursor: pointer;
+        }
+        
+        .goal-checkbox:checked + .checkbox-label {
+            background-color: var(--color-primary);
+        }
+        
+        .goal-checkbox:checked + .checkbox-label::after {
+            content: '';
+            position: absolute;
+            left: 0.5rem;
+            top: 0.25rem;
+            width: 0.25rem;
+            height: 0.5rem;
+            border: solid white;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
         }
         
         .goal-header h3 {
             flex: 1;
             margin: 0;
-            font-size: 1.1em;
+            font-size: 1.1rem;
         }
         
         .completed-text {
             text-decoration: line-through;
-            color: #888;
+            color: var(--color-text-muted);
         }
         
         .goal-actions {
             display: flex;
-            gap: 5px;
+            gap: 0.5rem;
         }
         
-        .goal-category, .goal-due-date, .goal-notes, .completed-date {
-            margin: 5px 0;
-            font-size: 0.9em;
-            padding-left: 25px;
+        .icon-button {
+            background: none;
+            border: none;
+            padding: 0.25rem;
+            cursor: pointer;
+            color: var(--color-text-muted);
+        }
+        
+        .icon-button:hover {
+            color: var(--color-primary);
         }
         
         .goal-due-date {
-            color: #555;
+            margin: 0.5rem 0;
+            color: var(--color-text-muted);
         }
         
         .goal-due-date.overdue {
-            color: #d32f2f;
+            color: var(--color-error);
         }
         
         .overdue-badge {
-            background-color: #d32f2f;
-            color: white;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-size: 0.8em;
-            margin-left: 5px;
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            background-color: var(--color-error-light);
+            color: var(--color-error);
+            border-radius: 0.25rem;
+            font-size: 0.875rem;
+            margin-left: 0.5rem;
         }
         
         .goal-category {
-            background-color: #f0f0f0;
-            display: inline-block;
-            padding: 3px 8px;
-            border-radius: 4px;
-            margin-left: 25px;
+            margin: 0.5rem 0;
+            color: var(--color-text-muted);
+        }
+        
+        .goal-category .category-name {
+            font-weight: 500;
+        }
+        
+        .goal-category .instrument-name {
+            margin-left: 0.5rem;
+            font-size: 0.875rem;
+            color: var(--color-text-muted);
         }
         
         .goal-notes {
-            color: #666;
-            white-space: pre-wrap;
+            margin: 0.5rem 0;
+            color: var(--color-text-muted);
+            font-size: 0.9rem;
         }
         
         .completed-date {
-            color: #4caf50;
-            font-style: italic;
+            margin: 0.5rem 0;
+            color: var(--color-success);
+            font-size: 0.875rem;
         }
         
-        .empty-state {
-            text-align: center;
-            padding: 40px;
-            color: #888;
+        .goal-dialog {
+            padding: 1.5rem;
+            border: none;
+            border-radius: 0.5rem;
+            background-color: var(--color-background);
         }
         
-        .empty-state svg {
-            width: 48px;
-            height: 48px;
-            margin-bottom: 10px;
+        .goal-dialog::backdrop {
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        
+        .goal-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .form-group label {
+            font-weight: 500;
+        }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            padding: 0.5rem;
+            border: 1px solid var(--color-border);
+            border-radius: 0.25rem;
+            background-color: var(--color-background-alt);
+            color: var(--color-text);
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--color-primary);
+        }
+        
+        .dialog-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+        
+        .secondary-button {
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--color-border);
+            border-radius: 0.25rem;
+            background-color: var(--color-background);
+            color: var(--color-text);
+            cursor: pointer;
+        }
+        
+        .secondary-button:hover {
+            background-color: var(--color-background-alt);
+        }
+        
+        .primary-button {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 0.25rem;
+            background-color: var(--color-primary);
+            color: white;
+            cursor: pointer;
+        }
+        
+        .primary-button:hover {
+            background-color: var(--color-primary-dark);
         }
     `;
     document.head.appendChild(style);
 };
 
-// Add styles when DOM loads
-document.addEventListener('DOMContentLoaded', addGoalStyles);
+// Add styles
+addGoalStyles();
 
-// Export function to global scope
+// Make functions available globally
 window.initializeGoals = initializeGoals;
-
-function createGoal(goalData) {
-    try {
-        // Get current instrument from settings
-        let settings = window.getItems('SETTINGS');
-        settings = Array.isArray(settings) && settings.length > 0 ? settings[0] : {};
-        const currentInstrument = settings.primaryInstrument || '';
-        
-        if (!currentInstrument) {
-            alert('Please select an instrument in settings before creating a goal');
-            return null;
-        }
-        
-        // Create goal object with instrument
-        const goal = {
-            id: `g-${Date.now()}`,
-            title: goalData.title,
-            description: goalData.description || '',
-            categoryId: goalData.categoryId,
-            targetDuration: goalData.targetDuration || 0,
-            dueDate: goalData.dueDate || null,
-            completed: false,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-            instrument: currentInstrument
-        };
-        
-        console.log('Creating new goal for instrument:', currentInstrument, goal);
-        
-        // Get existing goals
-        let goals = getItems('GOALS') || [];
-        
-        // Add new goal
-        goals.push(goal);
-        
-        // Save back to storage
-        setItems('GOALS', goals);
-        
-        return goal;
-    } catch (error) {
-        console.error('Error creating goal:', error);
-        return null;
-    }
-} 
+window.loadGoals = loadGoals;
+window.editGoal = editGoal;
+window.deleteGoal = deleteGoal;
+window.toggleGoal = toggleGoal; 

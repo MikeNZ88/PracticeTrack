@@ -5,8 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PracticeTrack</title>
     <link rel="stylesheet" href="css/styles.css">
-    <!-- Include Lucide Icons as specified in component library -->
+    <!-- Include Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Application Scripts -->
+    <script src="js/app.js" defer></script>
+    <script src="js/data.js" defer></script>
+    <script src="js/timer.js" defer></script>
+    <script src="js/settings.js" defer></script>
+    <script src="js/stats.js" defer></script>
+    <script src="js/sessions.js" defer></script>
+    <script src="js/goals.js" defer></script>
+    <script src="js/media.js" defer></script>
 </head>
 <body>
     <div class="app">
@@ -147,7 +156,7 @@
                 </div>
             </section>
 
-            <!-- Stats Page - Clean Implementation -->
+            <!-- Stats Page -->
             <section id="stats-page" class="page">
                 <div class="page-header">
                     <h1>Practice Statistics</h1>
@@ -155,14 +164,12 @@
                 <div class="filters">
                     <select id="category-filter" class="stats-category-filter">
                         <option value="">All Categories</option>
-                        <!-- Categories loaded dynamically -->
                     </select>
                     <div class="date-range">
                         <input type="date" id="start-date" class="stats-date-input" placeholder="Start Date">
                         <input type="date" id="end-date" class="stats-date-input" placeholder="End Date">
                     </div>
                 </div>
-                
                 <div class="stats-container">
                     <!-- Stats will be displayed here -->
                 </div>
@@ -200,77 +207,88 @@
                     <h1>Settings</h1>
                 </div>
                 <div class="settings-container">
-                    <form id="settings-form" class="settings-form">
-                        <div class="form-group">
-                            <label>Instruments (Select up to 3)</label>
-                            <div class="instruments-container">
-                                <div class="selected-instruments">
-                                    <!-- Selected instruments will be displayed here -->
-                                </div>
-                                <select id="instrument-select" class="instrument-select">
-                                    <option value="">Add an instrument</option>
+                    <div class="settings-section">
+                        <h2>Instruments</h2>
+                        <div class="settings-row">
+                            <div class="form-group">
+                                <label for="instrument-select">Add Instrument</label>
+                                <select id="instrument-select">
+                                    <option value="">Select Instrument</option>
                                 </select>
                             </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="lesson-day">Lesson Day</label>
-                            <select id="lesson-day" name="lessonDay"></select>
-                        </div>
-                        <div class="form-group">
-                            <label for="lesson-time">Lesson Time</label>
-                            <input type="time" id="lesson-time" name="lessonTime">
-                        </div>
-                        <div class="form-group">
-                            <label>Categories</label>
-                            <div class="categories-header">
-                                <button type="button" class="secondary-button" id="add-default-categories">
-                                    <i data-lucide="plus"></i> Add Default Categories
-                                </button>
-                            </div>
-                            <div id="categories-list" class="categories-list">
-                                <!-- Categories will be populated here -->
-                            </div>
-                            <div class="add-category-form">
-                                <input type="text" id="new-category-name" placeholder="New category name">
-                                <button type="button" id="add-category-btn" class="secondary-button">
-                                    <i data-lucide="plus"></i> Add
-                                </button>
+                            <div class="selected-instruments">
+                                <!-- Selected instruments will be displayed here -->
                             </div>
                         </div>
-                        <button type="submit" class="primary-button">Save Settings</button>
-                        <div class="data-management">
-                            <h3>Data Management</h3>
-                            <div class="data-buttons">
-                                <button type="button" class="secondary-button" id="export-data">
-                                    <i data-lucide="download"></i>
-                                    Export Data
+                    </div>
+
+                    <div class="settings-section">
+                        <h2>Categories</h2>
+                        <div class="settings-row">
+                            <div class="categories-container">
+                                <button id="add-default-categories" class="primary-button">
+                                    <i data-lucide="plus"></i>
+                                    Add Default Categories
                                 </button>
-                                <button type="button" class="secondary-button" id="import-data">
-                                    <i data-lucide="upload"></i>
-                                    Import Data
-                                </button>
-                            </div>
-                            <div class="clear-data-section">
-                                <h4>Clear Data</h4>
-                                <div class="data-buttons">
-                                    <button type="button" class="warning-button" id="clear-instrument-data">
-                                        <i data-lucide="trash-2"></i>
-                                        Clear Instrument Data
-                                    </button>
-                                    <button type="button" class="danger-button" id="clear-all-data">
-                                        <i data-lucide="trash"></i>
-                                        Clear All Data
-                                    </button>
+                                <div id="categories-list" class="categories-list">
+                                    <!-- Categories will be populated here -->
+                                </div>
+                                <div class="add-category-form">
+                                    <input type="text" id="new-category-name" placeholder="Enter new category name">
+                                    <button id="add-category-btn" class="secondary-button">Add Category</button>
                                 </div>
                             </div>
                         </div>
-                    </form>
+                    </div>
+
+                    <div class="settings-section">
+                        <h2>Lesson Schedule</h2>
+                        <div class="settings-row">
+                            <div class="form-group">
+                                <label for="lesson-day">Lesson Day</label>
+                                <select id="lesson-day">
+                                    <option value="">Select Day</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="lesson-time">Lesson Time</label>
+                                <input type="time" id="lesson-time">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <h2>Data Management</h2>
+                        <div class="data-buttons">
+                            <button id="export-data" class="secondary-button">
+                                <i data-lucide="download"></i>
+                                Export Data
+                            </button>
+                            <button id="import-data" class="secondary-button">
+                                <i data-lucide="upload"></i>
+                                Import Data
+                            </button>
+                        </div>
+                        <div class="clear-data-section">
+                            <h4>Clear Data</h4>
+                            <div class="data-buttons">
+                                <button id="clear-instrument-data" class="warning-button">
+                                    <i data-lucide="trash-2"></i>
+                                    Clear Instrument Data
+                                </button>
+                                <button id="clear-all-data" class="danger-button">
+                                    <i data-lucide="alert-triangle"></i>
+                                    Clear All Data
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </section>
         </main>
 
         <!-- Mobile Navigation -->
-        <div class="mobile-nav">
+        <nav class="mobile-nav">
             <button class="nav-item active" data-page="timer">
                 <i data-lucide="clock"></i>
                 <span>Timer</span>
@@ -295,366 +313,20 @@
                 <i data-lucide="settings"></i>
                 <span>Settings</span>
             </button>
-        </div>
-        
-        <!-- Fix for settings tab in mobile navigation -->
-        <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Fix for settings tab in mobile navigation
-            const mobileNav = document.querySelector('.mobile-nav');
-            if (mobileNav) {
-                // Check if settings tab already exists in mobile nav
-                const existingSettingsTab = mobileNav.querySelector('.nav-item[data-page="settings"]');
-                if (!existingSettingsTab) {
-                    // Create settings tab for mobile nav
-                    const settingsTab = document.createElement('button');
-                    settingsTab.className = 'nav-item';
-                    settingsTab.dataset.page = 'settings';
-                    settingsTab.innerHTML = `
-                        <i data-lucide="settings"></i>
-                        <span>Settings</span>
-                    `;
-                    
-                    // Append to mobile nav
-                    mobileNav.appendChild(settingsTab);
-                    
-                    // Update icons
-                    if (typeof lucide !== 'undefined' && lucide.createIcons) {
-                        lucide.createIcons();
-                    }
-                }
-            }
-            
-            // Remove the CSS that hides the settings tab
-            const styleOverride = document.createElement('style');
-            styleOverride.textContent = `
-                .nav-item[data-page="settings"] {
-                    display: flex !important;
-                }
-            `;
-            document.head.appendChild(styleOverride);
-        });
-        </script>
+        </nav>
     </div>
 
-    <!-- Scripts -->
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
-    <!-- GLOBAL SOLUTION: Make the fix function available globally -->
-    <script>
-        window.fixCategoriesDropdown = function() {
-            try {
-                console.log('Running silent category dropdown fix');
-                
-                // Find the dropdown
-                const dropdown = document.querySelector('.stats-category-filter');
-                if (!dropdown) {
-                    console.error('Stats category dropdown not found');
-                    return;
-                }
-                
-                console.log('Found dropdown with', dropdown.options.length, 'options');
-                
-                // FORCE ADD categories regardless of current state
-                console.log('FORCE ADDING categories to dropdown');
-                
-                // Direct category creation - no dependencies
-                const categories = [
-                    { id: 'c-1', name: 'Scales' },
-                    { id: 'c-2', name: 'Technique' },
-                    { id: 'c-3', name: 'Repertoire' },
-                    { id: 'c-4', name: 'Sight Reading' },
-                    { id: 'c-5', name: 'Theory' }
-                ];
-                
-                // Clear all options EXCEPT the first one (All Categories)
-                while (dropdown.options.length > 1) {
-                    dropdown.remove(1);
-                }
-                
-                // Add categories
-                categories.forEach(cat => {
-                    const option = document.createElement('option');
-                    option.value = cat.id;
-                    option.textContent = cat.name;
-                    dropdown.appendChild(option);
-                    console.log('Added category:', cat.name);
-                });
-                
-                console.log('Categories added silently');
-                
-                // Refresh any Lucide icons
-                if (typeof lucide !== 'undefined' && lucide.createIcons) {
-                    lucide.createIcons();
-                }
-            } catch (e) {
-                console.error('Error fixing categories dropdown:', e);
-            }
-        };
-        
-        // Run this immediately to ensure categories are always visible
-        window.addEventListener('load', function() {
-            console.log('EMERGENCY DIRECT CATEGORY FIX - Window load event');
-            window.fixCategoriesDropdown();
-        });
-        
-        // Also run it immediately as an IIFE
-        (function() {
-            console.log('EMERGENCY DIRECT CATEGORY FIX - Immediate execution');
-            setTimeout(window.fixCategoriesDropdown, 0);
-        })();
-    </script>
-    
-    <script src="js/data.js"></script>
-    <script src="js/timer.js"></script>
-    <script src="js/sessions.js"></script>
-    <script src="js/goals.js"></script>
-    <script src="js/media.js"></script>
-    <script src="js/settings.js"></script>
-    <script src="js/stats.js"></script>
-    <script src="js/app.js"></script>
-    <script>
-        // Initialize Lucide icons
-        lucide.createIcons();
-        
-        // Simple error handling function that doesn't interfere with normal operation
-        window.handleStatsError = function() {
-            console.log('Checking for stats errors');
-            try {
-                const statsPage = document.getElementById('stats-page');
-                if (statsPage && statsPage.classList.contains('active')) {
-                    const statsContainer = statsPage.querySelector('.stats-container');
-                    if (statsContainer && statsContainer.innerHTML === '') {
-                        console.log('Empty stats container detected, initializing stats');
-                        if (typeof window.initializeStats === 'function') {
-                            window.initializeStats();
-                        }
-                    }
-                }
-            } catch (e) {
-                console.error('Error in handleStatsError:', e);
-            }
-        };
-        
-        // Run error handler periodically
-        setInterval(window.handleStatsError, 3000);
-        
-        // Populate categories in all dropdowns
-        window.populateCategories = function() {
-            const categoryDropdowns = document.querySelectorAll('.stats-category-filter');
-            if (!categoryDropdowns.length) return;
-            
-            // Get categories from localStorage
-            let categories = [];
-            try {
-                const categoriesData = localStorage.getItem('practice_categories');
-                if (categoriesData) {
-                    categories = JSON.parse(categoriesData);
-                }
-            } catch (error) {
-                console.error('Error getting categories:', error);
-            }
-            
-            if (!categories || !categories.length) {
-                categories = [
-                    { id: 'c-1', name: 'Scales', isHidden: false },
-                    { id: 'c-2', name: 'Technique', isHidden: false },
-                    { id: 'c-3', name: 'Repertoire', isHidden: false },
-                    { id: 'c-4', name: 'Sight Reading', isHidden: false },
-                    { id: 'c-5', name: 'Theory', isHidden: false }
-                ];
-            }
-            
-            // Filter out hidden categories
-            categories = categories.filter(cat => !cat.isHidden);
-            
-            // Populate each dropdown
-            categoryDropdowns.forEach(dropdown => {
-                // Clear dropdown first, keeping the "All Categories" option
-                while (dropdown.options.length > 1) {
-                    dropdown.remove(1);
-                }
-                
-                // Add categories
-                categories.forEach(category => {
-                    const option = document.createElement('option');
-                    option.value = category.id;
-                    option.textContent = category.name;
-                    dropdown.appendChild(option);
-                });
-            });
-        };
-        
-        // Run on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            window.populateCategories();
-        });
-    </script>
-
-    <!-- Direct fix for stats display -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('DOM loaded, setting up direct stats fix');
-            
-            // Add event listener for stats tab clicks
-            const statsTab = document.querySelector('.nav-item[data-page="stats"]');
-            if (statsTab) {
-                statsTab.addEventListener('click', directFixStats);
-            }
-            
-            // Check if stats page is already active
-            setTimeout(() => {
-                if (document.querySelector('#stats-page.active')) {
-                    directFixStats();
-                }
-            }, 500);
-            
-            // Direct fix function
-            function directFixStats() {
-                console.log('Directly fixing stats display with simple approach');
-                
-                // Get stats page
-                const statsPage = document.getElementById('stats-page');
-                if (!statsPage) {
-                    console.error('Stats page not found');
-                    return;
-                }
-                
-                // Get or create stats container
-                let statsContainer = statsPage.querySelector('.stats-container');
-                if (!statsContainer) {
-                    statsContainer = document.createElement('div');
-                    statsContainer.className = 'stats-container';
-                    statsPage.appendChild(statsContainer);
-                }
-                
-                // Add apply button to filters
-                const filtersSection = statsPage.querySelector('.filters');
-                if (filtersSection && !filtersSection.querySelector('.apply-stats-btn')) {
-                    const applyBtn = document.createElement('button');
-                    applyBtn.className = 'primary-button apply-stats-btn';
-                    applyBtn.textContent = 'Apply Filters';
-                    applyBtn.style.marginLeft = '10px';
-                    filtersSection.appendChild(applyBtn);
-                    
-                    // Add click handler
-                    applyBtn.addEventListener('click', function() {
-                        // Get filter values
-                        const categoryFilter = statsPage.querySelector('.stats-category-filter');
-                        const dateInputs = statsPage.querySelectorAll('.stats-date-input');
-                        
-                        const category = categoryFilter ? categoryFilter.value : '';
-                        const startDate = dateInputs[0] ? dateInputs[0].value : '';
-                        const endDate = dateInputs[1] ? dateInputs[1].value : '';
-                        
-                        // Get sessions
-                        let sessions = [];
-                        try {
-                            sessions = JSON.parse(localStorage.getItem('practice_sessions')) || [];
-                        } catch (e) {
-                            console.error('Error loading sessions:', e);
-                        }
-                        
-                        // Filter sessions
-                        let filtered = [...sessions];
-                        
-                        if (category) {
-                            filtered = filtered.filter(s => s.categoryId === category);
-                        }
-                        
-                        if (startDate) {
-                            const startTime = new Date(startDate).setHours(0,0,0,0);
-                            filtered = filtered.filter(s => {
-                                if (!s.startTime) return false;
-                                return new Date(s.startTime).getTime() >= startTime;
-                            });
-                        }
-                        
-                        if (endDate) {
-                            const endTime = new Date(endDate).setHours(23,59,59,999);
-                            filtered = filtered.filter(s => {
-                                if (!s.startTime) return false;
-                                return new Date(s.startTime).getTime() <= endTime;
-                            });
-                        }
-                        
-                        // Create simple stats display
-                        displayStats(filtered);
-                    });
-                }
-                
-                // Set default dates if not set
-                const dateInputs = statsPage.querySelectorAll('.stats-date-input');
-                if (dateInputs && dateInputs.length >= 2) {
-                    if (!dateInputs[0].value || !dateInputs[1].value) {
-                        const today = new Date();
-                        const thirtyDaysAgo = new Date();
-                        thirtyDaysAgo.setDate(today.getDate() - 30);
-                        
-                        dateInputs[0].value = thirtyDaysAgo.toISOString().split('T')[0];
-                        dateInputs[1].value = today.toISOString().split('T')[0];
-                    }
-                }
-                
-                // Apply initial filters
-                setTimeout(() => {
-                    const applyBtn = statsPage.querySelector('.apply-stats-btn');
-                    if (applyBtn) applyBtn.click();
-                }, 100);
-                
-                // Function to display stats
-                function displayStats(sessions) {
-                    // Clear container
-                    statsContainer.innerHTML = '';
-                    
-                    // No sessions
-                    if (!sessions || sessions.length === 0) {
-                        statsContainer.innerHTML = '<div style="text-align:center; padding:40px; color:#666;">No practice sessions found for the selected filters.</div>';
-                        return;
-                    }
-                    
-                    // Calculate basic stats
-                    const totalSeconds = sessions.reduce((sum, s) => sum + (parseInt(s.duration) || 0), 0);
-                    const avgSeconds = Math.round(totalSeconds / sessions.length);
-                    
-                    // Format time
-                    function formatTime(sec) {
-                        const hrs = Math.floor(sec / 3600);
-                        const mins = Math.floor((sec % 3600) / 60);
-                        return hrs > 0 ? `${hrs}h ${mins}m` : `${mins}m`;
-                    }
-                    
-                    // Create stats grid
-                    const statsGrid = document.createElement('div');
-                    statsGrid.className = 'stats-grid';
-                    statsGrid.style.display = 'grid';
-                    statsGrid.style.gridTemplateColumns = 'repeat(3, 1fr)';
-                    statsGrid.style.gap = '20px';
-                    statsGrid.style.margin = '20px 0';
-                    
-                    statsGrid.innerHTML = `
-                        <div class="stat-card" style="background-color:#f5f5f5; padding:20px; border-radius:8px; text-align:center; box-shadow:0 2px 4px rgba(0,0,0,0.1);">
-                            <h3>Total Practice Time</h3>
-                            <p style="font-size:24px; font-weight:bold; color:#4154b3;">${formatTime(totalSeconds)}</p>
-                        </div>
-                        <div class="stat-card" style="background-color:#f5f5f5; padding:20px; border-radius:8px; text-align:center; box-shadow:0 2px 4px rgba(0,0,0,0.1);">
-                            <h3>Avg. Session Time</h3>
-                            <p style="font-size:24px; font-weight:bold; color:#4154b3;">${formatTime(avgSeconds)}</p>
-                        </div>
-                        <div class="stat-card" style="background-color:#f5f5f5; padding:20px; border-radius:8px; text-align:center; box-shadow:0 2px 4px rgba(0,0,0,0.1);">
-                            <h3>Practice Sessions</h3>
-                            <p style="font-size:24px; font-weight:bold; color:#4154b3;">${sessions.length}</p>
-                        </div>
-                    `;
-                    
-                    statsContainer.appendChild(statsGrid);
-                }
-            }
-            
-            // Make function available globally
-            window.directFixStats = directFixStats;
-        });
-    </script>
+    <!-- Add Default Categories Dialog -->
+    <dialog id="default-categories-dialog" class="settings-dialog">
+        <h2>Add Default Categories</h2>
+        <p>Select an instrument to add its default categories:</p>
+        <div class="instrument-list">
+            <!-- Instruments will be populated here -->
+        </div>
+        <div class="dialog-actions">
+            <button class="secondary-button" data-close>Cancel</button>
+            <button class="primary-button" data-add>Add Categories</button>
+        </div>
+    </dialog>
 </body>
 </html> 
