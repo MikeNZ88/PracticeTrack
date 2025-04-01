@@ -150,11 +150,11 @@ const sampleSessions = [
 
 // Storage Keys
 const STORAGE_KEYS = {
-    SESSIONS: 'practice_sessions',
-    GOALS: 'practice_goals',
-    CATEGORIES: 'practice_categories',
-    MEDIA: 'practice_media',
-    SETTINGS: 'practice_settings'
+    SESSIONS: 'practiceTrack_sessions',
+    GOALS: 'practiceTrack_goals',
+    CATEGORIES: 'practiceTrack_categories',
+    MEDIA: 'practiceTrack_media',
+    SETTINGS: 'practiceTrack_settings'
 };
 
 // Get all items of a specific type

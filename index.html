@@ -8,8 +8,8 @@
     <!-- Include Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <!-- Application Scripts -->
-    <script src="js/app.js" defer></script>
     <script src="js/data.js" defer></script>
+    <script src="js/app.js" defer></script>
     <script src="js/timer.js" defer></script>
     <script src="js/settings.js" defer></script>
     <script src="js/stats.js" defer></script>
@@ -208,34 +208,15 @@
                 </div>
                 <div class="settings-container">
                     <div class="settings-section">
-                        <h2>Instruments</h2>
-                        <div class="settings-row">
-                            <div class="form-group">
-                                <label for="instrument-select">Add Instrument</label>
-                                <select id="instrument-select">
-                                    <option value="">Select Instrument</option>
-                                </select>
-                            </div>
-                            <div class="selected-instruments">
-                                <!-- Selected instruments will be displayed here -->
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="settings-section">
                         <h2>Categories</h2>
                         <div class="settings-row">
+                            <div class="add-category-form">
+                                <input type="text" id="new-category-name" placeholder="Enter new category name">
+                                <button id="add-category-btn" class="primary-button">Add Category</button>
+                            </div>
                             <div class="categories-container">
-                                <button id="add-default-categories" class="primary-button">
-                                    <i data-lucide="plus"></i>
-                                    Add Default Categories
-                                </button>
                                 <div id="categories-list" class="categories-list">
                                     <!-- Categories will be populated here -->
-                                </div>
-                                <div class="add-category-form">
-                                    <input type="text" id="new-category-name" placeholder="Enter new category name">
-                                    <button id="add-category-btn" class="secondary-button">Add Category</button>
                                 </div>
                             </div>
                         </div>
@@ -272,10 +253,6 @@
                         <div class="clear-data-section">
                             <h4>Clear Data</h4>
                             <div class="data-buttons">
-                                <button id="clear-instrument-data" class="warning-button">
-                                    <i data-lucide="trash-2"></i>
-                                    Clear Instrument Data
-                                </button>
                                 <button id="clear-all-data" class="danger-button">
                                     <i data-lucide="alert-triangle"></i>
                                     Clear All Data
@@ -317,16 +294,6 @@
     </div>
 
     <!-- Add Default Categories Dialog -->
-    <dialog id="default-categories-dialog" class="settings-dialog">
-        <h2>Add Default Categories</h2>
-        <p>Select an instrument to add its default categories:</p>
-        <div class="instrument-list">
-            <!-- Instruments will be populated here -->
-        </div>
-        <div class="dialog-actions">
-            <button class="secondary-button" data-close>Cancel</button>
-            <button class="primary-button" data-add>Add Categories</button>
-        </div>
-    </dialog>
+    <!-- Dialog has been removed in the simplified approach -->
 </body>
 </html> 

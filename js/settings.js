@@ -1,92 +1,40 @@
 // DOM Elements
 let settingsForm;
-let instrumentSelect;
-let selectedInstrumentsContainer;
 let categoriesList;
-let addDefaultCategoriesBtn;
 let newCategoryInput;
 let addCategoryBtn;
 let exportDataBtn;
 let importDataBtn;
 let lessonDaySelect;
 let lessonTimeInput;
-let defaultCategoriesDialog;
-let selectedInstrumentId = null;
-
-// Available instruments with IDs and names
-const AVAILABLE_INSTRUMENTS = [
-    { id: 'piano', name: 'Piano' },
-    { id: 'guitar', name: 'Guitar' },
-    { id: 'violin', name: 'Violin' },
-    { id: 'drums', name: 'Drums' },
-    { id: 'voice', name: 'Voice' },
-    { id: 'flute', name: 'Flute' },
-    { id: 'clarinet', name: 'Clarinet' },
-    { id: 'trumpet', name: 'Trumpet' },
-    { id: 'bass', name: 'Bass' },
-    { id: 'cello', name: 'Cello' },
-    { id: 'saxophone', name: 'Saxophone' }
-];
-
-// Default categories per instrument
-const DEFAULT_CATEGORIES = {
-    piano: ['Scales', 'Technique', 'Repertoire', 'Sight Reading', 'Theory', 'Ear Training', 'Improvisation'],
-    guitar: ['Scales', 'Technique', 'Repertoire', 'Sight Reading', 'Theory', 'Ear Training', 'Improvisation'],
-    violin: ['Scales', 'Technique', 'Repertoire', 'Sight Reading', 'Theory', 'Ear Training'],
-    drums: ['Technique', 'Repertoire', 'Theory', 'Ear Training', 'Improvisation'],
-    voice: ['Technique', 'Repertoire', 'Theory', 'Ear Training'],
-    flute: ['Scales', 'Technique', 'Repertoire', 'Sight Reading', 'Theory', 'Ear Training'],
-    clarinet: ['Scales', 'Technique', 'Repertoire', 'Sight Reading', 'Theory', 'Ear Training'],
-    trumpet: ['Scales', 'Technique', 'Repertoire', 'Sight Reading', 'Theory', 'Ear Training', 'Improvisation'],
-    bass: ['Scales', 'Technique', 'Repertoire', 'Theory', 'Ear Training', 'Improvisation'],
-    cello: ['Scales', 'Technique', 'Repertoire', 'Sight Reading', 'Theory', 'Ear Training'],
-    saxophone: ['Scales', 'Technique', 'Repertoire', 'Theory', 'Ear Training', 'Improvisation']
-};
+let instrumentSelect;
+let themeToggle;
+let clearDataBtn;
 
 // Cleanup any corrupted data
 const cleanupStorage = () => {
     console.log('Running storage cleanup...');
     
     try {
-        // Check categories
-        let categories = window.getItems('CATEGORIES') || [];
-        let needsReset = false;
-        
-        // Check for potential corruption
-        if (categories.length === 0) {
-            console.log('No categories found, will recreate defaults');
-            needsReset = true;
-        } else {
-            // Look for signs of corruption
-            const invalidCategories = categories.filter(cat => {
-                return !cat.id || typeof cat.name !== 'string' || cat.name.trim() === '';
-            });
-            
-            if (invalidCategories.length > 0) {
-                console.warn('Found invalid categories, resetting to defaults');
-                needsReset = true;
-            }
-        }
-        
-        // Reset categories if needed
-        if (needsReset) {
-            console.log('Resetting categories to defaults');
-            resetCategories(false); // Silent reset (no confirmation)
-        }
-        
-        // Fix settings
+        // Check for settings
         let settings = window.getItems('SETTINGS');
         if (settings.length === 0) {
             console.log('No settings found, will create defaults');
-            window.setItems('SETTINGS', [{
+            window.saveItems('SETTINGS', [{
                 id: 's-1',
-                instruments: [],
                 lessonDay: '',
                 lessonTime: '',
                 theme: 'light',
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString()
             }]);
+        }
+        
+        // Check for categories
+        let categories = window.getItems('CATEGORIES');
+        if (!Array.isArray(categories)) {
+            console.log('Invalid categories data, resetting to empty array');
+            window.saveItems('CATEGORIES', []);
         }
         
         return true;
@@ -103,27 +51,31 @@ const initializeSettings = () => {
     try {
         // Get DOM elements
         settingsForm = document.getElementById('settings-form');
-        instrumentSelect = document.getElementById('instrument-select');
-        selectedInstrumentsContainer = document.querySelector('.selected-instruments');
         categoriesList = document.getElementById('categories-list');
-        addDefaultCategoriesBtn = document.getElementById('add-default-categories');
         newCategoryInput = document.getElementById('new-category-name');
         addCategoryBtn = document.getElementById('add-category-btn');
         exportDataBtn = document.getElementById('export-data');
         importDataBtn = document.getElementById('import-data');
         lessonDaySelect = document.getElementById('lesson-day');
         lessonTimeInput = document.getElementById('lesson-time');
-        defaultCategoriesDialog = document.getElementById('default-categories-dialog');
+        instrumentSelect = document.getElementById('primary-instrument');
+        themeToggle = document.getElementById('theme-toggle');
+        clearDataBtn = document.getElementById('clear-data-btn');
+        
+        console.log('DOM elements found:', {
+            categoriesList: !!categoriesList,
+            newCategoryInput: !!newCategoryInput,
+            addCategoryBtn: !!addCategoryBtn
+        });
         
         // Validate required elements
-        if (!instrumentSelect || !selectedInstrumentsContainer || !categoriesList || !addDefaultCategoriesBtn || !defaultCategoriesDialog) {
+        if (!categoriesList || !newCategoryInput || !addCategoryBtn) {
             console.error('Required DOM elements not found:', {
-                instrumentSelect: !!instrumentSelect,
-                selectedInstrumentsContainer: !!selectedInstrumentsContainer,
                 categoriesList: !!categoriesList,
-                addDefaultCategoriesBtn: !!addDefaultCategoriesBtn,
-                defaultCategoriesDialog: !!defaultCategoriesDialog
+                newCategoryInput: !!newCategoryInput,
+                addCategoryBtn: !!addCategoryBtn
             });
+            alert('Some required elements were not found. Please refresh the page.');
             return;
         }
         
@@ -132,320 +84,17 @@ const initializeSettings = () => {
         
         // Then load settings and set up UI
         loadSettings();
-        setupInstrumentManager();
         setupEventListeners();
-        setupDefaultCategoriesDialog();
+        loadCategories();
         addStyles();
         
-        // Initialize Lucide icons
-        if (typeof lucide !== 'undefined' && lucide.createIcons) {
-            lucide.createIcons();
-        }
+        // Initialize default categories if none exist
+        initializeDefaultCategories();
         
         console.log('Settings page initialized successfully');
     } catch (error) {
         console.error('Error initializing settings:', error);
-    }
-};
-
-// Set up default categories dialog
-const setupDefaultCategoriesDialog = () => {
-    try {
-        if (!defaultCategoriesDialog) {
-            console.error('Default categories dialog not found');
-            return;
-        }
-        
-        // Get dialog elements
-        const instrumentList = defaultCategoriesDialog.querySelector('.instrument-list');
-        const closeBtn = defaultCategoriesDialog.querySelector('[data-close]');
-        const addBtn = defaultCategoriesDialog.querySelector('[data-add]');
-        
-        if (!instrumentList || !closeBtn || !addBtn) {
-            console.error('Required dialog elements not found');
-            return;
-        }
-        
-        // Get current settings
-        let settings = window.getItems('SETTINGS');
-        settings = Array.isArray(settings) && settings.length > 0 ? settings[0] : null;
-        
-        if (!settings || !settings.instruments || settings.instruments.length === 0) {
-            console.log('No instruments selected');
-            return;
-        }
-        
-        // Clear and populate instrument list
-        instrumentList.innerHTML = '';
-        settings.instruments.forEach(instrumentId => {
-            const instrumentItem = document.createElement('div');
-            instrumentItem.className = 'instrument-item';
-            instrumentItem.dataset.instrument = instrumentId;
-            
-            const radio = document.createElement('input');
-            radio.type = 'radio';
-            radio.name = 'instrument';
-            radio.value = instrumentId;
-            radio.id = `radio-${instrumentId}`;
-            
-            const label = document.createElement('label');
-            label.htmlFor = `radio-${instrumentId}`;
-            label.textContent = instrumentId;
-            
-            instrumentItem.appendChild(radio);
-            instrumentItem.appendChild(label);
-            instrumentList.appendChild(instrumentItem);
-            
-            // Add click handler
-            instrumentItem.addEventListener('click', () => {
-                // Clear all selected states
-                instrumentList.querySelectorAll('.instrument-item').forEach(item => {
-                    item.classList.remove('selected');
-                });
-                // Set selected state
-                instrumentItem.classList.add('selected');
-                // Check radio button
-                radio.checked = true;
-                selectedInstrumentId = instrumentId;
-            });
-        });
-        
-        // Add button handlers
-        closeBtn.addEventListener('click', () => {
-            defaultCategoriesDialog.close();
-            selectedInstrumentId = null;
-        });
-        
-        addBtn.addEventListener('click', () => {
-            if (!selectedInstrumentId) {
-                alert('Please select an instrument');
-                return;
-            }
-            
-            handleAddDefaultCategories(selectedInstrumentId);
-            defaultCategoriesDialog.close();
-            selectedInstrumentId = null;
-        });
-        
-        // Add click outside to close
-        defaultCategoriesDialog.addEventListener('click', (e) => {
-            if (e.target === defaultCategoriesDialog) {
-                defaultCategoriesDialog.close();
-                selectedInstrumentId = null;
-            }
-        });
-        
-        console.log('Default categories dialog setup complete');
-    } catch (error) {
-        console.error('Error setting up default categories dialog:', error);
-    }
-};
-
-// Show default categories dialog
-const showDefaultCategoriesDialog = () => {
-    try {
-        if (!defaultCategoriesDialog) {
-            console.error('Default categories dialog not found');
-            return;
-        }
-        
-        // Get current settings
-        let settings = window.getItems('SETTINGS');
-        settings = Array.isArray(settings) && settings.length > 0 ? settings[0] : null;
-        
-        if (!settings || !settings.instruments || settings.instruments.length === 0) {
-            alert('Please select at least one instrument first');
-            return;
-        }
-        
-        // Reset selected instrument
-        selectedInstrumentId = null;
-        
-        // Setup dialog before showing
-        setupDefaultCategoriesDialog();
-        
-        // Show dialog
-        defaultCategoriesDialog.showModal();
-        
-        console.log('Showing default categories dialog');
-    } catch (error) {
-        console.error('Error showing default categories dialog:', error);
-    }
-};
-
-// Handle instrument selection
-const handleInstrumentSelect = () => {
-    try {
-        if (!instrumentSelect) return;
-        
-        const selectedInstrument = instrumentSelect.value;
-        if (!selectedInstrument) return;
-        
-        // Get current settings
-        let settings = window.getItems('SETTINGS');
-        settings = Array.isArray(settings) && settings.length > 0 ? settings[0] : {
-            id: 's-1',
-            instruments: [],
-            lessonDay: '',
-            lessonTime: '',
-            theme: 'light',
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-        };
-        
-        // Check if instrument is already selected
-        if (settings.instruments.includes(selectedInstrument)) {
-            alert('This instrument is already selected');
-            instrumentSelect.value = '';
-            return;
-        }
-        
-        // Check maximum instruments limit
-        if (settings.instruments.length >= 3) {
-            alert('You can only select up to 3 instruments');
-            instrumentSelect.value = '';
-            return;
-        }
-        
-        // Add instrument to settings
-        settings.instruments.push(selectedInstrument);
-        settings.updatedAt = new Date().toISOString();
-        
-        // Save settings
-        window.setItems('SETTINGS', [settings]);
-        
-        // Update UI
-        updateSelectedInstruments(settings.instruments);
-        instrumentSelect.value = '';
-        
-        // Add default categories for the new instrument
-        const defaultCategories = window.DEFAULT_CATEGORIES[selectedInstrument] || [];
-        if (defaultCategories.length > 0) {
-            if (confirm('Would you like to add default categories for this instrument?')) {
-                handleAddDefaultCategories(selectedInstrument);
-            }
-        }
-        
-        // Reload categories
-        loadCategories();
-    } catch (error) {
-        console.error('Error handling instrument selection:', error);
-    }
-};
-
-// Handle adding default categories
-const handleAddDefaultCategories = (instrumentId) => {
-    try {
-        if (!instrumentId) return;
-        
-        // Get current categories
-        let categories = window.getItems('CATEGORIES') || [];
-        
-        // Get default categories for the instrument
-        const defaultCategories = window.DEFAULT_CATEGORIES[instrumentId] || [];
-        if (!defaultCategories.length) {
-            console.warn('No default categories found for instrument:', instrumentId);
-            return;
-        }
-        
-        // Add each default category if it doesn't already exist
-        let addedCount = 0;
-        defaultCategories.forEach(category => {
-            const exists = categories.some(cat => 
-                cat.instrumentId === instrumentId && 
-                cat.name.toLowerCase() === category.name.toLowerCase()
-            );
-            
-            if (!exists) {
-                categories.push({
-                    id: `c-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-                    name: category.name,
-                    instrumentId: instrumentId,
-                    isDefault: true,
-                    createdAt: new Date().toISOString(),
-                    updatedAt: new Date().toISOString()
-                });
-                addedCount++;
-            }
-        });
-        
-        if (addedCount > 0) {
-            // Save categories
-            window.setItems('CATEGORIES', categories);
-            
-            // Reload categories
-            loadCategories();
-            
-            // Show success message
-            alert(`Added ${addedCount} default categories for ${instrumentId}`);
-        } else {
-            alert('All default categories already exist for this instrument');
-        }
-    } catch (error) {
-        console.error('Error adding default categories:', error);
-    }
-};
-
-// Handle adding a new category
-const handleAddCategory = () => {
-    try {
-        if (!newCategoryInput || !instrumentSelect) return;
-        
-        const newCategoryName = newCategoryInput.value.trim();
-        const selectedInstrument = instrumentSelect.value;
-        
-        // Validate input
-        if (!newCategoryName) {
-            alert('Please enter a category name');
-            return;
-        }
-        
-        if (!selectedInstrument) {
-            alert('Please select an instrument for the category');
-            return;
-        }
-        
-        // Get current categories
-        let categories = window.getItems('CATEGORIES') || [];
-        
-        // Check if category already exists for this instrument
-        const exists = categories.some(cat => 
-            cat.instrumentId === selectedInstrument && 
-            cat.name.toLowerCase() === newCategoryName.toLowerCase()
-        );
-        
-        if (exists) {
-            alert('This category already exists for the selected instrument');
-            return;
-        }
-        
-        // Create new category
-        const newCategory = {
-            id: `c-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-            name: newCategoryName,
-            instrumentId: selectedInstrument,
-            isDefault: false,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-        };
-        
-        // Add category
-        categories.push(newCategory);
-        
-        // Save categories
-        window.setItems('CATEGORIES', categories);
-        
-        // Clear input and reset instrument select
-        newCategoryInput.value = '';
-        instrumentSelect.value = '';
-        
-        // Reload categories
-        loadCategories();
-        
-        // Show success message
-        alert('Category added successfully');
-    } catch (error) {
-        console.error('Error adding category:', error);
+        alert('Error initializing settings. Please refresh the page.');
     }
 };
 
@@ -454,25 +103,29 @@ const setupEventListeners = () => {
     try {
         console.log('Setting up event listeners');
         
-        // Remove existing listeners first
-        if (addDefaultCategoriesBtn) {
-            const newBtn = addDefaultCategoriesBtn.cloneNode(true);
-            addDefaultCategoriesBtn.parentNode.replaceChild(newBtn, addDefaultCategoriesBtn);
-            addDefaultCategoriesBtn = newBtn;
-            addDefaultCategoriesBtn.addEventListener('click', showDefaultCategoriesDialog);
-        }
-        
+        // Category management
         if (addCategoryBtn) {
+            console.log('Setting up add category button listener');
+            // Clone button to remove previous listeners
             const newBtn = addCategoryBtn.cloneNode(true);
             addCategoryBtn.parentNode.replaceChild(newBtn, addCategoryBtn);
             addCategoryBtn = newBtn;
-            addCategoryBtn.addEventListener('click', handleAddCategory);
+            
+            // Add click listener
+            addCategoryBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                handleAddCategory();
+            });
         }
         
         if (newCategoryInput) {
+            console.log('Setting up new category input listener');
+            // Clone input to remove previous listeners
             const newInput = newCategoryInput.cloneNode(true);
             newCategoryInput.parentNode.replaceChild(newInput, newCategoryInput);
             newCategoryInput = newInput;
+            
+            // Add keypress listener for Enter
             newCategoryInput.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') {
                     e.preventDefault();
@@ -496,18 +149,10 @@ const setupEventListeners = () => {
             importDataBtn.addEventListener('click', handleImportData);
         }
         
-        // Clear data buttons
-        const clearInstrumentDataBtn = document.getElementById('clear-instrument-data');
-        if (clearInstrumentDataBtn) {
-            const newBtn = clearInstrumentDataBtn.cloneNode(true);
-            clearInstrumentDataBtn.parentNode.replaceChild(newBtn, clearInstrumentDataBtn);
-            newBtn.addEventListener('click', handleClearInstrumentData);
-        }
-        
-        const clearAllDataBtn = document.getElementById('clear-all-data');
-        if (clearAllDataBtn) {
-            const newBtn = clearAllDataBtn.cloneNode(true);
-            clearAllDataBtn.parentNode.replaceChild(newBtn, clearAllDataBtn);
+        // Clear data button
+        if (clearDataBtn) {
+            const newBtn = clearDataBtn.cloneNode(true);
+            clearDataBtn.parentNode.replaceChild(newBtn, clearDataBtn);
             newBtn.addEventListener('click', handleClearAllData);
         }
         
@@ -526,6 +171,11 @@ const setupEventListeners = () => {
             lessonTimeInput.addEventListener('change', handleSettingsSubmit);
         }
         
+        // Theme toggle
+        if (themeToggle) {
+            themeToggle.addEventListener('change', handleThemeChange);
+        }
+        
         console.log('Event listeners setup complete');
     } catch (error) {
         console.error('Error setting up event listeners:', error);
@@ -539,7 +189,6 @@ const loadSettings = () => {
         let settings = window.getItems('SETTINGS');
         settings = Array.isArray(settings) && settings.length > 0 ? settings[0] : {
             id: 's-1',
-            instruments: [],
             lessonDay: '',
             lessonTime: '',
             theme: 'light',
@@ -553,17 +202,6 @@ const loadSettings = () => {
         // Set lesson time
         if (lessonTimeInput) {
             lessonTimeInput.value = settings.lessonTime || '';
-        }
-        
-        // Load categories
-        loadCategories();
-        
-        // Add change handlers for lesson day and time
-        if (lessonDaySelect) {
-            lessonDaySelect.addEventListener('change', handleSettingsSubmit);
-        }
-        if (lessonTimeInput) {
-            lessonTimeInput.addEventListener('change', handleSettingsSubmit);
         }
     } catch (error) {
         console.error('Error loading settings:', error);
@@ -586,232 +224,255 @@ const populateLessonDayDropdown = (selectedDay) => {
     });
 };
 
-// Set up instrument manager
-const setupInstrumentManager = () => {
+// Notify application that categories have changed
+const notifyCategoriesChanged = () => {
     try {
-        // Get current settings
-        let settings = window.getItems('SETTINGS');
-        settings = Array.isArray(settings) && settings.length > 0 ? settings[0] : null;
+        console.log('Notifying application that categories have changed');
+        // Dispatch a custom event that other modules can listen for
+        const event = new CustomEvent('categoriesChanged', {
+            detail: { timestamp: new Date().toISOString() }
+        });
+        document.dispatchEvent(event);
         
-        // Populate instruments dropdown
-        populateInstrumentsDropdown();
-        
-        // Update selected instruments display
-        if (settings && settings.instruments) {
-            updateSelectedInstruments(settings.instruments);
-        }
-        
-        // Add event listener for instrument selection
-        if (instrumentSelect) {
-            instrumentSelect.addEventListener('change', handleInstrumentSelect);
+        // Also update any global handler if it exists
+        if (typeof window.updateCategoryDropdowns === 'function') {
+            console.log('Calling global updateCategoryDropdowns function');
+            window.updateCategoryDropdowns();
         }
     } catch (error) {
-        console.error('Error setting up instrument manager:', error);
+        console.error('Error notifying categories changed:', error);
     }
 };
 
-// Populate instruments dropdown
-const populateInstrumentsDropdown = () => {
-    try {
-        if (!instrumentSelect) return;
-        
-        // Clear existing options
-        instrumentSelect.innerHTML = '';
-        
-        // Add default option
-        const defaultOption = document.createElement('option');
-        defaultOption.value = '';
-        defaultOption.textContent = 'Select an instrument';
-        instrumentSelect.appendChild(defaultOption);
-        
-        // Get current settings
-        let settings = window.getItems('SETTINGS');
-        settings = Array.isArray(settings) && settings.length > 0 ? settings[0] : null;
-        const selectedInstruments = settings?.instruments || [];
-        
-        // Add available instruments that aren't already selected
-        AVAILABLE_INSTRUMENTS.forEach(instrument => {
-            if (!selectedInstruments.includes(instrument)) {
-                const option = document.createElement('option');
-                option.value = instrument;
-                option.textContent = instrument;
-                instrumentSelect.appendChild(option);
-            }
-        });
-    } catch (error) {
-        console.error('Error populating instruments dropdown:', error);
+// Handle adding a new category
+const handleAddCategory = () => {
+    console.log('Adding new category');
+    
+    if (!newCategoryInput || !newCategoryInput.value.trim()) {
+        alert('Please enter a category name');
+        return;
     }
-};
-
-// Update selected instruments display
-const updateSelectedInstruments = (instruments = []) => {
+    
     try {
-        if (!selectedInstrumentsContainer) return;
+        const newCategoryName = newCategoryInput.value.trim();
+        const categories = JSON.parse(localStorage.getItem('practiceTrack_categories')) || [];
         
-        // Clear existing instruments
-        selectedInstrumentsContainer.innerHTML = '';
-        
-        // Add each instrument with remove button
-        instruments.forEach(instrument => {
-            const instrumentElement = document.createElement('div');
-            instrumentElement.className = 'selected-instrument';
-            
-            const instrumentName = document.createElement('span');
-            instrumentName.textContent = instrument;
-            instrumentElement.appendChild(instrumentName);
-            
-            const removeButton = document.createElement('button');
-            removeButton.className = 'remove-instrument';
-            removeButton.innerHTML = '×';
-            removeButton.addEventListener('click', () => removeInstrument(instrument));
-            instrumentElement.appendChild(removeButton);
-            
-            selectedInstrumentsContainer.appendChild(instrumentElement);
-        });
-        
-        // Update instruments dropdown
-        populateInstrumentsDropdown();
-    } catch (error) {
-        console.error('Error updating selected instruments:', error);
-    }
-};
-
-// Remove instrument
-const removeInstrument = (instrumentToRemove) => {
-    try {
-        // Get current settings
-        let settings = window.getItems('SETTINGS');
-        settings = Array.isArray(settings) && settings.length > 0 ? settings[0] : null;
-        
-        if (!settings) return;
-        
-        // Remove instrument from settings
-        settings.instruments = settings.instruments.filter(instrument => instrument !== instrumentToRemove);
-        settings.updatedAt = new Date().toISOString();
-        
-        // Save settings
-        window.setItems('SETTINGS', [settings]);
-        
-        // Update UI
-        updateSelectedInstruments(settings.instruments);
-        
-        // Reload categories to remove instrument's categories
-        loadCategories();
-    } catch (error) {
-        console.error('Error removing instrument:', error);
-    }
-};
-
-// Load categories
-const loadCategories = () => {
-    try {
-        if (!categoriesList) return;
-        
-        // Clear existing categories
-        categoriesList.innerHTML = '';
-        
-        // Get current settings and categories
-        let settings = window.getItems('SETTINGS');
-        settings = Array.isArray(settings) && settings.length > 0 ? settings[0] : null;
-        let categories = window.getItems('CATEGORIES') || [];
-        
-        if (!settings || !settings.instruments || settings.instruments.length === 0) {
-            categoriesList.innerHTML = '<p>Please select at least one instrument first.</p>';
+        // Check if category already exists
+        const exists = categories.some(cat => cat.name.toLowerCase() === newCategoryName.toLowerCase());
+        if (exists) {
+            alert(`Category "${newCategoryName}" already exists`);
             return;
         }
         
-        // Group categories by instrument
-        const categoriesByInstrument = {};
-        settings.instruments.forEach(instrument => {
-            categoriesByInstrument[instrument] = categories.filter(cat => cat.instrumentId === instrument);
-        });
+        // Add the new category
+        const newCategory = {
+            id: `category_${Date.now()}`,
+            name: newCategoryName,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            custom: true
+        };
         
-        // Create sections for each instrument's categories
-        settings.instruments.forEach(instrument => {
-            const instrumentCategories = categoriesByInstrument[instrument];
-            
-            // Create instrument section
-            const section = document.createElement('div');
-            section.className = 'categories-section';
-            
-            // Add instrument header
-            const header = document.createElement('h3');
-            header.textContent = `${instrument} Categories`;
-            section.appendChild(header);
-            
-            // Add categories
-            if (instrumentCategories.length > 0) {
-                const list = document.createElement('ul');
-                list.className = 'categories-list';
-                
-                instrumentCategories.forEach(category => {
-                    const item = document.createElement('li');
-                    item.className = 'category-item';
-                    
-                    const name = document.createElement('span');
-                    name.textContent = category.name;
-                    item.appendChild(name);
-                    
-                    const deleteBtn = document.createElement('button');
-                    deleteBtn.className = 'delete-category';
-                    deleteBtn.innerHTML = '×';
-                    deleteBtn.addEventListener('click', () => handleDeleteCategory(category.id));
-                    item.appendChild(deleteBtn);
-                    
-                    list.appendChild(item);
-                });
-                
-                section.appendChild(list);
-            } else {
-                const empty = document.createElement('p');
-                empty.textContent = 'No categories added yet.';
-                section.appendChild(empty);
-            }
-            
-            categoriesList.appendChild(section);
-        });
+        categories.push(newCategory);
+        localStorage.setItem('practiceTrack_categories', JSON.stringify(categories));
+        
+        // Clear input
+        newCategoryInput.value = '';
+        
+        // Reload categories
+        loadCategories();
+        
+        // Notify other modules
+        console.log('Dispatching categoriesChanged event');
+        document.dispatchEvent(new Event('categoriesChanged'));
+        
+        alert('Category added successfully');
     } catch (error) {
-        console.error('Error loading categories:', error);
+        console.error('Error adding category:', error);
+        alert('Failed to add category');
+    }
+};
+
+// Handle editing a category
+const handleEditCategory = (categoryId) => {
+    try {
+        // Get categories
+        let categories = window.getItems('CATEGORIES') || [];
+        const category = categories.find(cat => cat.id === categoryId);
+        
+        if (!category) return;
+        
+        // Prompt for new name
+        const newName = prompt('Enter new category name:', category.name);
+        
+        if (!newName || newName.trim() === '') return;
+        
+        // Check if category already exists
+        const exists = categories.some(cat => 
+            cat.id !== categoryId && 
+            cat.name.toLowerCase() === newName.trim().toLowerCase()
+        );
+        
+        if (exists) {
+            alert('A category with this name already exists');
+            return;
+        }
+        
+        // Update category
+        category.name = newName.trim();
+        category.updatedAt = new Date().toISOString();
+        
+        // Save categories
+        window.saveItems('CATEGORIES', categories);
+        
+        // Reload categories
+        loadCategories();
+        
+        // Notify application that categories have changed
+        notifyCategoriesChanged();
+        
+        // Show success message
+        alert('Category updated successfully');
+    } catch (error) {
+        console.error('Error editing category:', error);
     }
 };
 
 // Handle deleting a category
 const handleDeleteCategory = (categoryId) => {
+    console.log('Deleting category:', categoryId);
+    
+    if (!categoryId) {
+        console.error('No category ID provided');
+        return;
+    }
+    
     try {
-        if (!categoryId) return;
+        // Get current categories
+        const categories = JSON.parse(localStorage.getItem('practiceTrack_categories')) || [];
         
-        // Confirm deletion
-        if (!confirm('Are you sure you want to delete this category?')) {
+        // Find category
+        const category = categories.find(cat => cat.id === categoryId);
+        if (!category) {
+            console.error('Category not found:', categoryId);
             return;
         }
         
-        // Get current categories
-        let categories = window.getItems('CATEGORIES') || [];
+        // Confirm deletion
+        if (!confirm(`Are you sure you want to delete "${category.name}"?`)) {
+            return;
+        }
         
-        // Remove category
-        categories = categories.filter(cat => cat.id !== categoryId);
+        // Filter out the category
+        const updatedCategories = categories.filter(cat => cat.id !== categoryId);
         
-        // Save categories
-        window.setItems('CATEGORIES', categories);
+        // Save updated categories
+        localStorage.setItem('practiceTrack_categories', JSON.stringify(updatedCategories));
         
         // Reload categories
         loadCategories();
         
-        // Show success message
+        // Notify other modules
+        console.log('Dispatching categoriesChanged event');
+        document.dispatchEvent(new Event('categoriesChanged'));
+        
         alert('Category deleted successfully');
     } catch (error) {
         console.error('Error deleting category:', error);
+        alert('Failed to delete category');
     }
 };
 
+// Load categories
+function loadCategories() {
+    console.log('Loading categories in settings');
+    
+    if (!categoriesList) {
+        console.error('Category list container not found');
+        return;
+    }
+    
+    try {
+        // Get categories from localStorage
+        const categories = JSON.parse(localStorage.getItem('practiceTrack_categories')) || [];
+        console.log('Retrieved categories:', categories);
+        
+        // Clear list
+        categoriesList.innerHTML = '';
+        
+        if (categories.length === 0) {
+            categoriesList.innerHTML = '<p class="no-categories">No categories added yet</p>';
+            return;
+        }
+        
+        // Group categories
+        const customCategories = categories.filter(cat => cat.custom);
+        const defaultCategories = categories.filter(cat => !cat.custom);
+        
+        // Add default categories section if any exist
+        if (defaultCategories.length > 0) {
+            const header = document.createElement('h3');
+            header.textContent = 'Default Categories';
+            header.className = 'category-group-header';
+            categoriesList.appendChild(header);
+            
+            defaultCategories.forEach(category => {
+                const item = document.createElement('div');
+                item.className = 'category-item';
+                item.innerHTML = `
+                    <span class="category-name">${category.name}</span>
+                    <span class="category-actions">
+                        <button class="delete-btn" data-id="${category.id}">Delete</button>
+                    </span>
+                `;
+                categoriesList.appendChild(item);
+                
+                // Add delete handler
+                const deleteBtn = item.querySelector('.delete-btn');
+                if (deleteBtn) {
+                    deleteBtn.addEventListener('click', () => handleDeleteCategory(category.id));
+                }
+            });
+        }
+        
+        // Add custom categories section if any exist
+        if (customCategories.length > 0) {
+            const header = document.createElement('h3');
+            header.textContent = 'Custom Categories';
+            header.className = 'category-group-header';
+            categoriesList.appendChild(header);
+            
+            customCategories.forEach(category => {
+                const item = document.createElement('div');
+                item.className = 'category-item';
+                item.innerHTML = `
+                    <span class="category-name">${category.name}</span>
+                    <span class="category-actions">
+                        <button class="delete-btn" data-id="${category.id}">Delete</button>
+                    </span>
+                `;
+                categoriesList.appendChild(item);
+                
+                // Add delete handler
+                const deleteBtn = item.querySelector('.delete-btn');
+                if (deleteBtn) {
+                    deleteBtn.addEventListener('click', () => handleDeleteCategory(category.id));
+                }
+            });
+        }
+    } catch (error) {
+        console.error('Error loading categories:', error);
+        categoriesList.innerHTML = '<p class="error">Error loading categories</p>';
+    }
+}
+
 // Handle settings form submission
-const handleSettingsSubmit = (e) => {
+const handleSettingsSubmit = () => {
     try {
         // Get current settings
         let settings = window.getItems('SETTINGS');
         settings = Array.isArray(settings) && settings.length > 0 ? settings[0] : {
             id: 's-1',
-            instruments: [],
             lessonDay: '',
             lessonTime: '',
             theme: 'light',
@@ -829,11 +490,6 @@ const handleSettingsSubmit = (e) => {
 
         // Save settings
         window.saveItems('SETTINGS', [settings]);
-        
-        // Update timer categories if timer exists
-        if (typeof window.updateTimerCategories === 'function') {
-            window.updateTimerCategories();
-        }
         
         // Show success message
         alert('Settings saved successfully');
@@ -893,6 +549,7 @@ const handleImportData = () => {
                 
                 // Reload settings
                 loadSettings();
+                loadCategories();
                 
                 alert('Data imported successfully');
             } catch (error) {
@@ -906,40 +563,6 @@ const handleImportData = () => {
     input.click();
 };
 
-// Handle clearing instrument data
-const handleClearInstrumentData = () => {
-    if (!confirm('Are you sure you want to clear all data for the selected instruments? This cannot be undone.')) return;
-    
-    // Get current settings
-    let settings = window.getItems('SETTINGS');
-    settings = Array.isArray(settings) && settings.length > 0 ? settings[0] : {};
-    const selectedInstruments = settings.instruments || [];
-    
-    // Clear categories for selected instruments
-    let categories = window.getItems('CATEGORIES') || [];
-    categories = categories.filter(cat => !selectedInstruments.includes(cat.instrumentId));
-    window.saveItems('CATEGORIES', categories);
-    
-    // Clear sessions for selected instruments
-    let sessions = window.getItems('SESSIONS') || [];
-    sessions = sessions.filter(session => 
-        !session.instruments || !session.instruments.some(id => selectedInstruments.includes(id))
-    );
-    window.saveItems('SESSIONS', sessions);
-    
-    // Clear goals for selected instruments
-    let goals = window.getItems('GOALS') || [];
-    goals = goals.filter(goal => 
-        !goal.instruments || !goal.instruments.some(id => selectedInstruments.includes(id))
-    );
-    window.saveItems('GOALS', goals);
-    
-    // Update UI
-    loadCategories();
-    
-    alert('Instrument data cleared successfully');
-};
-
 // Handle clearing all data
 const handleClearAllData = () => {
     if (!confirm('Are you sure you want to clear ALL data? This action cannot be undone.')) return;
@@ -947,7 +570,6 @@ const handleClearAllData = () => {
     // Clear all data
     window.saveItems('SETTINGS', [{
         id: 's-1',
-        instruments: [],
         lessonDay: '',
         lessonTime: '',
         theme: 'light',
@@ -961,6 +583,7 @@ const handleClearAllData = () => {
     
     // Reset UI
     loadSettings();
+    loadCategories();
     
     alert('All data cleared successfully');
 };
@@ -1006,51 +629,55 @@ const addStyles = () => {
             font-size: 1rem;
         }
         
-        .selected-instruments {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-            margin-top: 1rem;
-        }
-        
-        .selected-instrument {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.5rem 1rem;
-            background: #f5f5f5;
-            border-radius: 20px;
-            font-size: 0.875rem;
-        }
-        
-        .selected-instrument .instrument-name {
-            color: #333;
-        }
-        
-        .selected-instrument .remove-instrument {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 20px;
-            height: 20px;
-            padding: 0;
-            border: none;
-            background: none;
-            color: #666;
-            cursor: pointer;
-            transition: color 0.2s;
-        }
-        
-        .selected-instrument .remove-instrument:hover {
-            color: #ff4444;
-        }
-        
         .categories-container {
             margin-top: 1rem;
         }
         
         .categories-list {
+            list-style: none;
+            padding: 0;
             margin: 1rem 0;
+        }
+        
+        .category-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            margin-bottom: 0.5rem;
+            background: #f5f5f5;
+            border-radius: 4px;
+            font-size: 0.95rem;
+        }
+        
+        .category-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .edit-category,
+        .delete-category {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            transition: background 0.2s;
+        }
+        
+        .edit-category:hover {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+        
+        .delete-category:hover {
+            background: #ffebee;
+            color: #d32f2f;
         }
         
         .add-category-form {
@@ -1084,69 +711,9 @@ const addStyles = () => {
             color: #333;
         }
         
-        .warning-button {
-            background: #ff9800;
-            color: white;
-        }
-        
         .danger-button {
             background: #f44336;
             color: white;
-        }
-        
-        .settings-dialog {
-            padding: 1.5rem;
-            border: none;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        
-        .settings-dialog::backdrop {
-            background: rgba(0, 0, 0, 0.5);
-        }
-        
-        .settings-dialog h2 {
-            margin: 0 0 1rem;
-            font-size: 1.25rem;
-            color: #333;
-        }
-        
-        .settings-dialog p {
-            margin: 0 0 1rem;
-            color: #666;
-        }
-        
-        .instrument-list {
-            margin: 1rem 0;
-            max-height: 300px;
-            overflow-y: auto;
-        }
-        
-        .instrument-item {
-            display: flex;
-            align-items: center;
-            padding: 0.5rem;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        
-        .instrument-item:hover {
-            background: #f5f5f5;
-        }
-        
-        .instrument-item.selected {
-            background: #e3f2fd;
-        }
-        
-        .instrument-item input[type="radio"] {
-            margin-right: 0.5rem;
-        }
-        
-        .dialog-actions {
-            display: flex;
-            justify-content: flex-end;
-            gap: 1rem;
-            margin-top: 1.5rem;
         }
     `;
     
@@ -1155,6 +722,33 @@ const addStyles = () => {
     styleSheet.textContent = styles;
     document.head.appendChild(styleSheet);
 };
+
+// Initialize default categories if none exist
+function initializeDefaultCategories() {
+    try {
+        // Check if categories exist
+        const existingCategories = JSON.parse(localStorage.getItem('practiceTrack_categories')) || [];
+        
+        if (existingCategories.length === 0) {
+            console.log('No categories found, initializing default categories');
+            
+            // Default categories
+            const defaultCategories = [
+                { id: 'cat_warmup', name: 'Warm-up', custom: false },
+                { id: 'cat_technique', name: 'Technique', custom: false },
+                { id: 'cat_repertoire', name: 'Repertoire', custom: false },
+                { id: 'cat_sightreading', name: 'Sight-reading', custom: false },
+                { id: 'cat_theory', name: 'Theory', custom: false }
+            ];
+            
+            // Save default categories
+            localStorage.setItem('practiceTrack_categories', JSON.stringify(defaultCategories));
+            console.log('Default categories initialized');
+        }
+    } catch (error) {
+        console.error('Error initializing default categories:', error);
+    }
+}
 
 // Initialize settings page when DOM is loaded
 if (document.readyState === 'loading') {
@@ -1174,13 +768,11 @@ if (document.readyState === 'loading') {
 // Make functions available globally
 window.initializeSettings = initializeSettings;
 window.loadSettings = loadSettings;
-window.setupInstrumentManager = setupInstrumentManager;
-window.setupCategoryManager = setupCategoryManager;
-window.handleAddDefaultCategories = handleAddDefaultCategories;
+window.loadCategories = loadCategories;
 window.handleAddCategory = handleAddCategory;
-window.deleteCategory = deleteCategory;
+window.handleEditCategory = handleEditCategory;
+window.handleDeleteCategory = handleDeleteCategory;
 window.handleSettingsSubmit = handleSettingsSubmit;
 window.handleExportData = handleExportData;
 window.handleImportData = handleImportData;
-window.handleClearInstrumentData = handleClearInstrumentData;
 window.handleClearAllData = handleClearAllData; 

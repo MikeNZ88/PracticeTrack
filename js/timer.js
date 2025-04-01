@@ -194,18 +194,8 @@ class Timer {
                 return;
             }
 
-            // Get settings for current instruments
-            let settings = window.getItems('SETTINGS');
-            settings = Array.isArray(settings) && settings.length > 0 ? settings[0] : {};
-            const selectedInstruments = settings.instruments || [];
-            
-            if (!selectedInstruments.length) {
-                alert('Please select at least one instrument in settings before recording a session');
-                return;
-            }
-            
             // Get existing sessions
-            let sessions = window.getItems('SESSIONS');
+            let sessions = JSON.parse(localStorage.getItem('practiceTrack_sessions')) || [];
             console.log('Current sessions:', sessions);
             
             // Create session object
@@ -218,19 +208,14 @@ class Timer {
                 isManual: false,
                 isLesson: false,
                 createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-                instruments: selectedInstruments
+                updatedAt: new Date().toISOString()
             };
             
             console.log('New session:', session);
             
             // Add new session and save
             sessions.push(session);
-            const saved = window.saveItems('SESSIONS', sessions);
-            
-            if (!saved) {
-                throw new Error('Failed to save session');
-            }
+            localStorage.setItem('practiceTrack_sessions', JSON.stringify(sessions));
             
             console.log('Session saved successfully');
             
@@ -284,57 +269,55 @@ class Timer {
     }
 
     loadCategories() {
-        console.log('Loading categories for timer');
+        console.log('Timer: Loading categories');
         
-        // Get settings for instruments
-        let settings = window.getItems('SETTINGS');
-        settings = Array.isArray(settings) && settings.length > 0 ? settings[0] : {};
-        const selectedInstruments = settings.instruments || [];
+        // Use the correct property name - categorySelect
+        this.categoryDropdown = this.categorySelect = document.getElementById('practice-category');
         
-        if (!selectedInstruments.length) {
-            console.log('No instruments selected, adding default option');
-            this.categorySelect.innerHTML = '<option value="">Select Practice Category</option>';
+        if (!this.categorySelect) {
+            console.error('Category dropdown not found');
             return;
         }
         
-        // Get all categories
-        let categories = window.getItems('CATEGORIES');
+        // Clear existing options
+        this.categorySelect.innerHTML = '';
         
-        // Clear existing options except the first one
-        while (this.categorySelect.options.length > 1) {
-            this.categorySelect.remove(1);
-        }
+        // Add default option
+        const defaultOption = document.createElement('option');
+        defaultOption.value = '';
+        defaultOption.textContent = 'Select a category';
+        this.categorySelect.appendChild(defaultOption);
         
-        // Group categories by instrument
-        const categoriesByInstrument = {};
-        selectedInstruments.forEach(instrumentId => {
-            categoriesByInstrument[instrumentId] = categories.filter(cat => 
-                cat.instrumentId === instrumentId
-            );
-        });
-        
-        // Add categories to select element
-        selectedInstruments.forEach(instrumentId => {
-            const instrumentCategories = categoriesByInstrument[instrumentId];
-            if (instrumentCategories.length) {
-                // Add instrument header
-                const headerOption = document.createElement('option');
-                headerOption.value = '';
-                headerOption.disabled = true;
-                headerOption.textContent = `--- ${window.AVAILABLE_INSTRUMENTS.find(i => i.id === instrumentId).name} ---`;
-                this.categorySelect.appendChild(headerOption);
-                
-                // Add categories for this instrument
-                instrumentCategories.forEach(category => {
-                    const option = document.createElement('option');
-                    option.value = category.id;
-                    option.textContent = category.name;
-                    this.categorySelect.appendChild(option);
-                });
+        try {
+            // Get categories from storage
+            let categories = JSON.parse(localStorage.getItem('practiceTrack_categories')) || [];
+            console.log('Timer: Retrieved categories:', categories);
+            
+            // If no categories exist, create default ones
+            if (categories.length === 0) {
+                console.log('Timer: No categories found, creating defaults');
+                categories = [
+                    { id: 'cat_warmup', name: 'Warm-up', custom: false },
+                    { id: 'cat_technique', name: 'Technique', custom: false },
+                    { id: 'cat_repertoire', name: 'Repertoire', custom: false },
+                    { id: 'cat_sightreading', name: 'Sight-reading', custom: false },
+                    { id: 'cat_theory', name: 'Theory', custom: false }
+                ];
+                localStorage.setItem('practiceTrack_categories', JSON.stringify(categories));
             }
-        });
-        
-        console.log('Categories loaded successfully');
+            
+            // Add categories to dropdown
+            categories.forEach(category => {
+                const option = document.createElement('option');
+                option.value = category.id;
+                option.textContent = category.name;
+                this.categorySelect.appendChild(option);
+            });
+            
+            console.log('Timer: Categories loaded successfully');
+        } catch (error) {
+            console.error('Timer: Error loading categories:', error);
+        }
     }
 
     resetDisplay() {
@@ -348,50 +331,115 @@ class Timer {
         sessionElement.className = 'session-item';
         sessionElement.dataset.id = session.id;
         
-        // Get category name
-        const categories = window.getItems('CATEGORIES');
-        const category = categories.find(c => c.id === session.categoryId);
-        const categoryName = category ? category.name : 'Unknown Category';
-        
-        // Get instrument names
-        const instrumentNames = session.instruments
-            .map(id => window.AVAILABLE_INSTRUMENTS.find(i => i.id === id)?.name)
-            .filter(Boolean)
-            .join(', ');
-        
-        // Format duration
-        const duration = this.formatTime(session.duration);
-        
-        // Format date
-        const date = new Date(session.startTime);
-        const dateStr = date.toLocaleDateString();
-        const timeStr = date.toLocaleTimeString();
-        
-        sessionElement.innerHTML = `
-            <div class="session-header">
-                <div class="session-title">
-                    <span class="session-category">${categoryName}</span>
-                    <span class="session-instruments">${instrumentNames}</span>
+        try {
+            // Get category name
+            const categories = JSON.parse(localStorage.getItem('practiceTrack_categories')) || [];
+            const category = categories.find(c => c.id === session.categoryId);
+            const categoryName = category ? category.name : 'Unknown Category';
+            
+            // Format duration
+            const duration = this.formatTime(session.duration);
+            
+            // Format date
+            const date = new Date(session.startTime);
+            const dateStr = date.toLocaleDateString();
+            const timeStr = date.toLocaleTimeString();
+            
+            sessionElement.innerHTML = `
+                <div class="session-header">
+                    <div class="session-title">
+                        <span class="session-category">${categoryName}</span>
+                    </div>
+                    <div class="session-time">${duration}</div>
                 </div>
-                <div class="session-time">${duration}</div>
-            </div>
-            <div class="session-details">
-                <div class="session-date">${dateStr} ${timeStr}</div>
-                ${session.notes ? `<div class="session-notes">${session.notes}</div>` : ''}
-            </div>
-        `;
+                <div class="session-details">
+                    <div class="session-date">${dateStr} ${timeStr}</div>
+                    ${session.notes ? `<div class="session-notes">${session.notes}</div>` : ''}
+                </div>
+            `;
+        } catch (error) {
+            console.error('Error creating session element:', error);
+            sessionElement.innerHTML = `<div class="session-error">Error displaying session</div>`;
+        }
         
         return sessionElement;
     }
 }
 
-// Make Timer class available globally
-window.Timer = Timer;
+// Update timer categories from settings
+function updateTimerCategories() {
+    console.log('Refreshing timer categories from settings');
+    if (window.timer && typeof window.timer.loadCategories === 'function') {
+        window.timer.loadCategories();
+    } else {
+        console.error('Timer instance not found or loadCategories method not available');
+    }
+}
 
-// Function to update timer categories from settings page
-window.updateTimerCategories = function() {
-    if (window.timer) {
-        console.log('Refreshing timer categories from settings');
+// Make function available globally
+window.updateTimerCategories = updateTimerCategories;
+
+// Listen for category changes
+document.addEventListener('categoriesChanged', () => {
+    console.log('Timer received categories changed event');
+    if (window.timer && typeof window.timer.loadCategories === 'function') {
+        window.timer.loadCategories();
+    } else {
+        console.error('Timer instance not found or loadCategories method not available');
+    }
+});
+
+// Initialize timer
+const initTimer = () => {
+    try {
+        console.log('Initializing timer...');
+        
+        // Ensure all required DOM elements are present
+        const timerContainer = document.querySelector('.timer-container');
+        const categorySelect = document.getElementById('practice-category');
+        
+        if (!timerContainer || !categorySelect) {
+            console.error('Timer initialization failed: required DOM elements not found', {
+                timerContainer: !!timerContainer,
+                categorySelect: !!categorySelect
+            });
+            return;
+        }
+        
+        // Initialize the Timer instance
+        window.timer = new Timer();
+        
+        // Initialize the categories dropdown
+        console.log('Initializing timer categories...');
+        setTimeout(() => {
+            if (window.timer) {
+                window.timer.loadCategories();
+                console.log('Timer categories initialized with delay');
+            }
+        }, 100);
+        
+        console.log('Timer initialized successfully');
+    } catch (error) {
+        console.error('Error initializing timer:', error);
+    }
+};
+
+// Initialize timer when DOM is loaded and update categories
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOM loaded, initializing timer');
+    initTimer();
+});
+
+// Re-initialize timer when navigating to timer page
+window.activateTimerPage = function() {
+    console.log('Activating timer page');
+    if (!window.timer) {
+        initTimer();
+    } else {
         window.timer.loadCategories();
     }
-}; 
+};
+
+// Make the Timer class and functions available globally
+window.Timer = Timer;
+window.initTimer = initTimer; 

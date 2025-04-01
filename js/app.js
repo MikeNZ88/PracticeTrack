@@ -26,11 +26,8 @@ const areAllModulesInitialized = () => {
 const initializeApp = () => {
     console.log('Initializing app');
     
-    // Initialize data layer first
-    if (typeof window.initializeData === 'function') {
-        window.initializeData();
-        moduleStates.data = true;
-    }
+    // Initialize data layer
+    initializeDataLayer();
     
     // Setup navigation
     setupNavigation();
@@ -43,16 +40,52 @@ const initializeApp = () => {
         lucide.createIcons();
     }
     
-    // Initialize timer
-    if (typeof window.Timer === 'function') {
-        window.timer = new Timer();
-        moduleStates.timer = true;
+    // Initialize timer if on timer page
+    if (document.querySelector('.timer-container')) {
+        console.log('Initializing timer from app');
+        if (typeof window.initTimer === 'function') {
+            window.initTimer();
+            moduleStates.timer = true;
+        }
     }
     
-    // Check if all modules are initialized
-    if (areAllModulesInitialized()) {
-        // Navigate to initial page
-        navigateToPage('timer');
+    // Navigate to initial page
+    navigateToPage(currentPage || 'timer');
+    
+    console.log('App initialization complete');
+};
+
+// Initialize data layer
+const initializeDataLayer = () => {
+    console.log('Initializing data layer');
+    
+    try {
+        // Ensure localStorage has practiceTrack_categories
+        const categories = JSON.parse(localStorage.getItem('practiceTrack_categories')) || [];
+        if (categories.length === 0) {
+            // Add some default categories
+            const defaultCategories = [
+                { id: 'cat_warmup', name: 'Warm-up', custom: false },
+                { id: 'cat_technique', name: 'Technique', custom: false },
+                { id: 'cat_repertoire', name: 'Repertoire', custom: false },
+                { id: 'cat_sightreading', name: 'Sight-reading', custom: false },
+                { id: 'cat_theory', name: 'Theory', custom: false }
+            ];
+            localStorage.setItem('practiceTrack_categories', JSON.stringify(defaultCategories));
+            console.log('Added default categories');
+        }
+        
+        // Ensure localStorage has practiceTrack_sessions
+        const sessions = JSON.parse(localStorage.getItem('practiceTrack_sessions')) || [];
+        if (!Array.isArray(sessions)) {
+            localStorage.setItem('practiceTrack_sessions', JSON.stringify([]));
+            console.log('Initialized empty sessions array');
+        }
+        
+        moduleStates.data = true;
+        console.log('Data layer initialized successfully');
+    } catch (error) {
+        console.error('Error initializing data layer:', error);
     }
 };
 
@@ -210,8 +243,11 @@ window.navigateToPage = navigateToPage = (page) => {
             }
             break;
         case 'timer':
-            // Reset timer when navigating to timer page
-            if (window.timer) {
+            // Activate timer page
+            if (typeof window.activateTimerPage === 'function') {
+                window.activateTimerPage();
+            } else if (window.timer) {
+                // Reset timer when navigating to timer page
                 window.timer.resetTimer();
                 window.timer.loadCategories();
             }
@@ -239,6 +275,59 @@ const initializeTheme = () => {
         });
     }
 };
+
+// Function to update category dropdowns across the app
+window.updateCategoryDropdowns = function() {
+    console.log('Updating all category dropdowns');
+    
+    // Dispatch a categoriesChanged event for other modules to listen to
+    document.dispatchEvent(new Event('categoriesChanged'));
+    
+    // Also update the Timer instance if it exists
+    if (window.timer && typeof window.timer.loadCategories === 'function') {
+        console.log('Updating Timer instance categories');
+        window.timer.loadCategories();
+    }
+    
+    // Call specific update functions if they exist
+    if (typeof window.updateTimerCategories === 'function') {
+        console.log('Calling updateTimerCategories');
+        window.updateTimerCategories();
+    }
+    
+    if (typeof window.updateSessionCategories === 'function') {
+        console.log('Calling updateSessionCategories');
+        window.updateSessionCategories();
+    }
+    
+    console.log('Category dropdowns updated successfully');
+};
+
+// Listen for categoriesChanged event
+document.addEventListener('categoriesChanged', (event) => {
+    console.log('Categories changed event received:', event.detail);
+    updateCategoryDropdowns();
+});
+
+// Set up global access to the updateCategoryDropdowns function
+window.updateCategoryDropdowns = updateCategoryDropdowns;
+
+// Initialize app when DOM is loaded
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        console.log('DOM loaded, initializing app');
+        initNavigation();
+        
+        // Initialize category dropdowns
+        updateCategoryDropdowns();
+    });
+} else {
+    console.log('DOM already loaded, initializing app immediately');
+    initNavigation();
+    
+    // Initialize category dropdowns
+    updateCategoryDropdowns();
+}
 
 // Make functions available to window object
 window.initializeApp = initializeApp;

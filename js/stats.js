@@ -20,21 +20,9 @@ function formatTime(seconds) {
 function initStats() {
     console.log('Initializing stats module');
     
-    // Get current instrument from settings
-    let settings = window.getItems('SETTINGS');
-    settings = Array.isArray(settings) && settings.length > 0 ? settings[0] : {};
-    const currentInstrument = settings.primaryInstrument || '';
-    console.log('Current instrument:', currentInstrument);
-    
     // Get sessions from localStorage
-    let sessions = window.getItems('SESSIONS');
+    let sessions = JSON.parse(localStorage.getItem('practiceTrack_sessions')) || [];
     console.log('Found sessions:', sessions.length);
-    
-    // Filter sessions by current instrument
-    if (currentInstrument) {
-        sessions = sessions.filter(session => session.instrument === currentInstrument);
-        console.log('Sessions for current instrument:', sessions.length);
-    }
     
     // Get or create stats container
     const container = document.querySelector('.stats-container');
@@ -48,12 +36,57 @@ function initStats() {
     
     // Show empty state if no sessions
     if (!sessions || sessions.length === 0) {
-        displayEmptyState(container, currentInstrument);
+        displayEmptyState(container);
         return;
     }
     
     // Display stats
     displayStats(sessions);
+    
+    // Load category filter
+    loadCategoryFilter();
+}
+
+function loadCategoryFilter() {
+    console.log('Loading category filter');
+    const categoryFilter = document.getElementById('category-filter');
+    
+    if (!categoryFilter) {
+        console.error('Category filter not found');
+        return;
+    }
+    
+    // Clear existing options
+    categoryFilter.innerHTML = '';
+    
+    // Add "All Categories" option
+    const allOption = document.createElement('option');
+    allOption.value = '';
+    allOption.textContent = 'All Categories';
+    categoryFilter.appendChild(allOption);
+    
+    try {
+        // Get categories from localStorage
+        const categories = JSON.parse(localStorage.getItem('practiceTrack_categories')) || [];
+        console.log('Stats: Retrieved categories:', categories);
+        
+        // Add categories to filter
+        categories.forEach(category => {
+            const option = document.createElement('option');
+            option.value = category.id;
+            option.textContent = category.name;
+            categoryFilter.appendChild(option);
+        });
+        
+        // Add change event listener
+        categoryFilter.addEventListener('change', () => {
+            applyFilters();
+        });
+        
+        console.log('Stats: Category filter loaded successfully');
+    } catch (error) {
+        console.error('Stats: Error loading category filter:', error);
+    }
 }
 
 function displayStats(sessions) {
@@ -111,11 +144,9 @@ function displayStats(sessions) {
     `;
 }
 
-function displayEmptyState(container, instrument) {
+function displayEmptyState(container) {
     console.log('Displaying empty state');
-    const message = instrument ? 
-        `No practice sessions found for ${instrument}. Start practicing to see your stats!` :
-        'No practice sessions found. Start practicing to see your stats!';
+    const message = 'No practice sessions found. Start practicing to see your stats!';
         
     container.innerHTML = `
         <div class="empty-state">
@@ -139,21 +170,9 @@ function formatDuration(seconds) {
 function applyFilters() {
     console.log('Applying filters...');
     
-    // Get current instrument from settings
-    let settings = window.getItems('SETTINGS');
-    settings = Array.isArray(settings) && settings.length > 0 ? settings[0] : {};
-    const currentInstrument = settings.primaryInstrument || '';
-    console.log('Current instrument:', currentInstrument);
-    
     // Get all sessions
-    let sessions = window.getItems('SESSIONS');
+    let sessions = JSON.parse(localStorage.getItem('practiceTrack_sessions')) || [];
     console.log('Total sessions:', sessions.length);
-    
-    // Filter by instrument first
-    if (currentInstrument) {
-        sessions = sessions.filter(session => session.instrument === currentInstrument);
-        console.log('Sessions for current instrument:', sessions.length);
-    }
     
     // Get filter values
     const categoryFilter = document.getElementById('category-filter');
@@ -171,7 +190,7 @@ function applyFilters() {
     });
     
     // Apply category filter
-    if (selectedCategory && selectedCategory !== 'all') {
+    if (selectedCategory) {
         sessions = sessions.filter(session => session.categoryId === selectedCategory);
         console.log('Sessions after category filter:', sessions.length);
     }
@@ -205,7 +224,7 @@ function applyFilters() {
     
     // Show empty state if no sessions match filters
     if (!sessions || sessions.length === 0) {
-        displayEmptyState(container, currentInstrument);
+        displayEmptyState(container);
         return;
     }
     
@@ -213,27 +232,30 @@ function applyFilters() {
     displayStats(sessions);
 }
 
-// Initialize on DOMContentLoaded
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('Stats page loaded, initializing...');
+// Listen for categories changed event
+document.addEventListener('categoriesChanged', () => {
+    console.log('Stats received categories changed event');
+    loadCategoryFilter();
+});
+
+// Initialize stats page
+window.initializeStats = function() {
+    console.log('Initializing stats page');
     
     // Initialize stats display
     initStats();
     
-    // Set up filters
-    setupCategoryFilter();
-    setupDefaultDateRange();
-    setupApplyButton();
-    
-    // Initialize Lucide icons
-    if (window.lucide && window.lucide.createIcons) {
-        window.lucide.createIcons();
+    // Set up apply button
+    const applyButton = document.getElementById('apply-stats-filters');
+    if (applyButton) {
+        applyButton.addEventListener('click', applyFilters);
     }
-});
-
-// Make functions available globally
-window.initStats = initStats;
-window.applyFilters = applyFilters;
+    
+    // Add styles
+    addStatsStyles();
+    
+    console.log('Stats page initialized successfully');
+};
 
 // Add styles for stats elements
 const addStatsStyles = () => {
@@ -376,27 +398,3 @@ const addStatsStyles = () => {
     `;
     document.head.appendChild(style);
 };
-
-// Add styles when DOM content is loaded
-document.addEventListener('DOMContentLoaded', addStatsStyles);
-
-// Initialize when the stats tab is shown
-document.addEventListener('DOMContentLoaded', function() {
-    // Set up visibility observer for the stats page
-    const statsPage = document.getElementById('stats-page');
-    if (statsPage) {
-        // Check if we should initialize right away
-        if (statsPage.classList.contains('active')) {
-            initStats();
-        }
-        
-        // Set up click handler for the stats tab
-        const statsTab = document.querySelector('.nav-item[data-page="stats"]');
-        if (statsTab) {
-            statsTab.addEventListener('click', function() {
-                console.log('Stats tab clicked, initializing stats');
-                setTimeout(initStats, 0); // Initialize after the page is shown
-            });
-        }
-    }
-});

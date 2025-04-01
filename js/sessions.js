@@ -7,35 +7,46 @@ let sessionDialog;
 let sessionForm;
 
 // Initialize sessions page
-const initializeSessions = () => {
-    console.log('Initializing sessions page...');
+function initializeSessions() {
+    console.log('Initializing sessions page');
     
-    // Get DOM elements
-    sessionsList = document.getElementById('sessions-list');
-    searchInput = document.querySelector('.search-input');
-    categoryFilter = document.querySelector('.category-filter');
-    dateRangeInputs = document.querySelectorAll('.date-input');
-    
-    if (!sessionsList) {
-        console.error('Sessions list element not found!');
-        return;
+    try {
+        // Get DOM elements
+        sessionsList = document.getElementById('sessions-list');
+        searchInput = document.querySelector('.search-input');
+        categoryFilter = document.querySelector('.category-filter');
+        dateRangeInputs = document.querySelectorAll('.date-input');
+        
+        if (!sessionsList) {
+            console.error('Sessions list element not found');
+            return;
+        }
+        
+        // Create session dialog if needed
+        createSessionDialog();
+        
+        // Load categories into filter
+        loadCategoriesIntoFilter();
+        
+        // Load sessions
+        loadSessions();
+        
+        // Setup filters
+        setupFilters();
+        
+        console.log('Sessions page initialization complete');
+        
+        // Initialize Lucide icons
+        if (window.lucide && window.lucide.createIcons) {
+            window.lucide.createIcons();
+        }
+    } catch (error) {
+        console.error('Error initializing sessions page:', error);
     }
-
-    // Create session dialog if it doesn't exist yet
-    createSessionDialog();
-
-    loadSessions();
-    setupFilters();
-    console.log('Sessions page initialization complete');
-    
-    // Initialize Lucide icons
-    if (window.lucide && window.lucide.createIcons) {
-        window.lucide.createIcons();
-    }
-};
+}
 
 // Create session dialog dynamically
-const createSessionDialog = () => {
+function createSessionDialog() {
     // Check if dialog already exists
     if (document.querySelector('.session-dialog')) {
         sessionDialog = document.querySelector('.session-dialog');
@@ -47,26 +58,9 @@ const createSessionDialog = () => {
     sessionDialog = document.createElement('dialog');
     sessionDialog.className = 'session-dialog';
     
-    // Get settings for instruments
-    let settings = window.getItems('SETTINGS');
-    settings = Array.isArray(settings) && settings.length > 0 ? settings[0] : {};
-    const selectedInstruments = settings.instruments || [];
-    
-    // Get categories for selected instruments
-    const categories = window.getItems('CATEGORIES') || [];
-    const visibleCategories = categories.filter(cat => 
-        selectedInstruments.includes(cat.instrumentId)
-    );
-    
-    console.log(`Found ${visibleCategories.length} visible categories for session dialog`);
-    
-    // Group categories by instrument
-    const categoriesByInstrument = {};
-    selectedInstruments.forEach(instrumentId => {
-        categoriesByInstrument[instrumentId] = visibleCategories.filter(cat => 
-            cat.instrumentId === instrumentId
-        );
-    });
+    // Get categories from localStorage
+    const categories = JSON.parse(localStorage.getItem('practiceTrack_categories')) || [];
+    console.log(`Found ${categories.length} categories for session dialog`);
     
     // Create form HTML
     sessionDialog.innerHTML = `
@@ -76,19 +70,9 @@ const createSessionDialog = () => {
                 <label for="session-category">Category</label>
                 <select id="session-category" name="category" required>
                     <option value="">Select Category</option>
-                    ${selectedInstruments.map(instrumentId => {
-                        const instrumentCategories = categoriesByInstrument[instrumentId];
-                        if (!instrumentCategories.length) return '';
-                        
-                        const instrument = window.AVAILABLE_INSTRUMENTS.find(i => i.id === instrumentId);
-                        return `
-                            <optgroup label="${instrument ? instrument.name : instrumentId}">
-                                ${instrumentCategories.map(category => 
-                                    `<option value="${category.id}">${category.name}</option>`
-                                ).join('')}
-                            </optgroup>
-                        `;
-                    }).join('')}
+                    ${categories.map(category => 
+                        `<option value="${category.id}">${category.name}</option>`
+                    ).join('')}
                 </select>
             </div>
             <div class="form-group">
@@ -134,206 +118,152 @@ const createSessionDialog = () => {
     
     // Add dialog to page
     document.body.appendChild(sessionDialog);
-};
+}
 
 // Update session dialog categories
-const updateSessionDialogCategories = () => {
+function updateSessionDialogCategories() {
     if (!sessionDialog) return;
     
     // Get the category select element
     const categorySelect = sessionDialog.querySelector('#session-category');
     if (!categorySelect) return;
     
-    // Get settings for instruments
-    let settings = window.getItems('SETTINGS');
-    settings = Array.isArray(settings) && settings.length > 0 ? settings[0] : {};
-    const selectedInstruments = settings.instruments || [];
-    
-    // Get categories for selected instruments
-    const categories = window.getItems('CATEGORIES') || [];
-    const visibleCategories = categories.filter(cat => 
-        selectedInstruments.includes(cat.instrumentId)
-    );
-    
-    // Store current selection
-    const currentValue = categorySelect.value;
-    
-    // Group categories by instrument
-    const categoriesByInstrument = {};
-    selectedInstruments.forEach(instrumentId => {
-        categoriesByInstrument[instrumentId] = visibleCategories.filter(cat => 
-            cat.instrumentId === instrumentId
-        );
-    });
-    
-    // Clear current options
-    categorySelect.innerHTML = '<option value="">Select Category</option>';
-    
-    // Add new options grouped by instrument
-    selectedInstruments.forEach(instrumentId => {
-        const instrumentCategories = categoriesByInstrument[instrumentId];
-        if (!instrumentCategories.length) return;
+    try {
+        // Get categories from localStorage
+        const categories = JSON.parse(localStorage.getItem('practiceTrack_categories')) || [];
+        console.log(`Found ${categories.length} categories for session dialog update`);
         
-        const instrument = window.AVAILABLE_INSTRUMENTS.find(i => i.id === instrumentId);
-        const optgroup = document.createElement('optgroup');
-        optgroup.label = instrument ? instrument.name : instrumentId;
+        // Store current selection
+        const currentValue = categorySelect.value;
         
-        instrumentCategories.forEach(category => {
+        // Clear current options
+        categorySelect.innerHTML = '<option value="">Select Category</option>';
+        
+        // Add categories
+        categories.forEach(category => {
             const option = document.createElement('option');
             option.value = category.id;
             option.textContent = category.name;
-            optgroup.appendChild(option);
+            categorySelect.appendChild(option);
         });
         
-        categorySelect.appendChild(optgroup);
-    });
-    
-    // Restore selection if still valid
-    if (currentValue && visibleCategories.some(c => c.id === currentValue)) {
-        categorySelect.value = currentValue;
-    }
-};
-
-// Load and display sessions
-const loadSessions = (filters = {}) => {
-    try {
-        console.log('Starting to load sessions...');
+        // Restore selection if still valid
+        if (currentValue && categories.some(c => c.id === currentValue)) {
+            categorySelect.value = currentValue;
+        }
         
-        // Check if sessionsList exists
-        if (!sessionsList) {
-            console.error('Sessions list element not found');
+        console.log('Session dialog categories updated successfully');
+    } catch (error) {
+        console.error('Error updating session dialog categories:', error);
+    }
+}
+
+// Load sessions
+function loadSessions() {
+    console.log('Loading sessions');
+    const sessionsList = document.getElementById('sessions-list');
+    const categoryFilter = document.querySelector('.category-filter');
+    
+    if (!sessionsList) {
+        console.error('Sessions list container not found');
+        return;
+    }
+    
+    try {
+        // Clear current sessions
+        sessionsList.innerHTML = '';
+        
+        // Get all sessions
+        const sessions = JSON.parse(localStorage.getItem('practiceTrack_sessions')) || [];
+        console.log(`Found ${sessions.length} sessions`);
+        
+        // Sort by most recent first
+        sessions.sort((a, b) => new Date(b.startTime) - new Date(a.startTime));
+        
+        // Apply category filter if selected
+        const selectedCategoryId = categoryFilter ? categoryFilter.value : '';
+        const filteredSessions = selectedCategoryId 
+            ? sessions.filter(session => session.categoryId === selectedCategoryId)
+            : sessions;
+            
+        console.log(`Displaying ${filteredSessions.length} sessions after filtering`);
+        
+        // Get categories for display
+        const categories = JSON.parse(localStorage.getItem('practiceTrack_categories')) || [];
+        
+        if (filteredSessions.length === 0) {
+            sessionsList.innerHTML = '<div class="no-sessions">No practice sessions recorded yet</div>';
             return;
         }
         
-        let sessions = window.getItems('SESSIONS');
-        console.log('Retrieved sessions:', sessions);
-        
-        if (!Array.isArray(sessions)) {
-            console.error('Sessions is not an array:', sessions);
-            sessions = [];
-        }
-        
-        // Apply filters
-        if (filters.search) {
-            const searchTerm = filters.search.toLowerCase();
-            sessions = sessions.filter(session => {
-                const category = window.getItemById('CATEGORIES', session.categoryId);
-                return category && (category.name.toLowerCase().includes(searchTerm) ||
-                       session.notes.toLowerCase().includes(searchTerm));
-            });
-        }
-        
-        if (filters.category) {
-            sessions = sessions.filter(session => session.categoryId === filters.category);
-        }
-        
-        if (filters.startDate) {
-            sessions = sessions.filter(session => 
-                new Date(session.startTime) >= new Date(filters.startDate)
-            );
-        }
-        
-        if (filters.endDate) {
-            sessions = sessions.filter(session => 
-                new Date(session.startTime) <= new Date(filters.endDate)
-            );
-        }
-        
-        // Sort by date (newest first)
-        sessions.sort((a, b) => new Date(b.startTime) - new Date(a.startTime));
-        console.log('Filtered and sorted sessions:', sessions);
-        
-        // Display sessions
-        sessionsList.innerHTML = '';
-        if (sessions.length === 0) {
-            sessionsList.innerHTML = '<div class="no-sessions">No practice sessions found</div>';
-        } else {
-            sessions.forEach(session => {
-                const sessionElement = createSessionElement(session);
-                if (sessionElement) {
-                    sessionsList.appendChild(sessionElement);
-                }
-            });
-        }
-        
-        // Update Lucide icons
-        if (window.lucide && window.lucide.createIcons) {
-            window.lucide.createIcons();
-        }
-        
-        console.log('Sessions display complete');
+        // Create session elements
+        filteredSessions.forEach(session => {
+            const sessionElement = createSessionElement(session, categories);
+            sessionsList.appendChild(sessionElement);
+        });
     } catch (error) {
         console.error('Error loading sessions:', error);
-        if (sessionsList) {
-            sessionsList.innerHTML = '<div class="error-message">Error loading sessions</div>';
-        }
+        sessionsList.innerHTML = '<div class="error">Error loading sessions</div>';
     }
-};
+}
 
-// Format time in HH:MM:SS
-const formatTime = (seconds) => {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
+// Create a session element
+function createSessionElement(session, categories) {
+    const sessionElement = document.createElement('div');
+    sessionElement.className = 'session-item';
+    sessionElement.dataset.id = session.id;
     
-    if (hours > 0) {
-        return `${hours}h ${minutes}m`;
-    }
-    return `${minutes}m`;
-};
-
-// Create session element
-const createSessionElement = (session) => {
-    const category = window.getItemById('CATEGORIES', session.categoryId);
-    if (!category) {
-        console.error('Category not found for session:', session);
-        return null;
-    }
-    
-    // Get instrument name
-    const instrument = window.AVAILABLE_INSTRUMENTS.find(i => i.id === category.instrumentId);
-    const instrumentName = instrument ? instrument.name : category.instrumentId;
-    
-    const div = document.createElement('div');
-    div.className = 'card session-card';
-    div.innerHTML = `
-        <div class="session-header">
-            <div class="session-title">
-                <h3>${category.name}</h3>
-                <span class="session-instrument">${instrumentName}</span>
+    try {
+        // Get category name
+        const category = categories.find(c => c.id === session.categoryId);
+        const categoryName = category ? category.name : 'Unknown Category';
+        
+        // Format duration
+        const hours = Math.floor(session.duration / 3600);
+        const minutes = Math.floor((session.duration % 3600) / 60);
+        const seconds = session.duration % 60;
+        const duration = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        
+        // Format date
+        const date = new Date(session.startTime);
+        const dateStr = date.toLocaleDateString();
+        const timeStr = date.toLocaleTimeString();
+        
+        sessionElement.innerHTML = `
+            <div class="session-header">
+                <div class="session-title">
+                    <span class="session-category">${categoryName}</span>
+                </div>
+                <div class="session-time">${duration}</div>
             </div>
-            <span class="session-date">${new Date(session.startTime).toLocaleDateString()}</span>
-        </div>
-        <div class="session-details">
-            <p class="session-time">${formatTime(session.duration)}</p>
-            ${session.isManual ? '<span class="manual-badge">Manual Entry</span>' : ''}
-            ${session.isLesson ? '<span class="lesson-badge">Lesson</span>' : ''}
-        </div>
-        ${session.notes ? `<p class="session-notes">${session.notes}</p>` : ''}
-        <div class="session-actions">
-            ${session.isManual ? `
-                <button class="icon-button edit-session" data-id="${session.id}">
-                    <i data-lucide="edit"></i>
-                </button>
-            ` : ''}
-            <button class="icon-button delete-session" data-id="${session.id}">
-                <i data-lucide="trash-2"></i>
-            </button>
-        </div>
-    `;
-    
-    // Add event listeners
-    const editButton = div.querySelector('.edit-session');
-    if (editButton) {
-        editButton.addEventListener('click', () => editSession(session));
+            <div class="session-details">
+                <div class="session-date">${dateStr} ${timeStr}</div>
+                ${session.notes ? `<div class="session-notes">${session.notes}</div>` : ''}
+                <div class="session-actions">
+                    <button class="edit-session-btn" data-id="${session.id}">Edit</button>
+                    <button class="delete-session-btn" data-id="${session.id}">Delete</button>
+                </div>
+            </div>
+        `;
+        
+        // Add event listeners for edit and delete buttons
+        const editBtn = sessionElement.querySelector('.edit-session-btn');
+        const deleteBtn = sessionElement.querySelector('.delete-session-btn');
+        
+        if (editBtn) {
+            editBtn.addEventListener('click', () => editSession(session.id));
+        }
+        
+        if (deleteBtn) {
+            deleteBtn.addEventListener('click', () => deleteSession(session.id));
+        }
+    } catch (error) {
+        console.error('Error creating session element:', error);
+        sessionElement.innerHTML = '<div class="session-error">Error displaying session</div>';
     }
     
-    const deleteButton = div.querySelector('.delete-session');
-    if (deleteButton) {
-        deleteButton.addEventListener('click', () => deleteSession(session.id));
-    }
-    
-    return div;
-};
+    return sessionElement;
+}
 
 // Setup filters
 const setupFilters = () => {
@@ -363,17 +293,57 @@ const applyFilters = () => {
 };
 
 // Edit session
-const editSession = (session) => {
-    showSessionDialog(session);
-};
+function editSession(sessionId) {
+    console.log('Editing session:', sessionId);
+    // Implement edit functionality
+    alert('Edit functionality coming soon!');
+}
 
 // Delete session
-const deleteSession = (sessionId) => {
-    if (!confirm('Are you sure you want to delete this session?')) return;
+function deleteSession(sessionId) {
+    console.log('Deleting session:', sessionId);
     
-    window.deleteItem('SESSIONS', sessionId);
-    loadSessions();
-};
+    if (!confirm('Are you sure you want to delete this session?')) {
+        return;
+    }
+    
+    try {
+        // Get sessions
+        const sessions = JSON.parse(localStorage.getItem('practiceTrack_sessions')) || [];
+        
+        // Find session index
+        const sessionIndex = sessions.findIndex(s => s.id === sessionId);
+        
+        if (sessionIndex === -1) {
+            console.error('Session not found for deletion:', sessionId);
+            alert('Error: Session not found');
+            return;
+        }
+        
+        // Remove session
+        sessions.splice(sessionIndex, 1);
+        
+        // Save updated sessions
+        localStorage.setItem('practiceTrack_sessions', JSON.stringify(sessions));
+        
+        // Update UI
+        const sessionElement = document.querySelector(`.session-item[data-id="${sessionId}"]`);
+        if (sessionElement) {
+            sessionElement.remove();
+        }
+        
+        // Show empty message if no sessions left
+        const sessionsList = document.getElementById('sessions-list');
+        if (sessionsList && sessionsList.children.length === 0) {
+            sessionsList.innerHTML = '<div class="no-sessions">No practice sessions recorded yet</div>';
+        }
+        
+        console.log('Session deleted successfully');
+    } catch (error) {
+        console.error('Error deleting session:', error);
+        alert('Error deleting session');
+    }
+}
 
 // Format date
 const formatDate = (dateString) => {
@@ -386,7 +356,7 @@ const formatDuration = (seconds) => {
 };
 
 // Show session dialog
-const showSessionDialog = (session = null) => {
+function showSessionDialog(session = null) {
     if (!sessionDialog) {
         createSessionDialog();
     }
@@ -395,72 +365,124 @@ const showSessionDialog = (session = null) => {
     sessionForm.reset();
     
     if (session) {
-        // Populate form with session data
-        sessionForm.querySelector('#session-category').value = session.categoryId;
-        sessionForm.querySelector('#session-date').value = formatDate(session.startTime);
-        sessionForm.querySelector('#session-time').value = new Date(session.startTime).toLocaleTimeString('en-US', { hour12: false });
-        sessionForm.querySelector('#session-duration').value = Math.floor(session.duration / 60);
-        sessionForm.querySelector('#session-notes').value = session.notes || '';
-        sessionForm.querySelector('#session-is-lesson').checked = session.isLesson || false;
-        
-        // Add session ID to form for update
-        sessionForm.dataset.sessionId = session.id;
+        try {
+            console.log('Editing session:', session);
+            
+            // Format date and time values for inputs
+            const date = new Date(session.startTime);
+            const dateStr = date.toISOString().split('T')[0]; // YYYY-MM-DD
+            const timeStr = date.toTimeString().split(' ')[0].substring(0, 5); // HH:MM
+            
+            // Populate form with session data
+            const categorySelect = sessionForm.querySelector('#session-category');
+            if (categorySelect) categorySelect.value = session.categoryId;
+            
+            const dateInput = sessionForm.querySelector('#session-date');
+            if (dateInput) dateInput.value = dateStr;
+            
+            const timeInput = sessionForm.querySelector('#session-time');
+            if (timeInput) timeInput.value = timeStr;
+            
+            const durationInput = sessionForm.querySelector('#session-duration');
+            if (durationInput) durationInput.value = Math.floor(session.duration / 60); // Convert seconds to minutes
+            
+            const notesInput = sessionForm.querySelector('#session-notes');
+            if (notesInput) notesInput.value = session.notes || '';
+            
+            const lessonCheckbox = sessionForm.querySelector('#session-is-lesson');
+            if (lessonCheckbox) lessonCheckbox.checked = session.isLesson || false;
+            
+            // Add session ID to form for update
+            sessionForm.dataset.sessionId = session.id;
+            
+            // Update dialog title
+            const title = sessionDialog.querySelector('h2');
+            if (title) title.textContent = 'Edit Session';
+        } catch (error) {
+            console.error('Error populating session form:', error);
+        }
     } else {
         // Remove session ID for new session
         delete sessionForm.dataset.sessionId;
+        
+        // Set default date to today
+        const today = new Date().toISOString().split('T')[0];
+        const dateInput = sessionForm.querySelector('#session-date');
+        if (dateInput) dateInput.value = today;
+        
+        // Update dialog title
+        const title = sessionDialog.querySelector('h2');
+        if (title) title.textContent = 'Add Session';
     }
     
     // Show dialog
     sessionDialog.showModal();
-};
+}
 
 // Handle session form submission
-const handleSessionSubmit = (e) => {
+function handleSessionSubmit(e) {
     e.preventDefault();
     
-    // Get form data
-    const formData = new FormData(sessionForm);
-    const categoryId = formData.get('category');
-    const date = formData.get('date');
-    const time = formData.get('time');
-    const duration = parseInt(formData.get('duration')) * 60; // Convert minutes to seconds
-    const notes = formData.get('notes');
-    const isLesson = formData.get('isLesson') === 'on';
-    
-    // Get category to determine instrument
-    const category = window.getItemById('CATEGORIES', categoryId);
-    if (!category) {
-        alert('Invalid category selected');
-        return;
+    try {
+        // Get form data
+        const formData = new FormData(sessionForm);
+        const categoryId = formData.get('category');
+        const date = formData.get('date');
+        const time = formData.get('time');
+        const duration = parseInt(formData.get('duration')) * 60; // Convert minutes to seconds
+        const notes = formData.get('notes');
+        const isLesson = formData.get('isLesson') === 'on';
+        
+        if (!categoryId) {
+            alert('Please select a category');
+            return;
+        }
+        
+        if (!date || !time || isNaN(duration) || duration <= 0) {
+            alert('Please fill in all required fields');
+            return;
+        }
+        
+        // Create session object
+        const sessionId = sessionForm.dataset.sessionId || `s-${Date.now()}`;
+        const session = {
+            id: sessionId,
+            categoryId: categoryId,
+            startTime: `${date}T${time}`,
+            duration: duration,
+            notes: notes || '',
+            isManual: true,
+            isLesson: isLesson,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        };
+        
+        console.log('Saving session:', session);
+        
+        // Get existing sessions
+        let sessions = JSON.parse(localStorage.getItem('practiceTrack_sessions')) || [];
+        
+        // If editing, remove old session
+        if (sessionForm.dataset.sessionId) {
+            sessions = sessions.filter(s => s.id !== sessionForm.dataset.sessionId);
+        }
+        
+        // Add new session
+        sessions.push(session);
+        
+        // Save to localStorage
+        localStorage.setItem('practiceTrack_sessions', JSON.stringify(sessions));
+        
+        // Close dialog and refresh list
+        sessionDialog.close();
+        loadSessions();
+        
+        console.log('Session saved successfully');
+    } catch (error) {
+        console.error('Error saving session:', error);
+        alert('Error saving session. Please try again.');
     }
-    
-    // Create session object
-    const session = {
-        id: sessionForm.dataset.sessionId || `s-${Date.now()}`,
-        categoryId: categoryId,
-        instrumentId: category.instrumentId,
-        startTime: `${date}T${time}`,
-        duration: duration,
-        notes: notes,
-        isManual: true,
-        isLesson: isLesson,
-        createdAt: sessionForm.dataset.sessionId ? 
-            window.getItemById('SESSIONS', sessionForm.dataset.sessionId).createdAt : 
-            new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-    };
-    
-    // Save session
-    if (sessionForm.dataset.sessionId) {
-        window.updateItem('SESSIONS', session);
-    } else {
-        window.saveItems('SESSIONS', session);
-    }
-    
-    // Close dialog and refresh list
-    sessionDialog.close();
-    loadSessions();
-};
+}
 
 // Refresh filters
 const refreshFilters = () => {
@@ -483,8 +505,68 @@ const refreshFilters = () => {
     loadSessions();
 };
 
-// Initialize sessions page
-initializeSessions();
+// Load categories into filter dropdown
+function loadCategoriesIntoFilter() {
+    console.log('Loading categories into sessions filter');
+    const categoryFilter = document.querySelector('.category-filter');
+    
+    if (!categoryFilter) {
+        console.error('Category filter dropdown not found');
+        return;
+    }
+    
+    // Clear existing options
+    categoryFilter.innerHTML = '';
+    
+    // Add default "All Categories" option
+    const allOption = document.createElement('option');
+    allOption.value = '';
+    allOption.textContent = 'All Categories';
+    categoryFilter.appendChild(allOption);
+    
+    try {
+        // Get categories from localStorage
+        const categories = JSON.parse(localStorage.getItem('practiceTrack_categories')) || [];
+        console.log('Sessions: Retrieved categories:', categories);
+        
+        // Add categories to dropdown
+        categories.forEach(category => {
+            const option = document.createElement('option');
+            option.value = category.id;
+            option.textContent = category.name;
+            categoryFilter.appendChild(option);
+        });
+        
+        console.log('Sessions: Categories loaded successfully');
+    } catch (error) {
+        console.error('Sessions: Error loading categories:', error);
+    }
+}
+
+// Update session categories (for external calls)
+window.updateSessionCategories = function() {
+    console.log('Updating session categories');
+    loadCategoriesIntoFilter();
+    loadSessions(); // Reload sessions with new categories
+};
+
+// Listen for category changes
+document.addEventListener('categoriesChanged', () => {
+    console.log('Sessions received categories changed event');
+    loadCategoriesIntoFilter();
+    loadSessions(); // Reload to update displayed category names
+});
+
+// Initialize sessions when DOM is loaded
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        console.log('DOM loaded, initializing sessions');
+        initializeSessions();
+    });
+} else {
+    console.log('DOM already loaded, initializing sessions immediately');
+    initializeSessions();
+}
 
 // Make functions available globally
 window.initializeSessions = initializeSessions;
@@ -496,56 +578,4 @@ window.deleteSession = deleteSession;
 window.showSessionDialog = showSessionDialog;
 window.handleSessionSubmit = handleSessionSubmit;
 window.refreshFilters = refreshFilters;
-
-function updateSessionsList(sessions) {
-    console.log('Updating sessions list');
-    
-    // Get current instrument from settings
-    let settings = window.getItems('SETTINGS');
-    settings = Array.isArray(settings) && settings.length > 0 ? settings[0] : {};
-    const currentInstrument = settings.primaryInstrument || '';
-    console.log('Current instrument for sessions:', currentInstrument);
-    
-    // Filter sessions by current instrument
-    if (currentInstrument && sessions) {
-        sessions = sessions.filter(session => session.instrument === currentInstrument);
-        console.log(`Filtered to ${sessions.length} sessions for instrument: ${currentInstrument}`);
-    }
-    
-    // Get sessions list container
-    const sessionsList = document.getElementById('sessions-list');
-    if (!sessionsList) {
-        console.error('Sessions list container not found');
-        return;
-    }
-    
-    // Clear existing sessions
-    sessionsList.innerHTML = '';
-    
-    // Show message if no sessions
-    if (!sessions || sessions.length === 0) {
-        const noSessions = document.createElement('div');
-        noSessions.className = 'no-sessions';
-        noSessions.textContent = currentInstrument ? 
-            `No practice sessions found for ${currentInstrument}` : 
-            'No practice sessions found';
-        sessionsList.appendChild(noSessions);
-        return;
-    }
-    
-    // Sort sessions by date (newest first)
-    sessions.sort((a, b) => new Date(b.startTime) - new Date(a.startTime));
-    
-    // Add sessions to list
-    sessions.forEach(session => {
-        const sessionElement = createSessionElement(session);
-        if (sessionElement) {
-            sessionsList.appendChild(sessionElement);
-        }
-    });
-    
-    // Refresh icons
-    if (window.lucide && window.lucide.createIcons) {
-        window.lucide.createIcons();
-    }
-} 
+window.loadCategoriesIntoFilter = loadCategoriesIntoFilter; 

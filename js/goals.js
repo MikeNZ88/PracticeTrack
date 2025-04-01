@@ -6,7 +6,7 @@ let goalsCategoryFilter;
 let goalsStatusFilter;
 
 // Initialize goals page
-const initializeGoals = () => {
+window.initializeGoals = function() {
     console.log('Initializing goals page');
     
     // Get DOM elements
@@ -16,95 +16,118 @@ const initializeGoals = () => {
     goalsCategoryFilter = document.querySelector('.goals-category-filter');
     goalsStatusFilter = document.querySelector('.goals-status-filter');
     
+    // Load categories for filter
+    loadCategoriesFilter();
+    
+    // Load goals
     loadGoals();
-    setupAddGoalButton();
-    setupGoalsFilters();
+    
+    // Setup event listeners
+    if (addGoalButton) {
+        addGoalButton.addEventListener('click', showAddGoalDialog);
+    }
+    
+    if (goalsSearchInput) {
+        goalsSearchInput.addEventListener('input', applyGoalsFilters);
+    }
+    
+    if (goalsCategoryFilter) {
+        goalsCategoryFilter.addEventListener('change', applyGoalsFilters);
+    }
+    
+    if (goalsStatusFilter) {
+        goalsStatusFilter.addEventListener('change', applyGoalsFilters);
+    }
+    
     console.log('Goals page initialized successfully');
 };
 
 // Load and display goals
-const loadGoals = (filters = {}) => {
-    const goals = window.getItems('GOALS') || [];
-    goalsList.innerHTML = '';
+function loadGoals(filters = {}) {
+    console.log('Loading goals with filters:', filters);
     
-    // Get current settings
-    let settings = window.getItems('SETTINGS');
-    settings = Array.isArray(settings) && settings.length > 0 ? settings[0] : {};
-    const selectedInstruments = settings.instruments || [];
-    console.log('Selected instruments for goals:', selectedInstruments);
-    
-    // Filter goals by selected instruments
-    if (selectedInstruments.length && goals) {
-        goals = goals.filter(goal => 
-            goal.instruments.some(id => selectedInstruments.includes(id))
-        );
-        console.log(`Filtered to ${goals.length} goals for selected instruments`);
-    }
-    
-    // Apply filters
-    let filteredGoals = [...goals];
-    
-    // Filter by search term
-    if (filters.search) {
-        const searchTerm = filters.search.toLowerCase();
-        filteredGoals = filteredGoals.filter(goal => 
-            goal.text.toLowerCase().includes(searchTerm) || 
-            (goal.notes && goal.notes.toLowerCase().includes(searchTerm))
-        );
-    }
-    
-    // Filter by category
-    if (filters.category) {
-        filteredGoals = filteredGoals.filter(goal => goal.categoryId === filters.category);
-    }
-    
-    // Filter by status
-    if (filters.status) {
-        if (filters.status === 'active') {
-            filteredGoals = filteredGoals.filter(goal => !goal.completed);
-        } else if (filters.status === 'completed') {
-            filteredGoals = filteredGoals.filter(goal => goal.completed);
-        }
-        // 'all' status doesn't filter
-    }
-    
-    // Sort by completion status and then by created date (newest first)
-    filteredGoals.sort((a, b) => {
-        // First sort by completion status
-        if (a.completed !== b.completed) {
-            return a.completed ? 1 : -1; // Active goals first
-        }
-        // Then sort by creation date (newest first)
-        return new Date(b.createdAt) - new Date(a.createdAt);
-    });
-    
-    if (filteredGoals.length === 0) {
-        // Show empty state message
-        const emptyState = document.createElement('div');
-        emptyState.className = 'empty-state';
-        emptyState.innerHTML = `
-            <i data-lucide="target"></i>
-            <p>No goals found. ${filters.status === 'completed' ? 'Complete some goals to see them here.' : 'Add a new goal to get started!'}</p>
-        `;
-        goalsList.appendChild(emptyState);
-        
-        if (typeof lucide !== 'undefined' && lucide.createIcons) {
-            lucide.createIcons();
-        }
+    if (!goalsList) {
+        console.error('Goals list container not found');
         return;
     }
     
-    // Create elements for filtered goals
-    filteredGoals.forEach(goal => {
-        const goalElement = createGoalElement(goal);
-        goalsList.appendChild(goalElement);
-    });
-    
-    // Refresh Lucide icons
-    if (typeof lucide !== 'undefined' && lucide.createIcons) {
-        lucide.createIcons();
+    try {
+        // Clear current list
+        goalsList.innerHTML = '';
+        
+        // Get goals from localStorage
+        let goals = JSON.parse(localStorage.getItem('practiceTrack_goals')) || [];
+        
+        // Apply filters
+        let filteredGoals = [...goals];
+        
+        // Filter by search term
+        if (filters.search) {
+            const searchTerm = filters.search.toLowerCase();
+            filteredGoals = filteredGoals.filter(goal => 
+                goal.text.toLowerCase().includes(searchTerm) || 
+                (goal.notes && goal.notes.toLowerCase().includes(searchTerm))
+            );
+        }
+        
+        // Filter by category
+        if (filters.category) {
+            filteredGoals = filteredGoals.filter(goal => goal.categoryId === filters.category);
+        }
+        
+        // Filter by status
+        if (filters.status) {
+            if (filters.status === 'active') {
+                filteredGoals = filteredGoals.filter(goal => !goal.completed);
+            } else if (filters.status === 'completed') {
+                filteredGoals = filteredGoals.filter(goal => goal.completed);
+            }
+            // 'all' status doesn't filter
+        }
+        
+        // Sort by completion status and then by created date (newest first)
+        filteredGoals.sort((a, b) => {
+            // First sort by completion status
+            if (a.completed !== b.completed) {
+                return a.completed ? 1 : -1; // Active goals first
+            }
+            // Then sort by creation date (newest first)
+            return new Date(b.createdAt) - new Date(a.createdAt);
+        });
+        
+        // Show empty state if no goals
+        if (filteredGoals.length === 0) {
+            const emptyState = document.createElement('div');
+            emptyState.className = 'empty-state';
+            emptyState.innerHTML = `
+                <i data-lucide="target"></i>
+                <p>No goals found. ${filters.status === 'completed' ? 'Complete some goals to see them here.' : 'Add a new goal to get started!'}</p>
+            `;
+            goalsList.appendChild(emptyState);
+            
+            if (typeof lucide !== 'undefined' && lucide.createIcons) {
+                lucide.createIcons();
+            }
+            return;
+        }
+        
+        // Create elements for filtered goals
+        filteredGoals.forEach(goal => {
+            const goalElement = createGoalElement(goal);
+            goalsList.appendChild(goalElement);
+        });
+        
+        // Refresh Lucide icons
+        if (typeof lucide !== 'undefined' && lucide.createIcons) {
+            lucide.createIcons();
+        }
+        
+        console.log(`Displayed ${filteredGoals.length} goals`);
+    } catch (error) {
+        console.error('Error loading goals:', error);
+        goalsList.innerHTML = '<div class="error">Error loading goals</div>';
     }
-};
+}
 
 // Setup goals filters
 const setupGoalsFilters = () => {
@@ -174,7 +197,7 @@ const applyGoalsFilters = () => {
 };
 
 // Create goal element
-const createGoalElement = (goal) => {
+function createGoalElement(goal) {
     const div = document.createElement('div');
     div.className = 'card goal-card';
     if (goal.completed) {
@@ -183,13 +206,15 @@ const createGoalElement = (goal) => {
     
     // Get category name if categoryId exists
     let categoryName = '';
-    let instrumentName = '';
     if (goal.categoryId) {
-        const category = window.getItemById('CATEGORIES', goal.categoryId);
-        if (category) {
-            categoryName = category.name;
-            const instrument = window.AVAILABLE_INSTRUMENTS.find(i => i.id === category.instrumentId);
-            instrumentName = instrument ? instrument.name : category.instrumentId;
+        try {
+            const categories = JSON.parse(localStorage.getItem('practiceTrack_categories')) || [];
+            const category = categories.find(c => c.id === goal.categoryId);
+            if (category) {
+                categoryName = category.name;
+            }
+        } catch (error) {
+            console.error('Error getting category for goal:', error);
         }
     }
     
@@ -216,7 +241,6 @@ const createGoalElement = (goal) => {
         ${categoryName ? `
             <p class="goal-category">
                 <span class="category-name">${categoryName}</span>
-                <span class="instrument-name">${instrumentName}</span>
             </p>
         ` : ''}
         ${goal.notes ? `<p class="goal-notes">${goal.notes}</p>` : ''}
@@ -234,7 +258,7 @@ const createGoalElement = (goal) => {
     deleteButton.addEventListener('click', () => deleteGoal(goal.id));
     
     return div;
-};
+}
 
 // Check if goal is overdue
 const isOverdue = (goal) => {
@@ -385,27 +409,72 @@ const editGoal = (goal) => {
 };
 
 // Toggle goal completion
-const toggleGoal = (goalId) => {
-    const goal = window.getItemById('GOALS', goalId);
-    if (!goal) return;
+function toggleGoal(goalId) {
+    console.log('Toggling goal completion:', goalId);
     
-    goal.completed = !goal.completed;
-    if (goal.completed) {
-        goal.completedAt = new Date().toISOString();
+    try {
+        // Get goals from localStorage
+        let goals = JSON.parse(localStorage.getItem('practiceTrack_goals')) || [];
+        
+        // Find goal
+        const index = goals.findIndex(g => g.id === goalId);
+        if (index === -1) {
+            console.error('Goal not found for toggle:', goalId);
+            return;
+        }
+        
+        // Toggle completion
+        goals[index].completed = !goals[index].completed;
+        
+        // Update completion timestamp if completed
+        if (goals[index].completed) {
+            goals[index].completedAt = new Date().toISOString();
+        } else {
+            delete goals[index].completedAt;
+        }
+        
+        // Update updatedAt
+        goals[index].updatedAt = new Date().toISOString();
+        
+        // Save to localStorage
+        localStorage.setItem('practiceTrack_goals', JSON.stringify(goals));
+        
+        // Refresh UI
+        loadGoals();
+        
+        console.log('Goal toggled successfully');
+    } catch (error) {
+        console.error('Error toggling goal:', error);
     }
-    goal.updatedAt = new Date().toISOString();
-    
-    window.updateItem('GOALS', goal);
-    loadGoals();
-};
+}
 
 // Delete goal
-const deleteGoal = (goalId) => {
-    if (!confirm('Are you sure you want to delete this goal?')) return;
+function deleteGoal(goalId) {
+    console.log('Deleting goal:', goalId);
     
-    window.deleteItem('GOALS', goalId);
-    loadGoals();
-};
+    if (!confirm('Are you sure you want to delete this goal?')) {
+        return;
+    }
+    
+    try {
+        // Get goals from localStorage
+        let goals = JSON.parse(localStorage.getItem('practiceTrack_goals')) || [];
+        
+        // Filter out the goal
+        const updatedGoals = goals.filter(g => g.id !== goalId);
+        
+        // Save to localStorage
+        localStorage.setItem('practiceTrack_goals', JSON.stringify(updatedGoals));
+        
+        // Refresh UI
+        loadGoals();
+        
+        console.log('Goal deleted successfully');
+    } catch (error) {
+        console.error('Error deleting goal:', error);
+        alert('Error deleting goal');
+    }
+}
 
 // Add styles
 const addGoalStyles = () => {
@@ -527,12 +596,6 @@ const addGoalStyles = () => {
             font-weight: 500;
         }
         
-        .goal-category .instrument-name {
-            margin-left: 0.5rem;
-            font-size: 0.875rem;
-            color: var(--color-text-muted);
-        }
-        
         .goal-notes {
             margin: 0.5rem 0;
             color: var(--color-text-muted);
@@ -633,4 +696,49 @@ window.initializeGoals = initializeGoals;
 window.loadGoals = loadGoals;
 window.editGoal = editGoal;
 window.deleteGoal = deleteGoal;
-window.toggleGoal = toggleGoal; 
+window.toggleGoal = toggleGoal;
+
+// Load category filter for goals
+function loadCategoriesFilter() {
+    console.log('Loading category filter for goals');
+    const categoryFilter = document.querySelector('.goals-category-filter');
+    
+    if (!categoryFilter) {
+        console.error('Category filter not found for goals');
+        return;
+    }
+    
+    try {
+        // Clear existing options
+        categoryFilter.innerHTML = '';
+        
+        // Add "All Categories" option
+        const allOption = document.createElement('option');
+        allOption.value = '';
+        allOption.textContent = 'All Categories';
+        categoryFilter.appendChild(allOption);
+        
+        // Get categories from localStorage
+        const categories = JSON.parse(localStorage.getItem('practiceTrack_categories')) || [];
+        console.log('Goals: Retrieved categories:', categories);
+        
+        // Add categories to filter
+        categories.forEach(category => {
+            const option = document.createElement('option');
+            option.value = category.id;
+            option.textContent = category.name;
+            categoryFilter.appendChild(option);
+        });
+        
+        console.log('Goals: Category filter loaded successfully');
+    } catch (error) {
+        console.error('Goals: Error loading category filter:', error);
+    }
+}
+
+// Update goals when categories change
+document.addEventListener('categoriesChanged', () => {
+    console.log('Goals: Categories changed event received');
+    loadCategoriesFilter();
+    loadGoals();
+}); 
