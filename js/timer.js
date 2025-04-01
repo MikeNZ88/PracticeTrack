@@ -336,8 +336,38 @@ class Timer {
     loadCategories() {
         try {
             console.log('Loading categories...');
-            const categories = window.getItems('CATEGORIES') || [];
-            console.log('Found categories:', categories);
+            const allCategories = window.getItems('CATEGORIES') || [];
+            console.log('Found categories:', allCategories.length);
+            
+            // Get current instrument from settings
+            let settings = window.getItems('SETTINGS');
+            settings = Array.isArray(settings) && settings.length > 0 ? settings[0] : {};
+            const currentInstrument = settings.primaryInstrument || '';
+            console.log('Current instrument:', currentInstrument);
+            
+            // Filter categories based on instrument
+            const categories = allCategories.filter(category => {
+                // Skip hidden categories - ensure this works correctly
+                if (category.isHidden === true) {
+                    console.log(`Filtering out hidden category: ${category.name}`);
+                    return false;
+                }
+                
+                // Include if it's a custom category (not default)
+                if (!category.isDefault) return true;
+                
+                // Include if no instrument is selected
+                if (!currentInstrument) return true;
+                
+                // Include if it has no instrumentIds property
+                if (!category.instrumentIds) return true;
+                
+                // Include if the current instrument is in its instrumentIds
+                return category.instrumentIds.includes(currentInstrument);
+            });
+            
+            console.log(`Categories for instrument "${currentInstrument}":`, categories.length);
+            console.log('Visible categories:', categories.map(c => c.name).join(', '));
             
             // Clear existing options
             while (this.categorySelect.firstChild) {
@@ -352,12 +382,10 @@ class Timer {
             
             // Add categories
             categories.forEach(category => {
-                if (category.isHidden !== true) {
-                    const option = document.createElement('option');
-                    option.value = category.id;
-                    option.textContent = category.name;
-                    this.categorySelect.appendChild(option);
-                }
+                const option = document.createElement('option');
+                option.value = category.id;
+                option.textContent = category.name;
+                this.categorySelect.appendChild(option);
             });
             
             console.log('Categories loaded successfully');

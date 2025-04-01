@@ -44,10 +44,6 @@
                 <i data-lucide="image"></i>
                 Media
             </button>
-            <button class="nav-item" data-page="settings">
-                <i data-lucide="settings"></i>
-                Settings
-            </button>
         </nav>
 
         <!-- Main Content Area -->
@@ -223,13 +219,7 @@
                                 <!-- Categories will be populated here -->
                             </div>
                         </div>
-                        <div class="form-group">
-                            <label>Theme</label>
-                            <div class="theme-selector">
-                                <button type="button" class="theme-button active" data-theme="light">Light</button>
-                                <button type="button" class="theme-button" data-theme="dark">Dark</button>
-                            </div>
-                        </div>
+                        <button type="submit" class="primary-button">Save Settings</button>
                         <div class="data-management">
                             <h3>Data Management</h3>
                             <div class="data-buttons">
@@ -242,15 +232,27 @@
                                     Import Data
                                 </button>
                             </div>
+                            <div class="clear-data-section">
+                                <h4>Clear Data</h4>
+                                <div class="data-buttons">
+                                    <button type="button" class="warning-button" id="clear-instrument-data">
+                                        <i data-lucide="trash-2"></i>
+                                        Clear Instrument Data
+                                    </button>
+                                    <button type="button" class="danger-button" id="clear-all-data">
+                                        <i data-lucide="trash"></i>
+                                        Clear All Data
+                                    </button>
+                                </div>
+                            </div>
                         </div>
-                        <button type="submit" class="primary-button">Save Settings</button>
                     </form>
                 </div>
             </section>
         </main>
 
         <!-- Mobile Navigation -->
-        <nav class="mobile-nav">
+        <div class="mobile-nav">
             <button class="nav-item active" data-page="timer">
                 <i data-lucide="clock"></i>
                 <span>Timer</span>
@@ -271,7 +273,50 @@
                 <i data-lucide="image"></i>
                 <span>Media</span>
             </button>
-        </nav>
+            <button class="nav-item" data-page="settings">
+                <i data-lucide="settings"></i>
+                <span>Settings</span>
+            </button>
+        </div>
+        
+        <!-- Fix for settings tab in mobile navigation -->
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Fix for settings tab in mobile navigation
+            const mobileNav = document.querySelector('.mobile-nav');
+            if (mobileNav) {
+                // Check if settings tab already exists in mobile nav
+                const existingSettingsTab = mobileNav.querySelector('.nav-item[data-page="settings"]');
+                if (!existingSettingsTab) {
+                    // Create settings tab for mobile nav
+                    const settingsTab = document.createElement('button');
+                    settingsTab.className = 'nav-item';
+                    settingsTab.dataset.page = 'settings';
+                    settingsTab.innerHTML = `
+                        <i data-lucide="settings"></i>
+                        <span>Settings</span>
+                    `;
+                    
+                    // Append to mobile nav
+                    mobileNav.appendChild(settingsTab);
+                    
+                    // Update icons
+                    if (typeof lucide !== 'undefined' && lucide.createIcons) {
+                        lucide.createIcons();
+                    }
+                }
+            }
+            
+            // Remove the CSS that hides the settings tab
+            const styleOverride = document.createElement('style');
+            styleOverride.textContent = `
+                .nav-item[data-page="settings"] {
+                    display: flex !important;
+                }
+            `;
+            document.head.appendChild(styleOverride);
+        });
+        </script>
     </div>
 
     <!-- Scripts -->
@@ -297,6 +342,16 @@
             const statsTab = document.querySelector('.nav-item[data-page="stats"]');
             if (statsTab) {
                 statsTab.addEventListener('click', directFixStats);
+            }
+            
+            // Add direct click handler for the header settings button
+            const headerSettingsButton = document.getElementById('header-settings-button');
+            if (headerSettingsButton) {
+                headerSettingsButton.addEventListener('click', function() {
+                    if (typeof window.navigateToPage === 'function') {
+                        window.navigateToPage('settings');
+                    }
+                });
             }
             
             // Check if stats page is already active

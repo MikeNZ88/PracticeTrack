@@ -3,11 +3,55 @@ const SCHEMA_VERSION = 1;
 
 // Default Data
 const defaultCategories = [
-    { id: 'c-1', name: 'Scales', isHidden: false },
-    { id: 'c-2', name: 'Technique', isHidden: false },
-    { id: 'c-3', name: 'Repertoire', isHidden: false },
-    { id: 'c-4', name: 'Sight Reading', isHidden: false },
-    { id: 'c-5', name: 'Theory', isHidden: false }
+    { 
+        id: 'c-1', 
+        name: 'Technique', 
+        isHidden: false,
+        isDefault: true,
+        instrumentIds: ['piano', 'guitar', 'violin', 'drums', 'voice', 'flute', 'clarinet', 'trumpet', 'bass', 'cello', 'saxophone']
+    },
+    { 
+        id: 'c-2', 
+        name: 'Repertoire', 
+        isHidden: false,
+        isDefault: true,
+        instrumentIds: ['piano', 'guitar', 'violin', 'drums', 'voice', 'flute', 'clarinet', 'trumpet', 'bass', 'cello', 'saxophone']
+    },
+    { 
+        id: 'c-3', 
+        name: 'Music Theory', 
+        isHidden: false,
+        isDefault: true,
+        instrumentIds: ['piano', 'guitar', 'violin', 'drums', 'voice', 'flute', 'clarinet', 'trumpet', 'bass', 'cello', 'saxophone']
+    },
+    { 
+        id: 'c-4', 
+        name: 'Ear Training', 
+        isHidden: false,
+        isDefault: true,
+        instrumentIds: ['piano', 'guitar', 'violin', 'drums', 'voice', 'flute', 'clarinet', 'trumpet', 'bass', 'cello', 'saxophone']
+    },
+    { 
+        id: 'c-5', 
+        name: 'Sight Reading', 
+        isHidden: false,
+        isDefault: true,
+        instrumentIds: ['piano', 'guitar', 'violin', 'flute', 'clarinet', 'trumpet', 'bass', 'cello']
+    },
+    { 
+        id: 'c-6', 
+        name: 'Improvisation', 
+        isHidden: false,
+        isDefault: true,
+        instrumentIds: ['piano', 'guitar', 'violin', 'drums', 'trumpet', 'bass', 'saxophone']
+    },
+    { 
+        id: 'c-7', 
+        name: 'Lesson', 
+        isHidden: false,
+        isDefault: true,
+        instrumentIds: ['piano', 'guitar', 'violin', 'drums', 'voice', 'flute', 'clarinet', 'trumpet', 'bass', 'cello', 'saxophone']
+    }
 ];
 
 const defaultSettings = {
@@ -244,11 +288,11 @@ const exportData = () => {
     return {
         version: SCHEMA_VERSION,
         exportDate: new Date().toISOString(),
-        sessions: getItems('sessions'),
-        goals: getItems('goals'),
-        settings: getItems('settings')[0] || {},
-        media: getItems('media'),
-        categories: getItems('categories')
+        sessions: getItems('SESSIONS'),
+        goals: getItems('GOALS'),
+        settings: getItems('SETTINGS')[0] || {},
+        media: getItems('MEDIA'),
+        categories: getItems('CATEGORIES')
     };
 };
 
@@ -337,12 +381,12 @@ const pruneOldMediaIfNeeded = () => {
     const capacity = checkStorageCapacity();
     if (!capacity.exceeded) return;
     
-    const media = getItems('media');
+    const media = getItems('MEDIA');
     media.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
     
     while (capacity.exceeded && media.length > 0) {
         const oldestMedia = media.shift();
-        deleteItem('media', oldestMedia.id);
+        deleteItem('MEDIA', oldestMedia.id);
         capacity = checkStorageCapacity();
     }
 };
@@ -351,18 +395,20 @@ const pruneOldMediaIfNeeded = () => {
 const initializeData = () => {
     console.log('Initializing data layer...');
     
-    // Check if categories exist
+    // Check if any categories exist, if not, create defaults
     const categories = getItems('CATEGORIES');
     if (!categories || categories.length === 0) {
-        console.log('No categories found, initializing with defaults');
-        localStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify(defaultCategories));
+        console.log('No categories found, creating defaults...');
+        defaultCategories.forEach(category => {
+            saveItem('CATEGORIES', category);
+        });
     }
     
-    // Check if settings exist
+    // Check if settings exist, if not, create defaults
     const settings = getItems('SETTINGS');
     if (!settings || settings.length === 0) {
-        console.log('No settings found, initializing with defaults');
-        localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify([defaultSettings]));
+        console.log('No settings found, creating defaults...');
+        saveItem('SETTINGS', defaultSettings);
     }
     
     // Check if sessions exist
@@ -389,6 +435,7 @@ window.validateSession = validateSession;
 window.validateGoal = validateGoal;
 window.validateMediaReference = validateMediaReference;
 window.checkStorageCapacity = checkStorageCapacity;
+window.defaultCategories = defaultCategories;
 
 // Initialize data layer immediately when script loads
 document.addEventListener('DOMContentLoaded', () => {

@@ -6,74 +6,27 @@ let mainNav;
 let mobileNav;
 let pages;
 
-// Initialize app
+// Initialize app function
 const initializeApp = () => {
-    try {
-        console.log('Starting app initialization...');
-        
-        // Get DOM elements
-        mainNav = document.querySelector('.main-nav');
-        mobileNav = document.querySelector('.mobile-nav');
-        pages = document.querySelectorAll('.page');
-
-        if (!mainNav || !mobileNav || !pages.length) {
-            throw new Error('Required DOM elements not found');
-        }
-        console.log('DOM elements found successfully');
-
-        // Initialize data layer first
-        if (typeof window.initializeData === 'function') {
-            console.log('Initializing data layer...');
-            window.initializeData();
-            console.log('Data layer initialized');
-        } else {
-            console.error('Data layer initialization function not found');
-            // Try to create some sample data directly
-            createSampleData();
-        }
-        
-        // Initialize theme
-        if (typeof window.initializeTheme === 'function') {
-            console.log('Initializing theme...');
-            window.initializeTheme();
-            console.log('Theme initialized');
-        }
-        
-        // Check storage capacity
-        if (typeof window.checkStorageCapacity === 'function') {
-            console.log('Checking storage capacity...');
-            window.checkStorageCapacity();
-            console.log('Storage capacity checked');
-        }
-        
-        // Initialize Lucide icons
-        if (typeof window.lucide === 'object') {
-            console.log('Initializing Lucide icons...');
-            window.lucide.createIcons();
-            console.log('Lucide icons initialized');
-        }
-        
-        // Setup navigation
-        console.log('Setting up navigation...');
-        setupNavigation();
-        console.log('Navigation setup complete');
-        
-        // Add event listener for the header settings button
-        const headerSettingsButton = document.getElementById('header-settings-button');
-        if (headerSettingsButton) {
-            headerSettingsButton.addEventListener('click', () => {
-                navigateToPage('settings');
-            });
-        }
-        
-        // Navigate to initial page and initialize timer
-        console.log('Navigating to initial page...');
-        navigateToPage('timer');
-    } catch (error) {
-        console.error('Error during app initialization:', error);
-        alert('There was an error initializing the application. Please refresh the page.');
+    console.log('Initializing app');
+    
+    // Setup navigation
+    setupNavigation();
+    
+    // Initialize theme from settings
+    initializeTheme();
+    
+    // Initialize Lucide icons
+    if (typeof lucide !== 'undefined' && lucide.createIcons) {
+        lucide.createIcons();
     }
 };
+
+// Initialize on DOM load
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOM loaded, starting app initialization...');
+    initializeApp();
+});
 
 // Create sample data if initialization function is missing
 const createSampleData = () => {
@@ -126,114 +79,103 @@ const createSampleData = () => {
 
 // Setup navigation
 const setupNavigation = () => {
-    // Desktop navigation
-    mainNav.querySelectorAll('.nav-item').forEach(item => {
+    console.log('Setting up navigation');
+    
+    // Get DOM elements
+    const mainNav = document.querySelector('.main-nav');
+    const mobileNav = document.querySelector('.mobile-nav');
+    const pages = document.querySelectorAll('.page');
+    
+    if (!mainNav || !mobileNav || !pages.length) {
+        console.error('Required DOM elements not found');
+        return;
+    }
+    
+    // Add event listeners to main nav items
+    const mainNavItems = mainNav.querySelectorAll('.nav-item');
+    mainNavItems.forEach(item => {
         item.addEventListener('click', () => {
             const page = item.dataset.page;
             navigateToPage(page);
         });
     });
     
-    // Mobile navigation
-    mobileNav.querySelectorAll('.nav-item').forEach(item => {
+    // Add event listeners to mobile nav items
+    const mobileNavItems = mobileNav.querySelectorAll('.nav-item');
+    mobileNavItems.forEach(item => {
         item.addEventListener('click', () => {
             const page = item.dataset.page;
             navigateToPage(page);
         });
     });
+    
+    // Add event listener for settings button in header
+    const headerSettingsButton = document.getElementById('header-settings-button');
+    if (headerSettingsButton) {
+        headerSettingsButton.addEventListener('click', () => {
+            navigateToPage('settings');
+        });
+    }
+    
+    // Navigate to initial page
+    navigateToPage('timer');
 };
 
-// Navigate to page
-const navigateToPage = (pageId) => {
-    console.log('Navigating to:', pageId);
+// Navigation function
+window.navigateToPage = navigateToPage = (page) => {
+    console.log(`Navigating to page: ${page}`);
+    
+    // Get DOM elements
+    const mainNav = document.querySelector('.main-nav');
+    const mobileNav = document.querySelector('.mobile-nav');
+    const pages = document.querySelectorAll('.page');
+    
+    if (!mainNav || !mobileNav || !pages.length) {
+        console.error('Required DOM elements not found');
+        return;
+    }
+    
+    // Update nav states
+    const mainNavItems = mainNav.querySelectorAll('.nav-item');
+    mainNavItems.forEach(item => {
+        item.classList.toggle('active', item.dataset.page === page);
+    });
+    
+    const mobileNavItems = mobileNav.querySelectorAll('.nav-item');
+    mobileNavItems.forEach(item => {
+        item.classList.toggle('active', item.dataset.page === page);
+    });
     
     // Update page visibility
-    pages.forEach(page => {
-        page.classList.remove('active');
-        if (page.id === `${pageId}-page`) {
-            page.classList.add('active');
-        }
+    pages.forEach(p => {
+        p.classList.toggle('active', p.id === `${page}-page`);
     });
     
-    // Update navigation state
-    currentPage = pageId;
-    
-    // Update navigation UI
-    updateNavigationUI();
-    
-    // Initialize page-specific functionality
-    initializePage(pageId);
-};
-
-// Update navigation UI
-const updateNavigationUI = () => {
-    // Desktop navigation
-    mainNav.querySelectorAll('.nav-item').forEach(item => {
-        item.classList.toggle('active', item.dataset.page === currentPage);
-    });
-    
-    // Mobile navigation
-    mobileNav.querySelectorAll('.nav-item').forEach(item => {
-        item.classList.toggle('active', item.dataset.page === currentPage);
-    });
-};
-
-// Initialize page-specific functionality
-const initializePage = (pageId) => {
-    console.log('Initializing page:', pageId);
-    
-    switch(pageId) {
-        case 'timer':
-            if (typeof window.initializeTimer === 'function') {
-                window.initializeTimer();
-            }
-            break;
-        case 'sessions':
-            if (typeof window.initializeSessions === 'function') {
-                window.initializeSessions();
-            }
-            break;
-        case 'goals':
-            console.log('Attempting to initialize goals page');
-            if (typeof window.initializeGoals === 'function') {
-                console.log('initializeGoals function found, calling it');
-                window.initializeGoals();
-            } else {
-                console.error('initializeGoals function not found on window object');
-            }
-            break;
-        case 'stats':
-            console.log('Initializing stats page...');
-            if (typeof window.initializeStats === 'function') {
-                window.initializeStats();
-            } else {
-                console.error('initializeStats function not found');
-            }
-            break;
-        case 'media':
-            if (typeof window.initializeMedia === 'function') {
-                console.log('Initializing media page...');
-                window.initializeMedia();
-                
-                // Force a reload of media list after a brief delay
-                setTimeout(() => {
-                    if (typeof window.loadMedia === 'function') {
-                        console.log('Reloading media items...');
-                        window.loadMedia();
-                    }
-                }, 100);
-            }
-            break;
-        case 'settings':
-            if (typeof window.initializeSettings === 'function') {
-                window.initializeSettings();
-            }
-            break;
+    // Initialize page-specific content if needed
+    if (page === 'settings' && typeof window.initializeSettings === 'function') {
+        window.initializeSettings();
+    } else if (page === 'stats' && typeof window.initializeStats === 'function') {
+        window.initializeStats();
+    } else if (page === 'sessions' && typeof window.initializeSessions === 'function') {
+        window.initializeSessions();
+    } else if (page === 'goals' && typeof window.initializeGoals === 'function') {
+        window.initializeGoals();
+    } else if (page === 'media' && typeof window.initializeMedia === 'function') {
+        window.initializeMedia();
     }
 };
 
-// Initialize on DOM load
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('DOM loaded, starting app initialization...');
-    initializeApp();
-}); 
+// Initialize theme
+const initializeTheme = () => {
+    console.log('Initializing theme');
+    
+    // Implementation of initializeTheme function
+};
+
+// Add event listener for the header settings button
+const headerSettingsButton = document.getElementById('header-settings-button');
+if (headerSettingsButton) {
+    headerSettingsButton.addEventListener('click', () => {
+        navigateToPage('settings');
+    });
+} 

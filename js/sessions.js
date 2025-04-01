@@ -3,6 +3,8 @@ const sessionsList = document.getElementById('sessions-list');
 const searchInput = document.querySelector('.search-input');
 const categoryFilter = document.querySelector('.category-filter');
 const dateRangeInputs = document.querySelectorAll('.date-input');
+let sessionDialog; // Will be created dynamically
+let sessionForm; // Will be created dynamically
 
 // Initialize sessions page
 const initializeSessions = () => {
@@ -12,6 +14,9 @@ const initializeSessions = () => {
         return;
     }
 
+    // Create session dialog if it doesn't exist yet
+    createSessionDialog();
+
     loadSessions();
     setupFilters();
     console.log('Sessions page initialization complete');
@@ -19,6 +24,112 @@ const initializeSessions = () => {
     // Initialize Lucide icons
     if (window.lucide && window.lucide.createIcons) {
         window.lucide.createIcons();
+    }
+};
+
+// Create session dialog dynamically
+const createSessionDialog = () => {
+    // Check if dialog already exists
+    if (document.querySelector('.session-dialog')) {
+        sessionDialog = document.querySelector('.session-dialog');
+        sessionForm = sessionDialog.querySelector('form');
+        return;
+    }
+    
+    // Create dialog element
+    sessionDialog = document.createElement('dialog');
+    sessionDialog.className = 'session-dialog';
+    
+    // Get visible categories (not hidden)
+    const categories = getItems('CATEGORIES').filter(cat => !cat.isHidden) || [];
+    console.log(`Found ${categories.length} visible categories for session dialog`);
+    
+    // Create form HTML
+    sessionDialog.innerHTML = `
+        <form class="session-form" id="session-form">
+            <h2>Add Session</h2>
+            <div class="form-group">
+                <label for="session-category">Category</label>
+                <select id="session-category" name="category" required>
+                    <option value="">Select Category</option>
+                    ${categories.map(category => 
+                        `<option value="${category.id}">${category.name}</option>`
+                    ).join('')}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="session-date">Date</label>
+                <input type="date" id="session-date" name="date" required>
+            </div>
+            <div class="form-group">
+                <label for="session-time">Time</label>
+                <input type="time" id="session-time" name="time" required>
+            </div>
+            <div class="form-group">
+                <label for="session-duration">Duration (minutes)</label>
+                <input type="number" id="session-duration" name="duration" min="1" required value="30">
+            </div>
+            <div class="form-group">
+                <label for="session-notes">Notes</label>
+                <textarea id="session-notes" name="notes" rows="4"></textarea>
+            </div>
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" id="session-is-lesson" name="isLesson">
+                    This was a lesson
+                </label>
+            </div>
+            <div class="dialog-actions">
+                <button type="button" class="secondary-button" id="cancel-session-btn">Cancel</button>
+                <button type="submit" class="primary-button">Save Session</button>
+            </div>
+        </form>
+    `;
+    
+    // Get form element
+    sessionForm = sessionDialog.querySelector('form');
+    
+    // Add form submission handler
+    sessionForm.addEventListener('submit', handleSessionSubmit);
+    
+    // Add cancel button handler
+    const cancelButton = sessionDialog.querySelector('#cancel-session-btn');
+    cancelButton.addEventListener('click', () => {
+        sessionDialog.close();
+    });
+    
+    // Add dialog to page
+    document.body.appendChild(sessionDialog);
+};
+
+// Update session dialog categories to filter out hidden ones
+const updateSessionDialogCategories = () => {
+    if (!sessionDialog) return;
+    
+    // Get the category select element
+    const categorySelect = sessionDialog.querySelector('#session-category');
+    if (!categorySelect) return;
+    
+    // Get visible categories
+    const categories = getItems('CATEGORIES').filter(cat => !cat.isHidden) || [];
+    
+    // Store current selection
+    const currentValue = categorySelect.value;
+    
+    // Clear current options
+    categorySelect.innerHTML = '<option value="">Select Category</option>';
+    
+    // Add new options
+    categories.forEach(category => {
+        const option = document.createElement('option');
+        option.value = category.id;
+        option.textContent = category.name;
+        categorySelect.appendChild(option);
+    });
+    
+    // Restore selection if still valid
+    if (currentValue && categories.some(c => c.id === currentValue)) {
+        categorySelect.value = currentValue;
     }
 };
 
@@ -33,7 +144,7 @@ const loadSessions = (filters = {}) => {
             return;
         }
         
-        let sessions = getItems('sessions');
+        let sessions = getItems('SESSIONS');
         console.log('Retrieved sessions:', sessions);
         
         if (!Array.isArray(sessions)) {
@@ -45,7 +156,7 @@ const loadSessions = (filters = {}) => {
         if (filters.search) {
             const searchTerm = filters.search.toLowerCase();
             sessions = sessions.filter(session => {
-                const category = getItemById('categories', session.categoryId);
+                const category = getItemById('CATEGORIES', session.categoryId);
                 return category && (category.name.toLowerCase().includes(searchTerm) ||
                        session.notes.toLowerCase().includes(searchTerm));
             });
@@ -111,7 +222,7 @@ const formatTime = (seconds) => {
 
 // Create session element
 const createSessionElement = (session) => {
-    const category = getItemById('categories', session.categoryId);
+    const category = getItemById('CATEGORIES', session.categoryId);
     if (!category) {
         console.error('Category not found for session:', session);
         return null;
@@ -157,7 +268,7 @@ const createSessionElement = (session) => {
 // Setup filters
 const setupFilters = () => {
     // Populate category filter
-    const categories = getItems('categories');
+    const categories = getItems('CATEGORIES');
     categoryFilter.innerHTML = '<option value="">All Categories</option>';
     categories.forEach(category => {
         if (!category.isHidden) {
@@ -196,7 +307,7 @@ const editSession = (session) => {
 // Delete session
 const deleteSession = (sessionId) => {
     if (confirm('Are you sure you want to delete this session?')) {
-        deleteItem('sessions', sessionId);
+        deleteItem('SESSIONS', sessionId);
         loadSessions();
     }
 };
@@ -226,6 +337,14 @@ const formatDuration = (seconds) => {
 
 // Show session dialog
 const showSessionDialog = (session = null) => {
+    // Make sure dialog exists
+    if (!sessionDialog) {
+        createSessionDialog();
+    }
+    
+    // Update categories to ensure hidden ones are filtered out
+    updateSessionDialogCategories();
+    
     const title = session ? 'Edit Session' : 'Add Manual Session';
     const submitText = session ? 'Save Changes' : 'Add Session';
     
@@ -256,7 +375,7 @@ const showSessionDialog = (session = null) => {
         sessionForm.querySelector('#session-duration').value = 30; // Default 30 minutes
     }
     
-    // Ensure the dialog is properly initialized
+    // Show dialog
     if (typeof sessionDialog.showModal === 'function') {
         sessionDialog.showModal();
     } else {
@@ -312,7 +431,7 @@ const handleSessionSubmit = (e) => {
             notes: formData.get('notes') || '',
             isLesson: formData.get('isLesson') === 'on',
             isManual: true,
-            createdAt: sessionId ? getItemById('sessions', sessionId).createdAt : new Date().toISOString(),
+            createdAt: sessionId ? getItemById('SESSIONS', sessionId).createdAt : new Date().toISOString(),
             updatedAt: new Date().toISOString()
         };
         
@@ -325,7 +444,7 @@ const handleSessionSubmit = (e) => {
         
         // Save session
         console.log('Saving session:', session);
-        saveItem('sessions', session);
+        saveItem('SESSIONS', session);
         
         // Close dialog and reload sessions
         sessionDialog.close();
@@ -344,6 +463,13 @@ const handleSessionSubmit = (e) => {
     }
 };
 
+// Update filters when category visibility changes 
+// (This can be called after category visibility changes in settings)
+const refreshFilters = () => {
+    setupFilters(); // Refresh the filters dropdown
+    updateSessionDialogCategories(); // Refresh the session dialog dropdown
+};
+
 // Initialize on page load
 initializeSessions();
 
@@ -356,4 +482,5 @@ window.applyFilters = applyFilters;
 window.showSessionDialog = showSessionDialog;
 window.handleSessionSubmit = handleSessionSubmit;
 window.editSession = editSession;
-window.deleteSession = deleteSession; 
+window.deleteSession = deleteSession;
+window.refreshSessionsFilters = refreshFilters; 
