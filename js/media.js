@@ -5,24 +5,12 @@
 
 // Media data storage
 let mediaDialog = null;
-let mediaDirectoryHandle = null;
 
 /**
  * Initialize media page
  */
-async function initializeMedia() {
+function initializeMedia() {
     console.log('Initializing media page');
-    
-    // Request permission to access media directory
-    try {
-        mediaDirectoryHandle = await window.showDirectoryPicker({
-            id: 'mediaDirectory',
-            mode: 'readwrite',
-            startIn: 'pictures'
-        });
-    } catch (error) {
-        console.error('Error accessing media directory:', error);
-    }
     
     // Use the UI framework to initialize the media page
     window.UI.initRecordPage({
@@ -147,7 +135,7 @@ function showNamingDialog(file, type) {
     const dialog = window.UI.createStandardDialog({
         title: `New ${type.charAt(0).toUpperCase() + type.slice(1)}`,
         fields: fields,
-        onSubmit: async (dialog, e) => {
+        onSubmit: (dialog, e) => {
             const form = e.target;
             const nameInput = form.querySelector('#media-name');
             const notesInput = form.querySelector('#media-notes');
@@ -157,66 +145,38 @@ function showNamingDialog(file, type) {
                 return;
             }
             
-            try {
-                // Create a unique filename
-                const timestamp = new Date().getTime();
-                const extension = file.name.split('.').pop();
-                const newFilename = `${nameInput.value.trim().replace(/[^a-z0-9]/gi, '_').toLowerCase()}_${timestamp}.${extension}`;
-                
-                // Save file to device storage
-                let fileHandle;
-                if (mediaDirectoryHandle) {
-                    fileHandle = await mediaDirectoryHandle.getFileHandle(newFilename, { create: true });
-                    const writable = await fileHandle.createWritable();
-                    await writable.write(file);
-                } else {
-                    // Fallback to downloading the file if directory access is not available
-                    const blob = new Blob([file], { type: file.type });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = newFilename;
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    URL.revokeObjectURL(url);
-                }
-                
-                // Create media object
-                const newMedia = {
-                    id: `media_${timestamp}`,
-                    type: type,
-                    name: nameInput.value.trim(),
-                    notes: notesInput.value,
-                    filename: newFilename,
-                    fileType: file.type,
-                    createdAt: new Date().toISOString(),
-                    updatedAt: new Date().toISOString()
-                };
-                
-                // Save media reference to localStorage
-                if (window.addItem) {
-                    window.addItem('MEDIA', newMedia);
-                } else {
-                    saveMedia(newMedia);
-                }
-                
-                dialog.close();
-                
-                // Reload media list
-                window.UI.loadRecords('media', {
-                    recordType: 'MEDIA',
-                    createRecordElementFn: createMediaElement
-                });
-                
-                // Show success message
-                if (window.showNotification) {
-                    window.showNotification(`${type.charAt(0).toUpperCase() + type.slice(1)} Added`, 
-                        `Your ${type} has been saved.`);
-                }
-            } catch (error) {
-                console.error('Error saving media:', error);
-                alert('Error saving media. Please try again.');
+            // Create media object
+            const newMedia = {
+                id: `media_${Date.now()}`,
+                type: type,
+                name: nameInput.value.trim(),
+                notes: notesInput.value,
+                filename: file.name,
+                fileType: file.type,
+                filePath: URL.createObjectURL(file), // Create a temporary URL for display
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            };
+            
+            // Save media reference to localStorage
+            if (window.addItem) {
+                window.addItem('MEDIA', newMedia);
+            } else {
+                saveMedia(newMedia);
+            }
+            
+            dialog.close();
+            
+            // Reload media list
+            window.UI.loadRecords('media', {
+                recordType: 'MEDIA',
+                createRecordElementFn: createMediaElement
+            });
+            
+            // Show success message
+            if (window.showNotification) {
+                window.showNotification(`${type.charAt(0).toUpperCase() + type.slice(1)} Added`, 
+                    `Your ${type} has been saved.`);
             }
         },
         onCancel: (dialog) => dialog.close(),
