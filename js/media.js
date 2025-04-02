@@ -105,21 +105,27 @@ function setupPhotoCapture() {
     if (!photoBtn) return;
     
     photoBtn.addEventListener('click', () => {
+        // Create a hidden input element
         const input = document.createElement('input');
         input.type = 'file';
         input.accept = 'image/*';
         input.capture = 'environment'; // Use the back camera
         
+        // Handle file selection
         input.onchange = function(e) {
             if (e.target.files && e.target.files[0]) {
                 const file = e.target.files[0];
-                // Create media object with reference to gallery file
+                
+                // Create a temporary URL for preview
+                const fileUrl = URL.createObjectURL(file);
+                
+                // Create media object
                 const newMedia = {
                     id: `media_${Date.now()}`,
                     type: 'photo',
                     name: file.name,
                     fileType: file.type,
-                    fileUrl: URL.createObjectURL(file),
+                    fileUrl: fileUrl,
                     createdAt: new Date().toISOString(),
                     updatedAt: new Date().toISOString()
                 };
@@ -139,11 +145,12 @@ function setupPhotoCapture() {
                 
                 // Show success message
                 if (window.showNotification) {
-                    window.showNotification('Photo Added', 'Your photo has been saved.');
+                    window.showNotification('Photo Added', 'Your photo has been saved to your gallery.');
                 }
             }
         };
         
+        // Trigger the file input click
         input.click();
     });
 }
@@ -156,21 +163,27 @@ function setupVideoCapture() {
     if (!videoBtn) return;
     
     videoBtn.addEventListener('click', () => {
+        // Create a hidden input element
         const input = document.createElement('input');
         input.type = 'file';
         input.accept = 'video/*';
         input.capture = 'environment'; // Use the back camera
         
+        // Handle file selection
         input.onchange = function(e) {
             if (e.target.files && e.target.files[0]) {
                 const file = e.target.files[0];
-                // Create media object with reference to gallery file
+                
+                // Create a temporary URL for preview
+                const fileUrl = URL.createObjectURL(file);
+                
+                // Create media object
                 const newMedia = {
                     id: `media_${Date.now()}`,
                     type: 'video',
                     name: file.name,
                     fileType: file.type,
-                    fileUrl: URL.createObjectURL(file),
+                    fileUrl: fileUrl,
                     createdAt: new Date().toISOString(),
                     updatedAt: new Date().toISOString()
                 };
@@ -190,11 +203,12 @@ function setupVideoCapture() {
                 
                 // Show success message
                 if (window.showNotification) {
-                    window.showNotification('Video Added', 'Your video has been saved.');
+                    window.showNotification('Video Added', 'Your video has been saved to your gallery.');
                 }
             }
         };
         
+        // Trigger the file input click
         input.click();
     });
 }
