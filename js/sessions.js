@@ -35,7 +35,7 @@ function initializeSessions() {
  */
 function createSessionElement(session) {
     const sessionElement = document.createElement('div');
-    sessionElement.className = 'session-item';
+    sessionElement.className = 'card session-item';
     sessionElement.dataset.id = session.id;
     
     // Format date

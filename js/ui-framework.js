@@ -34,12 +34,29 @@ window.UI = (function() {
         domCache[pageId] = {};
         
         // Get DOM elements
-        const listContainer = document.getElementById(listContainerId);
-        const addButton = document.getElementById(addButtonId);
-        const searchInput = searchInputSelector ? document.querySelector(searchInputSelector) : null;
-        const categoryFilter = categoryFilterSelector ? document.querySelector(categoryFilterSelector) : null;
-        const dateInputs = dateInputsSelector ? document.querySelectorAll(dateInputsSelector) : null;
-        const statusFilter = statusFilterSelector ? document.querySelector(statusFilterSelector) : null;
+        const pageElement = document.getElementById(`${pageId}-page`);
+        if (!pageElement) {
+            console.error(`[UI Framework] Page element #${pageId}-page not found! Cannot initialize.`);
+            return;
+        }
+        
+        // Get elements, scoping filters within the specific pageElement
+        const listContainer = document.getElementById(listContainerId); // IDs should be unique globally
+        const addButton = addButtonId ? document.getElementById(addButtonId) : null; // IDs should be unique globally
+        
+        const searchInput = searchInputSelector ? pageElement.querySelector(searchInputSelector) : null;
+        const categoryFilter = categoryFilterSelector ? pageElement.querySelector(categoryFilterSelector) : null;
+        const dateInputs = dateInputsSelector ? pageElement.querySelectorAll(dateInputsSelector) : null;
+        const statusFilter = statusFilterSelector ? pageElement.querySelector(statusFilterSelector) : null;
+
+        // Add checks to ensure filter elements were found within the page
+        if (searchInputSelector && !searchInput) {
+            console.warn(`[UI Framework - ${pageId}] Search input with selector '${searchInputSelector}' not found within #${pageElement.id}`);
+        }
+        if (categoryFilterSelector && !categoryFilter) {
+             console.warn(`[UI Framework - ${pageId}] Category filter with selector '${categoryFilterSelector}' not found within #${pageElement.id}`);
+        }
+        // Similar checks could be added for date/status filters if needed
         
         // Store references
         domCache[pageId] = {
@@ -73,7 +90,8 @@ window.UI = (function() {
         }
         
         if (searchInput) {
-            searchInput.addEventListener('input', () => {
+            searchInput.addEventListener('input', (event) => {
+                console.log(`[DEBUG ${pageId} Search Input] Event fired! Value:`, event.target.value);
                 loadRecords(pageId);
             });
         }
@@ -138,6 +156,7 @@ window.UI = (function() {
      * @param {string} pageId - The page ID
      */
     function loadRecords(pageId) { // Removed options, always use cache
+        console.log(`[DEBUG ${pageId} Load] loadRecords function called.`); // Log function entry
         const cache = domCache[pageId];
         if (!cache || !cache.listContainer) {
             console.error(`Cache or list container not found for pageId: ${pageId}`);
@@ -227,10 +246,13 @@ window.UI = (function() {
      *
      * @param {Array} records - The records to filter
      * @param {Object} filters - The filter criteria
-     * @param {string} recordType - The type of record being filtered (GOALS, SESSIONS, MEDIA)
+     * @param {string} [recordType] - Optional: The type of record being filtered (GOALS, SESSIONS, MEDIA) - Used for type-specific search logic.
      * @returns {Array} - Filtered records
      */
-    function filterRecords(records, filters, recordType) { // Added recordType parameter
+    function filterRecords(records, filters, recordType = null) { // Added recordType parameter with default
+        const caller = recordType ? recordType : 'Stats'; // Identify caller for logging
+        console.log(`[DEBUG ${caller} Filter] Starting filterRecords. Input records: ${records.length}`, 'Filters:', JSON.parse(JSON.stringify(filters)));
+
         if (!records || !Array.isArray(records)) {
             return [];
         }
@@ -240,6 +262,7 @@ window.UI = (function() {
         // Filter by category
         if (filters.categoryId) {
             filtered = filtered.filter(record => record.categoryId === filters.categoryId);
+            console.log(`[DEBUG ${caller} Filter] After Category filter: ${filtered.length} records`); // Log after category filter
         }
         
         // Filter by status for goals or type for media
@@ -304,7 +327,15 @@ window.UI = (function() {
                         record.description ? record.description.toLowerCase() : '',
                         record.content ? record.content.toLowerCase() : '' // For notes
                     ];
-                }
+                    // *** Add specific logging for Media search ***
+                    if (searchTerm.length > 0) { // Log only when searching
+                        const nameField = record.name ? record.name.toLowerCase() : '[empty]';
+                        const categoryField = categoryName ? categoryName : '[empty]'; // Already lowercase or 'unknown'
+                        const descriptionField = record.description ? record.description.toLowerCase() : '[empty]';
+                        const contentField = record.content ? record.content.toLowerCase() : '[empty]';
+                        console.log(`[DEBUG MEDIA Filter] Searching for: "${searchTerm}" in Record ID: ${record.id} | Name: "${nameField}" | Category: "${categoryField}" | Desc: "${descriptionField}" | Content: "${contentField}"`);
+                    }
+                 }
                 
                 // Check if any specified field contains the search term
                 return fieldsToSearch.some(field => field && field.includes(searchTerm));
@@ -326,6 +357,7 @@ window.UI = (function() {
                     });
                 }
             } catch (e) { console.error("Error parsing start date:", filters.startDate, e); }
+            console.log(`[DEBUG ${caller} Filter] After Start Date filter: ${filtered.length} records`); // Log after date filter
         }
         
         if (filters.endDate) {
@@ -342,8 +374,10 @@ window.UI = (function() {
                     });
                 }
             } catch (e) { console.error("Error parsing end date:", filters.endDate, e); }
+             console.log(`[DEBUG ${caller} Filter] After End Date filter: ${filtered.length} records`); // Log after date filter
         }
         
+        console.log(`[DEBUG ${caller} Filter] Finished filterRecords. Output records: ${filtered.length}`);
         return filtered;
     }
     

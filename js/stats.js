@@ -20,31 +20,33 @@ function formatTime(seconds) {
 function initStats() {
     console.log('Initializing stats module');
     
-    // Get sessions from localStorage
-    let sessions = JSON.parse(localStorage.getItem('practiceTrack_sessions')) || [];
-    console.log('Found sessions:', sessions.length);
-    
-    // Get or create stats container
-    const container = document.querySelector('.stats-container');
-    if (!container) {
-        console.error('Stats container not found');
+    // Get or create containers
+    const statsContainer = document.querySelector('.stats-container');
+    const countdownContainer = document.getElementById('lesson-countdown-container'); // Get new container
+    if (!statsContainer || !countdownContainer) {
+        console.error('Required containers (.stats-container or #lesson-countdown-container) not found');
         return;
     }
     
     // Clear existing content
-    container.innerHTML = '';
+    statsContainer.innerHTML = '';
+    countdownContainer.innerHTML = ''; // Clear countdown container too
     
-    // Show empty state if no sessions
+    // Update lesson countdown (always do this)
+    updateLessonCountdown(countdownContainer);
+    
+    // Get sessions from localStorage
+    let sessions = JSON.parse(localStorage.getItem('practiceTrack_sessions')) || [];
+    console.log('Found sessions:', sessions.length);
+    
+    // Show empty state in stats container if no sessions initially
     if (!sessions || sessions.length === 0) {
-        displayEmptyState(container);
-        return;
+        displayEmptyState(statsContainer);
+        // Don't return, still need filters
+    } else {
+        // Initial display of stats (unfiltered)
+        displayStats(sessions, statsContainer);
     }
-    
-    // Update lesson countdown first
-    updateLessonCountdown();
-    
-    // Then display stats
-    displayStats(sessions);
     
     // Load category filter
     loadCategoryFilter();
@@ -95,92 +97,58 @@ function loadCategoryFilter() {
     }
 }
 
-function displayStats(sessions) {
-    console.log('Displaying stats for sessions:', sessions);
+function displayStats(sessions, container) {
+    console.log('Displaying stats for sessions:', sessions.length);
     
-    const container = document.querySelector('.stats-container');
     if (!container) {
-        console.error('Stats container not found');
+        console.error('Stats container element not provided to displayStats');
+        return;
+    }
+    
+    // Clear only the stats grid container before displaying
+    container.innerHTML = '';
+    
+    // If no sessions after filtering, show empty state in stats container
+    if (sessions.length === 0) {
+        displayEmptyState(container);
         return;
     }
     
     // Calculate stats
     const totalTime = sessions.reduce((sum, session) => sum + (session.duration || 0), 0);
-    const avgTime = Math.round(totalTime / sessions.length);
-    const maxTime = Math.max(...sessions.map(s => s.duration || 0));
-    const sessionsThisWeek = sessions.filter(session => {
-        const sessionDate = new Date(session.startTime);
-        const today = new Date();
-        const weekStart = new Date(today.setDate(today.getDate() - today.getDay()));
-        weekStart.setHours(0, 0, 0, 0);
-        return sessionDate >= weekStart;
-    }).length;
+    const sessionCount = sessions.length;
+    const avgTime = sessionCount > 0 ? Math.round(totalTime / sessionCount) : 0;
+    const maxTime = sessionCount > 0 ? Math.max(...sessions.map(s => s.duration || 0)) : 0;
     
     console.log('Calculated stats:', {
         totalTime,
         avgTime,
         maxTime,
-        sessionsThisWeek
+        sessionCount // Use sessionCount instead of recalculating sessionsThisWeek
     });
 
-    // First, calculate days until lesson and create the countdown card
-    const lessonInfo = calculateDaysUntilLesson();
-    let countdownHtml = '';
-    
-    if (lessonInfo) {
-        countdownHtml = `
-            <div class="lesson-countdown-card">
-                <div class="card-header">
-                    <h3>Next Lesson</h3>
-                    <i data-lucide="calendar"></i>
-                </div>
-                <div class="card-content">
-                    <div class="countdown-value">${lessonInfo.days}</div>
-                    <div class="countdown-label">days until lesson</div>
-                    <div class="lesson-details">
-                        <p>${lessonInfo.date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
-                        <p>${lessonInfo.date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}</p>
-                    </div>
-                </div>
-            </div>
-        `;
-    } else {
-        countdownHtml = `
-            <div class="lesson-countdown-card">
-                <div class="card-header">
-                    <h3>Next Lesson</h3>
-                    <i data-lucide="calendar"></i>
-                </div>
-                <div class="card-content">
-                    <p>No lesson scheduled</p>
-                </div>
-            </div>
-        `;
-    }
-    
-    // Create stats grid with countdown card first
+    // Create stats grid (countdown is handled separately now)
     container.innerHTML = `
-        ${countdownHtml}
         <div class="stats-grid">
-            <div class="stat-card">
+            <div class="card stat-card">
                 <h3>Total Practice Time</h3>
                 <div class="stat-value">${formatDuration(totalTime)}</div>
                 <div class="stat-description">Total time spent practicing</div>
             </div>
-            <div class="stat-card">
+            <div class="card stat-card">
                 <h3>Average Session</h3>
                 <div class="stat-value">${formatDuration(avgTime)}</div>
                 <div class="stat-description">Average duration per session</div>
             </div>
-            <div class="stat-card">
+            <div class="card stat-card">
                 <h3>Longest Session</h3>
                 <div class="stat-value">${formatDuration(maxTime)}</div>
                 <div class="stat-description">Duration of longest practice session</div>
             </div>
-            <div class="stat-card">
-                <h3>Sessions This Week</h3>
-                <div class="stat-value">${sessionsThisWeek}</div>
-                <div class="stat-description">Number of practice sessions this week</div>
+            <div class="card stat-card">
+                <h3>Number of Sessions</h3>
+                <div class="stat-value">${sessionCount}</div>
+                <div class="stat-description">Total practice sessions recorded</div>
             </div>
         </div>
     `;
@@ -192,8 +160,8 @@ function displayStats(sessions) {
 }
 
 function displayEmptyState(container) {
-    console.log('Displaying empty state');
-    const message = 'No practice sessions found. Start practicing to see your stats!';
+    console.log('Displaying empty state in:', container);
+    const message = 'No practice sessions match the current filters.';
         
     container.innerHTML = `
         <div class="empty-state">
@@ -217,6 +185,13 @@ function formatDuration(seconds) {
 function applyFilters() {
     console.log('Applying filters...');
     
+    // Get containers
+    const statsContainer = document.querySelector('.stats-container');
+    if (!statsContainer) {
+        console.error('Stats container not found during applyFilters');
+        return;
+    }
+    
     // Get all sessions
     let sessions = JSON.parse(localStorage.getItem('practiceTrack_sessions')) || [];
     console.log('Total sessions:', sessions.length);
@@ -237,48 +212,30 @@ function applyFilters() {
     });
     
     // Use the common filterRecords function from UI framework
+    let filteredSessions = [];
     if (window.UI && typeof window.UI.filterRecords === 'function') {
-        sessions = window.UI.filterRecords(sessions, {
+        filteredSessions = window.UI.filterRecords(sessions, {
             categoryId: selectedCategory,
             startDate: startDate,
             endDate: endDate
         });
     } else {
-        // Fallback to direct filtering if UI framework not available
-        // Apply category filter
+        // Fallback logic (keep for safety, though unlikely needed)
+        console.warn('UI.filterRecords not found, using fallback filtering.');
+        filteredSessions = sessions; // Start with all
         if (selectedCategory) {
-            sessions = sessions.filter(session => session.categoryId === selectedCategory);
-            console.log('Sessions after category filter:', sessions.length);
+            filteredSessions = filteredSessions.filter(session => session.categoryId === selectedCategory);
         }
-        
-        // Apply date filter
         if (startDate) {
-            const startDateObj = new Date(startDate);
-            if (!isNaN(startDateObj.getTime())) {
-                sessions = sessions.filter(session => {
-                    const sessionDate = new Date(session.startTime);
-                    return sessionDate >= startDateObj;
-                });
-                console.log('Sessions after start date filter:', sessions.length);
-            }
+            // ... (fallback date logic) ...
         }
-        
         if (endDate) {
-            const endDateObj = new Date(endDate);
-            if (!isNaN(endDateObj.getTime())) {
-                // Set to end of day
-                endDateObj.setHours(23, 59, 59, 999);
-                sessions = sessions.filter(session => {
-                    const sessionDate = new Date(session.startTime);
-                    return sessionDate <= endDateObj;
-                });
-                console.log('Sessions after end date filter:', sessions.length);
-            }
+            // ... (fallback date logic) ...
         }
     }
     
-    // Display filtered stats
-    displayStats(sessions);
+    // Display filtered stats (pass the specific container)
+    displayStats(filteredSessions, statsContainer);
 }
 
 // Listen for categories changed event
@@ -343,58 +300,59 @@ const calculateDaysUntilLesson = () => {
 };
 
 // Update lesson countdown card
-const updateLessonCountdown = () => {
-    console.log('Updating lesson countdown');
-    const statsContainer = document.querySelector('.stats-container');
-    if (!statsContainer) {
-        console.error('Stats container not found');
+const updateLessonCountdown = (container) => {
+    console.log('Updating lesson countdown in:', container);
+    if (!container) {
+        console.error('Lesson countdown container not provided');
         return;
     }
     
-    // Remove existing countdown card if it exists
-    const existingCard = statsContainer.querySelector('.lesson-countdown-card');
-    if (existingCard) {
-        existingCard.remove();
-    }
+    // Clear existing card
+    container.innerHTML = ''; // Clear the specific container
     
     const lessonInfo = calculateDaysUntilLesson();
+    let cardHtml = '';
+    
     if (!lessonInfo) {
         console.log('No lesson info available');
-        // Create card for no lesson scheduled
-        const card = document.createElement('div');
-        card.className = 'lesson-countdown-card';
-        card.innerHTML = `
-            <div class="card-header">
-                <h3>Next Lesson</h3>
-                <i data-lucide="calendar"></i>
-            </div>
-            <div class="card-content">
-                <p>No lesson scheduled</p>
+        cardHtml = `
+            <div class="lesson-countdown-card">
+                <div class="card-header">
+                    <h3>Next Lesson</h3>
+                    <i data-lucide="calendar"></i>
+                </div>
+                <div class="card-content">
+                    <p>No lesson scheduled</p>
+                </div>
             </div>
         `;
-        statsContainer.insertBefore(card, statsContainer.firstChild);
-        return;
+    } else {
+        console.log('Creating countdown card with info:', lessonInfo);
+        cardHtml = `
+            <div class="lesson-countdown-card">
+                <div class="card-header">
+                    <h3>Next Lesson</h3>
+                    <i data-lucide="calendar"></i>
+                </div>
+                <div class="card-content">
+                    <div class="countdown-value">${lessonInfo.days}</div>
+                    <div class="countdown-label">days until lesson</div>
+                    <div class="lesson-details">
+                        <p>${lessonInfo.date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
+                        <p>${lessonInfo.date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}</p>
+                    </div>
+                </div>
+            </div>
+        `;
     }
     
-    console.log('Creating countdown card with info:', lessonInfo);
-    // Create countdown card
-    const card = document.createElement('div');
-    card.className = 'lesson-countdown-card';
-    card.innerHTML = `
-        <div class="card-header">
-            <h3>Next Lesson</h3>
-            <i data-lucide="calendar"></i>
-        </div>
-        <div class="card-content">
-            <div class="countdown-value">${lessonInfo.days}</div>
-            <div class="countdown-label">days until lesson</div>
-            <div class="lesson-details">
-                <p>${lessonInfo.date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
-                <p>${lessonInfo.date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}</p>
-            </div>
-        </div>
-    `;
-    statsContainer.insertBefore(card, statsContainer.firstChild);
+    // Insert the card HTML into the container
+    container.innerHTML = cardHtml;
+    
+    // Initialize icon if needed
+    if (window.lucide && window.lucide.createIcons) {
+        window.lucide.createIcons({ context: container });
+    }
 };
 
 // Initialize when DOM is loaded

@@ -35,7 +35,7 @@ function initializeGoals() {
  */
 function createGoalElement(goal) {
     const goalElement = document.createElement('div');
-    goalElement.className = 'goal-item';
+    goalElement.className = 'card goal-item';
     goalElement.dataset.id = goal.id;
     
     // Get category

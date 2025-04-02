@@ -81,19 +81,44 @@
 
 body {
     font-family: var(--font-sans);
-    color: var(--text-dark);
     background-color: var(--background-light);
+    color: var(--text-dark);
     line-height: 1.6;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+    margin: 0;
+    display: flex;
+    min-height: 100vh;
+}
+
+/* Base Card Style */
+.card {
+    background-color: var(--card-background);
+    border-radius: var(--radius-lg);
+    padding: var(--space-lg);
+    box-shadow: var(--shadow-sm);
+    transition: all var(--transition-normal);
+    border: 1px solid var(--border-color);
+    margin-bottom: var(--space-lg); /* Added consistent bottom margin */
+}
+
+.card:hover {
+    transform: translateY(-2px); /* Slightly less lift for general cards */
+    box-shadow: var(--shadow-md);
+    /* Consider using a variable if this color is reused */
+    border-color: rgba(59, 127, 245, 0.2); 
 }
 
 /* App Layout */
 .app {
-    min-height: 100vh;
     display: flex;
     flex-direction: column;
-    background: var(--background-light);
+    width: 100%;
+}
+
+.main-content {
+    flex-grow: 1;
+    padding: var(--space-xl);
+    padding-top: 80px; /* Adjust for header height */
+    padding-bottom: 80px; /* Adjust for nav height */
 }
 
 /* Header - Enhanced with Gradient and Shadow */
@@ -300,23 +325,10 @@ body {
 /* Page Visibility */
 .page {
     display: none;
-    width: 100%;
 }
 
 .page.active {
     display: block;
-    animation: fadeIn 0.3s ease-out;
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
 }
 
 /* Page Headers - More Prominence */
@@ -1251,28 +1263,26 @@ textarea.form-control {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
     gap: var(--space-lg);
-    margin-bottom: var(--space-xl);
+    /* Remove margin-bottom, now handled by .card */
 }
 
+/* Refactored Stat Card */
 .stat-card {
-    background-color: var(--card-background);
-    border-radius: var(--radius-lg);
-    padding: var(--space-lg);
-    box-shadow: var(--shadow-sm);
-    transition: all var(--transition-normal);
+    /* Inherits from .card */
+    /* Keep specific styles */
     display: flex;
     flex-direction: column;
     position: relative;
     overflow: hidden;
-    border: 1px solid var(--border-color);
 }
 
+/* Override hover effect if desired */
 .stat-card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-md);
-    border-color: rgba(59, 127, 245, 0.2);
+    transform: translateY(-4px); /* Keep stronger lift for stat cards */
+    /* Other hover styles inherited or overridden as needed */
 }
 
+/* Stat card specific top border */
 .stat-card::before {
     content: '';
     position: absolute;
@@ -1284,7 +1294,8 @@ textarea.form-control {
     opacity: 0.8;
 }
 
-.stat-title {
+/* Renamed h3 to .stat-title for better semantics maybe? */
+.stat-card h3 { 
     font-size: var(--font-sm);
     font-weight: 600;
     color: var(--text-medium);
@@ -1352,19 +1363,10 @@ textarea.form-control {
 
 /* Media Cards - Enhanced Design */
 .media-card {
-    margin-bottom: var(--space-lg);
-    background-color: var(--card-background);
-    border-radius: var(--radius-lg);
-    padding: var(--space-lg);
-    box-shadow: var(--shadow-sm);
-    transition: all var(--transition-normal);
-    border: 1px solid var(--border-color);
-}
-
-.media-card:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
-    border-color: rgba(59, 127, 245, 0.2);
+    /* Inherits background, border-radius, padding, shadow, transition, border from .card */
+    /* Retain specific margin-bottom if needed, or inherit from .card */
+    /* margin-bottom: var(--space-lg); <= Inherited from .card */
+    /* Add any other media-card specific styles here */
 }
 
 .media-card img,
@@ -3106,4 +3108,125 @@ textarea:focus {
 
 .user-guide-dialog .close-button:hover {
     background-color: var(--hover-color);
+}
+
+/* Add style for lesson countdown container */
+.lesson-countdown-container {
+    max-width: 800px; /* Or match .stats-container width if different */
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: var(--space-lg); /* Add some space below it */
+    text-align: center; /* Center the inline-block or block content inside */
+}
+
+/* Optional: If the card itself needs styling */
+.lesson-countdown-card {
+    /* You could add specific width, padding, background etc. here if needed */
+     display: inline-block; /* Allow text-align: center to work */
+     /* text-align: left; <= REMOVE THIS to inherit center alignment */
+     padding: var(--space-lg); /* Add some padding */
+     background-color: var(--card-background); /* Match other cards */
+     border-radius: var(--radius-lg); /* Match other cards */
+     box-shadow: var(--shadow-sm); /* Match other cards */
+     border: 1px solid var(--border-color); /* Match other cards */
+     min-width: 300px; /* Give it a minimum width */
+}
+
+/* Styles for Session Item Card */
+.session-item {
+    /* Inherits from .card */
+    /* Add layout specific to session items */
+    display: flex;
+    flex-direction: column; /* Stack header, notes, actions vertically */
+    gap: var(--space-md); /* Space between elements */
+}
+
+.session-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap; /* Allow wrapping on small screens */
+    gap: var(--space-sm);
+}
+
+.session-notes {
+    color: var(--text-medium);
+    font-size: var(--font-sm);
+    line-height: 1.5;
+}
+
+.session-actions {
+    margin-top: auto; /* Push actions to the bottom */
+    align-self: flex-end; /* Align actions to the right */
+    display: flex;
+    gap: var(--space-sm);
+}
+
+/* Styles for Goal Item Card */
+.goal-item {
+    /* Inherits from .card */
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+}
+
+.goal-header {
+    display: grid; /* Use grid for more complex layout */
+    grid-template-columns: auto 1fr auto auto auto; /* status | title | category | due date | actions */
+    align-items: center;
+    gap: var(--space-md);
+}
+
+.goal-status {
+    grid-column: 1 / 2;
+}
+
+.goal-title {
+    grid-column: 2 / 3;
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+.goal-category {
+    grid-column: 3 / 4;
+    font-size: var(--font-sm);
+    color: var(--text-medium);
+    background-color: var(--background-light);
+    padding: var(--space-xs) var(--space-sm);
+    border-radius: var(--radius-md);
+    justify-self: start; /* Align left within its grid area */
+}
+
+.goal-due-date {
+    grid-column: 4 / 5;
+    font-size: var(--font-sm);
+    color: var(--text-light);
+     justify-self: start;
+}
+
+.goal-actions {
+    grid-column: 5 / 6;
+    display: flex;
+    gap: var(--space-sm);
+    justify-self: end; /* Align right */
+}
+
+.goal-description {
+    color: var(--text-medium);
+    font-size: var(--font-sm);
+    line-height: 1.5;
+    margin-top: var(--space-sm); /* Add some space below header */
+}
+
+/* Add container for standard page width on desktop */
+.page-content-container {
+    width: 100%; /* Take full width on mobile */
+}
+
+@media (min-width: 769px) { /* Apply only on screens wider than 768px */
+    .page-content-container {
+        max-width: 800px; /* Match stats container width */
+        margin-left: auto;
+        margin-right: auto;
+    }
 }

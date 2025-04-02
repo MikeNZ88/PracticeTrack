@@ -44,7 +44,7 @@ const isMobileDevice = () => {
  */
 function createMediaElement(media) {
     const mediaElement = document.createElement('div');
-    mediaElement.className = 'media-card';
+    mediaElement.className = 'card media-card';
     mediaElement.dataset.id = media.id;
     
     // Format content based on media type
