@@ -5,97 +5,211 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PracticeTrack User Guide</title>
     <style>
+        :root {
+            --primary-blue: #3b7ff5;
+            --primary-blue-dark: #2861c7;
+            --secondary-orange: #ff7a43;
+            --success: #38b77c;
+            --error: #f25767;
+            --text-color: #222831;
+            --text-light: #8a95a5;
+            --background-color: #f8f9fc;
+            --card-background: #ffffff;
+            --border-color: #e6ebf5;
+            --hover-color: rgba(59, 127, 245, 0.05);
+            --spacing-xs: 4px;
+            --spacing-sm: 8px;
+            --spacing-md: 16px;
+            --spacing-lg: 24px;
+            --spacing-xl: 32px;
+            --border-radius: 8px;
+            --box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: var(--font-sans);
             line-height: 1.6;
-            color: #333;
+            color: var(--text-color);
             max-width: 800px;
             margin: 0 auto;
-            padding: 20px;
+            padding: var(--spacing-md);
+            background-color: var(--background-color);
         }
 
         h1 {
-            color: #2c3e50;
-            border-bottom: 2px solid #3498db;
-            padding-bottom: 10px;
-            margin-bottom: 30px;
+            color: var(--primary-blue);
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: var(--spacing-lg);
+            padding-bottom: var(--spacing-sm);
+            border-bottom: 2px solid var(--primary-blue);
         }
 
         h2 {
-            color: #2c3e50;
-            margin-top: 30px;
-            margin-bottom: 20px;
+            color: var(--primary-blue);
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-top: var(--spacing-xl);
+            margin-bottom: var(--spacing-md);
+        }
+
+        h3 {
+            color: var(--text-color);
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-top: var(--spacing-lg);
+            margin-bottom: var(--spacing-sm);
         }
 
         p {
-            margin-bottom: 15px;
+            margin-bottom: var(--spacing-md);
+            color: var(--text-color);
         }
 
-        ul {
-            margin-bottom: 20px;
-            padding-left: 20px;
+        ul, ol {
+            margin-bottom: var(--spacing-md);
+            padding-left: var(--spacing-lg);
         }
 
         li {
-            margin-bottom: 10px;
+            margin-bottom: var(--spacing-sm);
+            color: var(--text-color);
+        }
+
+        .quick-start {
+            background-color: var(--card-background);
+            border-radius: var(--border-radius);
+            padding: var(--spacing-lg);
+            margin-bottom: var(--spacing-xl);
+            box-shadow: var(--box-shadow);
+        }
+
+        .quick-start h2 {
+            color: var(--primary-blue);
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+
+        .quick-start h2::before {
+            content: "🚀";
+            font-size: 1.5rem;
+        }
+
+        .quick-start-steps {
+            display: grid;
+            gap: var(--spacing-md);
+            margin-top: var(--spacing-lg);
+        }
+
+        .quick-start-step {
+            display: flex;
+            gap: var(--spacing-md);
+            align-items: flex-start;
+            padding: var(--spacing-md);
+            background-color: var(--background-color);
+            border-radius: var(--border-radius);
+            transition: transform 0.2s ease;
+        }
+
+        .quick-start-step:hover {
+            transform: translateX(4px);
+        }
+
+        .step-number {
+            background-color: var(--primary-blue);
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .step-content {
+            flex: 1;
+        }
+
+        .step-content h3 {
+            margin-top: 0;
+            color: var(--primary-blue);
         }
 
         .tip {
-            background-color: #f8f9fa;
-            border-left: 4px solid #3498db;
-            padding: 15px;
-            margin: 20px 0;
+            background-color: var(--hover-color);
+            border-left: 4px solid var(--primary-blue);
+            padding: var(--spacing-md);
+            margin: var(--spacing-md) 0;
+            border-radius: 0 var(--border-radius) var(--border-radius) 0;
         }
 
         .tip h3 {
-            color: #3498db;
+            color: var(--primary-blue);
             margin-top: 0;
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
         }
 
-        code {
-            background-color: #f8f9fa;
-            padding: 2px 5px;
-            border-radius: 3px;
-            font-family: monospace;
+        .tip h3::before {
+            content: "💡";
         }
 
         .note {
             background-color: #fff3cd;
             border-left: 4px solid #ffc107;
-            padding: 15px;
-            margin: 20px 0;
+            padding: var(--spacing-md);
+            margin: var(--spacing-md) 0;
+            border-radius: 0 var(--border-radius) var(--border-radius) 0;
         }
 
         .note h3 {
             color: #856404;
             margin-top: 0;
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+
+        .note h3::before {
+            content: "📝";
+        }
+
+        .section {
+            background-color: var(--card-background);
+            border-radius: var(--border-radius);
+            padding: var(--spacing-lg);
+            margin-bottom: var(--spacing-xl);
+            box-shadow: var(--box-shadow);
+        }
+
+        .section h2 {
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+
+        .section h2::before {
+            content: "📋";
         }
 
         @media (prefers-color-scheme: dark) {
-            body {
-                background-color: #1a1a1a;
-                color: #e0e0e0;
-            }
-
-            h1, h2 {
-                color: #e0e0e0;
-            }
-
-            .tip {
-                background-color: #2d2d2d;
-                border-left-color: #3498db;
+            :root {
+                --text-color: #e0e0e0;
+                --text-light: #a0a0a0;
+                --background-color: #1a1a1a;
+                --card-background: #2a2a2a;
+                --border-color: #333;
+                --hover-color: rgba(255, 255, 255, 0.05);
             }
 
             .note {
-                background-color: #2d2d2d;
-                border-left-color: #ffc107;
-            }
-
-            .note h3 {
-                color: #ffc107;
-            }
-
-            code {
                 background-color: #2d2d2d;
             }
         }
@@ -105,63 +219,111 @@
     <h1>Welcome to PracticeTrack</h1>
     <p>PracticeTrack is your personal practice companion, designed to help you track and improve your musical practice sessions. This guide will help you get started with all the features available in the app.</p>
 
-    <h2>Getting Started</h2>
-    <p>To begin using PracticeTrack:</p>
-    <ol>
-        <li>Select your instrument(s) in the settings menu</li>
-        <li>Choose your preferred practice categories</li>
-        <li>Set up your practice goals (optional)</li>
-    </ol>
-
-    <div class="tip">
-        <h3>Quick Tip</h3>
-        <p>You can access settings at any time by clicking the settings icon in the top-right corner of the app.</p>
+    <div class="quick-start">
+        <h2>Quick Start Guide</h2>
+        <div class="quick-start-steps">
+            <div class="quick-start-step">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <h3>Set Up Your Profile</h3>
+                    <p>Go to Settings and configure your preferences:</p>
+                    <ul>
+                        <li>Choose your primary instrument</li>
+                        <li>Set your lesson day and time</li>
+                        <li>Select your preferred theme (light/dark)</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="quick-start-step">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <h3>Add Practice Categories</h3>
+                    <p>Visit the Resources page to:</p>
+                    <ul>
+                        <li>Browse available practice categories</li>
+                        <li>Add categories to your practice list</li>
+                        <li>Create custom categories if needed</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="quick-start-step">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <h3>Start Practicing</h3>
+                    <p>Use the Timer page to:</p>
+                    <ul>
+                        <li>Select a practice category</li>
+                        <li>Start your practice session</li>
+                        <li>Add notes about your progress</li>
+                        <li>Save your session when done</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <h2>Using the Timer</h2>
-    <p>The timer is your main practice tool. Here's how to use it:</p>
-    <ol>
-        <li>Select a practice category from the dropdown menu</li>
-        <li>Click "Start" to begin your practice session</li>
-        <li>Use "Stop" to pause and "Reset" to start over</li>
-        <li>When finished, click "Save Session" to record your practice time</li>
-    </ol>
+    <div class="section">
+        <h2>Timer Page</h2>
+        <p>The timer is your main practice tool. Here's how to use it:</p>
+        <ol>
+            <li>Select a practice category from the dropdown menu</li>
+            <li>Click "Start" to begin your practice session</li>
+            <li>Use "Pause" to take a break and "Resume" to continue</li>
+            <li>Click "Stop" to end the session</li>
+            <li>Add notes about your practice session</li>
+            <li>Click "Save Session" to record your practice time</li>
+        </ol>
 
-    <div class="note">
-        <h3>Note</h3>
-        <p>The timer will automatically save your session when you click "Save Session". You can add notes about your practice session before saving.</p>
+        <div class="tip">
+            <h3>Quick Tip</h3>
+            <p>You can use the spacebar to start/pause the timer when you're not typing in the notes field.</p>
+        </div>
     </div>
 
-    <h2>Tracking Your Progress</h2>
-    <p>PracticeTrack helps you monitor your progress in several ways:</p>
-    <ul>
-        <li>View your practice history in the Sessions tab</li>
-        <li>Check your statistics and progress in the Stats tab</li>
-        <li>Track your goals in the Goals tab</li>
-        <li>Add photos, videos, and notes in the Media tab</li>
-    </ul>
+    <div class="section">
+        <h2>Resources Page</h2>
+        <p>The Resources page helps you organize your practice materials:</p>
+        <ul>
+            <li>Browse and search practice categories</li>
+            <li>View detailed information about each category</li>
+            <li>Add categories to your practice list</li>
+            <li>Access helpful practice tips and resources</li>
+        </ul>
 
-    <h2>Practice Categories</h2>
-    <p>PracticeTrack comes with predefined categories for various instruments. You can:</p>
-    <ul>
-        <li>Browse categories by instrument family in the Resources tab</li>
-        <li>Add categories to your practice list with one click</li>
-        <li>Create custom categories in the settings menu</li>
-    </ul>
-
-    <div class="tip">
-        <h3>Pro Tip</h3>
-        <p>Use the search function in the Resources tab to quickly find specific practice categories.</p>
+        <div class="note">
+            <h3>Note</h3>
+            <p>Categories added in the Resources page will be available in the Timer page dropdown.</p>
+        </div>
     </div>
 
-    <h2>Need Help?</h2>
-    <p>If you need assistance or have questions:</p>
-    <ul>
-        <li>Check the Resources tab for instrument-specific practice categories</li>
-        <li>Review your practice history in the Sessions tab</li>
-        <li>Contact support through the settings menu</li>
-    </ul>
+    <div class="section">
+        <h2>Settings Page</h2>
+        <p>Customize your practice experience in the Settings page:</p>
+        <ul>
+            <li>Manage your practice categories</li>
+            <li>Set your lesson day and time</li>
+            <li>Choose your primary instrument</li>
+            <li>Toggle between light and dark theme</li>
+            <li>Export or import your practice data</li>
+            <li>Clear all data if needed</li>
+        </ul>
 
-    <p>Happy practicing!</p>
+        <div class="tip">
+            <h3>Pro Tip</h3>
+            <p>You can create custom practice categories in the Settings page to match your specific needs.</p>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>Need Help?</h2>
+        <p>If you need assistance or have questions:</p>
+        <ul>
+            <li>Check the Resources page for practice categories and tips</li>
+            <li>Review your practice history in the Timer page</li>
+            <li>Customize your experience in the Settings page</li>
+        </ul>
+    </div>
+
+    <p>Happy practicing! 🎵</p>
 </body>
 </html> 

@@ -2,6 +2,12 @@
 window.UserGuide = (function() {
     // Create and show the user guide dialog
     function showUserGuide() {
+        // Remove any existing dialog
+        const existingDialog = document.querySelector('.user-guide-dialog');
+        if (existingDialog) {
+            existingDialog.remove();
+        }
+
         // Create dialog container
         const dialog = document.createElement('div');
         dialog.className = 'dialog user-guide-dialog';
@@ -58,7 +64,11 @@ window.UserGuide = (function() {
     }
 
     // Initialize when DOM is loaded
-    document.addEventListener('DOMContentLoaded', initialize);
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initialize);
+    } else {
+        initialize();
+    }
 
     // Make functions available globally
     return {

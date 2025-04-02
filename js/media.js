@@ -19,6 +19,7 @@ function initializeMedia() {
         listContainerId: 'media-list',
         searchInputSelector: '.search-input',
         dateInputsSelector: '.date-input',
+        statusFilterSelector: '.media-type-filter',
         emptyStateMessage: 'No media yet. Add photos, videos, or notes to track your progress.',
         emptyStateIcon: 'image',
         createRecordElementFn: createMediaElement

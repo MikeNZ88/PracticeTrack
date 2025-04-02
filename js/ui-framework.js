@@ -229,12 +229,14 @@ window.UI = (function() {
             filtered = filtered.filter(record => record.categoryId === filters.categoryId);
         }
         
-        // Filter by status (for goals)
+        // Filter by status (for goals) or media type
         if (filters.status) {
             if (filters.status === 'active') {
                 filtered = filtered.filter(record => !record.completed);
             } else if (filters.status === 'completed') {
                 filtered = filtered.filter(record => record.completed);
+            } else if (filters.status === 'photo' || filters.status === 'video' || filters.status === 'note') {
+                filtered = filtered.filter(record => record.type === filters.status);
             }
             // 'all' status doesn't filter
         }
@@ -243,6 +245,12 @@ window.UI = (function() {
         if (filters.search) {
             const searchTerm = filters.search.toLowerCase();
             filtered = filtered.filter(record => {
+                // Search in name and description for media
+                if (record.type) {
+                    return (record.name && record.name.toLowerCase().includes(searchTerm)) ||
+                           (record.description && record.description.toLowerCase().includes(searchTerm));
+                }
+                
                 // Get category name
                 const categories = window.getItems ? window.getItems('CATEGORIES') : 
                     JSON.parse(localStorage.getItem('practiceTrack_categories')) || [];
