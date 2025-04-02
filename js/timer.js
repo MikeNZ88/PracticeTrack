@@ -290,9 +290,16 @@ class Timer {
         this.categorySelect.appendChild(defaultOption);
         
         try {
-            // Get categories from data layer
-            const categories = window.getItems ? window.getItems('CATEGORIES') :
-                JSON.parse(localStorage.getItem('practiceTrack_categories')) || [];
+            // Get categories from data layer or localStorage
+            let categories = [];
+            if (window.getItems) {
+                categories = window.getItems('CATEGORIES') || [];
+            } else {
+                const storedCategories = localStorage.getItem('practiceTrack_categories');
+                if (storedCategories) {
+                    categories = JSON.parse(storedCategories);
+                }
+            }
             
             // Add categories to dropdown
             categories.forEach(category => {
@@ -317,6 +324,9 @@ class Timer {
 function activateTimerPage() {
     if (!window.timer) {
         window.timer = new Timer();
+    } else {
+        // Reinitialize the timer if it already exists
+        window.timer.loadCategories();
     }
     
     // Check for saved timer state

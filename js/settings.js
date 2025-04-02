@@ -228,52 +228,48 @@ const populateLessonDayDropdown = (selectedDay) => {
 };
 
 // Notify application that categories have changed
-const notifyCategoriesChanged = () => {
-    try {
-        console.log('Notifying application that categories have changed');
-        // Dispatch a custom event that other modules can listen for
-        const event = new CustomEvent('categoriesChanged', {
-            detail: { timestamp: new Date().toISOString() }
-        });
-        document.dispatchEvent(event);
-        
-        // Also update any global handler if it exists
-        if (typeof window.updateCategoryDropdowns === 'function') {
-            console.log('Calling global updateCategoryDropdowns function');
-            window.updateCategoryDropdowns();
+function notifyCategoriesChanged() {
+    // Dispatch event to notify other components
+    const event = new CustomEvent('dataChanged', {
+        detail: {
+            type: 'CATEGORIES',
+            timestamp: Date.now()
         }
-    } catch (error) {
-        console.error('Error notifying categories changed:', error);
-    }
-};
+    });
+    document.dispatchEvent(event);
+}
 
 // Handle adding a new category
 function handleAddCategory() {
-    console.log('Adding new category');
-    
-    if (!newCategoryInput || !newCategoryInput.value.trim()) {
-        alert('Please enter a category name');
-        return;
-    }
-    
     try {
-        const newCategoryName = newCategoryInput.value.trim();
-        const categories = JSON.parse(localStorage.getItem('practiceTrack_categories')) || [];
+        console.log('Handling add category');
         
-        // Check if category already exists
-        const exists = categories.some(cat => cat.name.toLowerCase() === newCategoryName.toLowerCase());
-        if (exists) {
-            alert(`Category "${newCategoryName}" already exists`);
+        if (!newCategoryInput || !newCategoryInput.value.trim()) {
+            console.log('No category name provided');
+            showMessage('Please enter a category name', 'error');
             return;
         }
         
-        // Add the new category
+        const categoryName = newCategoryInput.value.trim();
+        console.log('Adding category:', categoryName);
+        
+        // Get existing categories
+        const categoriesStr = localStorage.getItem('practiceTrack_categories');
+        let categories = categoriesStr ? JSON.parse(categoriesStr) : [];
+        
+        // Check if category already exists
+        if (categories.some(cat => cat.name.toLowerCase() === categoryName.toLowerCase())) {
+            console.log('Category already exists');
+            showMessage('This category already exists', 'error');
+            return;
+        }
+        
+        // Add new category
         const newCategory = {
-            id: `category_${Date.now()}`,
-            name: newCategoryName,
+            id: `c-${Date.now()}`,
+            name: categoryName,
             createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-            custom: true
+            updatedAt: new Date().toISOString()
         };
         
         categories.push(newCategory);
@@ -282,22 +278,25 @@ function handleAddCategory() {
         // Clear input
         newCategoryInput.value = '';
         
-        // Reload categories
+        // Reload categories and notify app
         loadCategories();
         
-        // Notify other modules
-        console.log('Dispatching categoriesChanged event');
-        document.dispatchEvent(new Event('categoriesChanged'));
+        // Dispatch event to notify other components
+        const event = new CustomEvent('dataChanged', {
+            detail: {
+                type: 'CATEGORIES',
+                timestamp: Date.now()
+            }
+        });
+        document.dispatchEvent(event);
         
-        // Also call the global update function if available
-        if (typeof window.updateCategoryDropdowns === 'function') {
-            window.updateCategoryDropdowns();
-        }
+        // Show success message
+        showMessage('Category added successfully');
         
-        alert('Category added successfully');
+        console.log('Category added successfully:', newCategory);
     } catch (error) {
         console.error('Error adding category:', error);
-        alert('Failed to add category');
+        showMessage('Error adding category', 'error');
     }
 }
 
@@ -380,14 +379,14 @@ function handleDeleteCategory(categoryId) {
         // Reload categories
         loadCategories();
         
-        // Notify other modules
-        console.log('Dispatching categoriesChanged event');
-        document.dispatchEvent(new Event('categoriesChanged'));
-        
-        // Also call the global update function if available
-        if (typeof window.updateCategoryDropdowns === 'function') {
-            window.updateCategoryDropdowns();
-        }
+        // Dispatch event to notify other components
+        const event = new CustomEvent('dataChanged', {
+            detail: {
+                type: 'CATEGORIES',
+                timestamp: Date.now()
+            }
+        });
+        document.dispatchEvent(event);
         
         alert('Category deleted successfully');
     } catch (error) {
@@ -573,9 +572,14 @@ const showMessage = (message, type = 'success') => {
     messageElement.className = `message message-${type}`;
     messageElement.textContent = message;
     
+    // Remove any existing messages
+    const existingMessages = document.querySelectorAll('.message');
+    existingMessages.forEach(msg => msg.remove());
+    
+    // Add new message
     document.body.appendChild(messageElement);
     
-    // Remove message after 3 seconds
+    // Remove after 3 seconds
     setTimeout(() => {
         messageElement.classList.add('message-hide');
         setTimeout(() => messageElement.remove(), 300);

@@ -1,3 +1,6 @@
+// Add preload class to prevent animations during load
+document.body.classList.add('preload');
+
 // Navigation state
 let currentPage = 'timer';
 
@@ -20,6 +23,11 @@ const initializeApp = () => {
     
     // Navigate to initial page
     navigateToPage(currentPage || 'timer');
+
+    // Remove preload class after a short delay to allow initial render
+    setTimeout(() => {
+        document.body.classList.remove('preload');
+    }, 300);
 };
 
 // Initialize on DOM load
