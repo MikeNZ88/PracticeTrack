@@ -48,7 +48,43 @@ function handleSearch(event) {
         });
     }
     
-    filterCategories(searchTerm);
+    // Get all category items
+    const categoryItems = document.querySelectorAll('.category-item');
+    
+    // First, handle all category items
+    categoryItems.forEach(item => {
+        const title = item.querySelector('h3')?.textContent.toLowerCase() || '';
+        const description = item.querySelector('p')?.textContent.toLowerCase() || '';
+        const notes = item.querySelector('.notes')?.textContent.toLowerCase() || '';
+        
+        const matchesSearch = searchTerm === '' || 
+            title.includes(searchTerm) || 
+            description.includes(searchTerm) || 
+            notes.includes(searchTerm);
+        
+        // Show/hide based on search term
+        item.style.display = matchesSearch ? 'block' : 'none';
+    });
+    
+    // Then handle all instrument sections
+    document.querySelectorAll('.instrument-section').forEach(section => {
+        const sectionItems = section.querySelectorAll('.category-item');
+        const hasVisibleItems = Array.from(sectionItems)
+            .some(item => item.style.display !== 'none');
+        
+        // Show/hide section based on whether it has any visible items
+        section.style.display = hasVisibleItems ? 'block' : 'none';
+    });
+    
+    // Finally handle all family sections
+    document.querySelectorAll('.family-section').forEach(familySection => {
+        const instrumentSections = familySection.querySelectorAll('.instrument-section');
+        const hasVisibleSections = Array.from(instrumentSections)
+            .some(section => section.style.display !== 'none');
+        
+        // Show/hide family section based on whether it has any visible instrument sections
+        familySection.style.display = hasVisibleSections ? 'block' : 'none';
+    });
 }
 
 // Handle filter button clicks
@@ -80,24 +116,41 @@ function handleFilter(button) {
 
 // Filter categories based on search term
 function filterCategories(searchTerm) {
-    document.querySelectorAll('.category-item').forEach(item => {
-        const title = item.querySelector('h3').textContent.toLowerCase();
-        const description = item.querySelector('p').textContent.toLowerCase();
-        const notes = item.querySelector('.notes')?.textContent.toLowerCase() || '';
+    // Get all instrument sections
+    const instrumentSections = document.querySelectorAll('.instrument-section');
+    
+    // First, handle all category items
+    instrumentSections.forEach(section => {
+        const categoryItems = section.querySelectorAll('.category-item');
+        let hasVisibleItems = false;
         
-        const matchesSearch = searchTerm === '' || 
-            title.includes(searchTerm) || 
-            description.includes(searchTerm) || 
-            notes.includes(searchTerm);
+        categoryItems.forEach(item => {
+            const title = item.querySelector('h3')?.textContent.toLowerCase() || '';
+            const description = item.querySelector('p')?.textContent.toLowerCase() || '';
+            const notes = item.querySelector('.notes')?.textContent.toLowerCase() || '';
+            
+            const matchesSearch = searchTerm === '' || 
+                title.includes(searchTerm) || 
+                description.includes(searchTerm) || 
+                notes.includes(searchTerm);
+            
+            // Show/hide based on search term
+            item.style.display = matchesSearch ? 'block' : 'none';
+            if (matchesSearch) hasVisibleItems = true;
+        });
         
-        // Show/hide based only on search term, ignoring instrument filters
-        item.style.display = matchesSearch ? 'block' : 'none';
+        // Show/hide instrument section based on whether it has any visible items
+        section.style.display = hasVisibleItems ? 'block' : 'none';
+    });
+    
+    // Then handle all family sections
+    document.querySelectorAll('.family-section').forEach(familySection => {
+        const instrumentSections = familySection.querySelectorAll('.instrument-section');
+        const hasVisibleInstrumentSections = Array.from(instrumentSections)
+            .some(section => section.style.display !== 'none');
         
-        // Show parent sections if any items are visible
-        const parentSection = item.closest('.family-section');
-        const visibleItems = Array.from(parentSection.querySelectorAll('.category-item'))
-            .some(cat => cat.style.display !== 'none');
-        parentSection.style.display = visibleItems ? 'block' : 'none';
+        // Show/hide family section based on whether it has any visible instrument sections
+        familySection.style.display = hasVisibleInstrumentSections ? 'block' : 'none';
     });
 }
 
