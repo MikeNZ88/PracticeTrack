@@ -396,7 +396,15 @@ body {
 
 .search-input,
 .category-filter,
-.date-input {
+.date-input,
+/* Add other filter selects by class/id */
+.goals-search-input,
+.goals-category-filter,
+.goals-status-filter,
+.media-type-filter,
+#category-filter,
+#start-date,
+#end-date {
     padding: var(--space-sm) var(--space-md);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
@@ -404,22 +412,62 @@ body {
     color: var(--text-dark);
     font-size: var(--font-md);
     transition: all var(--transition-fast);
+    height: 44px; /* Standardize height */
+    line-height: 1.5; /* Adjust line height for vertical centering */
+    vertical-align: middle; /* Align elements nicely if wrapped */
+}
+
+/* Style Select elements specifically */
+select.category-filter,
+select.goals-category-filter,
+select.goals-status-filter,
+select.media-type-filter,
+select#category-filter {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23555f6a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 16px;
+    padding-right: 40px; /* Space for custom arrow */
+    cursor: pointer;
 }
 
 .search-input:focus,
 .category-filter:focus,
-.date-input:focus {
+.date-input:focus,
+/* Add focus styles for other filters */
+.goals-search-input:focus,
+.goals-category-filter:focus,
+.goals-status-filter:focus,
+.media-type-filter:focus,
+#category-filter:focus,
+#start-date:focus,
+#end-date:focus {
     outline: none;
     border-color: var(--primary-blue);
     box-shadow: 0 0 0 3px rgba(59, 127, 245, 0.12);
 }
 
-.search-input {
+/* Keep search-specific styles separate if icon desired */
+.search-input,
+.goals-search-input { 
     min-width: 240px;
     padding-left: 36px; /* Space for icon */
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='16' height='16' fill='none' stroke='%23555f6a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: 12px center;
+}
+
+/* Adjust background image for selects */
+select.category-filter,
+select.goals-category-filter,
+select.goals-status-filter,
+select.media-type-filter,
+select#category-filter {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23555f6a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 16px;
 }
 
 .date-range {
@@ -3230,3 +3278,130 @@ textarea:focus {
         margin-right: auto;
     }
 }
+
+/* Buttons - Apply Base Style */
+.button,
+.primary-button,
+.secondary-button,
+.icon-button { /* Include icon button for base reset */
+    display: inline-flex; /* Align icon and text */
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-sm);
+    padding: var(--space-sm) var(--space-lg); /* Adjust padding */
+    height: 44px; /* Match filter input height */
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    font-size: var(--font-md);
+    border: 1px solid transparent; /* Base border */
+    cursor: pointer;
+    transition: all var(--transition-normal);
+    text-decoration: none; /* Remove underline from button-like links */
+    vertical-align: middle; /* Align with other inline elements */
+    white-space: nowrap; /* Prevent text wrapping */
+}
+
+/* Remove specific height from timer controls if base is sufficient */
+.timer-controls .primary-button,
+.timer-controls .secondary-button {
+    min-width: 150px;
+    /* height: 54px; <= Remove if 44px is okay */
+    box-shadow: var(--shadow-sm);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Primary Button Specifics */
+.primary-button {
+    background: linear-gradient(to right, var(--primary-blue), var(--primary-blue-dark));
+    color: white;
+    border-color: transparent; /* Override base */
+    box-shadow: var(--shadow-sm);
+}
+
+.primary-button:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    /* filter: brightness(1.1); Optional: Add brightness */
+}
+
+.primary-button:active {
+    transform: translateY(0px); /* Adjust active state */
+    box-shadow: var(--shadow-sm);
+    filter: brightness(0.95);
+}
+
+/* Secondary Button Specifics */
+.secondary-button {
+    background: var(--card-background);
+    color: var(--text-dark);
+    border-color: var(--border-color); /* Use border color */
+    box-shadow: var(--shadow-sm);
+}
+
+.secondary-button:hover {
+    background: var(--background-light);
+    border-color: var(--text-medium); /* Darken border on hover */
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.secondary-button:active {
+    transform: translateY(0px); /* Adjust active state */
+    background: var(--border-color); /* Darken background slightly */
+    box-shadow: var(--shadow-sm);
+}
+
+/* Icon Button Specifics - Minimal Styling */
+.icon-button {
+    background: none;
+    border-color: transparent;
+    padding: var(--space-sm); /* Smaller padding */
+    height: auto; /* Auto height */
+    color: var(--text-light);
+    box-shadow: none;
+}
+
+.icon-button:hover {
+    color: var(--primary-blue);
+    background-color: var(--background-light);
+    transform: none; /* No lift needed */
+    box-shadow: none;
+}
+
+/* Adjust Goal Actions Button */
+.goal-actions .add-goal-button { 
+    /* Inherits .primary-button styles */
+    min-width: 150px; /* Ensure minimum width */
+}
+
+/* Adjust Media Buttons Container and Buttons */
+.media-controls {
+    display: flex;
+    justify-content: center;
+    gap: var(--space-md);
+    margin-bottom: var(--space-xl);
+    flex-wrap: wrap; /* Allow wrapping on mobile */
+}
+
+.media-controls button {
+    /* Let them size based on content + padding, remove min-width */
+    /* min-width: 120px; <= Remove this */
+    flex-grow: 1; /* Allow buttons to grow */
+    flex-basis: 100px; /* Suggest a base size before growing */
+    max-width: 180px; /* Prevent them getting too large */
+}
+
+/* Utility Classes */
+.hidden {
+    display: none !important;
+}
+
+/* Centered Page Actions Container */
+.page-actions.centered {
+    display: flex;
+    justify-content: center;
+    margin-bottom: var(--space-lg); /* Space before list */
+}
+
+/* Add container for standard page width on desktop */

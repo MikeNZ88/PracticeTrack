@@ -124,12 +124,6 @@
             <section id="sessions-page" class="page">
                 <div class="page-header">
                     <h1>Practice Sessions</h1>
-                    <div class="action-buttons">
-                        <button id="add-session-btn" class="primary-button">
-                            <i data-lucide="plus"></i>
-                            Add Session
-                        </button>
-                    </div>
                 </div>
                 <div class="page-content-container">
                     <div class="filters">
@@ -141,6 +135,12 @@
                             <input type="date" class="date-input" placeholder="Start Date">
                             <input type="date" class="date-input" placeholder="End Date">
                         </div>
+                    </div>
+                    <div class="page-actions centered">
+                        <button id="add-session-btn" class="primary-button">
+                            <i data-lucide="plus"></i>
+                            Add Session
+                        </button>
                     </div>
                     <div id="sessions-list" class="sessions-list">
                         <!-- Sessions will be added here -->
@@ -165,7 +165,7 @@
                             <option value="completed">Completed Goals</option>
                         </select>
                     </div>
-                    <div class="goal-actions">
+                    <div class="page-actions centered">
                         <button id="add-goal-btn" class="primary-button add-goal-button">
                             <i data-lucide="plus"></i>
                             Add Goal
@@ -221,21 +221,21 @@
                             <input type="date" class="date-input" placeholder="End Date">
                         </div>
                     </div>
+                    <div class="media-controls">
+                        <button class="primary-button" id="add-photo">
+                            <i data-lucide="camera"></i>
+                            Add Photo
+                        </button>
+                        <button class="primary-button" id="add-video">
+                            <i data-lucide="video"></i>
+                            Add Video
+                        </button>
+                        <button class="primary-button" id="add-note">
+                            <i data-lucide="file-text"></i>
+                            Add Note
+                        </button>
+                    </div>
                     <div class="media-container">
-                        <div class="media-controls">
-                            <button class="primary-button" id="add-photo">
-                                <i data-lucide="camera"></i>
-                                Add Photo
-                            </button>
-                            <button class="primary-button" id="add-video">
-                                <i data-lucide="video"></i>
-                                Add Video
-                            </button>
-                            <button class="primary-button" id="add-note">
-                                <i data-lucide="file-text"></i>
-                                Add Note
-                            </button>
-                        </div>
                         <div id="media-list" class="media-list">
                             <!-- Media items will be populated here -->
                         </div>
