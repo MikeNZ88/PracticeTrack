@@ -17,24 +17,30 @@ const cleanupStorage = () => {
     
     try {
         // Check for settings
-        let settings = window.getItems('SETTINGS');
-        if (settings.length === 0) {
-            console.log('No settings found, will create defaults');
-            window.saveItems('SETTINGS', [{
+        const settingsStr = localStorage.getItem('practiceTrack_settings');
+        console.log('Current settings in storage:', settingsStr);
+        
+        if (!settingsStr) {
+            console.log('No settings found, creating defaults');
+            const defaultSettings = [{
                 id: 's-1',
                 lessonDay: '',
                 lessonTime: '',
                 theme: 'light',
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString()
-            }]);
+            }];
+            localStorage.setItem('practiceTrack_settings', JSON.stringify(defaultSettings));
+            console.log('Default settings created:', defaultSettings);
         }
         
         // Check for categories
-        let categories = window.getItems('CATEGORIES');
-        if (!Array.isArray(categories)) {
-            console.log('Invalid categories data, resetting to empty array');
-            window.saveItems('CATEGORIES', []);
+        const categoriesStr = localStorage.getItem('practiceTrack_categories');
+        console.log('Current categories in storage:', categoriesStr);
+        
+        if (!categoriesStr) {
+            console.log('No categories found, creating empty array');
+            localStorage.setItem('practiceTrack_categories', JSON.stringify([]));
         }
         
         return true;
@@ -103,6 +109,12 @@ const setupEventListeners = () => {
     try {
         console.log('Setting up event listeners');
         
+        // Listen for categories updates from other modules
+        document.addEventListener('categoriesUpdated', (event) => {
+            console.log('Categories updated from another module');
+            loadCategories(); // Reload the categories list
+        });
+        
         // Category management
         if (addCategoryBtn) {
             console.log('Setting up add category button listener');
@@ -156,19 +168,11 @@ const setupEventListeners = () => {
             newBtn.addEventListener('click', handleClearAllData);
         }
         
-        // Lesson day and time changes
-        if (lessonDaySelect) {
-            const newSelect = lessonDaySelect.cloneNode(true);
-            lessonDaySelect.parentNode.replaceChild(newSelect, lessonDaySelect);
-            lessonDaySelect = newSelect;
-            lessonDaySelect.addEventListener('change', handleSettingsSubmit);
-        }
-        
-        if (lessonTimeInput) {
-            const newInput = lessonTimeInput.cloneNode(true);
-            lessonTimeInput.parentNode.replaceChild(newInput, lessonTimeInput);
-            lessonTimeInput = newInput;
-            lessonTimeInput.addEventListener('change', handleSettingsSubmit);
+        // Save lesson settings button
+        const saveLessonSettingsBtn = document.getElementById('save-lesson-settings');
+        if (saveLessonSettingsBtn) {
+            console.log('Setting up save lesson settings button listener');
+            saveLessonSettingsBtn.addEventListener('click', handleSettingsSubmit);
         }
         
         // Theme toggle
@@ -185,23 +189,33 @@ const setupEventListeners = () => {
 // Load settings
 const loadSettings = () => {
     try {
+        console.log('Loading settings...');
+        
         // Get current settings
-        let settings = window.getItems('SETTINGS');
-        settings = Array.isArray(settings) && settings.length > 0 ? settings[0] : {
+        const settingsStr = localStorage.getItem('practiceTrack_settings');
+        console.log('Raw settings from storage:', settingsStr);
+        
+        let settings = settingsStr ? JSON.parse(settingsStr) : [{
             id: 's-1',
             lessonDay: '',
             lessonTime: '',
             theme: 'light',
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString()
-        };
+        }];
+        
+        console.log('Parsed settings:', settings[0]);
         
         // Populate lesson day dropdown
-        populateLessonDayDropdown(settings.lessonDay);
+        if (lessonDaySelect) {
+            console.log('Setting lesson day to:', settings[0].lessonDay);
+            lessonDaySelect.value = settings[0].lessonDay;
+        }
         
         // Set lesson time
         if (lessonTimeInput) {
-            lessonTimeInput.value = settings.lessonTime || '';
+            console.log('Setting lesson time to:', settings[0].lessonTime);
+            lessonTimeInput.value = settings[0].lessonTime || '';
         }
     } catch (error) {
         console.error('Error loading settings:', error);
@@ -302,7 +316,7 @@ function handleAddCategory() {
 const handleEditCategory = (categoryId) => {
     try {
         // Get categories
-        let categories = window.getItems('CATEGORIES') || [];
+        let categories = JSON.parse(localStorage.getItem('practiceTrack_categories')) || [];
         const category = categories.find(cat => cat.id === categoryId);
         
         if (!category) return;
@@ -328,7 +342,7 @@ const handleEditCategory = (categoryId) => {
         category.updatedAt = new Date().toISOString();
         
         // Save categories
-        window.saveItems('CATEGORIES', categories);
+        localStorage.setItem('practiceTrack_categories', JSON.stringify(categories));
         
         // Reload categories
         loadCategories();
@@ -476,37 +490,107 @@ function loadCategories() {
     }
 }
 
+// Test settings storage
+const testSettingsStorage = () => {
+    try {
+        console.log('Testing settings storage...');
+        
+        // Test writing to localStorage
+        const testSettings = [{
+            id: 'test-1',
+            lessonDay: 'Monday',
+            lessonTime: '14:00',
+            theme: 'light',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        }];
+        
+        localStorage.setItem('practiceTrack_settings', JSON.stringify(testSettings));
+        console.log('Test settings written to localStorage');
+        
+        // Test reading from localStorage
+        const savedSettings = JSON.parse(localStorage.getItem('practiceTrack_settings'));
+        console.log('Test settings read from localStorage:', savedSettings);
+        
+        if (savedSettings && savedSettings[0].lessonDay === 'Monday') {
+            console.log('Settings storage test successful');
+            return true;
+        } else {
+            console.error('Settings storage test failed');
+            return false;
+        }
+    } catch (error) {
+        console.error('Error testing settings storage:', error);
+        return false;
+    }
+};
+
 // Handle settings form submission
 const handleSettingsSubmit = () => {
     try {
+        console.log('Starting settings save...');
+        
         // Get current settings
-        let settings = window.getItems('SETTINGS');
-        settings = Array.isArray(settings) && settings.length > 0 ? settings[0] : {
+        const settingsStr = localStorage.getItem('practiceTrack_settings');
+        console.log('Current settings from storage:', settingsStr);
+        
+        let settings = settingsStr ? JSON.parse(settingsStr) : [{
             id: 's-1',
             lessonDay: '',
             lessonTime: '',
             theme: 'light',
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString()
-        };
-
-        // Update settings
-        if (lessonDaySelect) {
-            settings.lessonDay = lessonDaySelect.value;
-        }
-        if (lessonTimeInput) {
-            settings.lessonTime = lessonTimeInput.value;
-        }
-
-        // Save settings
-        window.saveItems('SETTINGS', [settings]);
+        }];
         
-        // Show success message
-        alert('Settings saved successfully');
+        // Get new values
+        const newLessonDay = lessonDaySelect.value;
+        const newLessonTime = lessonTimeInput.value;
+        
+        console.log('New values to save:', { newLessonDay, newLessonTime });
+        
+        // Update settings
+        settings[0].lessonDay = newLessonDay;
+        settings[0].lessonTime = newLessonTime;
+        settings[0].updatedAt = new Date().toISOString();
+        
+        // Save to localStorage
+        localStorage.setItem('practiceTrack_settings', JSON.stringify(settings));
+        
+        // Verify save
+        const savedSettings = JSON.parse(localStorage.getItem('practiceTrack_settings'));
+        console.log('Verified saved settings:', savedSettings[0]);
+        
+        if (savedSettings[0].lessonDay === newLessonDay && savedSettings[0].lessonTime === newLessonTime) {
+            // Dispatch event
+            const event = new CustomEvent('settingsUpdated', {
+                detail: { settings: settings[0] }
+            });
+            document.dispatchEvent(event);
+            
+            showMessage('Settings saved successfully', 'success');
+        } else {
+            throw new Error('Settings verification failed');
+        }
     } catch (error) {
         console.error('Error saving settings:', error);
-        alert('Error saving settings. Please try again.');
+        showMessage('Error saving settings: ' + error.message, 'error');
     }
+};
+
+// Show message notification
+const showMessage = (message, type = 'success') => {
+    const messageElement = document.createElement('div');
+    messageElement.className = `message message-${type}`;
+    messageElement.textContent = message;
+    
+    document.body.appendChild(messageElement);
+    
+    // Remove message after 3 seconds
+    setTimeout(() => {
+        messageElement.classList.add('message-hide');
+        setTimeout(() => messageElement.remove(), 300);
+    }, 3000);
 };
 
 // Handle data export

@@ -53,14 +53,16 @@ function handleSearch(event) {
     
     // First, handle all category items
     categoryItems.forEach(item => {
-        const title = item.querySelector('h3')?.textContent.toLowerCase() || '';
-        const description = item.querySelector('p')?.textContent.toLowerCase() || '';
-        const notes = item.querySelector('.notes')?.textContent.toLowerCase() || '';
+        // Get all text content from the item and its parent instrument section
+        const categoryName = item.querySelector('.category-name')?.textContent.toLowerCase() || '';
+        const instrumentTitle = item.closest('.instrument-section')?.querySelector('.instrument-title')?.textContent.toLowerCase() || '';
+        const familyTitle = item.closest('.family-section')?.querySelector('.family-title')?.textContent.toLowerCase() || '';
         
+        // Check if any of the text content matches the search term
         const matchesSearch = searchTerm === '' || 
-            title.includes(searchTerm) || 
-            description.includes(searchTerm) || 
-            notes.includes(searchTerm);
+            categoryName.includes(searchTerm) ||
+            instrumentTitle.includes(searchTerm) ||
+            familyTitle.includes(searchTerm);
         
         // Show/hide based on search term
         item.style.display = matchesSearch ? 'block' : 'none';
@@ -157,15 +159,15 @@ function filterCategories(searchTerm) {
 // Handle copying a category
 function handleCopy(button) {
     const categoryItem = button.closest('.category-item');
-    const title = categoryItem.querySelector('h3').textContent;
-    const description = categoryItem.querySelector('p').textContent;
+    const categoryName = categoryItem.querySelector('.category-name')?.textContent || '';
+    const description = categoryItem.querySelector('.description')?.textContent || '';
     const notes = categoryItem.querySelector('.notes')?.textContent || '';
     
     // Get existing categories from localStorage
-    const existingCategories = JSON.parse(localStorage.getItem('categories') || '[]');
+    const existingCategories = JSON.parse(localStorage.getItem('practiceTrack_categories') || '[]');
     
     // Check if category already exists
-    const categoryExists = existingCategories.some(cat => cat.title === title);
+    const categoryExists = existingCategories.some(cat => cat.name === categoryName);
     
     if (categoryExists) {
         showMessage('Category already exists in your list', 'warning');
@@ -174,15 +176,23 @@ function handleCopy(button) {
     
     // Add new category
     const newCategory = {
-        id: generateId(),
-        title,
+        id: `category_${Date.now()}`,
+        name: categoryName,
         description,
         notes,
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        custom: true
     };
     
     existingCategories.push(newCategory);
-    localStorage.setItem('categories', JSON.stringify(existingCategories));
+    localStorage.setItem('practiceTrack_categories', JSON.stringify(existingCategories));
+    
+    // Dispatch a custom event to notify that categories have been updated
+    const event = new CustomEvent('categoriesUpdated', {
+        detail: { categories: existingCategories }
+    });
+    document.dispatchEvent(event);
     
     showMessage('Category added to your list', 'success');
 }

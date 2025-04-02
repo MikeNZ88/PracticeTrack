@@ -63,11 +63,6 @@
             </div>
         </nav>
 
-        <!-- Settings Button -->
-        <button id="settings-button" class="settings-button">
-            <i data-lucide="settings"></i>
-        </button>
-
         <!-- Main Content Area -->
         <main class="main-content">
             <!-- Timer Page -->
@@ -221,34 +216,44 @@
                 <div class="page-header">
                     <h1>Settings</h1>
                 </div>
-                <div class="settings-container">
+                <div class="container">
                     <div class="settings-section">
-                        <h2>Categories</h2>
-                        <div class="settings-row">
-                            <div class="add-category-form">
-                                <input type="text" id="new-category-name" placeholder="Enter new category name">
-                                <button id="add-category-btn" class="primary-button">Add Category</button>
-                            </div>
-                            <div class="categories-container">
-                                <div id="categories-list" class="categories-list">
-                                    <!-- Categories will be populated here -->
-                                </div>
-                            </div>
+                        <h2>Lesson Settings</h2>
+                        <div class="form-group">
+                            <label for="lesson-day">Lesson Day</label>
+                            <select id="lesson-day" class="form-control">
+                                <option value="">Select Day</option>
+                                <option value="Monday">Monday</option>
+                                <option value="Tuesday">Tuesday</option>
+                                <option value="Wednesday">Wednesday</option>
+                                <option value="Thursday">Thursday</option>
+                                <option value="Friday">Friday</option>
+                                <option value="Saturday">Saturday</option>
+                                <option value="Sunday">Sunday</option>
+                            </select>
                         </div>
+                        <div class="form-group">
+                            <label for="lesson-time">Lesson Time</label>
+                            <input type="time" id="lesson-time" class="form-control">
+                        </div>
+                        <button id="save-lesson-settings" class="primary-button">
+                            <i data-lucide="save"></i>
+                            Save Lesson Settings
+                        </button>
                     </div>
 
                     <div class="settings-section">
-                        <h2>Lesson Schedule</h2>
-                        <div class="settings-row">
-                            <div class="form-group">
-                                <label for="lesson-day">Lesson Day</label>
-                                <select id="lesson-day">
-                                    <option value="">Select Day</option>
-                                </select>
+                        <h2>Categories</h2>
+                        <div class="categories-container">
+                            <div class="add-category-form">
+                                <input type="text" id="new-category-name" class="form-control" placeholder="Enter new category name">
+                                <button id="add-category-btn" class="primary-button">
+                                    <i data-lucide="plus"></i>
+                                    Add Category
+                                </button>
                             </div>
-                            <div class="form-group">
-                                <label for="lesson-time">Lesson Time</label>
-                                <input type="time" id="lesson-time">
+                            <div id="categories-list" class="categories-list">
+                                <!-- Categories will be listed here -->
                             </div>
                         </div>
                     </div>
@@ -312,25 +317,29 @@
                                 <li class="category-item brass">
                                     <span class="category-name">Articulation Studies</span>
                                     <button class="copy-button brass" data-category="Articulation Studies">
-                                        <i data-lucide="copy"></i>
+                                        <i data-lucide="plus"></i>
+                                        Add to Categories
                                     </button>
                                 </li>
                                 <li class="category-item brass">
                                     <span class="category-name">Breath Control</span>
                                     <button class="copy-button brass" data-category="Breath Control">
-                                        <i data-lucide="copy"></i>
+                                        <i data-lucide="plus"></i>
+                                        Add to Categories
                                     </button>
                                 </li>
                                 <li class="category-item brass">
                                     <span class="category-name">Double/Triple Tonguing</span>
                                     <button class="copy-button brass" data-category="Double/Triple Tonguing">
-                                        <i data-lucide="copy"></i>
+                                        <i data-lucide="plus"></i>
+                                        Add to Categories
                                     </button>
                                 </li>
                                 <li class="category-item brass">
                                     <span class="category-name">Embouchure Development</span>
                                     <button class="copy-button brass" data-category="Embouchure Development">
-                                        <i data-lucide="copy"></i>
+                                        <i data-lucide="plus"></i>
+                                        Add to Categories
                                     </button>
                                 </li>
                             </ul>
@@ -343,31 +352,36 @@
                                 <li class="category-item brass">
                                     <span class="category-name">Arban Studies</span>
                                     <button class="copy-button brass" data-category="Arban Studies">
-                                        <i data-lucide="copy"></i>
+                                        <i data-lucide="plus"></i>
+                                        Add to Categories
                                     </button>
                                 </li>
                                 <li class="category-item brass">
                                     <span class="category-name">Clarke Studies</span>
                                     <button class="copy-button brass" data-category="Clarke Studies">
-                                        <i data-lucide="copy"></i>
+                                        <i data-lucide="plus"></i>
+                                        Add to Categories
                                     </button>
                                 </li>
                                 <li class="category-item brass">
                                     <span class="category-name">Double/Triple Tonguing</span>
                                     <button class="copy-button brass" data-category="Double/Triple Tonguing">
-                                        <i data-lucide="copy"></i>
+                                        <i data-lucide="plus"></i>
+                                        Add to Categories
                                     </button>
                                 </li>
                                 <li class="category-item brass">
                                     <span class="category-name">Embouchure Development</span>
                                     <button class="copy-button brass" data-category="Embouchure Development">
-                                        <i data-lucide="copy"></i>
+                                        <i data-lucide="plus"></i>
+                                        Add to Categories
                                     </button>
                                 </li>
                                 <li class="category-item brass">
                                     <span class="category-name">Flexibility Exercises</span>
                                     <button class="copy-button brass" data-category="Flexibility Exercises">
-                                        <i data-lucide="copy"></i>
+                                        <i data-lucide="plus"></i>
+                                        Add to Categories
                                     </button>
                                 </li>
                             </ul>
@@ -387,49 +401,57 @@
                                 <li class="category-item drums">
                                     <span class="category-name">Coordination Exercises</span>
                                     <button class="copy-button drums" data-category="Coordination Exercises">
-                                        <i data-lucide="copy"></i>
+                                        <i data-lucide="plus"></i>
+                                        Add to Categories
                                     </button>
                                 </li>
                                 <li class="category-item drums">
                                     <span class="category-name">Drum Fills</span>
                                     <button class="copy-button drums" data-category="Drum Fills">
-                                        <i data-lucide="copy"></i>
+                                        <i data-lucide="plus"></i>
+                                        Add to Categories
                                     </button>
                                 </li>
                                 <li class="category-item drums">
                                     <span class="category-name">Groove Development</span>
                                     <button class="copy-button drums" data-category="Groove Development">
-                                        <i data-lucide="copy"></i>
+                                        <i data-lucide="plus"></i>
+                                        Add to Categories
                                     </button>
                                 </li>
                                 <li class="category-item drums">
                                     <span class="category-name">Hand Technique</span>
                                     <button class="copy-button drums" data-category="Hand Technique">
-                                        <i data-lucide="copy"></i>
+                                        <i data-lucide="plus"></i>
+                                        Add to Categories
                                     </button>
                                 </li>
                                 <li class="category-item drums">
                                     <span class="category-name">Independence Exercises</span>
                                     <button class="copy-button drums" data-category="Independence Exercises">
-                                        <i data-lucide="copy"></i>
+                                        <i data-lucide="plus"></i>
+                                        Add to Categories
                                     </button>
                                 </li>
                                 <li class="category-item drums">
                                     <span class="category-name">Rock Beats</span>
                                     <button class="copy-button drums" data-category="Rock Beats">
-                                        <i data-lucide="copy"></i>
+                                        <i data-lucide="plus"></i>
+                                        Add to Categories
                                     </button>
                                 </li>
                                 <li class="category-item drums">
                                     <span class="category-name">Rudiments</span>
                                     <button class="copy-button drums" data-category="Rudiments">
-                                        <i data-lucide="copy"></i>
+                                        <i data-lucide="plus"></i>
+                                        Add to Categories
                                     </button>
                                 </li>
                                 <li class="category-item drums">
                                     <span class="category-name">Timing Exercises</span>
                                     <button class="copy-button drums" data-category="Timing Exercises">
-                                        <i data-lucide="copy"></i>
+                                        <i data-lucide="plus"></i>
+                                        Add to Categories
                                     </button>
                                 </li>
                             </ul>
@@ -449,25 +471,29 @@
                                 <li class="category-item keyboard">
                                     <span class="category-name">Arpeggios</span>
                                     <button class="copy-button keyboard" data-category="Arpeggios">
-                                        <i data-lucide="copy"></i>
+                                        <i data-lucide="plus"></i>
+                                        Add to Categories
                                     </button>
                                 </li>
                                 <li class="category-item keyboard">
                                     <span class="category-name">Bach Inventions</span>
                                     <button class="copy-button keyboard" data-category="Bach Inventions">
-                                        <i data-lucide="copy"></i>
+                                        <i data-lucide="plus"></i>
+                                        Add to Categories
                                     </button>
                                 </li>
                                 <li class="category-item keyboard">
                                     <span class="category-name">Chord Progressions</span>
                                     <button class="copy-button keyboard" data-category="Chord Progressions">
-                                        <i data-lucide="copy"></i>
+                                        <i data-lucide="plus"></i>
+                                        Add to Categories
                                     </button>
                                 </li>
                                 <li class="category-item keyboard">
                                     <span class="category-name">Classical Repertoire</span>
                                     <button class="copy-button keyboard" data-category="Classical Repertoire">
-                                        <i data-lucide="copy"></i>
+                                        <i data-lucide="plus"></i>
+                                        Add to Categories
                                     </button>
                                 </li>
                             </ul>
@@ -487,37 +513,43 @@
                                 <li class="category-item stringed">
                                     <span class="category-name">Arpeggios</span>
                                     <button class="copy-button stringed" data-category="Arpeggios">
-                                        <i data-lucide="copy"></i>
+                                        <i data-lucide="plus"></i>
+                                        Add to Categories
                                     </button>
                                 </li>
                                 <li class="category-item stringed">
                                     <span class="category-name">Barre Chords</span>
                                     <button class="copy-button stringed" data-category="Barre Chords">
-                                        <i data-lucide="copy"></i>
+                                        <i data-lucide="plus"></i>
+                                        Add to Categories
                                     </button>
                                 </li>
                                 <li class="category-item stringed">
                                     <span class="category-name">Chord Progressions</span>
                                     <button class="copy-button stringed" data-category="Chord Progressions">
-                                        <i data-lucide="copy"></i>
+                                        <i data-lucide="plus"></i>
+                                        Add to Categories
                                     </button>
                                 </li>
                                 <li class="category-item stringed">
                                     <span class="category-name">Fingerpicking</span>
                                     <button class="copy-button stringed" data-category="Fingerpicking">
-                                        <i data-lucide="copy"></i>
+                                        <i data-lucide="plus"></i>
+                                        Add to Categories
                                     </button>
                                 </li>
                                 <li class="category-item stringed">
                                     <span class="category-name">Scales</span>
                                     <button class="copy-button stringed" data-category="Scales">
-                                        <i data-lucide="copy"></i>
+                                        <i data-lucide="plus"></i>
+                                        Add to Categories
                                     </button>
                                 </li>
                                 <li class="category-item stringed">
                                     <span class="category-name">Strumming Patterns</span>
                                     <button class="copy-button stringed" data-category="Strumming Patterns">
-                                        <i data-lucide="copy"></i>
+                                        <i data-lucide="plus"></i>
+                                        Add to Categories
                                     </button>
                                 </li>
                             </ul>
@@ -530,31 +562,36 @@
                                 <li class="category-item stringed">
                                     <span class="category-name">Bowing Exercises</span>
                                     <button class="copy-button stringed" data-category="Bowing Exercises">
-                                        <i data-lucide="copy"></i>
+                                        <i data-lucide="plus"></i>
+                                        Add to Categories
                                     </button>
                                 </li>
                                 <li class="category-item stringed">
                                     <span class="category-name">Etudes</span>
                                     <button class="copy-button stringed" data-category="Etudes">
-                                        <i data-lucide="copy"></i>
+                                        <i data-lucide="plus"></i>
+                                        Add to Categories
                                     </button>
                                 </li>
                                 <li class="category-item stringed">
                                     <span class="category-name">Intonation</span>
                                     <button class="copy-button stringed" data-category="Intonation">
-                                        <i data-lucide="copy"></i>
+                                        <i data-lucide="plus"></i>
+                                        Add to Categories
                                     </button>
                                 </li>
                                 <li class="category-item stringed">
                                     <span class="category-name">Scales & Arpeggios</span>
                                     <button class="copy-button stringed" data-category="Scales & Arpeggios">
-                                        <i data-lucide="copy"></i>
+                                        <i data-lucide="plus"></i>
+                                        Add to Categories
                                     </button>
                                 </li>
                                 <li class="category-item stringed">
                                     <span class="category-name">Vibrato Development</span>
                                     <button class="copy-button stringed" data-category="Vibrato Development">
-                                        <i data-lucide="copy"></i>
+                                        <i data-lucide="plus"></i>
+                                        Add to Categories
                                     </button>
                                 </li>
                             </ul>
@@ -574,25 +611,29 @@
                                 <li class="category-item woodwind">
                                     <span class="category-name">Articulation Studies</span>
                                     <button class="copy-button woodwind" data-category="Articulation Studies">
-                                        <i data-lucide="copy"></i>
+                                        <i data-lucide="plus"></i>
+                                        Add to Categories
                                     </button>
                                 </li>
                                 <li class="category-item woodwind">
                                     <span class="category-name">Embouchure Development</span>
                                     <button class="copy-button woodwind" data-category="Embouchure Development">
-                                        <i data-lucide="copy"></i>
+                                        <i data-lucide="plus"></i>
+                                        Add to Categories
                                     </button>
                                 </li>
                                 <li class="category-item woodwind">
                                     <span class="category-name">Etudes</span>
                                     <button class="copy-button woodwind" data-category="Etudes">
-                                        <i data-lucide="copy"></i>
+                                        <i data-lucide="plus"></i>
+                                        Add to Categories
                                     </button>
                                 </li>
                                 <li class="category-item woodwind">
                                     <span class="category-name">Long Tones</span>
                                     <button class="copy-button woodwind" data-category="Long Tones">
-                                        <i data-lucide="copy"></i>
+                                        <i data-lucide="plus"></i>
+                                        Add to Categories
                                     </button>
                                 </li>
                             </ul>

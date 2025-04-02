@@ -239,23 +239,155 @@ document.addEventListener('categoriesChanged', () => {
 });
 
 // Initialize stats page
-window.initializeStats = function() {
+const initializeStats = () => {
     console.log('Initializing stats page');
     
-    // Initialize stats display
-    initStats();
-    
-    // Set up apply button
-    const applyButton = document.getElementById('apply-stats-filters');
-    if (applyButton) {
-        applyButton.addEventListener('click', applyFilters);
+    // Get or create stats container
+    const container = document.querySelector('.stats-container');
+    if (!container) {
+        console.error('Stats container not found');
+        return;
     }
     
-    // Add styles
-    addStatsStyles();
+    // Clear existing content
+    container.innerHTML = '';
     
-    console.log('Stats page initialized successfully');
+    // Update lesson countdown
+    updateLessonCountdown();
+    
+    // Initialize other stats
+    initStats();
+    
+    // Listen for settings updates
+    document.addEventListener('settingsUpdated', () => {
+        console.log('Settings updated, refreshing stats');
+        updateLessonCountdown();
+    });
 };
+
+// Calculate days until next lesson
+const calculateDaysUntilLesson = () => {
+    try {
+        // Get settings
+        const settings = JSON.parse(localStorage.getItem('practiceTrack_settings')) || [];
+        if (!Array.isArray(settings) || settings.length === 0) {
+            console.log('No settings found');
+            return null;
+        }
+        
+        const { lessonDay, lessonTime } = settings[0];
+        if (!lessonDay || !lessonTime) {
+            console.log('No lesson day or time set');
+            return null;
+        }
+        
+        // Get current date
+        const now = new Date();
+        const currentDay = now.getDay();
+        
+        // Convert lesson day to number (0 = Sunday, 1 = Monday, etc.)
+        const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        const lessonDayNum = days.indexOf(lessonDay);
+        
+        // Calculate next lesson date
+        let daysUntilLesson = lessonDayNum - currentDay;
+        if (daysUntilLesson <= 0) {
+            daysUntilLesson += 7; // Add a week if the lesson day has passed
+        }
+        
+        // Create lesson date
+        const lessonDate = new Date(now);
+        lessonDate.setDate(now.getDate() + daysUntilLesson);
+        
+        // Set lesson time
+        const [hours, minutes] = lessonTime.split(':');
+        lessonDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+        
+        // Check if lesson time has passed
+        if (daysUntilLesson === 0 && now > lessonDate) {
+            daysUntilLesson = 7; // Move to next week
+            lessonDate.setDate(lessonDate.getDate() + 7);
+        }
+        
+        console.log('Calculated lesson info:', { daysUntilLesson, lessonDate });
+        return {
+            days: daysUntilLesson,
+            date: lessonDate
+        };
+    } catch (error) {
+        console.error('Error calculating days until lesson:', error);
+        return null;
+    }
+};
+
+// Update lesson countdown card
+const updateLessonCountdown = () => {
+    console.log('Updating lesson countdown');
+    const statsContainer = document.querySelector('.stats-container');
+    if (!statsContainer) {
+        console.error('Stats container not found');
+        return;
+    }
+    
+    // Remove existing countdown card if it exists
+    const existingCard = statsContainer.querySelector('.lesson-countdown-card');
+    if (existingCard) {
+        existingCard.remove();
+    }
+    
+    const lessonInfo = calculateDaysUntilLesson();
+    if (!lessonInfo) {
+        console.log('No lesson info available');
+        // Create card for no lesson scheduled
+        const card = document.createElement('div');
+        card.className = 'lesson-countdown-card';
+        card.innerHTML = `
+            <div class="card-header">
+                <h3>Next Lesson</h3>
+                <i data-lucide="calendar"></i>
+            </div>
+            <div class="card-content">
+                <p>No lesson scheduled</p>
+            </div>
+        `;
+        statsContainer.insertBefore(card, statsContainer.firstChild);
+        return;
+    }
+    
+    console.log('Creating countdown card with info:', lessonInfo);
+    // Create countdown card
+    const card = document.createElement('div');
+    card.className = 'lesson-countdown-card';
+    card.innerHTML = `
+        <div class="card-header">
+            <h3>Next Lesson</h3>
+            <i data-lucide="calendar"></i>
+        </div>
+        <div class="card-content">
+            <div class="countdown-value">${lessonInfo.days}</div>
+            <div class="countdown-label">days until lesson</div>
+            <div class="lesson-details">
+                <p>${lessonInfo.date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
+                <p>${lessonInfo.date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}</p>
+            </div>
+        </div>
+    `;
+    statsContainer.insertBefore(card, statsContainer.firstChild);
+};
+
+// Initialize when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    if (document.getElementById('stats-page')) {
+        initializeStats();
+    }
+});
+
+// Update navigation handler to initialize stats page
+document.addEventListener('navigation', (event) => {
+    if (event.detail.page === 'stats') {
+        initializeStats();
+    }
+});
 
 // Add styles for stats elements
 const addStatsStyles = () => {
