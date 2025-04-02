@@ -243,13 +243,6 @@ function showNoteDialog(existingNote = null) {
             label: 'Content',
             rows: 6,
             value: existingNote ? existingNote.content || '' : ''
-        },
-        {
-            type: 'textarea',
-            id: 'note-notes',
-            label: 'Additional Notes',
-            rows: 3,
-            value: existingNote ? existingNote.notes || '' : ''
         }
     ];
     
@@ -260,15 +253,12 @@ function showNoteDialog(existingNote = null) {
         onSubmit: (dialog, e) => {
             const form = e.target;
             const contentInput = form.querySelector('#note-content');
-            const notesInput = form.querySelector('#note-notes');
             
             const content = contentInput.value;
-            const notes = notesInput.value;
             
             if (existingNote) {
                 // Update existing note
                 existingNote.content = content;
-                existingNote.notes = notes;
                 existingNote.updatedAt = new Date().toISOString();
                 
                 // Save the updated note
@@ -283,8 +273,6 @@ function showNoteDialog(existingNote = null) {
                     id: `media_${Date.now()}`,
                     type: 'note',
                     content: content,
-                    notes: notes,
-                    filename: `note_${new Date().toISOString().split('T')[0]}.txt`,
                     createdAt: new Date().toISOString(),
                     updatedAt: new Date().toISOString()
                 };
