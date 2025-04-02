@@ -18,6 +18,7 @@
     <script src="js/goals.js" defer></script>
     <script src="js/media.js" defer></script>
     <script src="js/practice-categories.js" defer></script>
+    <script src="js/user-guide.js" defer></script>
 </head>
 <body>
     <div class="app">
@@ -69,6 +70,12 @@
             <section id="timer-page" class="page active">
                 <div class="page-header">
                     <h1>Practice Timer</h1>
+                    <div class="action-buttons">
+                        <button id="how-to-use-btn" class="secondary-button">
+                            <i data-lucide="help-circle"></i>
+                            How to use PracticeTrack
+                        </button>
+                    </div>
                 </div>
                 <div class="timer-container">
                     <div class="form-group">
@@ -211,83 +218,17 @@
                 </div>
             </section>
 
-            <!-- Settings Page -->
-            <section id="settings-page" class="page">
-                <div class="page-header">
-                    <h1>Settings</h1>
-                </div>
-                <div class="container">
-                    <div class="settings-section">
-                        <h2>Lesson Settings</h2>
-                        <div class="form-group">
-                            <label for="lesson-day">Lesson Day</label>
-                            <select id="lesson-day" class="form-control">
-                                <option value="">Select Day</option>
-                                <option value="Monday">Monday</option>
-                                <option value="Tuesday">Tuesday</option>
-                                <option value="Wednesday">Wednesday</option>
-                                <option value="Thursday">Thursday</option>
-                                <option value="Friday">Friday</option>
-                                <option value="Saturday">Saturday</option>
-                                <option value="Sunday">Sunday</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="lesson-time">Lesson Time</label>
-                            <input type="time" id="lesson-time" class="form-control">
-                        </div>
-                        <button id="save-lesson-settings" class="primary-button">
-                            <i data-lucide="save"></i>
-                            Save Lesson Settings
-                        </button>
-                    </div>
-
-                    <div class="settings-section">
-                        <h2>Categories</h2>
-                        <div class="categories-container">
-                            <div class="add-category-form">
-                                <input type="text" id="new-category-name" class="form-control" placeholder="Enter new category name">
-                                <button id="add-category-btn" class="primary-button">
-                                    <i data-lucide="plus"></i>
-                                    Add Category
-                                </button>
-                            </div>
-                            <div id="categories-list" class="categories-list">
-                                <!-- Categories will be listed here -->
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="settings-section">
-                        <h2>Data Management</h2>
-                        <div class="data-buttons">
-                            <button id="export-data" class="secondary-button">
-                                <i data-lucide="download"></i>
-                                Export Data
-                            </button>
-                            <button id="import-data" class="secondary-button">
-                                <i data-lucide="upload"></i>
-                                Import Data
-                            </button>
-                        </div>
-                        <div class="clear-data-section">
-                            <h4>Clear Data</h4>
-                            <div class="data-buttons">
-                                <button id="clear-all-data" class="danger-button">
-                                    <i data-lucide="alert-triangle"></i>
-                                    Clear All Data
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
             <!-- Resources Page -->
             <section id="resources-page" class="page">
                 <div class="page-header">
                     <h1>Practice Resources</h1>
                     <p class="tagline">Comprehensive list of practice categories for every instrument</p>
+                    <div class="action-buttons">
+                        <button id="resources-how-to-use-btn" class="secondary-button">
+                            <i data-lucide="help-circle"></i>
+                            How to use PracticeTrack
+                        </button>
+                    </div>
                 </div>
 
                 <div class="container">
@@ -639,6 +580,76 @@
                             </ul>
                         </div>
                     </section>
+                </div>
+            </section>
+
+            <!-- Settings Page -->
+            <section id="settings-page" class="page">
+                <div class="page-header">
+                    <h1>Settings</h1>
+                </div>
+                <div class="settings-container">
+                    <!-- Lesson Settings -->
+                    <div class="settings-section">
+                        <h2>Lesson Settings</h2>
+                        <form id="settings-form" class="settings-form">
+                            <div class="form-group">
+                                <label for="lesson-day">Lesson Day</label>
+                                <select id="lesson-day" name="lesson-day">
+                                    <option value="">Select Day</option>
+                                    <option value="Monday">Monday</option>
+                                    <option value="Tuesday">Tuesday</option>
+                                    <option value="Wednesday">Wednesday</option>
+                                    <option value="Thursday">Thursday</option>
+                                    <option value="Friday">Friday</option>
+                                    <option value="Saturday">Saturday</option>
+                                    <option value="Sunday">Sunday</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="lesson-time">Lesson Time</label>
+                                <input type="time" id="lesson-time" name="lesson-time">
+                            </div>
+                            <button type="button" id="save-lesson-settings" class="primary-button">Save Settings</button>
+                        </form>
+                    </div>
+
+                    <!-- Categories Management -->
+                    <div class="settings-section">
+                        <h2>Practice Categories</h2>
+                        <div class="categories-container">
+                            <div class="add-category-form">
+                                <input type="text" id="new-category-name" placeholder="Enter new category name">
+                                <button id="add-category-btn" class="primary-button">Add Category</button>
+                            </div>
+                            <div id="categories-list" class="categories-list">
+                                <!-- Categories will be loaded here -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Data Management -->
+                    <div class="settings-section">
+                        <h2>Data Management</h2>
+                        <div class="data-buttons">
+                            <button id="export-data" class="primary-button">
+                                <i data-lucide="download"></i>
+                                Export Data
+                            </button>
+                            <button id="import-data" class="primary-button">
+                                <i data-lucide="upload"></i>
+                                Import Data
+                            </button>
+                        </div>
+                        <div class="clear-data-section">
+                            <h4>Clear All Data</h4>
+                            <p>Warning: This action cannot be undone.</p>
+                            <button id="clear-all-data" class="danger-button">
+                                <i data-lucide="trash-2"></i>
+                                Clear All Data
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </section>
         </main>

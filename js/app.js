@@ -132,6 +132,11 @@ const navigateToPage = (page) => {
                 window.initializeSettings();
             }
             break;
+        case 'resources':
+            if (typeof window.initializeResources === 'function') {
+                window.initializeResources();
+            }
+            break;
     }
     
     // Update current page

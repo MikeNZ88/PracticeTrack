@@ -74,17 +74,6 @@ const initializeSettings = () => {
             addCategoryBtn: !!addCategoryBtn
         });
         
-        // Validate required elements
-        if (!categoriesList || !newCategoryInput || !addCategoryBtn) {
-            console.error('Required DOM elements not found:', {
-                categoriesList: !!categoriesList,
-                newCategoryInput: !!newCategoryInput,
-                addCategoryBtn: !!addCategoryBtn
-            });
-            alert('Some required elements were not found. Please refresh the page.');
-            return;
-        }
-        
         // First, clean up any corrupted data
         cleanupStorage();
         
