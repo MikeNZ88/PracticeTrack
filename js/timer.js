@@ -141,25 +141,30 @@ class Timer {
     }
 
     saveSession() {
-        try {
-            if (this.timeElapsed === 0) {
-                alert('No practice time recorded. Start the timer first.');
-                return;
-            }
+        // Check if timer is running and has elapsed time
+        if (this.timeElapsed === 0) {
+            alert('Timer has not started yet.');
+            return;
+        }
 
-            // Create session object
-            const session = {
-                id: `session_${Date.now()}`,
-                categoryId: this.categorySelect.value || null,
-                startTime: this.startTime.toISOString(),
-                duration: this.timeElapsed,
-                notes: this.sessionNotes.value.trim(),
-                createdAt: new Date().toISOString()
-            };
-            
+        const sessionStartTime = this.startTime || new Date(Date.now() - this.timeElapsed * 1000);
+        const sessionEndTime = new Date(sessionStartTime.getTime() + this.timeElapsed * 1000); // Correct endTime calculation
+
+        const sessionData = {
+            id: `session_${Date.now()}`,
+            categoryId: this.categorySelect.value,
+            startTime: sessionStartTime.toISOString(),
+            endTime: sessionEndTime.toISOString(), // Save calculated end time
+            duration: this.timeElapsed, // Save duration in seconds
+            notes: this.sessionNotes.value.trim(),
+            isLesson: false, // Assuming timer sessions aren't lessons
+            createdAt: new Date().toISOString()
+        };
+        
+        try {
             // Use data layer to save session
             if (window.addItem) {
-                window.addItem('SESSIONS', session);
+                window.addItem('SESSIONS', sessionData);
             } else {
                 // Legacy localStorage fallback
                 let sessions = [];
@@ -173,7 +178,7 @@ class Timer {
                     sessions = [];
                 }
                 
-                sessions.push(session);
+                sessions.push(sessionData);
                 localStorage.setItem('practiceTrack_sessions', JSON.stringify(sessions));
             }
             

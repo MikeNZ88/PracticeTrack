@@ -10,6 +10,24 @@ let pages;
 
 // Initialize app function
 const initializeApp = () => {
+    // Read the last active tab from localStorage
+    let initialPage = 'timer'; // Default page
+    try {
+        const savedTab = localStorage.getItem('activeTab');
+        if (savedTab) {
+            // Optional: Add validation to ensure savedTab is a valid page ID
+            const validPages = ['timer', 'sessions', 'goals', 'stats', 'media', 'resources', 'settings'];
+            if (validPages.includes(savedTab)) {
+                 initialPage = savedTab;
+            }
+        }
+    } catch (e) {
+        console.warn('Could not read active tab from localStorage:', e);
+    }
+    
+    // Update the global variable (if needed, though navigateToPage sets it anyway)
+    currentPage = initialPage;
+    
     // Setup navigation
     setupNavigation();
     
@@ -149,6 +167,13 @@ const navigateToPage = (page) => {
     
     // Update current page
     currentPage = page;
+    
+    // Store the active tab in localStorage
+    try {
+        localStorage.setItem('activeTab', page);
+    } catch (e) {
+        console.warn('Could not save active tab to localStorage:', e);
+    }
 };
 
 // Initialize theme

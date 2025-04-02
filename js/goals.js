@@ -43,22 +43,35 @@ function createGoalElement(goal) {
         JSON.parse(localStorage.getItem('practiceTrack_categories')) || [];
     const category = categories.find(c => c.id === goal.categoryId) || { name: 'Unknown' };
     
-    // Format target date
-    const targetDate = goal.targetDate ? new Date(goal.targetDate) : null;
-    const targetDateStr = targetDate ? targetDate.toLocaleDateString() : 'No deadline';
+    // Format created date and time
+    const createdAt = new Date(goal.createdAt);
+    const dateStr = createdAt.toLocaleDateString();
+    const timeStr = createdAt.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }); 
     
-    // Create goal content
+    // Format target date (keep for display if exists)
+    const targetDate = goal.targetDate ? new Date(goal.targetDate) : null;
+    const targetDateStr = targetDate ? ` / Due: ${targetDate.toLocaleDateString()}` : '';
+    
+    // Determine status class and icon
+    const statusClass = goal.completed ? 'completed' : 'active';
+    const statusIcon = goal.completed ? 'check-circle' : 'circle';
+
+    // Create goal content - Updated Footer Structure
     goalElement.innerHTML = `
-        <div class="goal-header">
-            <div class="goal-status ${goal.completed ? 'completed' : 'active'}">
-                <button class="toggle-goal-btn">
-                    <i data-lucide="${goal.completed ? 'check-circle' : 'circle'}"></i>
+        <div class="goal-main-content">
+            <div class="goal-header">
+                <button class="goal-status-toggle ${statusClass}" title="Toggle Goal Status">
+                    <i data-lucide="${statusIcon}"></i>
                 </button>
+                <h3 class="goal-title card-title">${goal.title}</h3>
             </div>
-            <div class="goal-title">${goal.title}</div>
-            <div class="goal-category">${category.name}</div>
-            <div class="goal-due-date">${targetDateStr}</div>
-            <div class="goal-actions">
+            ${goal.description ? `<div class="goal-description">${goal.description}</div>` : ''}
+        </div>
+        
+        <div class="goal-footer">
+             <span class="goal-category card-name-pill">${category.name}</span>
+             <span class="goal-date-time">${dateStr} at ${timeStr}${targetDateStr}</span> 
+             <div class="goal-actions">
                 <button class="icon-button edit-goal" title="Edit Goal">
                     <i data-lucide="edit"></i>
                 </button>
@@ -67,22 +80,23 @@ function createGoalElement(goal) {
                 </button>
             </div>
         </div>
-        ${goal.description ? `<div class="goal-description">${goal.description}</div>` : ''}
     `;
     
     // Initialize icons
     if (window.lucide) {
-        window.lucide.createIcons({ icons: ['check-circle', 'circle', 'edit', 'trash'] });
+        window.lucide.createIcons({ context: goalElement }); 
     }
     
     // Add event listeners
-    const toggleBtn = goalElement.querySelector('.toggle-goal-btn');
-    if (toggleBtn) {
-        toggleBtn.addEventListener('click', () => {
+    // Listener for the status toggle area
+    const statusToggle = goalElement.querySelector('.goal-status-toggle');
+    if (statusToggle) {
+        statusToggle.addEventListener('click', () => {
             toggleGoal(goal.id);
         });
     }
     
+    // Edit and Delete listeners (target buttons within footer)
     const editBtn = goalElement.querySelector('.edit-goal');
     if (editBtn) {
         editBtn.addEventListener('click', () => {
@@ -242,14 +256,23 @@ function handleGoalFormSubmit(dialog, e, goalId) {
             localStorage.setItem('practiceTrack_goals', JSON.stringify(goals));
         }
         
-        // Close dialog
+        const saveButton = dialog.querySelector('button[type="submit"]');
+        if (saveButton) {
+            saveButton.textContent = 'Saved!';
+            saveButton.classList.add('success');
+            saveButton.disabled = true; // Briefly disable button
+            setTimeout(() => {
+                saveButton.textContent = 'Save Goal'; // Or original text
+                saveButton.classList.remove('success');
+                saveButton.disabled = false; // Re-enable
+                // Dialog is closed immediately after this block
+            }, 1500); // Revert after 1.5 seconds
+        }
+        // Close dialog immediately 
         dialog.close();
         
-        // Reload goals list
-        window.UI.loadRecords('goals', {
-            recordType: 'GOALS',
-            createRecordElementFn: createGoalElement
-        });
+        // Reload goals list (already moved outside timeout)
+        window.UI.loadRecords('goals');
         
     } catch (error) {
         console.error('Error saving goal:', error);

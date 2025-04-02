@@ -19,6 +19,8 @@
     <script src="js/media.js" defer></script>
     <script src="js/practice-categories.js" defer></script>
     <script src="js/user-guide.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.0/papaparse.min.js"></script>
 </head>
 <body>
     <div class="app">
@@ -131,9 +133,20 @@
                         <select class="category-filter">
                             <option value="">All Categories</option>
                         </select>
+                        <!-- Date Preset Dropdown -->
+                        <select class="date-preset-filter filter-select" title="Select Date Range Preset">
+                            <option value="all">All Time</option>
+                            <option value="week">This Week</option>
+                            <option value="month">This Month</option>
+                            <option value="year">This Year</option>
+                            <option value="ytd">Year to Date</option>
+                            <option value="custom">Custom Range</option>
+                        </select>
                         <div class="date-range">
-                            <input type="date" class="date-input" placeholder="Start Date">
-                            <input type="date" class="date-input" placeholder="End Date">
+                            <label for="session-start-date">Start:</label>
+                            <input type="date" id="session-start-date" class="date-input" placeholder="Start Date">
+                            <label for="session-end-date">End:</label>
+                            <input type="date" id="session-end-date" class="date-input" placeholder="End Date">
                         </div>
                     </div>
                     <div class="page-actions centered">
@@ -182,19 +195,31 @@
                 <div class="page-header">
                     <h1>Practice Statistics</h1>
                 </div>
-                <!-- Moved Lesson Countdown -->
-                <div id="lesson-countdown-container" class="lesson-countdown-container">
-                     <!-- Countdown card will be inserted here by JS -->
-                </div>
+                <!-- Moved Filters Above Countdown -->
                 <div class="page-content-container">
                     <div class="filters">
-                        <select id="category-filter" class="stats-category-filter">
+                        <select id="category-filter" class="stats-category-filter filter-select">
                             <option value="">All Categories</option>
                         </select>
+                        <!-- Date Preset Dropdown -->
+                        <select class="date-preset-filter filter-select" title="Select Date Range Preset">
+                            <option value="all">All Time</option>
+                            <option value="week">This Week</option>
+                            <option value="month">This Month</option>
+                            <option value="year">This Year</option>
+                            <option value="ytd">Year to Date</option>
+                            <option value="custom">Custom Range</option>
+                        </select>
                         <div class="date-range">
-                            <input type="date" id="start-date" class="stats-date-input" placeholder="Start Date">
-                            <input type="date" id="end-date" class="stats-date-input" placeholder="End Date">
+                            <label for="stats-start-date">Start:</label>
+                            <input type="date" id="stats-start-date" class="stats-date-input date-input" placeholder="Start Date">
+                            <label for="stats-end-date">End:</label>
+                            <input type="date" id="stats-end-date" class="stats-date-input date-input" placeholder="End Date">
                         </div>
+                    </div>
+                    <!-- Lesson Countdown -->
+                    <div id="lesson-countdown-container" class="lesson-countdown-container">
+                         <!-- Countdown card will be inserted here by JS -->
                     </div>
                     <div class="stats-container">
                         <!-- Stats grid will be displayed here by JS -->
@@ -216,9 +241,20 @@
                             <option value="video">Videos</option>
                             <option value="note">Notes</option>
                         </select>
+                        <!-- Date Preset Dropdown -->
+                        <select class="date-preset-filter filter-select" title="Select Date Range Preset">
+                            <option value="all">All Time</option>
+                            <option value="week">This Week</option>
+                            <option value="month">This Month</option>
+                            <option value="year">This Year</option>
+                            <option value="ytd">Year to Date</option>
+                            <option value="custom">Custom Range</option>
+                        </select>
                         <div class="date-range">
-                            <input type="date" class="date-input" placeholder="Start Date">
-                            <input type="date" class="date-input" placeholder="End Date">
+                            <label for="media-start-date">Start:</label>
+                            <input type="date" id="media-start-date" class="date-input" placeholder="Start Date">
+                            <label for="media-end-date">End:</label>
+                            <input type="date" id="media-end-date" class="date-input" placeholder="End Date">
                         </div>
                     </div>
                     <div class="media-controls">
@@ -621,16 +657,17 @@
                         <form id="settings-form" class="settings-form">
                             <div class="form-group">
                                 <label for="lesson-day">Lesson Day</label>
-                                <select id="lesson-day" name="lesson-day">
-                                    <option value="">Select Day</option>
-                                    <option value="Monday">Monday</option>
-                                    <option value="Tuesday">Tuesday</option>
-                                    <option value="Wednesday">Wednesday</option>
-                                    <option value="Thursday">Thursday</option>
-                                    <option value="Friday">Friday</option>
-                                    <option value="Saturday">Saturday</option>
-                                    <option value="Sunday">Sunday</option>
-                                </select>
+                                <div id="lesson-day-selector" class="day-selector-group">
+                                    <button type="button" class="day-button" data-day="Monday">Mon</button>
+                                    <button type="button" class="day-button" data-day="Tuesday">Tue</button>
+                                    <button type="button" class="day-button" data-day="Wednesday">Wed</button>
+                                    <button type="button" class="day-button" data-day="Thursday">Thu</button>
+                                    <button type="button" class="day-button" data-day="Friday">Fri</button>
+                                    <button type="button" class="day-button" data-day="Saturday">Sat</button>
+                                    <button type="button" class="day-button" data-day="Sunday">Sun</button>
+                                    <button type="button" class="day-button clear-day" data-day="">Clear</button>
+                                </div>
+                                <input type="hidden" id="lesson-day" name="lesson-day">
                             </div>
                             <div class="form-group">
                                 <label for="lesson-time">Lesson Time</label>
@@ -647,6 +684,10 @@
                             <div class="add-category-form">
                                 <input type="text" id="new-category-name" placeholder="Enter new category name">
                                 <button id="add-category-btn" class="primary-button">Add Category</button>
+                            </div>
+                            <div class="tip-box">
+                                <h4>Tip: Add Specific Pieces</h4>
+                                <p>Consider adding individual songs, etudes, or pieces you are currently working on as categories for more detailed tracking!</p>
                             </div>
                             <div id="categories-list" class="categories-list">
                                 <!-- Categories will be loaded here -->

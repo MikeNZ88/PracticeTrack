@@ -53,6 +53,81 @@ function initStats() {
     
     // Setup date input listeners
     setupDateInputListeners();
+    
+    // --- Add Date Preset Logic --- 
+    const pageElement = document.getElementById('stats-page');
+    const presetFilter = pageElement ? pageElement.querySelector('.date-preset-filter') : null;
+    const startDateInput = pageElement ? pageElement.querySelector('#stats-start-date') : null; 
+    const endDateInput = pageElement ? pageElement.querySelector('#stats-end-date') : null; 
+    const dateRangeDiv = pageElement ? pageElement.querySelector('.date-range') : null;
+
+    if (presetFilter && startDateInput && endDateInput && dateRangeDiv) {
+        presetFilter.addEventListener('change', () => {
+            const selectedPreset = presetFilter.value;
+            const today = new Date();
+            let startDate = '';
+            let endDate = '';
+
+            dateRangeDiv.style.display = (selectedPreset === 'custom') ? 'flex' : 'none';
+
+            switch (selectedPreset) {
+                case 'week':
+                    const firstDayOfWeek = new Date(today.setDate(today.getDate() - today.getDay()));
+                    startDate = firstDayOfWeek.toISOString().split('T')[0];
+                    endDate = new Date().toISOString().split('T')[0];
+                    break;
+                case 'month':
+                    startDate = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
+                    endDate = new Date().toISOString().split('T')[0];
+                    break;
+                case 'year':
+                    startDate = new Date(today.getFullYear(), 0, 1).toISOString().split('T')[0];
+                    endDate = new Date(today.getFullYear(), 11, 31).toISOString().split('T')[0];
+                    break;
+                case 'ytd':
+                    startDate = new Date(today.getFullYear(), 0, 1).toISOString().split('T')[0];
+                    endDate = new Date().toISOString().split('T')[0];
+                    break;
+                case 'all':
+                    startDate = '';
+                    endDate = '';
+                    break;
+                case 'custom':
+                     startDate = startDateInput.value;
+                     endDate = endDateInput.value;
+                    break;
+            }
+            
+            if (selectedPreset !== 'custom') {
+                 startDateInput.value = startDate;
+                 endDateInput.value = endDate;
+             }
+            // Apply filters directly in stats
+             applyFilters(); 
+        });
+        
+         // Ensure changing custom dates updates preset and triggers filter
+         startDateInput.addEventListener('change', () => {
+             presetFilter.value = 'custom';
+             dateRangeDiv.style.display = 'flex';
+             applyFilters(); // Trigger filter
+         });
+         endDateInput.addEventListener('change', () => {
+              presetFilter.value = 'custom';
+              dateRangeDiv.style.display = 'flex';
+              applyFilters(); // Trigger filter
+         });
+
+        // Set initial state - Default to 'all' and hide custom range
+        presetFilter.value = 'all';
+        dateRangeDiv.style.display = 'none'; 
+        startDateInput.value = ''; // Ensure custom dates are cleared initially
+        endDateInput.value = '';
+
+        // Apply initial filters (defaulting to 'all' time)
+        applyFilters(); 
+    }
+    // --- End Date Preset Logic ---
 }
 
 function loadCategoryFilter() {
@@ -113,21 +188,95 @@ function displayStats(sessions, container) {
         displayEmptyState(container);
         return;
     }
-    
-    // Calculate stats
+
+    // --- Calculate Stats --- 
     const totalTime = sessions.reduce((sum, session) => sum + (session.duration || 0), 0);
     const sessionCount = sessions.length;
     const avgTime = sessionCount > 0 ? Math.round(totalTime / sessionCount) : 0;
     const maxTime = sessionCount > 0 ? Math.max(...sessions.map(s => s.duration || 0)) : 0;
     
+    // --- Calculate Most Practiced & Most Frequent Categories --- 
+    let mostPracticedCategoryName = 'N/A';
+    let mostPracticedCategoryTime = 0;
+    let mostFrequentCategoryName = 'N/A';
+    let mostFrequentCategoryDays = 0;
+    const categories = window.getItems ? window.getItems('CATEGORIES') : JSON.parse(localStorage.getItem('practiceTrack_categories')) || [];
+    
+    if (sessionCount > 0 && categories.length > 0) {
+        const durationByCategory = {};
+        const daysByCategory = {};
+
+        sessions.forEach(session => {
+            if (!session.categoryId) return; // Skip sessions without category
+            
+            // Duration
+            durationByCategory[session.categoryId] = (durationByCategory[session.categoryId] || 0) + (session.duration || 0);
+            
+            // Frequency (Unique Days)
+            if (session.startTime) { // Need startTime for date calculation
+                const datePart = new Date(session.startTime).toISOString().split('T')[0];
+                if (!daysByCategory[session.categoryId]) {
+                    daysByCategory[session.categoryId] = new Set();
+                }
+                daysByCategory[session.categoryId].add(datePart);
+            }
+        });
+
+        // Find Most Practiced
+        let maxDuration = 0;
+        let mostPracticedIds = []; // Store IDs of tied categories
+        for (const categoryId in durationByCategory) {
+            const currentDuration = durationByCategory[categoryId];
+            if (currentDuration > maxDuration) {
+                maxDuration = currentDuration;
+                mostPracticedIds = [categoryId]; // New leader
+            } else if (currentDuration === maxDuration && maxDuration > 0) {
+                mostPracticedIds.push(categoryId); // Tie
+            }
+        }
+        // Determine display name based on ties
+        if (mostPracticedIds.length === 1) {
+            const category = categories.find(c => c.id === mostPracticedIds[0]);
+            mostPracticedCategoryName = category ? category.name : 'Unknown';
+        } else if (mostPracticedIds.length > 1) {
+            mostPracticedCategoryName = 'Multiple'; // Indicate a tie
+        }
+        // Keep N/A if no duration found
+        mostPracticedCategoryTime = maxDuration; // Store the max time regardless of ties
+
+        // Find Most Frequent
+        let maxDays = 0;
+        let mostFrequentIds = []; // Store IDs of tied categories
+        for (const categoryId in daysByCategory) {
+            const currentDays = daysByCategory[categoryId].size;
+            if (currentDays > maxDays) {
+                maxDays = currentDays;
+                mostFrequentIds = [categoryId]; // New leader
+            } else if (currentDays === maxDays && maxDays > 0) {
+                mostFrequentIds.push(categoryId); // Tie
+            }
+        }
+        // Determine display name based on ties
+        if (mostFrequentIds.length === 1) {
+            const category = categories.find(c => c.id === mostFrequentIds[0]);
+            mostFrequentCategoryName = category ? category.name : 'Unknown';
+        } else if (mostFrequentIds.length > 1) {
+            mostFrequentCategoryName = 'Multiple'; // Indicate a tie
+        }
+        // Keep N/A if no days found
+        mostFrequentCategoryDays = maxDays; // Store the max days regardless of ties
+    }
+    
     console.log('Calculated stats:', {
         totalTime,
         avgTime,
         maxTime,
-        sessionCount // Use sessionCount instead of recalculating sessionsThisWeek
+        sessionCount,
+        mostPracticed: { name: mostPracticedCategoryName, time: mostPracticedCategoryTime },
+        mostFrequent: { name: mostFrequentCategoryName, days: mostFrequentCategoryDays }
     });
 
-    // Create stats grid (countdown is handled separately now)
+    // --- Create stats grid HTML --- 
     container.innerHTML = `
         <div class="stats-grid">
             <div class="card stat-card">
@@ -149,6 +298,16 @@ function displayStats(sessions, container) {
                 <h3>Number of Sessions</h3>
                 <div class="stat-value">${sessionCount}</div>
                 <div class="stat-description">Total practice sessions recorded</div>
+            </div>
+            <div class="card stat-card">
+                <h3>Most Practiced</h3>
+                <div class="stat-value">${mostPracticedCategoryName}</div>
+                <div class="stat-description">Category with most time (${formatDuration(mostPracticedCategoryTime)})</div>
+            </div>
+            <div class="card stat-card">
+                <h3>Most Frequent</h3>
+                <div class="stat-value">${mostFrequentCategoryName}</div>
+                <div class="stat-description">Category practiced most days (${mostFrequentCategoryDays} ${mostFrequentCategoryDays === 1 ? 'day' : 'days'})</div>
             </div>
         </div>
     `;
@@ -329,17 +488,20 @@ const updateLessonCountdown = (container) => {
     } else {
         console.log('Creating countdown card with info:', lessonInfo);
         cardHtml = `
-            <div class="lesson-countdown-card">
+            <div class="lesson-countdown-card card">
                 <div class="card-header">
                     <h3>Next Lesson</h3>
                     <i data-lucide="calendar"></i>
                 </div>
-                <div class="card-content">
-                    <div class="countdown-value">${lessonInfo.days}</div>
-                    <div class="countdown-label">days until lesson</div>
-                    <div class="lesson-details">
-                        <p>${lessonInfo.date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
-                        <p>${lessonInfo.date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}</p>
+                <div class="card-content countdown-content">
+                    <div class="countdown-item">
+                         <span class="countdown-value">${lessonInfo.days}</span>
+                         <span class="countdown-label">days</span>
+                    </div>
+                    <div class="countdown-separator"></div>
+                    <div class="countdown-item">
+                        <span class="countdown-label">${lessonInfo.date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</span>
+                        <span class="countdown-label">${lessonInfo.date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}</span>
                     </div>
                 </div>
             </div>
@@ -513,18 +675,14 @@ const addStatsStyles = () => {
 
 // Add a new function to setup date input listeners
 function setupDateInputListeners() {
-    const startDateInput = document.getElementById('start-date');
-    const endDateInput = document.getElementById('end-date');
+    const startDateInput = document.getElementById('stats-start-date');
+    const endDateInput = document.getElementById('stats-end-date');
     
     if (startDateInput) {
-        startDateInput.addEventListener('change', () => {
-            applyFilters();
-        });
+        startDateInput.addEventListener('change', applyFilters);
     }
     
     if (endDateInput) {
-        endDateInput.addEventListener('change', () => {
-            applyFilters();
-        });
+        endDateInput.addEventListener('change', applyFilters);
     }
 }

@@ -7,6 +7,7 @@
 window.UI = (function() {
     // Cache for DOM elements
     const domCache = {};
+    const initializedPages = {}; // Add a flag object
     
     /**
      * Initialize a record listing page with standard components
@@ -29,6 +30,13 @@ window.UI = (function() {
             createRecordElementFn,
             showDialogFn
         } = options;
+        
+        // Add check: If page already initialized, log and return
+        if (initializedPages[pageId]) {
+            console.warn(`[UI Framework] initRecordPage called again for already initialized page: ${pageId}. Skipping listener setup.`);
+            return; 
+        }
+        console.log(`[UI Framework] Initializing page: ${pageId}`); // Log initialization attempt
         
         // Clear DOM cache for this page
         domCache[pageId] = {};
@@ -82,11 +90,15 @@ window.UI = (function() {
         
         // Add event listeners
         if (addButton) {
-            addButton.addEventListener('click', () => {
-                if (typeof showDialogFn === 'function') {
-                    showDialogFn();
-                }
-            });
+            // Check flag before adding listener
+            if (!initializedPages[pageId]) { 
+                console.log(`[UI Framework] Attaching listener to Add button for page: ${pageId}`);
+                addButton.addEventListener('click', () => {
+                    if (typeof showDialogFn === 'function') {
+                        showDialogFn();
+                    }
+                });
+            }
         }
         
         if (searchInput) {
@@ -119,6 +131,10 @@ window.UI = (function() {
         
         // Initial load of records
         loadRecords(pageId);
+        
+        // Set the initialized flag for this page at the end
+        initializedPages[pageId] = true;
+        console.log(`[UI Framework] Page ${pageId} marked as initialized.`);
     }
     
     /**
@@ -182,14 +198,16 @@ window.UI = (function() {
             let records = window.getItems ? window.getItems(recordType) : 
                 JSON.parse(localStorage.getItem(`practiceTrack_${recordType}`)) || [];
             
-            // *** Add logging before filtering ***
             console.log(`[DEBUG ${recordType} Load] Raw records loaded:`, records.length > 0 ? JSON.parse(JSON.stringify(records)) : '[]', 'Filters to apply:', JSON.parse(JSON.stringify(filters)));
 
-            // Apply filters (pass recordType for specific search)
+            // Apply filters
             records = filterRecords(records, filters, recordType);
+            console.log(`[DEBUG ${recordType} Load] Records after filtering: ${records.length}`); // <<< Log after filtering
             
             // Sort records
+            console.log(`[DEBUG ${recordType} Load] Attempting to sort ${records.length} records...`); // <<< Log before sorting
             records = sortRecords(records, recordType);
+            console.log(`[DEBUG ${recordType} Load] Records after sorting:`, records.length > 0 ? JSON.parse(JSON.stringify(records.map(r => r.id))) : '[]'); // <<< Log after sorting (show IDs)
             
             // Show empty state if no records
             if (records.length === 0) {
@@ -398,8 +416,18 @@ window.UI = (function() {
             }
             
             // Get date fields based on record type
-            const aDate = new Date(a.startTime || a.date || a.createdAt);
-            const bDate = new Date(b.startTime || b.date || b.createdAt);
+            const aDateSource = a.startTime || a.date || a.createdAt;
+            const bDateSource = b.startTime || b.date || b.createdAt;
+            const aDate = new Date(aDateSource);
+            const bDate = new Date(bDateSource);
+
+            // Log the comparison (Enhanced for clarity)
+            if (recordType === 'SESSIONS') { 
+                 console.log(`[DEBUG Sort Sessions] Comparing:
+                     A: ID=${a.id}, Source='${a.startTime ? 'startTime' : (a.date ? 'date' : 'createdAt')}', Value='${aDateSource}', Parsed=${aDate.toISOString()}
+                     B: ID=${b.id}, Source='${b.startTime ? 'startTime' : (b.date ? 'date' : 'createdAt')}', Value='${bDateSource}', Parsed=${bDate.toISOString()}
+                     Result (bDate - aDate): ${bDate - aDate}`);
+            }
             
             return bDate - aDate; // Newest first
         });
@@ -558,15 +586,28 @@ window.UI = (function() {
         `;
         
         // Add event listeners
-        const form = dialog.querySelector('form');
-        if (form && typeof onSubmit === 'function') {
-            form.addEventListener('submit', (e) => {
-                e.preventDefault();
-                onSubmit(dialog, e);
-            });
-        }
+        console.log('[DEBUG UI Framework] Setting up listeners for dialog:', dialog); // Log 1: Dialog element
         
+        // ADDED direct click listener to submit button
+        const submitBtn = dialog.querySelector('button[type="submit"]');
+        console.log('[DEBUG UI Framework] Found submit button:', submitBtn); // Log 2: Button element
+        console.log('[DEBUG UI Framework] Type of onSubmit function:', typeof onSubmit); // Log 3: Type check
+
+        if (submitBtn && typeof onSubmit === 'function') {
+             console.log('[DEBUG UI Framework] Attempting to add click listener to submit button...'); // Log 4: Before adding listener
+            submitBtn.addEventListener('click', (e) => {
+                e.preventDefault(); 
+                console.log('[DEBUG UI Framework] Submit button CLICKED, calling onSubmit callback...'); // Log 5: Inside listener
+                const form = dialog.querySelector('form'); 
+                onSubmit(dialog, { target: form }); 
+            });
+             console.log('[DEBUG UI Framework] Click listener ADDED to submit button.'); // Log 6: After adding listener
+        } else {
+             console.warn('[DEBUG UI Framework] Could not add submit listener. Button found:', !!submitBtn, 'Is onSubmit a function:', typeof onSubmit === 'function'); // Log 7: If listener not added
+        }
+
         const cancelBtn = dialog.querySelector('.cancel-btn');
+        console.log('[DEBUG UI Framework] Found cancel button:', cancelBtn); // Log 8: Cancel button check
         if (cancelBtn && typeof onCancel === 'function') {
             cancelBtn.addEventListener('click', () => {
                 onCancel(dialog);

@@ -111,7 +111,7 @@ function handleFilter(button) {
     // Show/hide sections based on filter
     document.querySelectorAll('.family-section').forEach(section => {
         if (family === 'all' || section.dataset.family === family) {
-            section.style.display = 'block';
+            section.classList.remove('hidden-family');
             // Show all category items within this family
             section.querySelectorAll('.category-item').forEach(item => {
                 item.style.display = 'block';
@@ -121,7 +121,7 @@ function handleFilter(button) {
                 instrument.style.display = 'block';
             });
         } else {
-            section.style.display = 'none';
+            section.classList.add('hidden-family');
         }
     });
 }

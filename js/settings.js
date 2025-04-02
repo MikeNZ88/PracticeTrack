@@ -161,7 +161,29 @@ const setupEventListeners = () => {
         const saveLessonSettingsBtn = document.getElementById('save-lesson-settings');
         if (saveLessonSettingsBtn) {
             console.log('Setting up save lesson settings button listener');
-            saveLessonSettingsBtn.addEventListener('click', handleSettingsSubmit);
+            // Clone and replace to remove old listeners if necessary
+            const newSaveBtn = saveLessonSettingsBtn.cloneNode(true);
+            saveLessonSettingsBtn.parentNode.replaceChild(newSaveBtn, saveLessonSettingsBtn);
+            newSaveBtn.addEventListener('click', handleSettingsSubmit);
+        }
+        
+        // Lesson Day Selector Buttons
+        const daySelector = document.getElementById('lesson-day-selector');
+        if (daySelector) {
+            const dayButtons = daySelector.querySelectorAll('.day-button');
+            const hiddenInput = document.getElementById('lesson-day');
+
+            dayButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const selectedDay = button.dataset.day;
+                    hiddenInput.value = selectedDay; // Update hidden input
+
+                    // Update active state
+                    dayButtons.forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+                    console.log('Selected lesson day:', selectedDay);
+                });
+            });
         }
         
         // Theme toggle
@@ -195,36 +217,58 @@ const loadSettings = () => {
         
         console.log('Parsed settings:', settings[0]);
         
-        // Populate lesson day dropdown
-        if (lessonDaySelect) {
-            console.log('Setting lesson day to:', settings[0].lessonDay);
-            lessonDaySelect.value = settings[0].lessonDay;
+        // Populate lesson day selector
+        const daySelector = document.getElementById('lesson-day-selector');
+        const hiddenLessonDayInput = document.getElementById('lesson-day'); // The hidden input
+        if (daySelector && hiddenLessonDayInput && settings[0].lessonDay !== undefined) {
+            const currentDay = settings[0].lessonDay;
+            hiddenLessonDayInput.value = currentDay; // Set hidden input value
+            const dayButtons = daySelector.querySelectorAll('.day-button');
+            dayButtons.forEach(button => {
+                if (button.dataset.day === currentDay) {
+                    button.classList.add('active');
+                } else {
+                    button.classList.remove('active');
+                }
+            });
+            console.log('Set active lesson day button for:', currentDay);
+        } else {
+             console.warn('Lesson day selector or hidden input not found, or lessonDay missing in settings');
+             // Ensure no button is active if value is empty or element missing
+             if (daySelector) {
+                 daySelector.querySelectorAll('.day-button').forEach(btn => btn.classList.remove('active'));
+             }
+             if(hiddenLessonDayInput) hiddenLessonDayInput.value = '';
         }
         
-        // Set lesson time
-        if (lessonTimeInput) {
+        // Populate lesson time
+        if (lessonTimeInput && settings[0].lessonTime) {
             console.log('Setting lesson time to:', settings[0].lessonTime);
-            lessonTimeInput.value = settings[0].lessonTime || '';
+            lessonTimeInput.value = settings[0].lessonTime;
         }
+        
+        // Populate theme toggle
+        if (themeToggle && settings[0].theme) {
+            console.log('Setting theme to:', settings[0].theme);
+            themeToggle.value = settings[0].theme;
+            // Apply theme immediately
+            document.body.classList.toggle('theme-dark', settings[0].theme === 'dark');
+        }
+        
+        // Load primary instrument (assuming it exists in settings or another storage)
+        const primaryInstrument = localStorage.getItem('practiceTrack_primaryInstrument');
+        if (instrumentSelect && primaryInstrument) {
+             // Logic to populate and select the primary instrument dropdown
+             // This might involve fetching available instruments first
+             console.log('Primary instrument found:', primaryInstrument);
+             // Example: instrumentSelect.value = primaryInstrument;
+        }
+        
+        console.log('Settings loaded into UI');
     } catch (error) {
         console.error('Error loading settings:', error);
+        showMessage('Error loading settings', 'error');
     }
-};
-
-// Populate lesson day dropdown
-const populateLessonDayDropdown = (selectedDay) => {
-    if (!lessonDaySelect) return;
-    
-    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-    lessonDaySelect.innerHTML = '<option value="">Select Day</option>';
-    
-    days.forEach(day => {
-        const option = document.createElement('option');
-        option.value = day;
-        option.textContent = day;
-        option.selected = day === selectedDay;
-        lessonDaySelect.appendChild(option);
-    });
 };
 
 // Notify application that categories have changed
@@ -652,39 +696,59 @@ const handleImportData = () => {
 
 // Handle clearing all data
 const handleClearAllData = () => {
-    if (!confirm('Are you sure you want to clear ALL data? This action cannot be undone.')) return;
-    
-    try {
-        // Clear all data from localStorage
-        localStorage.removeItem('practiceTrack_settings');
-        localStorage.removeItem('practiceTrack_categories');
-        localStorage.removeItem('practiceTrack_sessions');
-        localStorage.removeItem('practiceTrack_goals');
-        localStorage.removeItem('practiceTrack_media');
-        localStorage.removeItem('practiceTrack_timer');
-        
-        // Reset settings to default
-        localStorage.setItem('practiceTrack_settings', JSON.stringify([{
-            id: 's-1',
-            lessonDay: '',
-            lessonTime: '',
-            theme: 'light',
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-        }]));
-        
-        // Reset UI
-        loadSettings();
-        loadCategories();
-        
-        // Show success message
-        alert('All data cleared successfully');
-        
-        // Reload the page to ensure all data is refreshed
-        window.location.reload();
-    } catch (error) {
-        console.error('Error clearing data:', error);
-        alert('Error clearing data. Please try again.');
+    console.log('Clear All Data button clicked');
+    // Confirmation Dialog
+    const isConfirmed = confirm(
+        'Are you absolutely sure you want to clear ALL data?\n\n' +
+        'This includes: \n' +
+        '- All practice sessions\n' +
+        '- All goals\n' +
+        '- All media items\n' +
+        '- All custom categories\n' +
+        '- All settings (lesson day/time, theme)\n\n' +
+        'This action CANNOT be undone!'
+    );
+
+    if (isConfirmed) {
+        console.log('User confirmed data clearing.');
+        try {
+            // Clear all relevant localStorage items
+            localStorage.removeItem('practiceTrack_sessions');
+            localStorage.removeItem('practiceTrack_goals');
+            localStorage.removeItem('practiceTrack_categories');
+            localStorage.removeItem('practiceTrack_settings');
+            localStorage.removeItem('practiceTrack_media');
+            localStorage.removeItem('practiceTrack_timerState');
+            localStorage.removeItem('practiceTrack_primaryInstrument'); // If you store this
+
+            console.log('All PracticeTrack data cleared from localStorage.');
+
+            // Optionally reset UI elements or reload the page
+            // Reset settings form
+            if (settingsForm) settingsForm.reset();
+            if (document.getElementById('lesson-day-selector')) {
+                document.getElementById('lesson-day-selector').querySelectorAll('.day-button').forEach(btn => btn.classList.remove('active'));
+            }
+            if (document.getElementById('lesson-day')) {
+                document.getElementById('lesson-day').value = '';
+            }
+
+            // Reload categories (will show defaults if implemented)
+            initializeDefaultCategories();
+            loadCategories();
+
+            // Show success message
+            showMessage('All data cleared successfully!');
+
+            // Consider reloading the page for a clean slate
+            // window.location.reload();
+
+        } catch (error) {
+            console.error('Error clearing data:', error);
+            showMessage('Error clearing data. Please check the console.', 'error');
+        }
+    } else {
+        console.log('User cancelled data clearing.');
     }
 };
 

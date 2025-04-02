@@ -87,6 +87,7 @@ body {
     margin: 0;
     display: flex;
     min-height: 100vh;
+    overflow-x: hidden; /* Prevent horizontal scroll */
 }
 
 /* Base Card Style */
@@ -97,7 +98,7 @@ body {
     box-shadow: var(--shadow-sm);
     transition: all var(--transition-normal);
     border: 1px solid var(--border-color);
-    margin-bottom: var(--space-lg); /* Added consistent bottom margin */
+    /* margin-bottom: var(--space-lg); <= Removed, use gap in lists */
 }
 
 .card:hover {
@@ -292,6 +293,7 @@ body {
     width: 24px;
     height: 24px;
     color: var(--text-medium);
+    margin-bottom: var(--space-xs);
 }
 
 .mobile-nav .nav-item.active {
@@ -381,30 +383,96 @@ body {
     padding: var(--space-md);
 }
 
-/* Filters - Redesigned */
+/* Filters - Redesigned & Standardized */
 .filters {
     display: flex;
     gap: var(--space-md);
     margin-bottom: var(--space-xl);
-    flex-wrap: wrap;
+    flex-wrap: wrap; /* Allow wrapping on smaller screens */
     justify-content: center;
+    align-items: center; /* Vertically align items */
     background-color: var(--card-background);
     padding: var(--space-lg);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-sm);
+    max-width: 900px; /* Standard max-width */
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%; /* Take full width up to max */
+    box-sizing: border-box; /* Ensure padding is included */
 }
 
+/* Style for all direct children (inputs, selects, divs) in the filter bar */
+.filters > * {
+    flex-grow: 0; /* Prevent items from growing by default */
+    flex-shrink: 0; /* Prevent items from shrinking by default */
+}
+
+/* Allow search input to grow */
+.filters .search-input,
+.filters .goals-search-input {
+    flex-grow: 1; /* Allow search to take more space */
+    min-width: 180px; /* Slightly reduced min-width for flexibility */
+}
+
+/* Style for date range container */
+.filters .date-range {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    flex-wrap: nowrap; /* Try to keep date range together */
+}
+
+/* Make date inputs slightly less wide */
+.filters .date-input,
+.filters .stats-date-input {
+    min-width: 120px; /* Reduced min-width */
+    max-width: 140px; /* Add a max-width */
+}
+
+/* Specific adjustments for Sessions filter bar */
+#sessions-page .filters {
+    /* Try to prevent wrapping more aggressively on wider screens */
+    flex-wrap: nowrap; 
+}
+
+/* Allow session search to shrink slightly if needed */
+#sessions-page .filters .search-input {
+    flex-shrink: 1; 
+}
+
+/* Allow session category to shrink slightly */
+#sessions-page .filters .category-filter {
+     min-width: 140px; /* Slightly reduce min-width */
+     flex-shrink: 1;
+}
+
+/* Allow session date preset to shrink slightly */
+#sessions-page .filters .date-preset-filter {
+     min-width: 120px; /* Slightly reduce min-width */
+     flex-shrink: 1;
+}
+
+/* Media query to allow wrapping on smaller screens for sessions */
+@media (max-width: 960px) { /* Adjust breakpoint as needed */
+    #sessions-page .filters {
+        flex-wrap: wrap; /* Allow wrapping again on smaller screens */
+    }
+}
+
+/* Existing rules for filter inputs/selects */
 .search-input,
 .category-filter,
 .date-input,
-/* Add other filter selects by class/id */
+.filter-select,
 .goals-search-input,
 .goals-category-filter,
 .goals-status-filter,
 .media-type-filter,
-#category-filter,
-#start-date,
-#end-date {
+.stats-category-filter,
+.stats-date-input,
+.date-preset-filter
+ {
     padding: var(--space-sm) var(--space-md);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
@@ -412,18 +480,51 @@ body {
     color: var(--text-dark);
     font-size: var(--font-md);
     transition: all var(--transition-fast);
-    height: 44px; /* Standardize height */
-    line-height: 1.5; /* Adjust line height for vertical centering */
-    vertical-align: middle; /* Align elements nicely if wrapped */
+    height: 44px; /* Standardized height */
+    line-height: 1.5; 
+    vertical-align: middle; 
+    box-sizing: border-box; 
+    /* Removed flex-shrink: 0 here, handled above */
 }
 
-/* Style Select elements specifically */
+/* Allow search to grow */
+.search-input,
+.goals-search-input { 
+     flex-grow: 1; /* Allow search to take up extra space */
+     min-width: 200px; /* Reduced min-width slightly */
+    padding-left: 36px; /* Space for icon */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='16' height='16' fill='none' stroke='%23555f6a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: 12px center;
+}
+
+/* Set min-widths for other filter elements */
+select.filter-select,
 select.category-filter,
 select.goals-category-filter,
 select.goals-status-filter,
 select.media-type-filter,
-select#category-filter {
+select.stats-category-filter,
+select.date-preset-filter {
+     min-width: 150px; /* Existing min-width is good */
+}
+
+.date-input,
+.stats-date-input {
+    min-width: 130px; /* Give date inputs a specific min-width */
+}
+
+/* Style ALL Select elements specifically */
+select.filter-select,
+select.category-filter,
+select.goals-category-filter,
+select.goals-status-filter,
+select.media-type-filter,
+select.stats-category-filter, /* Included stats category */
+select.date-preset-filter {
     appearance: none;
+    -webkit-appearance: none; /* Safari */
+    -moz-appearance: none; /* Firefox */
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23555f6a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: right 12px center;
@@ -435,20 +536,22 @@ select#category-filter {
 .search-input:focus,
 .category-filter:focus,
 .date-input:focus,
-/* Add focus styles for other filters */
+/* Add focus styles for ALL filters */
+.filter-select:focus,
 .goals-search-input:focus,
 .goals-category-filter:focus,
 .goals-status-filter:focus,
 .media-type-filter:focus,
-#category-filter:focus,
-#start-date:focus,
-#end-date:focus {
+.stats-category-filter:focus,
+.stats-date-input:focus,
+.date-preset-filter:focus
+ {
     outline: none;
     border-color: var(--primary-blue);
     box-shadow: 0 0 0 3px rgba(59, 127, 245, 0.12);
 }
 
-/* Keep search-specific styles separate if icon desired */
+/* Search-specific styles */
 .search-input,
 .goals-search-input { 
     min-width: 240px;
@@ -458,21 +561,34 @@ select#category-filter {
     background-position: 12px center;
 }
 
-/* Adjust background image for selects */
+/* Ensure select background doesn't conflict with search */
+select.filter-select,
 select.category-filter,
 select.goals-category-filter,
 select.goals-status-filter,
 select.media-type-filter,
-select#category-filter {
+select.stats-category-filter,
+select.date-preset-filter {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23555f6a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: right 12px center;
     background-size: 16px;
 }
 
-.date-range {
+.date-range label {
     display: flex;
-    gap: var(--space-sm);
+    align-items: center;
+    font-size: var(--font-sm);
+    color: var(--text-medium);
+    margin-right: var(--space-xs);
+    white-space: nowrap; /* Prevent label wrapping */
+}
+
+@media (max-width: 768px) {
+    .date-range label {
+        display: block; 
+        margin-bottom: var(--space-xs);
+    }
 }
 
 /* Lists - Better Spacing */
@@ -481,7 +597,7 @@ select#category-filter {
 .media-list {
     display: flex;
     flex-direction: column;
-    gap: var(--space-lg);
+    gap: var(--space-md); /* Reduced gap */
 }
 
 /* Buttons - Completely Redesigned */
@@ -851,10 +967,33 @@ textarea.form-control {
 }
 
 .session-header {
-    display: flex;
-    justify-content: space-between;
+    display: grid; 
+    grid-template-columns: 1fr auto; /* Column 1 takes available space, Column 2 fits content */
     align-items: center;
-    margin-bottom: var(--space-md);
+    gap: var(--space-md);
+    margin-bottom: var(--space-sm); /* Add space below header */
+}
+
+.session-category { 
+    grid-column: 1 / 2; /* Category in the first column */
+    justify-self: start; /* Align text to the start (left) */
+    /* Use pill style */
+    display: inline-block;
+    font-size: var(--font-sm);
+    font-weight: 500;
+    color: var(--text-medium); 
+    background-color: var(--background-light); 
+    padding: var(--space-xs) var(--space-md);
+    border-radius: var(--radius-full); 
+    white-space: nowrap;
+}
+
+.session-duration { 
+    grid-column: 2 / 3; /* Duration in the second column */
+    justify-self: end; /* Align text to the end (right) */
+    color: var(--text-light); 
+    font-size: var(--font-sm);
+    white-space: nowrap;
 }
 
 .session-header h3 {
@@ -862,14 +1001,6 @@ textarea.form-control {
     color: var(--text-dark);
     font-weight: 600;
     font-size: var(--font-lg);
-}
-
-.session-date {
-    color: var(--text-light);
-    font-size: var(--font-sm);
-    background-color: var(--background-light);
-    padding: var(--space-xs) var(--space-sm);
-    border-radius: var(--radius-md);
 }
 
 .session-details {
@@ -913,21 +1044,38 @@ textarea.form-control {
 
 .session-notes {
     margin: var(--space-md) 0;
-    color: var(--text-dark);
+    color: var(--text-medium); /* Slightly lighter text */
     white-space: pre-wrap;
     padding: var(--space-md);
-    background-color: var(--background-light);
+    background-color: var(--background-light); /* Use lighter background */
     border-radius: var(--radius-md);
     font-size: var(--font-sm);
-    line-height: 1.7;
+    line-height: 1.6; /* Slightly tighter line height */
     border-left: 3px solid var(--border-color);
+    font-style: italic; /* Add italic style */
 }
 
-.session-actions {
+.session-actions { 
+    margin-top: auto; /* Push to bottom */
     display: flex;
-    justify-content: flex-end;
+    justify-content: space-between; /* <<< Key for alignment */
+    align-items: center; 
+    gap: var(--space-md); 
+    border-top: 1px solid var(--border-color); 
+    padding-top: var(--space-md); 
+    font-size: var(--font-sm); 
+}
+
+.session-date {
+    /* Aligned left via space-between */
+     color: var(--text-light);
+}
+
+.session-actions .action-buttons {
+    /* Aligned right via space-between */
+    display: flex;
     gap: var(--space-sm);
-    margin-top: var(--space-md);
+    align-items: center;
 }
 
 .icon-button {
@@ -1378,7 +1526,7 @@ textarea.form-control {
 .theme-button {
     padding: var(--space-sm) var(--space-md);
     border: 1px solid var(--border-color);
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-md); 
     background: none;
     cursor: pointer;
     transition: all var(--transition-normal);
@@ -1411,11 +1559,63 @@ textarea.form-control {
 
 /* Media Cards - Enhanced Design */
 .media-card {
-    /* Inherits background, border-radius, padding, shadow, transition, border from .card */
-    /* Retain specific margin-bottom if needed, or inherit from .card */
-    /* margin-bottom: var(--space-lg); <= Inherited from .card */
-    /* Add any other media-card specific styles here */
+    /* Inherits from .card */
+    /* Add media-specific layout */
+    display: flex;
+    flex-direction: column; /* Stack content vertically */
 }
+
+.media-name { /* Style for the new h3 name */
+    font-size: var(--font-lg);
+    font-weight: 600;
+    color: var(--text-dark);
+    margin-bottom: var(--space-md); /* Space below name */
+    /* Remove potential conflicts from old .media-info p */
+    margin-top: 0;
+}
+
+.media-content {
+    /* Contains image/video placeholder or note content */
+    /* Remove margin if handled by gap or other spacing */
+    margin: 0;
+}
+
+.media-description {
+    /* Styles for the description paragraph */
+    color: var(--text-medium);
+    font-size: var(--font-sm);
+    line-height: 1.5;
+    margin-top: var(--space-md); /* Space above description */
+    margin-bottom: var(--space-md); /* Space below description */
+}
+
+.media-footer {
+    margin-top: auto; /* Push footer to bottom */
+    padding-top: var(--space-md); /* Space above footer */
+    border-top: 1px solid var(--border-color); /* Separator line */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-md);
+}
+
+.media-date {
+    font-size: var(--font-sm);
+    color: var(--text-light);
+    /* Remove background/padding if not desired */
+    /* background-color: var(--background-light); */
+    /* padding: var(--space-xs) var(--space-sm); */
+    /* border-radius: var(--radius-md); */
+}
+
+.media-actions { 
+    /* Contains delete button */
+    /* No specific styles needed if icon-button is styled */
+}
+
+/* Remove old .media-header and .media-info styles if no longer used */
+/* .media-header { ... } */
+/* .media-info { ... } */
 
 .media-card img,
 .media-card video {
@@ -1423,17 +1623,6 @@ textarea.form-control {
     border-radius: var(--radius-md);
     margin: var(--space-md) 0;
     box-shadow: var(--shadow-sm);
-}
-
-.note-content {
-    padding: var(--space-md);
-    background-color: var(--background-light);
-    border-radius: var(--radius-md);
-    margin: var(--space-md) 0;
-    white-space: pre-wrap;
-    font-size: var(--font-sm);
-    line-height: 1.7;
-    border-left: 3px solid var(--border-color);
 }
 
 /* Manual Session Button - More Prominent */
@@ -1596,6 +1785,8 @@ textarea.form-control {
     transition: all var(--transition-normal);
     border: 1px solid var(--border-color);
     position: relative;
+    display: flex; /* Use Flexbox for the main card layout */
+    flex-direction: column; /* Stack content vertically */
 }
 
 .goal-card:hover {
@@ -1614,81 +1805,251 @@ textarea.form-control {
     background-color: var(--secondary-orange);
 }
 
-.goal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: var(--space-md);
+/* Goal Main Content (holds header and description) */
+.goal-main-content {
+    margin-bottom: var(--space-md); /* Space between content and footer */
 }
 
-.goal-header h3 {
+.goal-header {
+    display: flex; /* Use Flexbox */
+    align-items: center; /* Vertically align items */
+    gap: var(--space-md);
+    margin-bottom: var(--space-sm); 
+}
+
+.goal-status-toggle {
+    /* Styles for status button */
+    flex-shrink: 0; /* Prevent button from shrinking */
+    /* Keep existing styles for appearance */
+    background: var(--background-light);
+    border: 1px solid var(--border-color);
+    padding: var(--space-xs);
+    cursor: pointer;
+    display: inline-flex;
+    color: var(--text-light);
+    transition: all 0.2s ease;
+    border-radius: var(--radius-sm);
+    width: 28px;
+    height: 28px;
+    justify-content: center;
+    align-items: center;
+}
+
+.goal-status-toggle i {
+     width: 20px;
+     height: 20px;
+     stroke-width: 2.5;
+}
+     
+.goal-status-toggle.active {
+     color: var(--text-light);
+     background: var(--background-light);
+}
+
+.goal-status-toggle.active:hover {
+    color: var(--success); 
+    border-color: var(--success);
+    background: var(--success-light);
+}
+     
+.goal-status-toggle.completed {
+    color: var(--success);
+    background: var(--background-light);
+    border-color: var(--success);
+}
+
+.goal-status-toggle.completed:hover {
+     color: var(--text-light); 
+     border-color: var(--border-color);
+     background: var(--background-light);
+}
+
+.goal-title {
+    flex-grow: 1; /* Allow title to take remaining space */
+    margin: 0; /* Remove default margin */
+    font-size: var(--font-lg); /* Reuse card-title size */
+    font-weight: 600;
+    color: var(--text-dark);
+    /* Removed text-align: center */
+}
+
+.goal-description {
+    color: var(--text-medium);
+    font-size: var(--font-sm);
+    line-height: 1.5;
+    margin-top: var(--space-sm); /* Space below header */
+    /* Removed text-align: center */
+}
+
+/* Goal Footer */
+.goal-footer {
+    margin-top: auto; /* Push footer to bottom */
+    padding-top: var(--space-md); /* Space above footer */
+    border-top: 1px solid var(--border-color); /* Separator line */
+    display: flex;
+    flex-wrap: wrap; /* Allow wrapping */
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-md);
+    font-size: var(--font-sm); /* Base size for footer elements */
+}
+
+.goal-category {
+    /* Reuse pill style */
+    display: inline-block;
+    font-size: var(--font-xs); 
+    font-weight: 500;
+    color: var(--text-medium); 
+    background-color: var(--background-light); 
+    padding: var(--space-xs) var(--space-md); 
+    border-radius: var(--radius-full); 
+    white-space: nowrap;
+    order: 1; /* Position Category first */
+}
+
+.goal-date-time { 
+    color: var(--text-light);
+    text-align: center; /* Center date/time if it wraps */
+    flex-grow: 1; /* Allow it to take central space */
+    order: 2; /* Position Date/Time second */
+}
+
+.goal-actions { 
+    display: flex; 
+    gap: var(--space-sm); 
+    order: 3; /* Position Actions last */
+}
+
+/* Session Card Layout Fix */
+.session-card {
+    display: flex;
+    flex-direction: column; /* Stack header, notes, actions */
+    gap: var(--space-md);
+}
+
+.session-header {
+    display: grid; 
+    grid-template-columns: 1fr auto; /* Column 1 takes available space, Column 2 fits content */
+    align-items: center;
+    gap: var(--space-md);
+    margin-bottom: var(--space-sm); /* Add space below header */
+}
+
+.session-category { 
+    grid-column: 1 / 2; /* Category in the first column */
+    justify-self: start; /* Align text to the start (left) */
+    /* Use pill style */
+    display: inline-block;
+    font-size: var(--font-sm);
+    font-weight: 500;
+    color: var(--text-medium); 
+    background-color: var(--background-light); 
+    padding: var(--space-xs) var(--space-md);
+    border-radius: var(--radius-full); 
+    white-space: nowrap;
+}
+
+.session-duration { 
+    grid-column: 2 / 3; /* Duration in the second column */
+    justify-self: end; /* Align text to the end (right) */
+    color: var(--text-light); 
+    font-size: var(--font-sm);
+    white-space: nowrap;
+}
+
+.session-header h3 {
     margin: 0;
     color: var(--text-dark);
     font-weight: 600;
     font-size: var(--font-lg);
 }
 
-.goal-category {
-    display: inline-block;
-    font-size: var(--font-xs);
-    padding: var(--space-xs) var(--space-sm);
-    background-color: var(--background-light);
-    border-radius: var(--radius-md);
-    color: var(--text-medium);
-    font-weight: 500;
-}
-
-.goal-progress {
-    margin: var(--space-md) 0;
-}
-
-.goal-progress-bar {
-    height: 8px;
-    background: var(--background-light);
-    border-radius: var(--radius-full);
-    overflow: hidden;
-    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.goal-progress-fill {
-    height: 100%;
-    background: linear-gradient(to right, var(--secondary-orange), var(--secondary-orange-light));
-    transition: width 0.5s ease;
-    border-radius: var(--radius-full);
-}
-
-.goal-stats {
+.session-details {
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    gap: var(--space-md);
     margin-bottom: var(--space-md);
-    font-size: var(--font-sm);
-    color: var(--text-medium);
+    padding: var(--space-sm) 0;
+    border-bottom: 1px dashed var(--border-color);
 }
 
-.goal-actions {
-    display: flex;
-    justify-content: center;
-    gap: var(--space-sm);
-    margin-bottom: var(--space-lg);
-}
-
-.goal-actions .primary-button {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: var(--space-sm);
-    padding: var(--space-md) var(--space-lg);
-    font-size: var(--font-md);
+.session-time {
+    margin: 0;
+    color: var(--text-dark);
     font-weight: 600;
+    font-size: var(--font-md);
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+}
+
+.session-time::before {
+    content: '';
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%233b7ff5' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M12 6v6l4 2'/%3E%3C/svg%3E");
+    background-size: contain;
+}
+
+.lesson-badge {
+    background: linear-gradient(to right, var(--primary-blue), var(--primary-blue-light));
+    color: white;
+    padding: var(--space-xs) var(--space-sm);
     border-radius: var(--radius-md);
-    cursor: pointer;
-    transition: all var(--transition-normal);
-    min-width: 150px;
-    height: 54px;
-    box-shadow: var(--shadow-sm);
-    position: relative;
-    overflow: hidden;
+    font-size: var(--font-xs);
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    box-shadow: 0 2px 4px rgba(59, 127, 245, 0.15);
+}
+
+.session-notes {
+    margin: var(--space-md) 0;
+    color: var(--text-medium); /* Slightly lighter text */
+    white-space: pre-wrap;
+    padding: var(--space-md);
+    background-color: var(--background-light); /* Use lighter background */
+    border-radius: var(--radius-md);
+    font-size: var(--font-sm);
+    line-height: 1.6; /* Slightly tighter line height */
+    border-left: 3px solid var(--border-color);
+    font-style: italic; /* Add italic style */
+}
+
+.session-actions { 
+    margin-top: auto; /* Push to bottom */
+    display: flex;
+    justify-content: space-between; /* <<< Key for alignment */
+    align-items: center; 
+    gap: var(--space-md); 
+    border-top: 1px solid var(--border-color); 
+    padding-top: var(--space-md); 
+    font-size: var(--font-sm); 
+}
+
+.session-date {
+    /* Aligned left via space-between */
+     color: var(--text-light);
+}
+
+.session-actions .action-buttons {
+    /* Aligned right via space-between */
+    display: flex;
+    gap: var(--space-sm);
+    align-items: center;
+}
+
+/* Re-apply Pill Style */
+.card-name-pill {
+    display: inline-block;
+    font-size: var(--font-sm); /* Slightly larger than goal category */
+    font-weight: 500;
+    color: var(--text-medium); 
+    background-color: var(--background-light); 
+    padding: var(--space-xs) var(--space-md); /* More horizontal padding */
+    border-radius: var(--radius-full); /* Make it a pill */
+    white-space: nowrap;
+    /* Removed text-align: center if set previously */
 }
 
 .goal-dialog {
@@ -1803,8 +2164,8 @@ textarea.form-control {
 
     .main-content {
         padding-bottom: 5rem; /* Space for mobile nav */
-        padding-left: var(--space-sm);
-        padding-right: var(--space-sm);
+        padding-left: var(--space-md); /* Increase side padding for mobile */
+        padding-right: var(--space-md); /* Increase side padding for mobile */
     }
     
     .filters {
@@ -1840,11 +2201,17 @@ textarea.form-control {
         margin: var(--space-md) var(--space-sm);
     }
     
-    .session-dialog,
+    .standard-dialog, /* Apply to standard dialog base */
+    .session-dialog, /* Add others if they don't use standard */
     .goal-dialog,
     .note-dialog {
         padding: var(--space-lg);
         width: 95%;
+        /* Adjust position for mobile to avoid keyboard */
+        top: 10%; /* Position closer to the top */
+        transform: translateX(-50%); /* Only center horizontally */
+        max-height: 80vh; /* Limit height */
+        overflow-y: auto; /* Allow scrolling within dialog if content overflows */
     }
     
     .dialog-actions {
@@ -2189,7 +2556,7 @@ textarea:focus {
     color: var(--text-dark);
     transition: all var(--transition-fast);
     height: 48px;
-    line-height: 1.5;
+    line-height: 1.5; 
     appearance: none;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23555f6a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
     background-repeat: no-repeat;
@@ -3095,7 +3462,7 @@ textarea:focus {
     }
 }
 
-/* User Guide Dialog */
+/* User Guide Dialog - Updated with filter buttons */
 .user-guide-dialog {
     position: fixed;
     top: 0;
@@ -3103,6 +3470,7 @@ textarea:focus {
     width: 100%;
     height: 100%;
     background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -3110,18 +3478,31 @@ textarea:focus {
 }
 
 .user-guide-dialog .dialog-content {
-    background-color: var(--background-color);
-    border-radius: var(--border-radius);
-    box-shadow: var(--box-shadow);
+    background-color: var(--card-background);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-xl);
     width: 90%;
     max-width: 800px;
     max-height: 90vh;
     display: flex;
     flex-direction: column;
+    overflow: hidden;
+    position: relative;
+}
+
+.user-guide-dialog .dialog-content::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 6px;
+    background: linear-gradient(to right, var(--primary-blue), var(--secondary-orange));
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
 }
 
 .user-guide-dialog .dialog-header {
-    padding: var(--spacing-md);
+    padding: var(--space-md) var(--space-lg);
     border-bottom: 1px solid var(--border-color);
     display: flex;
     justify-content: space-between;
@@ -3130,271 +3511,227 @@ textarea:focus {
 
 .user-guide-dialog .dialog-header h2 {
     margin: 0;
-    color: var(--text-color);
+    color: var(--text-dark);
+    font-size: var(--font-xl);
+    font-weight: 700;
 }
 
 .user-guide-dialog .dialog-body {
-    padding: var(--spacing-md);
+    padding: var(--space-md);
     overflow-y: auto;
+    max-height: calc(90vh - 120px); /* Adjust based on header/footer height */
 }
 
-.user-guide-dialog iframe {
-    width: 100%;
-    height: 70vh;
-    border: none;
+.user-guide-dialog .guide-filter-buttons {
+    display: flex; /* Use flexbox for filter buttons */
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--space-sm); /* Gap between buttons */
+    margin-bottom: var(--space-lg);
+    padding: 0 var(--space-sm); /* Add slight horizontal padding */
+}
+
+/* Ensure guide filter buttons inherit base filter button styles */
+.user-guide-dialog .filter-button {
+    /* Inherits base .filter-button styles */
+    /* Add any specific overrides if needed */
+    flex-grow: 1; /* Allow buttons to grow */
+    text-align: center;
+}
+
+.user-guide-dialog .guide-content > div[data-section] {
+    display: none; /* Hide sections by default */
+}
+
+.user-guide-dialog .guide-content > div.visible {
+    display: block; /* Show the active section */
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 .user-guide-dialog .close-button {
     background: none;
     border: none;
-    color: var(--text-color);
+    color: var(--text-light);
     cursor: pointer;
-    padding: var(--spacing-xs);
-    border-radius: var(--border-radius);
-    transition: background-color 0.2s;
+    padding: var(--space-xs);
+    border-radius: var(--radius-md);
+    transition: all var(--transition-normal);
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .user-guide-dialog .close-button:hover {
-    background-color: var(--hover-color);
-}
-
-/* Add style for lesson countdown container */
-.lesson-countdown-container {
-    max-width: 800px; /* Or match .stats-container width if different */
-    margin-left: auto;
-    margin-right: auto;
-    margin-bottom: var(--space-lg); /* Add some space below it */
-    text-align: center; /* Center the inline-block or block content inside */
-}
-
-/* Optional: If the card itself needs styling */
-.lesson-countdown-card {
-    /* You could add specific width, padding, background etc. here if needed */
-     display: inline-block; /* Allow text-align: center to work */
-     /* text-align: left; <= REMOVE THIS to inherit center alignment */
-     padding: var(--space-lg); /* Add some padding */
-     background-color: var(--card-background); /* Match other cards */
-     border-radius: var(--radius-lg); /* Match other cards */
-     box-shadow: var(--shadow-sm); /* Match other cards */
-     border: 1px solid var(--border-color); /* Match other cards */
-     min-width: 300px; /* Give it a minimum width */
-}
-
-/* Styles for Session Item Card */
-.session-item {
-    /* Inherits from .card */
-    /* Add layout specific to session items */
-    display: flex;
-    flex-direction: column; /* Stack header, notes, actions vertically */
-    gap: var(--space-md); /* Space between elements */
-}
-
-.session-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap; /* Allow wrapping on small screens */
-    gap: var(--space-sm);
-}
-
-.session-notes {
-    color: var(--text-medium);
-    font-size: var(--font-sm);
-    line-height: 1.5;
-}
-
-.session-actions {
-    margin-top: auto; /* Push actions to the bottom */
-    align-self: flex-end; /* Align actions to the right */
-    display: flex;
-    gap: var(--space-sm);
-}
-
-/* Styles for Goal Item Card */
-.goal-item {
-    /* Inherits from .card */
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-md);
-}
-
-.goal-header {
-    display: grid; /* Use grid for more complex layout */
-    grid-template-columns: auto 1fr auto auto auto; /* status | title | category | due date | actions */
-    align-items: center;
-    gap: var(--space-md);
-}
-
-.goal-status {
-    grid-column: 1 / 2;
-}
-
-.goal-title {
-    grid-column: 2 / 3;
-    font-weight: 600;
+    background-color: var(--background-light); /* Use a light background on hover */
     color: var(--text-dark);
 }
 
-.goal-category {
-    grid-column: 3 / 4;
-    font-size: var(--font-sm);
-    color: var(--text-medium);
-    background-color: var(--background-light);
-    padding: var(--space-xs) var(--space-sm);
-    border-radius: var(--radius-md);
-    justify-self: start; /* Align left within its grid area */
+/* User guide content styles */
+.user-guide-dialog h3 {
+    color: var(--primary-blue);
+    margin-top: var(--space-lg); /* Adjusted spacing */
+    margin-bottom: var(--space-md);
+    font-size: var(--font-lg);
+    font-weight: 600;
+    padding-bottom: var(--space-xs);
+    border-bottom: 1px solid var(--border-color);
 }
 
-.goal-due-date {
-    grid-column: 4 / 5;
-    font-size: var(--font-sm);
-    color: var(--text-light);
-     justify-self: start;
+.user-guide-dialog h4 {
+    color: var(--text-dark);
+    margin-top: var(--space-lg); /* More space above h4 */
+    margin-bottom: var(--space-sm);
+    font-size: var(--font-md);
+    font-weight: 600;
 }
 
-.goal-actions {
-    grid-column: 5 / 6;
+.user-guide-dialog p {
+    margin-bottom: var(--space-md);
+    color: var(--text-medium); /* Slightly lighter text for paragraphs */
+    line-height: 1.7;
+}
+
+.user-guide-dialog ol.steps {
+    counter-reset: step-counter;
+    list-style-type: none;
+    padding-left: 0;
+    margin: var(--space-lg) 0;
+}
+
+.user-guide-dialog ol.steps li {
+    position: relative;
+    padding-left: 45px;
+    margin-bottom: var(--space-md);
+    counter-increment: step-counter;
+}
+
+.user-guide-dialog ol.steps li::before {
+    content: counter(step-counter);
+    position: absolute;
+    left: 0;
+    top: 0;
+    background-color: var(--primary-blue-light);
+    color: white;
+    font-weight: bold;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
     display: flex;
-    gap: var(--space-sm);
-    justify-self: end; /* Align right */
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow-sm);
 }
 
-.goal-description {
-    color: var(--text-medium);
-    font-size: var(--font-sm);
-    line-height: 1.5;
-    margin-top: var(--space-sm); /* Add some space below header */
+.user-guide-dialog .tip,
+.user-guide-dialog .note {
+    background-color: var(--background-light); /* Use light background */
+    border-radius: var(--radius-md);
+    padding: var(--space-md) var(--space-lg);
+    margin: var(--space-lg) 0;
+    position: relative;
+    border-left: 4px solid;
+}
+
+.user-guide-dialog .tip {
+    border-left-color: var(--primary-blue);
+    background-color: var(--info-light);
+}
+
+.user-guide-dialog .note {
+    border-left-color: var(--secondary-orange);
+    background-color: var(--warning-light);
+}
+
+.user-guide-dialog .tip h3,
+.user-guide-dialog .note h3 {
+    margin-top: 0;
+    display: flex;
+    align-items: center;
+    font-size: var(--font-md);
+    color: var(--text-dark);
+    margin-bottom: var(--space-sm);
+}
+
+.user-guide-dialog .tip h3::before,
+.user-guide-dialog .note h3::before {
+    margin-right: var(--space-sm);
+    font-size: 1.4rem;
+}
+
+.user-guide-dialog .tip h3::before {
+    content: "💡";
+}
+
+.user-guide-dialog .note h3::before {
+    content: "📝";
+}
+
+.user-guide-dialog .feature-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); /* Slightly smaller min size */
+    gap: var(--space-lg);
+    margin: var(--space-lg) 0;
+}
+
+.user-guide-dialog .feature-card {
+    background-color: var(--card-background);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    padding: var(--space-lg);
+    transition: all var(--transition-normal);
+    border: 1px solid var(--border-color);
+}
+
+.user-guide-dialog .feature-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-md);
+}
+
+.user-guide-dialog .feature-card h4 {
+    margin-top: 0;
+    margin-bottom: var(--space-sm);
+}
+
+@media (max-width: 768px) {
+    .user-guide-dialog .dialog-content {
+        width: 95%;
+        max-height: 95vh;
+    }
+    
+    .user-guide-dialog .dialog-body {
+        padding: var(--space-md) var(--space-sm);
+        max-height: calc(95vh - 70px); /* Adjusted for potential smaller header */
+    }
+    
+    .user-guide-dialog .guide-filter-buttons {
+        /* Already wrapping, maybe adjust gap */
+        gap: var(--space-xs);
+    }
+    
+    .user-guide-dialog .filter-button {
+        font-size: var(--font-xs);
+        padding: var(--space-sm) var(--space-sm); /* Slightly adjust padding */
+        flex-basis: calc(50% - var(--space-xs)); /* Two buttons per row roughly */
+    }
+    
+    .user-guide-dialog .feature-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 /* Add container for standard page width on desktop */
 .page-content-container {
-    width: 100%; /* Take full width on mobile */
-}
-
-@media (min-width: 769px) { /* Apply only on screens wider than 768px */
-    .page-content-container {
-        max-width: 800px; /* Match stats container width */
-        margin-left: auto;
-        margin-right: auto;
-    }
-}
-
-/* Buttons - Apply Base Style */
-.button,
-.primary-button,
-.secondary-button,
-.icon-button { /* Include icon button for base reset */
-    display: inline-flex; /* Align icon and text */
-    align-items: center;
-    justify-content: center;
-    gap: var(--space-sm);
-    padding: var(--space-sm) var(--space-lg); /* Adjust padding */
-    height: 44px; /* Match filter input height */
-    border-radius: var(--radius-md);
-    font-weight: 600;
-    font-size: var(--font-md);
-    border: 1px solid transparent; /* Base border */
-    cursor: pointer;
-    transition: all var(--transition-normal);
-    text-decoration: none; /* Remove underline from button-like links */
-    vertical-align: middle; /* Align with other inline elements */
-    white-space: nowrap; /* Prevent text wrapping */
-}
-
-/* Remove specific height from timer controls if base is sufficient */
-.timer-controls .primary-button,
-.timer-controls .secondary-button {
-    min-width: 150px;
-    /* height: 54px; <= Remove if 44px is okay */
-    box-shadow: var(--shadow-sm);
-    position: relative;
-    overflow: hidden;
-}
-
-/* Primary Button Specifics */
-.primary-button {
-    background: linear-gradient(to right, var(--primary-blue), var(--primary-blue-dark));
-    color: white;
-    border-color: transparent; /* Override base */
-    box-shadow: var(--shadow-sm);
-}
-
-.primary-button:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
-    /* filter: brightness(1.1); Optional: Add brightness */
-}
-
-.primary-button:active {
-    transform: translateY(0px); /* Adjust active state */
-    box-shadow: var(--shadow-sm);
-    filter: brightness(0.95);
-}
-
-/* Secondary Button Specifics */
-.secondary-button {
-    background: var(--card-background);
-    color: var(--text-dark);
-    border-color: var(--border-color); /* Use border color */
-    box-shadow: var(--shadow-sm);
-}
-
-.secondary-button:hover {
-    background: var(--background-light);
-    border-color: var(--text-medium); /* Darken border on hover */
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
-}
-
-.secondary-button:active {
-    transform: translateY(0px); /* Adjust active state */
-    background: var(--border-color); /* Darken background slightly */
-    box-shadow: var(--shadow-sm);
-}
-
-/* Icon Button Specifics - Minimal Styling */
-.icon-button {
-    background: none;
-    border-color: transparent;
-    padding: var(--space-sm); /* Smaller padding */
-    height: auto; /* Auto height */
-    color: var(--text-light);
-    box-shadow: none;
-}
-
-.icon-button:hover {
-    color: var(--primary-blue);
-    background-color: var(--background-light);
-    transform: none; /* No lift needed */
-    box-shadow: none;
-}
-
-/* Adjust Goal Actions Button */
-.goal-actions .add-goal-button { 
-    /* Inherits .primary-button styles */
-    min-width: 150px; /* Ensure minimum width */
-}
-
-/* Adjust Media Buttons Container and Buttons */
-.media-controls {
-    display: flex;
-    justify-content: center;
-    gap: var(--space-md);
-    margin-bottom: var(--space-xl);
-    flex-wrap: wrap; /* Allow wrapping on mobile */
-}
-
-.media-controls button {
-    /* Let them size based on content + padding, remove min-width */
-    /* min-width: 120px; <= Remove this */
-    flex-grow: 1; /* Allow buttons to grow */
-    flex-basis: 100px; /* Suggest a base size before growing */
-    max-width: 180px; /* Prevent them getting too large */
-}
-
-/* Utility Classes */
-.hidden {
-    display: none !important;
+    width: 100%; /* Take full width first */
+    max-width: 900px; /* Set a max width for content */
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: var(--space-md); /* Add padding for smaller screens */
+    padding-right: var(--space-md);
 }
 
 /* Centered Page Actions Container */
@@ -3402,6 +3739,578 @@ textarea:focus {
     display: flex;
     justify-content: center;
     margin-bottom: var(--space-lg); /* Space before list */
+    width: 100%; /* Ensure it spans width before centering content */
 }
 
-/* Add container for standard page width on desktop */
+/* Ensure filter containers also respect max width */
+.filters {
+    max-width: 900px;
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%; /* Take full width up to max */
+    /* Keep existing flex properties */
+    box-sizing: border-box; /* Ensure padding is included */
+}
+
+/* Ensure Resource Filter container respects width */
+#resources-page .filter-container {
+    max-width: 900px;
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
+}
+
+.lesson-countdown-container {
+    max-width: 900px; /* Match other content width */
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: var(--space-lg);
+    text-align: center; /* Center the content inside */
+}
+
+/* Style the card itself */
+.lesson-countdown-card {
+     /* Inherits from .card */
+     display: inline-block; /* Allow text-align: center on parent to work */
+     min-width: 300px; /* Give it a minimum width */
+     text-align: left; /* Reset text align for card content */
+}
+
+/* Styles for Lesson Countdown Card */
+.lesson-countdown-card .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: var(--space-sm);
+    margin-bottom: var(--space-md);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.lesson-countdown-card .card-header h3 {
+    margin: 0;
+    font-size: var(--font-lg);
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+.lesson-countdown-card .card-header i {
+    color: var(--primary-blue);
+}
+
+.lesson-countdown-card .countdown-content {
+    display: flex;
+    align-items: center;
+    justify-content: center; /* Center items horizontally */
+    gap: var(--space-lg);
+    padding-top: var(--space-sm); /* Add a little space above */
+}
+
+.lesson-countdown-card .countdown-item {
+    display: flex;
+    flex-direction: column; /* Stack value/label */
+    align-items: center;
+    text-align: center;
+}
+
+.lesson-countdown-card .countdown-value {
+    font-size: var(--font-3xl); /* Larger number */
+    font-weight: 700;
+    color: var(--primary-blue);
+    line-height: 1;
+}
+
+.lesson-countdown-card .countdown-label {
+    font-size: var(--font-xs); /* Smaller label */
+    color: var(--text-medium);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: var(--space-xs);
+}
+
+/* Style the separator */
+.lesson-countdown-card .countdown-separator {
+    width: 1px;
+    height: 40px; /* Adjust height as needed */
+    background-color: var(--border-color);
+    align-self: center;
+}
+
+/* Specific styling for the date/time item */
+.lesson-countdown-card .countdown-item:last-child .countdown-label {
+     font-size: var(--font-sm); /* Slightly larger for date/time */
+     text-transform: none;
+     letter-spacing: normal;
+}
+
+/* Specific adjustments for Goals filter bar */
+#goals-page .filters {
+    flex-wrap: nowrap; /* Try to keep on one line */
+}
+
+/* Allow goal search to shrink slightly */
+#goals-page .filters .goals-search-input {
+    flex-shrink: 1;
+}
+
+/* Allow goal category filter to shrink slightly */
+#goals-page .filters .goals-category-filter {
+    min-width: 140px; /* Slightly reduce min-width */
+    flex-shrink: 1;
+}
+
+/* Allow goal status filter to shrink slightly */
+#goals-page .filters .goals-status-filter {
+    min-width: 120px; /* Slightly reduce min-width */
+    flex-shrink: 1;
+}
+
+/* Media query to allow wrapping on smaller screens for goals */
+@media (max-width: 768px) { /* Adjust breakpoint if needed, maybe smaller */
+    #goals-page .filters {
+        flex-wrap: wrap; /* Allow wrapping again on smaller screens */
+    }
+}
+
+/* Timer Page - Completely Redesigned */
+
+/* Center text in category dropdown (REMOVED) */
+/* #timer-page #practice-category {
+    text-align: center;
+    text-align-last: center; 
+    -moz-text-align-last: center; 
+} */
+
+.timer-container {
+    margin-top: var(--space-md); /* Reduced top margin */
+    margin-bottom: var(--space-md); /* Reduced bottom margin */
+    padding: var(--space-lg); /* Reduced padding */
+}
+
+#timer-page .timer-display-container {
+    margin: var(--space-lg) 0; /* Reduced vertical margin */
+}
+
+#timer-page .timer-controls {
+    margin: var(--space-lg) 0; /* Reduced vertical margin */
+}
+
+#timer-page .session-form {
+    margin-top: var(--space-lg); /* Reduced top margin */
+    padding-top: var(--space-lg); /* Reduced top padding */
+}
+
+/* Center Session Notes Textarea */
+#timer-page textarea#dialog-session-notes { /* More specific selector */
+    /* Assuming it's a block element or can be made one */
+    display: block; /* Ensure it takes full width */
+    margin-left: auto;
+    margin-right: auto;
+    max-width: 400px; /* Optional: Limit width */
+    text-align: left; /* Keep text inside left-aligned */
+}
+
+/* How to Use Button Alignment */
+#how-to-use-btn,
+#resources-how-to-use-btn {
+    display: inline-flex; /* Use flex */
+    align-items: center; /* Vertically center icon and text */
+    gap: var(--space-sm); /* Space between icon and text */
+    /* Inherit other button styles */
+}
+
+/* Ensure Add Goal/Session buttons have consistent size */
+#add-goal-btn,
+#add-session-btn,
+.add-goal-button /* Added class selector just in case */
+{
+    /* Use primary button base style */
+    min-width: auto; /* Remove any fixed min-width */
+    width: auto; /* Let padding determine width */
+    /* Ensure padding is consistent if needed */
+    /* padding: var(--space-md) var(--space-lg); */ 
+}
+
+/* Instrument Family Sections - Prevent Layout Shift */
+#resources-page .family-section {
+    margin-bottom: var(--space-2xl);
+    min-height: 100px; /* Add a minimum height to prevent collapsing */
+    transition: opacity 0.3s ease; /* Smooth fade for filtering */
+}
+
+#resources-page .family-section.hidden-family {
+    opacity: 0;
+    height: 0;
+    overflow: hidden;
+    margin-bottom: 0;
+    padding: 0;
+    border: none;
+    min-height: 0;
+}
+
+/* Settings Page - Enhanced */
+#settings-page .settings-container { /* Target container within settings page */
+    max-width: 900px; /* Consistent max-width */
+    margin: 0 auto;
+    padding: var(--space-xl) var(--space-md); /* Consistent padding */
+}
+
+#settings-page .settings-section {
+    /* Apply card styling */
+    background-color: var(--card-background);
+    border-radius: var(--radius-lg);
+    padding: var(--space-xl); /* Use standard card padding */
+    margin-bottom: var(--space-xl); /* Standard spacing between sections */
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-color);
+    position: relative;
+    overflow: hidden;
+}
+
+#settings-page .settings-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px; /* Standard top highlight */
+    background: linear-gradient(to right, var(--primary-blue), var(--primary-blue-light));
+    opacity: 0.8;
+}
+
+#settings-page .settings-section h2 {
+    font-size: var(--font-xl);
+    font-weight: 700;
+    color: var(--text-dark);
+    margin-top: 0; /* Remove top margin */
+    margin-bottom: var(--space-lg); /* Consistent bottom margin */
+    padding-bottom: var(--space-md); /* Consistent padding */
+    border-bottom: 1px solid var(--border-color);
+}
+
+#settings-page .form-group {
+    margin-bottom: var(--space-lg); /* Consistent form group spacing */
+}
+
+#settings-page .form-group label {
+    display: block;
+    font-weight: 600;
+    color: var(--text-dark);
+    margin-bottom: var(--space-sm); /* Consistent label spacing */
+    font-size: var(--font-md);
+}
+
+/* Style ALL inputs/selects within the settings page */
+#settings-page select,
+#settings-page input[type="time"],
+#settings-page input[type="text"] {
+    width: 100%;
+    padding: var(--space-sm) var(--space-md);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background-color: var(--background-light);
+    color: var(--text-dark);
+    font-size: var(--font-md);
+    transition: all var(--transition-fast);
+    height: 44px; /* Standard height */
+    line-height: 1.5;
+    box-sizing: border-box;
+}
+
+#settings-page select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23555f6a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 16px;
+    padding-right: 40px; /* Space for custom arrow */
+    cursor: pointer;
+}
+
+#settings-page select:focus,
+#settings-page input[type="time"]:focus,
+#settings-page input[type="text"]:focus {
+    outline: none;
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 3px rgba(59, 127, 245, 0.12); /* Standard focus */
+}
+
+/* Button styling */
+#settings-page .primary-button,
+#settings-page .danger-button {
+    /* Inherit base styles .primary-button, .danger-button */
+    display: inline-flex; /* Needed for icon alignment */
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-sm);
+    /* Add padding if not inherited properly */
+    padding: var(--space-sm) var(--space-lg);
+    min-width: 150px; /* Example min-width */
+    height: 44px; /* Standard height */
+}
+
+#settings-page .danger-button {
+    /* Ensure danger button styles apply */
+    background: linear-gradient(to right, var(--error), #c53030); /* Darker red */
+    color: white;
+    border: none;
+}
+
+#settings-page .danger-button:hover {
+    background: linear-gradient(to right, #c53030, #9b2c2c); /* Even darker */
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+
+#settings-page .data-buttons {
+    display: flex;
+    flex-wrap: wrap; /* Allow wrapping */
+    gap: var(--space-md); /* Consistent gap */
+    margin-bottom: var(--space-xl); /* Spacing below buttons */
+}
+
+#settings-page .data-buttons button {
+     flex-grow: 1; /* Allow buttons to share space */
+}
+
+#settings-page .clear-data-section {
+    margin-top: var(--space-xl);
+    padding-top: var(--space-lg);
+    border-top: 1px solid var(--border-color);
+    text-align: center; /* Center the warning and button */
+}
+
+#settings-page .clear-data-section h4 {
+    font-size: var(--font-lg);
+    font-weight: 600;
+    color: var(--error); /* Use error color for heading */
+    margin-bottom: var(--space-sm);
+}
+
+#settings-page .clear-data-section p {
+    color: var(--text-medium);
+    margin-bottom: var(--space-lg);
+    font-size: var(--font-sm);
+    max-width: 400px; /* Limit width of text */
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#settings-page .add-category-form {
+    display: flex;
+    gap: var(--space-md); /* Consistent gap */
+    margin-bottom: var(--space-lg); /* Spacing below form */
+}
+
+#settings-page .add-category-form input {
+    flex-grow: 1; /* Input takes available space */
+}
+
+#settings-page .add-category-form button {
+    flex-shrink: 0; /* Prevent button from shrinking */
+}
+
+#settings-page .categories-list {
+    margin-top: var(--space-lg); /* Space above list */
+    display: grid; /* Use grid for category items */
+    gap: var(--space-md); /* Consistent gap */
+}
+
+#settings-page .category-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-md);
+    background-color: var(--background-light);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+    transition: all var(--transition-fast);
+}
+
+#settings-page .category-item:hover {
+    background-color: var(--card-background-hover);
+    border-color: var(--primary-blue-light);
+}
+
+#settings-page .category-item span {
+    font-weight: 500;
+}
+
+#settings-page .category-actions button {
+    /* Style action buttons (edit, delete, hide/show) consistently */
+    background: none;
+    border: none;
+    padding: var(--space-xs);
+    cursor: pointer;
+    color: var(--text-light);
+    transition: all var(--transition-normal);
+    border-radius: var(--radius-md);
+    display: inline-flex; /* Align icons */
+    align-items: center;
+}
+
+#settings-page .category-actions button:hover {
+    background-color: var(--background-light);
+    color: var(--text-dark);
+}
+
+#settings-page .category-actions .delete-category:hover {
+    color: var(--error); /* Specific hover for delete */
+}
+
+
+/* Tip Box Styling */
+.tip-box {
+    background-color: var(--info-light); /* Use info light background */
+    border-left: 4px solid var(--info); /* Use info color for border */
+    border-radius: var(--radius-md);
+    padding: var(--space-md) var(--space-lg);
+    margin: var(--space-lg) 0; /* Consistent margins */
+    color: var(--text-dark); /* Ensure text is readable */
+}
+
+.tip-box h4 {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    margin-top: 0;
+    margin-bottom: var(--space-sm);
+    font-size: var(--font-md);
+    font-weight: 600;
+    color: var(--info); /* Use info color for heading */
+}
+
+.tip-box h4::before {
+     content: '💡'; /* Lightbulb emoji */
+     font-size: 1.2em;
+}
+
+.tip-box p {
+    margin-bottom: 0; /* Remove bottom margin if it's the last element */
+    font-size: var(--font-sm);
+    color: var(--text-medium);
+}
+
+/* Settings Page - Lesson Day Selector */
+#settings-page .day-selector-group {
+    display: flex;
+    flex-wrap: wrap; /* Allow wrapping on smaller screens */
+    gap: var(--space-sm); /* Space between buttons */
+    margin-top: var(--space-xs); /* Align with other inputs */
+}
+
+#settings-page .day-button {
+    padding: var(--space-sm) var(--space-md);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background-color: var(--background-light);
+    color: var(--text-medium);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    flex-grow: 1; /* Allow buttons to fill space */
+    text-align: center;
+    min-width: 50px; /* Ensure buttons don't get too small */
+}
+
+#settings-page .day-button:hover {
+    background-color: var(--card-background-hover);
+    border-color: var(--primary-blue-light);
+    color: var(--primary-blue);
+}
+
+#settings-page .day-button.active {
+    background-color: var(--primary-blue);
+    color: white;
+    border-color: var(--primary-blue);
+    box-shadow: var(--shadow-sm);
+    font-weight: 600;
+}
+
+#settings-page .day-button.clear-day {
+    background-color: var(--background-light); /* Neutral background */
+    color: var(--text-light); /* Lighter text */
+    border-color: var(--border-color);
+    flex-grow: 0; /* Don't let clear button grow as much */
+    min-width: auto;
+}
+
+#settings-page .day-button.clear-day:hover {
+     background-color: var(--error-light);
+     border-color: var(--error);
+     color: var(--error);
+}
+
+/* Dialog Styling Enhancements */
+
+/* More rounded corners for the dialog itself */
+.standard-dialog,
+.dialog-container {
+    border-radius: var(--radius-xl, 16px);
+    overflow: hidden;
+}
+
+/* Target specific input types within the standard dialog */
+.standard-dialog select,
+.standard-dialog input[type="date"],
+.standard-dialog input[type="number"],
+.standard-dialog input[type="text"],
+.standard-dialog textarea { /* Apply base styles to textarea too */
+    border-radius: var(--radius-lg, 12px);
+    width: 100%; /* <<< Ensure all fields take full width by default */
+    box-sizing: border-box; /* <<< Include padding/border in width */
+}
+
+/* Ensure buttons inside the dialog also have appropriate rounding */
+.standard-dialog .dialog-actions button {
+    border-radius: var(--radius-lg, 12px);
+}
+
+/* Nicer Placeholder Styling for Textareas */
+
+/* Target textareas within standard dialogs */
+/* REMOVED - User request */
+/* .standard-dialog textarea::placeholder, */
+/* Target specific session notes textarea on timer page */
+/* #timer-page textarea#dialog-session-notes::placeholder {
+    color: var(--text-light); 
+    font-style: italic;
+    font-family: var(--font-sans);
+    opacity: 0.8; 
+} */
+
+/* Vendor prefixes for maximum compatibility */
+/* REMOVED - User request */
+/* .standard-dialog textarea::-webkit-input-placeholder,
+#timer-page textarea#dialog-session-notes::-webkit-input-placeholder {
+    color: var(--text-light);
+    font-style: italic;
+    font-family: var(--font-sans);
+    opacity: 0.8;
+} */
+
+/* .standard-dialog textarea::-moz-placeholder,
+#timer-page textarea#dialog-session-notes::-moz-placeholder {
+    color: var(--text-light);
+    font-style: italic;
+    font-family: var(--font-sans);
+    opacity: 0.8; 
+} */
+
+/* .standard-dialog textarea:-ms-input-placeholder,
+#timer-page textarea#dialog-session-notes:-ms-input-placeholder {
+    color: var(--text-light);
+    font-style: italic;
+    font-family: var(--font-sans);
+    opacity: 0.8; 
+} */
+
+/* .standard-dialog textarea:-moz-placeholder,
+#timer-page textarea#dialog-session-notes:-moz-placeholder {
+    color: var(--text-light);
+    font-style: italic;
+    font-family: var(--font-sans);
+    opacity: 0.8; 
+} */

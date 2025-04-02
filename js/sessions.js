@@ -18,7 +18,7 @@ function initializeSessions() {
         addButtonId: 'add-session-btn',
         searchInputSelector: '.search-input',
         categoryFilterSelector: '.category-filter',
-        dateInputsSelector: '.date-input',
+        dateInputsSelector: '.date-input', // Selects both date inputs
         emptyStateMessage: 'No practice sessions recorded yet.',
         emptyStateIcon: 'list',
         addEmptyStateButtonId: 'empty-add-session',
@@ -26,6 +26,83 @@ function initializeSessions() {
         createRecordElementFn: createSessionElement,
         showDialogFn: showSessionDialog
     });
+    
+    // --- Add Date Preset Logic --- 
+    const pageElement = document.getElementById('sessions-page');
+    const presetFilter = pageElement ? pageElement.querySelector('.date-preset-filter') : null;
+    const startDateInput = pageElement ? pageElement.querySelector('#session-start-date') : null;
+    const endDateInput = pageElement ? pageElement.querySelector('#session-end-date') : null;
+    const dateRangeDiv = pageElement ? pageElement.querySelector('.date-range') : null;
+
+    if (presetFilter && startDateInput && endDateInput && dateRangeDiv) {
+        presetFilter.addEventListener('change', () => {
+            const selectedPreset = presetFilter.value;
+            const today = new Date();
+            let startDate = '';
+            let endDate = '';
+
+            // Hide/show custom inputs 
+            dateRangeDiv.style.display = (selectedPreset === 'custom') ? 'flex' : 'none';
+
+            switch (selectedPreset) {
+                case 'week':
+                    const firstDayOfWeek = new Date(today.setDate(today.getDate() - today.getDay()));
+                    startDate = firstDayOfWeek.toISOString().split('T')[0];
+                    endDate = new Date().toISOString().split('T')[0]; // Today
+                    break;
+                case 'month':
+                    startDate = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
+                    endDate = new Date().toISOString().split('T')[0]; // Today
+                    break;
+                 case 'year':
+                    startDate = new Date(today.getFullYear(), 0, 1).toISOString().split('T')[0];
+                    endDate = new Date(today.getFullYear(), 11, 31).toISOString().split('T')[0];
+                    break;
+                case 'ytd':
+                    startDate = new Date(today.getFullYear(), 0, 1).toISOString().split('T')[0];
+                    endDate = new Date().toISOString().split('T')[0]; // Today
+                    break;
+                case 'all':
+                    startDate = '';
+                    endDate = '';
+                    break;
+                case 'custom':
+                     startDate = startDateInput.value;
+                     endDate = endDateInput.value;
+                    break;
+            }
+            
+            // Update date inputs only if not custom 
+            if (selectedPreset !== 'custom') {
+                 startDateInput.value = startDate;
+                 endDateInput.value = endDate;
+             }
+             // Trigger reload regardless of preset (UI framework handles filtering based on input values)
+              window.UI.loadRecords('sessions');
+        });
+        
+        // Update preset dropdown if custom dates are changed
+         startDateInput.addEventListener('change', () => {
+             presetFilter.value = 'custom';
+             dateRangeDiv.style.display = 'flex';
+             // loadRecords is already attached by initRecordPage
+         });
+         endDateInput.addEventListener('change', () => {
+              presetFilter.value = 'custom';
+              dateRangeDiv.style.display = 'flex';
+             // loadRecords is already attached by initRecordPage
+         });
+
+        // Set initial state - Default to 'all' and hide custom range
+        presetFilter.value = 'all';
+        dateRangeDiv.style.display = 'none'; 
+        startDateInput.value = ''; // Ensure custom dates are cleared initially
+        endDateInput.value = '';
+
+        // Trigger initial load with default 'all' time filter
+        window.UI.loadRecords('sessions');
+    }
+    // --- End Date Preset Logic ---
 }
 
 /**
@@ -37,56 +114,71 @@ function createSessionElement(session) {
     const sessionElement = document.createElement('div');
     sessionElement.className = 'card session-item';
     sessionElement.dataset.id = session.id;
-    
-    // Format date
-    const date = new Date(session.startTime);
-    const dateStr = date.toLocaleDateString();
-    
-    // Format duration
-    const hours = Math.floor(session.duration / 3600);
-    const minutes = Math.floor((session.duration % 3600) / 60);
-    const durationStr = hours > 0 ? 
-        `${hours} hr ${minutes} min` : 
-        `${minutes} min`;
-    
-    // Get category
+
+    // Find category name
     const categories = window.getItems ? window.getItems('CATEGORIES') : 
         JSON.parse(localStorage.getItem('practiceTrack_categories')) || [];
     const category = categories.find(c => c.id === session.categoryId) || { name: 'Unknown' };
-    
-    // Create session content
+
+    // Format duration precisely
+    let durationStr = '';
+    const durationSeconds = (session.endTime && session.startTime) 
+        ? Math.round((new Date(session.endTime).getTime() - new Date(session.startTime).getTime()) / 1000)
+        : session.duration || 0; // Fallback to stored duration if no end/start time
+
+    const hours = Math.floor(durationSeconds / 3600);
+    const minutes = Math.floor((durationSeconds % 3600) / 60);
+    const seconds = durationSeconds % 60;
+
+    if (hours > 0) {
+        durationStr += `${hours}h `;
+    }
+    if (minutes > 0 || hours > 0) { // Show minutes if hours exist or minutes > 0
+        durationStr += `${minutes}m `;
+    }
+    durationStr += `${seconds}s`; // Always show seconds
+
+    // Format date and time
+    const startTime = new Date(session.startTime);
+    const dateStr = startTime.toLocaleDateString();
+    const timeStr = startTime.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+
     sessionElement.innerHTML = `
         <div class="session-header">
-            <div class="session-date">${dateStr}</div>
-            <div class="session-category">${category.name}</div>
-            <div class="session-duration">${durationStr}</div>
-        </div>
-        <div class="session-actions">
-            <button class="icon-button edit-session" title="Edit Session">
-                <i data-lucide="edit"></i>
-            </button>
-            <button class="icon-button delete-session" title="Delete Session">
-                <i data-lucide="trash"></i>
-            </button>
+             <span class="session-category card-name-pill">${category.name}</span>
+             <span class="session-duration">${durationStr.trim()}</span>
         </div>
         ${session.notes ? `<div class="session-notes">${session.notes}</div>` : ''}
+        <div class="session-actions"> 
+            <span class="session-date">${dateStr} at ${timeStr}</span> 
+            <div class="action-buttons"> <!-- Wrap buttons -->
+                ${session.isLesson ? '<span class="lesson-badge">Lesson</span>' : ''}
+                <button class="icon-button edit-session" title="Edit Session">
+                    <i data-lucide="edit"></i>
+                </button>
+                <button class="icon-button delete-session" title="Delete Session">
+                    <i data-lucide="trash"></i>
+                </button>
+            </div>
+        </div>
     `;
-    
+
     // Add event listeners
     const editBtn = sessionElement.querySelector('.edit-session');
     if (editBtn) {
-        editBtn.addEventListener('click', () => {
-            showSessionDialog(session.id);
-        });
+        editBtn.addEventListener('click', () => showSessionDialog(session.id));
     }
-    
+
     const deleteBtn = sessionElement.querySelector('.delete-session');
     if (deleteBtn) {
-        deleteBtn.addEventListener('click', () => {
-            deleteSession(session.id);
-        });
+        deleteBtn.addEventListener('click', () => deleteSession(session.id));
     }
     
+    // Initialize icons
+     if (window.lucide && typeof window.lucide.createIcons === 'function') {
+        window.lucide.createIcons({ context: sessionElement }); 
+    }
+
     return sessionElement;
 }
 
@@ -155,7 +247,10 @@ function showSessionDialog(sessionId) {
     sessionDialog = window.UI.createStandardDialog({
         title: sessionId ? 'Edit Practice Session' : 'Add Practice Session',
         fields: fields,
-        onSubmit: (dialog, e) => handleSessionFormSubmit(dialog, e, sessionId),
+        onSubmit: (dialog, e) => {
+            console.log('[DEBUG Sessions] onSubmit callback in createStandardDialog triggered.');
+            handleSessionFormSubmit(dialog, e, sessionId);
+        },
         onCancel: (dialog) => dialog.close(),
         submitButtonText: 'Save Session',
         cancelButtonText: 'Cancel'
@@ -172,30 +267,80 @@ function showSessionDialog(sessionId) {
  * @param {string} sessionId - Optional session ID for editing
  */
 function handleSessionFormSubmit(dialog, e, sessionId) {
+    // <<< Log arguments immediately on entry >>>
+    console.log('[DEBUG Sessions] handleSessionFormSubmit received dialog:', dialog);
+    console.log('[DEBUG Sessions] handleSessionFormSubmit received event object (e):', e);
+    console.log('[DEBUG Sessions] handleSessionFormSubmit received sessionId:', sessionId);
+    
     try {
-        const form = e.target;
-        const dateInput = form.querySelector('#session-date');
-        const durationInput = form.querySelector('#session-duration');
-        const notesInput = form.querySelector('#dialog-session-notes');
-        const categorySelect = form.querySelector('#session-category');
+        // Moved the original log inside the try block
+        console.log('[DEBUG Sessions] Inside try block. Session ID:', sessionId);
         
-        // Validate inputs - only date and duration are required
-        if (!dateInput || !dateInput.value || !durationInput || !durationInput.value) {
-            alert('Please enter the session date and duration');
-            return;
+        // Fetch original record if editing to preserve createdAt
+        let originalCreatedAt = null;
+        if (sessionId) {
+            const originalRecord = window.getItemById ? window.getItemById('SESSIONS', sessionId) : 
+                (JSON.parse(localStorage.getItem('practiceTrack_sessions')) || []).find(s => s.id === sessionId);
+            if (originalRecord && originalRecord.createdAt) {
+                originalCreatedAt = originalRecord.createdAt;
+                console.log('[DEBUG Sessions] Editing session. Found original createdAt:', originalCreatedAt);
+            }
+        }
+
+        // Get form data
+        const formData = new FormData(dialog.querySelector('form'));
+        const categoryId = formData.get('session-category');
+        const dateValue = formData.get('session-date'); // YYYY-MM-DD
+        const durationMinutes = parseInt(formData.get('session-duration'), 10);
+        const notes = formData.get('dialog-session-notes');
+
+        // <<< Log values BEFORE validation check >>>
+        console.log(`[DEBUG Sessions] Values for validation: categoryId='${categoryId}', dateValue='${dateValue}', durationMinutes=${durationMinutes}`);
+
+        // Validate required fields
+        if (!categoryId || !dateValue || isNaN(durationMinutes) || durationMinutes <= 0) {
+            console.error('[DEBUG Sessions] Validation failed:', { categoryId, dateValue, durationMinutes });
+            // Replace non-existent showNotification with a simple alert
+            alert('Missing Information: Please fill in Category, Date, and a valid Duration (minutes).');
+            return; // Stop processing if validation fails
         }
         
-        // Create session object
-        const sessionDate = new Date(dateInput.value);
-        const sessionData = {
-            id: sessionId || `session_${Date.now()}`,
-            categoryId: categorySelect ? categorySelect.value : null,
-            startTime: sessionDate.toISOString(),
-            duration: parseInt(durationInput.value) * 60, // Convert minutes to seconds
-            notes: notesInput ? notesInput.value.trim() : '',
-            createdAt: new Date().toISOString()
-        };
+        // --- Calculate startTime and endTime --- 
+        const sessionDate = new Date(dateValue); // Parses YYYY-MM-DD
+        // IMPORTANT: Set time to noon in the LOCAL timezone to avoid UTC conversion issues
+        // When just YYYY-MM-DD is parsed, it defaults to UTC midnight.
+        sessionDate.setHours(12, 0, 0, 0); 
+        console.log(`[DEBUG Sessions] Parsed date value: ${dateValue}, Created Date object: ${sessionDate.toString()}`);
+
+        const sessionStartTime = sessionDate.getTime(); // Milliseconds since epoch
+        const durationSeconds = durationMinutes * 60;
+        const sessionEndTime = sessionStartTime + (durationSeconds * 1000);
         
+        const startTimeISO = new Date(sessionStartTime).toISOString();
+        const endTimeISO = new Date(sessionEndTime).toISOString();
+        
+        console.log(`[DEBUG Sessions] Calculated Times:
+                     Duration: ${durationMinutes} min (${durationSeconds} sec)
+                     Start (ms): ${sessionStartTime}, Start (ISO): ${startTimeISO}
+                     End (ms): ${sessionEndTime}, End (ISO): ${endTimeISO}`);
+        // --- End Time Calculation --- 
+        
+        // Prepare session data object
+        const sessionData = {
+            categoryId,
+            startTime: startTimeISO, // Store as ISO string
+            endTime: endTimeISO,   // Store as ISO string
+            duration: durationSeconds, // Store duration in seconds
+            notes: notes || '',
+            isLesson: false, // Assuming manual entries are not lessons by default
+            updatedAt: new Date().toISOString(),
+            createdAt: sessionId ? originalCreatedAt : new Date().toISOString(),
+            // Add id if editing, or generate if new
+            ...(sessionId ? { id: sessionId } : { id: `session_${Date.now()}` })
+        };
+
+        console.log('[DEBUG Sessions] Prepared session data:', JSON.parse(JSON.stringify(sessionData)));
+
         // Save session using the data layer
         if (window.addItem && window.updateItem) {
             if (sessionId) {
@@ -231,17 +376,30 @@ function handleSessionFormSubmit(dialog, e, sessionId) {
             localStorage.setItem('practiceTrack_sessions', JSON.stringify(sessions));
         }
         
-        // Close dialog
+        const saveButton = dialog.querySelector('button[type="submit"]');
+        if (saveButton) {
+            saveButton.textContent = 'Saved!';
+            saveButton.classList.add('success');
+            saveButton.disabled = true; // Briefly disable button
+            setTimeout(() => {
+                saveButton.textContent = 'Save Session'; // Restore original text
+                saveButton.classList.remove('success');
+                saveButton.disabled = false; // Re-enable
+            }, 1500); 
+        }
+        // Close dialog immediately
+        console.log('[DEBUG Sessions] Attempting to close dialog...', dialog); 
         dialog.close();
+        console.log('[DEBUG Sessions] Dialog close() called.'); 
         
         // Reload sessions list
-        window.UI.loadRecords('sessions', {
-            recordType: 'SESSIONS',
-            createRecordElementFn: createSessionElement
-        });
+        window.UI.loadRecords('sessions');
         
     } catch (error) {
-        console.error('Error saving session:', error);
+        console.error('Error saving session:', error); // <<< Keep original error log
+        // <<< Add more detailed error logging >>>
+        console.error('[DEBUG Sessions] Caught error details - Message:', error.message);
+        console.error('[DEBUG Sessions] Caught error details - Stack:', error.stack);
         alert('There was an error saving the session.');
     }
 }

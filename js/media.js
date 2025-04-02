@@ -30,6 +30,77 @@ function initializeMedia() {
     
     // Add media-specific styles
     addMediaStyles();
+    
+    // --- Add Date Preset Logic --- 
+    const pageElement = document.getElementById('media-page');
+    const presetFilter = pageElement ? pageElement.querySelector('.date-preset-filter') : null;
+    const startDateInput = pageElement ? pageElement.querySelector('#media-start-date') : null;
+    const endDateInput = pageElement ? pageElement.querySelector('#media-end-date') : null;
+    const dateRangeDiv = pageElement ? pageElement.querySelector('.date-range') : null;
+
+    if (presetFilter && startDateInput && endDateInput && dateRangeDiv) {
+        presetFilter.addEventListener('change', () => {
+            const selectedPreset = presetFilter.value;
+            const today = new Date();
+            let startDate = '';
+            let endDate = '';
+
+            dateRangeDiv.style.display = (selectedPreset === 'custom') ? 'flex' : 'none';
+
+            switch (selectedPreset) {
+                case 'week':
+                    const firstDayOfWeek = new Date(today.setDate(today.getDate() - today.getDay()));
+                    startDate = firstDayOfWeek.toISOString().split('T')[0];
+                    endDate = new Date().toISOString().split('T')[0];
+                    break;
+                case 'month':
+                    startDate = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
+                    endDate = new Date().toISOString().split('T')[0];
+                    break;
+                case 'year':
+                    startDate = new Date(today.getFullYear(), 0, 1).toISOString().split('T')[0];
+                    endDate = new Date(today.getFullYear(), 11, 31).toISOString().split('T')[0];
+                    break;
+                case 'ytd':
+                    startDate = new Date(today.getFullYear(), 0, 1).toISOString().split('T')[0];
+                    endDate = new Date().toISOString().split('T')[0];
+                    break;
+                case 'all':
+                    startDate = '';
+                    endDate = '';
+                    break;
+                case 'custom':
+                     startDate = startDateInput.value;
+                     endDate = endDateInput.value;
+                    break;
+            }
+            
+            if (selectedPreset !== 'custom') {
+                 startDateInput.value = startDate;
+                 endDateInput.value = endDate;
+             }
+             window.UI.loadRecords('media');
+        });
+        
+         startDateInput.addEventListener('change', () => {
+             presetFilter.value = 'custom';
+             dateRangeDiv.style.display = 'flex';
+             // loadRecords is already attached by initRecordPage
+         });
+         endDateInput.addEventListener('change', () => {
+              presetFilter.value = 'custom';
+              dateRangeDiv.style.display = 'flex';
+             // loadRecords is already attached by initRecordPage
+         });
+
+        presetFilter.value = 'all';
+        dateRangeDiv.style.display = 'none'; 
+        startDateInput.value = '';
+        endDateInput.value = '';
+
+         window.UI.loadRecords('media');
+    }
+    // --- End Date Preset Logic ---
 }
 
 // Device detection
@@ -48,50 +119,51 @@ function createMediaElement(media) {
     mediaElement.dataset.id = media.id;
     
     // Format content based on media type
-    let content = '';
+    let contentHtml = '';
     switch (media.type) {
         case 'photo':
-            content = `<div class="media-image">
+            contentHtml = `<div class="media-image">
                 <div class="image-placeholder">
                     <i data-lucide="image"></i>
                     <p>Photo saved to your device</p>
-                    <p class="file-name">${media.name || 'Photo'}</p>
                 </div>
             </div>`;
             break;
         case 'video':
-            content = `<div class="media-video">
+            contentHtml = `<div class="media-video">
                 <div class="video-placeholder">
                     <i data-lucide="video"></i>
                     <p>Video saved to your device</p>
-                    <p class="file-name">${media.name || 'Video'}</p>
                 </div>
             </div>`;
             break;
         case 'note':
-            content = `<div class="note-content">${media.content || ''}</div>`;
+            contentHtml = `<div class="note-content">${media.content || ''}</div>`;
             break;
     }
     
-    // Format date
-    const date = new Date(media.createdAt).toLocaleDateString();
-    const time = new Date(media.createdAt).toLocaleTimeString();
-    
+    // Format date and time
+    const createdAt = new Date(media.createdAt);
+    const dateStr = createdAt.toLocaleDateString();
+    const timeStr = createdAt.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+
+    // Construct the card HTML with the new order
     mediaElement.innerHTML = `
-        <div class="media-header">
-            <span class="media-date">${date} at ${time}</span>
+        ${media.name ? `<h3 class="media-name card-name-pill">${media.name}</h3>` : '<h3 class="media-name card-name-pill">Untitled Media</h3>'} 
+        
+        <div class="media-content">
+            ${contentHtml} 
+        </div>
+
+        ${media.description ? `<p class="media-description">${media.description}</p>` : ''}
+
+        <div class="media-footer">
+            <span class="media-date">${dateStr} at ${timeStr}</span>
             <div class="media-actions">
                 <button class="icon-button delete-media" title="Delete Media">
                     <i data-lucide="trash-2"></i>
                 </button>
             </div>
-        </div>
-        <div class="media-content">
-            ${content}
-        </div>
-        <div class="media-info">
-            ${media.name ? `<p class="media-name">${media.name}</p>` : ''}
-            ${media.description ? `<p class="media-description">${media.description}</p>` : ''}
         </div>
     `;
     
@@ -103,7 +175,7 @@ function createMediaElement(media) {
     
     // Initialize Lucide icons
     if (window.lucide && typeof window.lucide.createIcons === 'function') {
-        window.lucide.createIcons();
+        window.lucide.createIcons({ context: mediaElement });
     }
     
     return mediaElement;
@@ -347,22 +419,33 @@ function setupMediaButtons() {
  * @param {Object} existingNote - Optional existing note for editing
  */
 function showNoteDialog(existingNote = null) {
-    console.log('[DEBUG] showNoteDialog called. Existing note:', existingNote); // Log entry
-    // Set up form fields
+    console.log('Opening note dialog. Editing:', !!existingNote);
+    
+    // Define dialog fields
     const fields = [
         {
             type: 'text',
-            id: 'note-title',
-            label: 'Title',
-            required: true,
-            value: existingNote ? existingNote.name || '' : `Note ${new Date().toLocaleDateString()}`
+            id: 'media-note-name',
+            label: 'Title (Optional)', // Keep a title field distinct from notes
+            value: existingNote ? existingNote.name || '' : '',
+            placeholder: 'e.g., Scale Practice Observations'
         },
         {
             type: 'textarea',
-            id: 'note-content',
-            label: 'Content',
-            rows: 6,
-            value: existingNote ? existingNote.content || '' : ''
+            id: 'media-note-content', // ID remains content
+            label: 'Notes', // <<< Changed label from 'Content' to 'Notes'
+            required: true,
+            rows: 8,
+            value: existingNote ? existingNote.content || '' : '',
+            placeholder: 'Enter your practice notes here...'
+        },
+        {
+            type: 'textarea',
+            id: 'media-note-description',
+            label: 'Description (Optional)', // Keep description separate if needed
+            rows: 3,
+            value: existingNote ? existingNote.description || '' : '',
+            placeholder: 'Add a brief description or context'
         }
     ];
     
@@ -373,11 +456,13 @@ function showNoteDialog(existingNote = null) {
         onSubmit: (dialog, e) => {
             console.log('[DEBUG] Note Dialog onSubmit triggered.'); // Log entry
             const form = e.target;
-            const titleInput = form.querySelector('#note-title');
-            const contentInput = form.querySelector('#note-content');
+            const titleInput = form.querySelector('#media-note-name');
+            const contentInput = form.querySelector('#media-note-content');
+            const descriptionInput = form.querySelector('#media-note-description');
             
             const title = titleInput.value.trim();
             const content = contentInput.value;
+            const description = descriptionInput.value.trim();
             
             if (!title) {
                 alert('Please enter a title for your note');
@@ -388,6 +473,7 @@ function showNoteDialog(existingNote = null) {
                 // Update existing note
                 existingNote.name = title;
                 existingNote.content = content;
+                existingNote.description = description;
                 existingNote.updatedAt = new Date().toISOString();
                 
                 // Save the updated note
@@ -403,6 +489,7 @@ function showNoteDialog(existingNote = null) {
                     type: 'note',
                     name: title,
                     content: content,
+                    description: description,
                     createdAt: new Date().toISOString(),
                     updatedAt: new Date().toISOString()
                 };
@@ -419,19 +506,24 @@ function showNoteDialog(existingNote = null) {
                 console.log('[DEBUG Note Save] Save function called. Reloading list...'); // Log after call
             }
             
-            dialog.close();
-            
-            // Reload media list
-            window.UI.loadRecords('media', {
-                recordType: 'MEDIA',
-                createRecordElementFn: createMediaElement
-            });
-            
-            // Show success message
-            if (window.showNotification) {
-                window.showNotification(existingNote ? 'Note Updated' : 'Note Added', 
-                    existingNote ? 'Your note has been updated.' : 'Your note has been added.');
+            // Show success feedback on button (optional)
+            const saveButton = dialog.querySelector('button[type="submit"]');
+            const originalButtonText = existingNote ? 'Save' : 'Save'; // Assuming default is 'Save'
+            if (saveButton) {
+                saveButton.textContent = 'Saved!';
+                saveButton.classList.add('success');
+                saveButton.disabled = true; // Briefly disable button
+                setTimeout(() => {
+                    saveButton.textContent = originalButtonText;
+                    saveButton.classList.remove('success');
+                    saveButton.disabled = false; // Re-enable
+                }, 1500); 
             }
+             // Close dialog immediately
+            dialog.close();
+
+            // Reload media list (already moved outside timeout)
+            window.UI.loadRecords('media');
         },
         onCancel: (dialog) => dialog.close(),
         submitButtonText: 'Save',
