@@ -17,6 +17,7 @@
     <script src="js/sessions.js" defer></script>
     <script src="js/goals.js" defer></script>
     <script src="js/media.js" defer></script>
+    <script src="js/practice-categories.js" defer></script>
 </head>
 <body>
     <div class="app">
@@ -34,31 +35,34 @@
 
         <!-- Main Navigation -->
         <nav class="main-nav">
-            <button class="nav-item active" data-page="timer">
-                <i data-lucide="clock"></i>
-                Timer
-            </button>
-            <button class="nav-item" data-page="sessions">
-                <i data-lucide="list"></i>
-                Sessions
-            </button>
-            <button class="nav-item" data-page="goals">
-                <i data-lucide="target"></i>
-                Goals
-            </button>
-            <button class="nav-item" data-page="stats">
-                <i data-lucide="bar-chart"></i>
-                Stats
-            </button>
-            <button class="nav-item" data-page="media">
-                <i data-lucide="image"></i>
-                Media
-            </button>
-            <button class="nav-item" data-page="settings">
-                <i data-lucide="settings"></i>
-                Settings
-            </button>
+            <div class="nav-items">
+                <a href="#sessions" class="nav-item active" data-page="sessions">
+                    <i data-lucide="clock"></i>
+                    <span>Sessions</span>
+                </a>
+                <a href="#goals" class="nav-item" data-page="goals">
+                    <i data-lucide="target"></i>
+                    <span>Goals</span>
+                </a>
+                <a href="#timer" class="nav-item" data-page="timer">
+                    <i data-lucide="timer"></i>
+                    <span>Timer</span>
+                </a>
+                <a href="#media" class="nav-item" data-page="media">
+                    <i data-lucide="image"></i>
+                    <span>Media</span>
+                </a>
+                <a href="#resources" class="nav-item" data-page="resources">
+                    <i data-lucide="help-circle"></i>
+                    <span>Resources</span>
+                </a>
+            </div>
         </nav>
+
+        <!-- Settings Button -->
+        <button id="settings-button" class="settings-button">
+            <i data-lucide="settings"></i>
+        </button>
 
         <!-- Main Content Area -->
         <main class="main-content">
@@ -269,33 +273,64 @@
                     </div>
                 </div>
             </section>
+
+            <!-- Add Resources Page -->
+            <section id="resources-page" class="page">
+                <div class="page-header">
+                    <h1>Practice Resources</h1>
+                </div>
+                <div class="resources-container">
+                    <div class="resources-about">
+                        <h2>About Practice Resources</h2>
+                        <p>Welcome to your practice resource library! Here you'll find a curated collection of practice categories 
+                        designed to help structure and enhance your musical practice sessions. Each category includes detailed 
+                        descriptions, difficulty levels, and specific focus areas.</p>
+                        
+                        <p>Browse through the categories below, and when you find one that interests you, simply click "Copy to My Categories" 
+                        to add it to your personal practice categories. You can then use these categories when logging practice sessions 
+                        or setting practice goals.</p>
+                    </div>
+
+                    <div class="resources-filters">
+                        <div class="search-box">
+                            <i data-lucide="search"></i>
+                            <input type="text" id="resource-search" placeholder="Search practice categories...">
+                        </div>
+                        <div class="filter-box">
+                            <select id="instrument-filter">
+                                <option value="">All Instruments</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="practice-categories-list" class="practice-categories-list">
+                        <!-- Practice categories will be populated here -->
+                    </div>
+                </div>
+            </section>
         </main>
 
         <!-- Mobile Navigation -->
         <nav class="mobile-nav">
-            <button class="nav-item active" data-page="timer">
+            <button class="nav-item active" data-page="sessions">
                 <i data-lucide="clock"></i>
-                <span>Timer</span>
-            </button>
-            <button class="nav-item" data-page="sessions">
-                <i data-lucide="list"></i>
                 <span>Sessions</span>
             </button>
             <button class="nav-item" data-page="goals">
                 <i data-lucide="target"></i>
                 <span>Goals</span>
             </button>
-            <button class="nav-item" data-page="stats">
-                <i data-lucide="bar-chart"></i>
-                <span>Stats</span>
+            <button class="nav-item" data-page="timer">
+                <i data-lucide="timer"></i>
+                <span>Timer</span>
             </button>
             <button class="nav-item" data-page="media">
                 <i data-lucide="image"></i>
                 <span>Media</span>
             </button>
-            <button class="nav-item" data-page="settings">
-                <i data-lucide="settings"></i>
-                <span>Settings</span>
+            <button class="nav-item" data-page="resources">
+                <i data-lucide="help-circle"></i>
+                <span>Resources</span>
             </button>
         </nav>
     </div>

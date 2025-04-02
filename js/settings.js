@@ -60,7 +60,7 @@ const initializeSettings = () => {
         lessonTimeInput = document.getElementById('lesson-time');
         instrumentSelect = document.getElementById('primary-instrument');
         themeToggle = document.getElementById('theme-toggle');
-        clearDataBtn = document.getElementById('clear-data-btn');
+        clearDataBtn = document.getElementById('clear-all-data');
         
         console.log('DOM elements found:', {
             categoriesList: !!categoriesList,
@@ -577,25 +577,38 @@ const handleImportData = () => {
 const handleClearAllData = () => {
     if (!confirm('Are you sure you want to clear ALL data? This action cannot be undone.')) return;
     
-    // Clear all data
-    window.saveItems('SETTINGS', [{
-        id: 's-1',
-        lessonDay: '',
-        lessonTime: '',
-        theme: 'light',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-    }]);
-    window.saveItems('CATEGORIES', []);
-    window.saveItems('SESSIONS', []);
-    window.saveItems('GOALS', []);
-    window.saveItems('MEDIA', []);
-    
-    // Reset UI
-    loadSettings();
-    loadCategories();
-    
-    alert('All data cleared successfully');
+    try {
+        // Clear all data from localStorage
+        localStorage.removeItem('practiceTrack_settings');
+        localStorage.removeItem('practiceTrack_categories');
+        localStorage.removeItem('practiceTrack_sessions');
+        localStorage.removeItem('practiceTrack_goals');
+        localStorage.removeItem('practiceTrack_media');
+        localStorage.removeItem('practiceTrack_timer');
+        
+        // Reset settings to default
+        localStorage.setItem('practiceTrack_settings', JSON.stringify([{
+            id: 's-1',
+            lessonDay: '',
+            lessonTime: '',
+            theme: 'light',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        }]));
+        
+        // Reset UI
+        loadSettings();
+        loadCategories();
+        
+        // Show success message
+        alert('All data cleared successfully');
+        
+        // Reload the page to ensure all data is refreshed
+        window.location.reload();
+    } catch (error) {
+        console.error('Error clearing data:', error);
+        alert('Error clearing data. Please try again.');
+    }
 };
 
 // Add styles

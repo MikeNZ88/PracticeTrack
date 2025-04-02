@@ -187,6 +187,11 @@ body {
     box-shadow: var(--shadow-sm);
 }
 
+.nav-items {
+    display: flex;
+    gap: var(--space-sm);
+}
+
 .nav-item {
     display: flex;
     align-items: center;
@@ -203,6 +208,7 @@ body {
     border-radius: var(--radius-md);
     position: relative;
     overflow: hidden;
+    text-decoration: none;
 }
 
 .nav-item:hover {
@@ -236,7 +242,7 @@ body {
     transform: translateY(-2px);
 }
 
-/* Mobile Navigation - Improved Design */
+/* Mobile Navigation */
 .mobile-nav {
     display: none;
     position: fixed;
@@ -244,13 +250,32 @@ body {
     left: 0;
     right: 0;
     background-color: var(--card-background);
-    padding: var(--space-sm) var(--space-md);
+    padding: var(--space-sm);
     border-top: 1px solid var(--border-color);
     z-index: 100;
+    justify-content: space-around;
 }
 
 .mobile-nav .nav-item {
-    padding: var(--space-sm) var(--space-md);
+    flex-direction: column;
+    padding: var(--space-sm);
+    font-size: var(--font-xs);
+    gap: var(--space-xs);
+}
+
+.mobile-nav .nav-item i {
+    width: 24px;
+    height: 24px;
+}
+
+@media (max-width: 768px) {
+    .main-nav {
+        display: none;
+    }
+
+    .mobile-nav {
+        display: flex;
+    }
 }
 
 /* Page Visibility */
@@ -2020,13 +2045,13 @@ textarea:focus {
 
 /* Remove settings from main nav and mobile nav */
 .nav-item[data-page="settings"] {
-    display: flex !important;
+    display: none !important;
 }
 
-/* Ensure settings tab is visible in both navigations */
+/* Ensure settings tab is not visible in both navigations */
 .main-nav .nav-item[data-page="settings"],
 .mobile-nav .nav-item[data-page="settings"] {
-    display: flex !important;
+    display: none !important;
 }
 
 /* Responsive adjustments */
@@ -2509,4 +2534,238 @@ textarea:focus {
 
 [data-theme="dark"] .categories-list li:hover {
     background: var(--bg-hover-dark, #444);
+}
+
+/* Practice Categories Styles */
+.practice-categories-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 1rem;
+}
+
+.practice-categories-filters {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.search-box {
+    flex: 1;
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.search-box i {
+    position: absolute;
+    left: 1rem;
+    color: var(--text-medium);
+}
+
+.search-box input {
+    width: 100%;
+    padding: 0.75rem 1rem 0.75rem 2.5rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    font-size: var(--font-md);
+    background-color: var(--card-background);
+    color: var(--text-dark);
+}
+
+.search-box input:focus {
+    outline: none;
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 3px rgba(59, 127, 245, 0.12);
+}
+
+.filter-box {
+    min-width: 200px;
+}
+
+.filter-box select {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    font-size: var(--font-md);
+    background-color: var(--card-background);
+    color: var(--text-dark);
+    cursor: pointer;
+}
+
+.filter-box select:focus {
+    outline: none;
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 3px rgba(59, 127, 245, 0.12);
+}
+
+.practice-categories-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.practice-category-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 1.5rem;
+    background-color: var(--card-background);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    transition: all var(--transition-normal);
+}
+
+.practice-category-item:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    border-color: rgba(59, 127, 245, 0.2);
+}
+
+.practice-category-content {
+    flex: 1;
+    margin-right: 1rem;
+}
+
+.practice-category-content h3 {
+    margin: 0 0 0.5rem;
+    font-size: var(--font-lg);
+    color: var(--text-dark);
+}
+
+.practice-category-description {
+    margin: 0 0 1rem;
+    color: var(--text-medium);
+    line-height: 1.5;
+}
+
+.practice-category-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.practice-category-difficulty {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    background-color: var(--primary-blue-light);
+    color: var(--primary-blue);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-sm);
+    font-weight: 500;
+}
+
+.practice-category-notes {
+    color: var(--text-light);
+    font-size: var(--font-sm);
+    font-style: italic;
+}
+
+.copy-category-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background-color: var(--primary-blue);
+    color: white;
+    border: none;
+    border-radius: var(--radius-md);
+    font-size: var(--font-sm);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.copy-category-btn:hover {
+    background-color: var(--primary-blue-dark);
+    transform: translateY(-1px);
+}
+
+.copy-category-btn i {
+    width: 16px;
+    height: 16px;
+}
+
+.no-categories {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-medium);
+    font-style: italic;
+}
+
+/* Dark mode support */
+.theme-dark .practice-category-item {
+    background-color: var(--card-background);
+    border-color: var(--border-color);
+}
+
+.theme-dark .search-box input,
+.theme-dark .filter-box select {
+    background-color: var(--card-background);
+    color: var(--text-dark);
+}
+
+.theme-dark .practice-category-difficulty {
+    background-color: rgba(59, 127, 245, 0.2);
+    color: var(--primary-blue-light);
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+    .practice-categories-filters {
+        flex-direction: column;
+    }
+    
+    .filter-box {
+        width: 100%;
+    }
+    
+    .practice-category-item {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .practice-category-content {
+        margin-right: 0;
+    }
+    
+    .copy-category-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+.settings-button {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(to right, var(--primary-blue), var(--primary-blue-dark));
+    border: none;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: var(--shadow-lg);
+    transition: all var(--transition-normal);
+    z-index: 1000;
+}
+
+.settings-button:hover {
+    transform: translateY(-2px) rotate(30deg);
+    box-shadow: var(--shadow-xl);
+}
+
+.settings-button i {
+    width: 24px;
+    height: 24px;
+}
+
+@media (max-width: 768px) {
+    .settings-button {
+        bottom: 80px; /* Adjust to be above mobile navigation */
+    }
 }
