@@ -51,13 +51,13 @@ function createMediaElement(media) {
     switch (media.type) {
         case 'photo':
             content = `<div class="media-image">
-                <img src="${media.uri}" alt="${media.name || 'Photo'}" />
+                <img src="${media.galleryPath}" alt="${media.name || 'Photo'}" />
             </div>`;
             break;
         case 'video':
             content = `<div class="media-video">
                 <video controls>
-                    <source src="${media.uri}" type="${media.fileType}">
+                    <source src="${media.galleryPath}" type="${media.fileType}">
                     Your browser does not support the video tag.
                 </video>
             </div>`;
@@ -153,7 +153,7 @@ function showNamingDialog(file, type) {
                 notes: notesInput.value,
                 filename: file.name,
                 fileType: file.type,
-                uri: URL.createObjectURL(file),
+                galleryPath: file.name, // Reference to file in gallery
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString()
             };
@@ -205,14 +205,14 @@ function setupPhotoCapture() {
             input.onchange = function(e) {
                 if (e.target.files && e.target.files[0]) {
                     const file = e.target.files[0];
-                    // Create media object with reference to device file
+                    // Create media object with reference to gallery file
                     const newMedia = {
                         id: `media_${Date.now()}`,
                         type: 'photo',
                         name: file.name,
                         filename: file.name,
                         fileType: file.type,
-                        uri: URL.createObjectURL(file),
+                        galleryPath: file.name, // Reference to file in gallery
                         createdAt: new Date().toISOString(),
                         updatedAt: new Date().toISOString()
                     };
@@ -249,14 +249,14 @@ function setupPhotoCapture() {
             input.onchange = function(e) {
                 if (e.target.files && e.target.files[0]) {
                     const file = e.target.files[0];
-                    // Create media object with reference to device file
+                    // Create media object with reference to gallery file
                     const newMedia = {
                         id: `media_${Date.now()}`,
                         type: 'photo',
                         name: file.name,
                         filename: file.name,
                         fileType: file.type,
-                        uri: URL.createObjectURL(file),
+                        galleryPath: file.name, // Reference to file in gallery
                         createdAt: new Date().toISOString(),
                         updatedAt: new Date().toISOString()
                     };
@@ -304,14 +304,14 @@ function setupVideoCapture() {
             input.onchange = function(e) {
                 if (e.target.files && e.target.files[0]) {
                     const file = e.target.files[0];
-                    // Create media object with reference to device file
+                    // Create media object with reference to gallery file
                     const newMedia = {
                         id: `media_${Date.now()}`,
                         type: 'video',
                         name: file.name,
                         filename: file.name,
                         fileType: file.type,
-                        uri: URL.createObjectURL(file),
+                        galleryPath: file.name, // Reference to file in gallery
                         createdAt: new Date().toISOString(),
                         updatedAt: new Date().toISOString()
                     };
@@ -348,14 +348,14 @@ function setupVideoCapture() {
             input.onchange = function(e) {
                 if (e.target.files && e.target.files[0]) {
                     const file = e.target.files[0];
-                    // Create media object with reference to device file
+                    // Create media object with reference to gallery file
                     const newMedia = {
                         id: `media_${Date.now()}`,
                         type: 'video',
                         name: file.name,
                         filename: file.name,
                         fileType: file.type,
-                        uri: URL.createObjectURL(file),
+                        galleryPath: file.name, // Reference to file in gallery
                         createdAt: new Date().toISOString(),
                         updatedAt: new Date().toISOString()
                     };
