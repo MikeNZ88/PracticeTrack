@@ -1460,6 +1460,38 @@ textarea.form-control {
     z-index: 1000;
 }
 
+/* Standard Dialog - Centered */
+.standard-dialog {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--card-background);
+    padding: var(--space-xl);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-xl);
+    z-index: 1001;
+    max-width: 500px;
+    width: 90%;
+    border: none;
+}
+
+.standard-dialog::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 6px;
+    background: linear-gradient(to right, var(--primary-blue), var(--secondary-orange));
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+
+.standard-dialog::backdrop {
+    background-color: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+}
+
 /* Goal Styles - Enhanced */
 .goal-card {
     background-color: var(--card-background);

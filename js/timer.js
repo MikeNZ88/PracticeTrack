@@ -97,11 +97,6 @@ class Timer {
 
     startTimer() {
         if (!this.isRunning) {
-            if (!this.categorySelect.value) {
-                alert('Please select a practice category');
-                return;
-            }
-            
             this.isRunning = true;
             this.isPaused = false;
             if (!this.startTime) {
@@ -152,15 +147,10 @@ class Timer {
                 return;
             }
 
-            if (!this.categorySelect.value) {
-                alert('Please select a practice category');
-                return;
-            }
-
             // Create session object
             const session = {
                 id: `session_${Date.now()}`,
-                categoryId: this.categorySelect.value,
+                categoryId: this.categorySelect.value || null,
                 startTime: this.startTime.toISOString(),
                 duration: this.timeElapsed,
                 notes: this.sessionNotes.value.trim(),
@@ -342,3 +332,154 @@ document.addEventListener('pageChanged', (e) => {
         activateTimerPage();
     }
 });
+
+/**
+ * Show timer dialog for adding/editing
+ * @param {string} timerId - Optional timer ID for editing
+ */
+function showTimerDialog(timerId) {
+    // Get timer data if editing
+    let timerData = null;
+    
+    if (timerId) {
+        timerData = window.getItemById ? window.getItemById('TIMERS', timerId) : 
+            (JSON.parse(localStorage.getItem('practiceTrack_timers')) || [])
+                .find(t => t.id === timerId);
+    }
+    
+    // Get categories for dropdown
+    const categories = window.getItems ? window.getItems('CATEGORIES') : 
+        JSON.parse(localStorage.getItem('practiceTrack_categories')) || [];
+    
+    const categoryOptions = categories.map(cat => ({
+        value: cat.id,
+        text: cat.name
+    }));
+    
+    // Set up form fields
+    const fields = [
+        {
+            type: 'text',
+            id: 'timer-name',
+            label: 'Timer Name',
+            required: true,
+            value: timerData ? timerData.name : ''
+        },
+        {
+            type: 'select',
+            id: 'timer-category',
+            label: 'Category',
+            required: false,
+            options: categoryOptions,
+            value: timerData ? timerData.categoryId : ''
+        },
+        {
+            type: 'number',
+            id: 'timer-duration',
+            label: 'Duration (minutes)',
+            required: true,
+            min: 1,
+            value: timerData ? timerData.duration / 60 : ''
+        },
+        {
+            type: 'textarea',
+            id: 'timer-notes',
+            label: 'Notes',
+            rows: 4,
+            value: timerData ? timerData.notes || '' : ''
+        }
+    ];
+    
+    // Create dialog using UI framework
+    timerDialog = window.UI.createStandardDialog({
+        title: timerId ? 'Edit Timer' : 'Add New Timer',
+        fields: fields,
+        onSubmit: (dialog, e) => handleTimerFormSubmit(dialog, e, timerId),
+        onCancel: (dialog) => dialog.close(),
+        submitButtonText: 'Save Timer',
+        cancelButtonText: 'Cancel'
+    });
+    
+    // Show dialog
+    timerDialog.showModal();
+}
+
+/**
+ * Handle timer form submission
+ * @param {HTMLElement} dialog - The dialog element
+ * @param {Event} e - The submit event
+ * @param {string} timerId - Optional timer ID for editing
+ */
+function handleTimerFormSubmit(dialog, e, timerId) {
+    try {
+        const form = e.target;
+        const nameInput = form.querySelector('#timer-name');
+        const categorySelect = form.querySelector('#timer-category');
+        const durationInput = form.querySelector('#timer-duration');
+        const notesInput = form.querySelector('#timer-notes');
+        
+        // Validate inputs - only name and duration are required
+        if (!nameInput || !nameInput.value || !durationInput || !durationInput.value) {
+            alert('Please enter the timer name and duration');
+            return;
+        }
+        
+        // Create timer object
+        const timerData = {
+            id: timerId || `timer_${Date.now()}`,
+            name: nameInput.value.trim(),
+            categoryId: categorySelect ? categorySelect.value : null,
+            duration: parseInt(durationInput.value) * 60, // Convert minutes to seconds
+            notes: notesInput ? notesInput.value.trim() : '',
+            createdAt: new Date().toISOString()
+        };
+        
+        // Save timer using the data layer
+        if (window.addItem && window.updateItem) {
+            if (timerId) {
+                window.updateItem('TIMERS', timerId, timerData);
+            } else {
+                window.addItem('TIMERS', timerData);
+            }
+        } else {
+            // Legacy localStorage handling
+            let timers = [];
+            try {
+                const stored = localStorage.getItem('practiceTrack_timers');
+                if (stored) {
+                    timers = JSON.parse(stored);
+                }
+            } catch (e) {
+                console.error('Error reading timers:', e);
+                timers = [];
+            }
+            
+            if (timerId) {
+                // Update existing timer
+                const index = timers.findIndex(t => t.id === timerId);
+                if (index !== -1) {
+                    timers[index] = timerData;
+                }
+            } else {
+                // Add new timer
+                timers.push(timerData);
+            }
+            
+            // Save to localStorage
+            localStorage.setItem('practiceTrack_timers', JSON.stringify(timers));
+        }
+        
+        // Close dialog
+        dialog.close();
+        
+        // Reload timers list
+        window.UI.loadRecords('timers', {
+            recordType: 'TIMERS',
+            createRecordElementFn: createTimerElement
+        });
+        
+    } catch (error) {
+        console.error('Error saving timer:', error);
+        alert('There was an error saving the timer.');
+    }
+}

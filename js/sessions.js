@@ -179,10 +179,9 @@ function handleSessionFormSubmit(dialog, e, sessionId) {
         const notesInput = form.querySelector('#dialog-session-notes');
         const categorySelect = form.querySelector('#session-category');
         
-        // Validate inputs
-        if (!dateInput || !dateInput.value || !durationInput || !durationInput.value || 
-            !categorySelect || !categorySelect.value) {
-            alert('Please fill all required fields');
+        // Validate inputs - only date and duration are required
+        if (!dateInput || !dateInput.value || !durationInput || !durationInput.value) {
+            alert('Please enter the session date and duration');
             return;
         }
         
@@ -190,7 +189,7 @@ function handleSessionFormSubmit(dialog, e, sessionId) {
         const sessionDate = new Date(dateInput.value);
         const sessionData = {
             id: sessionId || `session_${Date.now()}`,
-            categoryId: categorySelect.value,
+            categoryId: categorySelect ? categorySelect.value : null,
             startTime: sessionDate.toISOString(),
             duration: parseInt(durationInput.value) * 60, // Convert minutes to seconds
             notes: notesInput ? notesInput.value.trim() : '',

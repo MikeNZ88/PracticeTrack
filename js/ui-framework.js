@@ -368,10 +368,9 @@ window.UI = (function() {
         
         // Generate HTML for each field
         fields.forEach(field => {
-            // Determine if the field should be required
-            // By default, only name fields and session duration fields are required
-            const isRequired = field.required === true || 
-                (field.id && (field.id.includes('name') || field.id === 'session-duration'));
+            // Only name fields and session duration are required
+            const isRequired = field.required === true && 
+                (field.id.includes('name') || field.id === 'session-duration');
             
             switch (field.type) {
                 case 'text':

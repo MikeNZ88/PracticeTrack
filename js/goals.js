@@ -190,9 +190,9 @@ function handleGoalFormSubmit(dialog, e, goalId) {
         const descriptionInput = form.querySelector('#goal-description');
         const completedCheckbox = form.querySelector('#goal-completed');
         
-        // Validate inputs
-        if (!titleInput || !titleInput.value || !categorySelect || !categorySelect.value) {
-            alert('Please fill all required fields');
+        // Validate inputs - only title is required
+        if (!titleInput || !titleInput.value) {
+            alert('Please enter a goal title');
             return;
         }
         
@@ -200,7 +200,7 @@ function handleGoalFormSubmit(dialog, e, goalId) {
         const goalData = {
             id: goalId || `goal_${Date.now()}`,
             title: titleInput.value.trim(),
-            categoryId: categorySelect.value,
+            categoryId: categorySelect ? categorySelect.value : null,
             targetDate: targetDateInput && targetDateInput.value ? new Date(targetDateInput.value).toISOString() : null,
             description: descriptionInput ? descriptionInput.value.trim() : '',
             completed: completedCheckbox ? completedCheckbox.checked : false,
