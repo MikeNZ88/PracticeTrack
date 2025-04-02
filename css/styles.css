@@ -3041,24 +3041,31 @@ textarea:focus {
 
 /* Lesson Countdown Card */
 .lesson-countdown-card {
-    background: var(--bg-light);
-    border-radius: var(--radius-lg);
-    padding: var(--space-lg);
-    margin-bottom: var(--space-lg);
-    box-shadow: var(--shadow-sm);
+    background-color: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+    transition: transform 0.2s;
+}
+
+.lesson-countdown-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
 }
 
 .lesson-countdown-card .card-header {
     display: flex;
-    align-items: center;
     justify-content: space-between;
-    margin-bottom: var(--space-md);
+    align-items: center;
+    margin-bottom: 15px;
 }
 
 .lesson-countdown-card .card-header h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
     margin: 0;
-    color: var(--text-primary);
-    font-size: 1.2rem;
 }
 
 .lesson-countdown-card .card-content {

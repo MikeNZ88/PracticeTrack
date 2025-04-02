@@ -40,7 +40,10 @@ function initStats() {
         return;
     }
     
-    // Display stats
+    // Update lesson countdown first
+    updateLessonCountdown();
+    
+    // Then display stats
     displayStats(sessions);
     
     // Load category filter
@@ -116,9 +119,45 @@ function displayStats(sessions) {
         maxTime,
         sessionsThisWeek
     });
+
+    // First, calculate days until lesson and create the countdown card
+    const lessonInfo = calculateDaysUntilLesson();
+    let countdownHtml = '';
     
-    // Create stats grid
+    if (lessonInfo) {
+        countdownHtml = `
+            <div class="lesson-countdown-card">
+                <div class="card-header">
+                    <h3>Next Lesson</h3>
+                    <i data-lucide="calendar"></i>
+                </div>
+                <div class="card-content">
+                    <div class="countdown-value">${lessonInfo.days}</div>
+                    <div class="countdown-label">days until lesson</div>
+                    <div class="lesson-details">
+                        <p>${lessonInfo.date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
+                        <p>${lessonInfo.date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}</p>
+                    </div>
+                </div>
+            </div>
+        `;
+    } else {
+        countdownHtml = `
+            <div class="lesson-countdown-card">
+                <div class="card-header">
+                    <h3>Next Lesson</h3>
+                    <i data-lucide="calendar"></i>
+                </div>
+                <div class="card-content">
+                    <p>No lesson scheduled</p>
+                </div>
+            </div>
+        `;
+    }
+    
+    // Create stats grid with countdown card first
     container.innerHTML = `
+        ${countdownHtml}
         <div class="stats-grid">
             <div class="stat-card">
                 <h3>Total Practice Time</h3>
@@ -142,6 +181,11 @@ function displayStats(sessions) {
             </div>
         </div>
     `;
+
+    // Initialize Lucide icons
+    if (window.lucide && window.lucide.createIcons) {
+        window.lucide.createIcons();
+    }
 }
 
 function displayEmptyState(container) {
@@ -219,17 +263,67 @@ function applyFilters() {
         return;
     }
     
-    // Clear existing content
-    container.innerHTML = '';
+    // Remove only the stats grid, preserve the lesson countdown card
+    const statsGrid = container.querySelector('.stats-grid');
+    if (statsGrid) {
+        statsGrid.remove();
+    }
     
     // Show empty state if no sessions match filters
     if (!sessions || sessions.length === 0) {
-        displayEmptyState(container);
+        const emptyState = document.createElement('div');
+        emptyState.className = 'empty-state';
+        emptyState.innerHTML = `
+            <i data-lucide="bar-chart-2"></i>
+            <p>No practice sessions found for the selected filters.</p>
+        `;
+        container.appendChild(emptyState);
+        if (window.lucide && window.lucide.createIcons) {
+            window.lucide.createIcons();
+        }
         return;
     }
     
-    // Display filtered stats
-    displayStats(sessions);
+    // Calculate stats
+    const totalTime = sessions.reduce((sum, session) => sum + (session.duration || 0), 0);
+    const avgTime = Math.round(totalTime / sessions.length);
+    const maxTime = Math.max(...sessions.map(s => s.duration || 0));
+    const sessionsThisWeek = sessions.filter(session => {
+        const sessionDate = new Date(session.startTime);
+        const today = new Date();
+        const weekStart = new Date(today.setDate(today.getDate() - today.getDay()));
+        weekStart.setHours(0, 0, 0, 0);
+        return sessionDate >= weekStart;
+    }).length;
+    
+    // Create new stats grid
+    const newStatsGrid = document.createElement('div');
+    newStatsGrid.className = 'stats-grid';
+    newStatsGrid.innerHTML = `
+        <div class="stat-card">
+            <h3>Total Practice Time</h3>
+            <div class="stat-value">${formatDuration(totalTime)}</div>
+            <div class="stat-description">Total time spent practicing</div>
+        </div>
+        <div class="stat-card">
+            <h3>Average Session</h3>
+            <div class="stat-value">${formatDuration(avgTime)}</div>
+            <div class="stat-description">Average duration per session</div>
+        </div>
+        <div class="stat-card">
+            <h3>Longest Session</h3>
+            <div class="stat-value">${formatDuration(maxTime)}</div>
+            <div class="stat-description">Duration of longest practice session</div>
+        </div>
+        <div class="stat-card">
+            <h3>Sessions This Week</h3>
+            <div class="stat-value">${sessionsThisWeek}</div>
+            <div class="stat-description">Number of practice sessions this week</div>
+        </div>
+    `;
+    
+    // Append new stats grid
+    container.appendChild(newStatsGrid);
 }
 
 // Listen for categories changed event
@@ -237,33 +331,6 @@ document.addEventListener('categoriesChanged', () => {
     console.log('Stats received categories changed event');
     loadCategoryFilter();
 });
-
-// Initialize stats page
-const initializeStats = () => {
-    console.log('Initializing stats page');
-    
-    // Get or create stats container
-    const container = document.querySelector('.stats-container');
-    if (!container) {
-        console.error('Stats container not found');
-        return;
-    }
-    
-    // Clear existing content
-    container.innerHTML = '';
-    
-    // Update lesson countdown
-    updateLessonCountdown();
-    
-    // Initialize other stats
-    initStats();
-    
-    // Listen for settings updates
-    document.addEventListener('settingsUpdated', () => {
-        console.log('Settings updated, refreshing stats');
-        updateLessonCountdown();
-    });
-};
 
 // Calculate days until next lesson
 const calculateDaysUntilLesson = () => {
@@ -378,14 +445,14 @@ const updateLessonCountdown = () => {
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
     if (document.getElementById('stats-page')) {
-        initializeStats();
+        initStats();
     }
 });
 
 // Update navigation handler to initialize stats page
 document.addEventListener('navigation', (event) => {
     if (event.detail.page === 'stats') {
-        initializeStats();
+        initStats();
     }
 });
 
