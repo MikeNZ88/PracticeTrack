@@ -24,7 +24,7 @@ function initializeMedia() {
         createRecordElementFn: createMediaElement
     });
     
-    // Set up media buttons
+    // Setup media buttons
     setupMediaButtons();
     
     // Add media-specific styles
@@ -51,15 +51,20 @@ function createMediaElement(media) {
     switch (media.type) {
         case 'photo':
             content = `<div class="media-image">
-                <img src="${media.fileUrl}" alt="${media.name || 'Photo'}" />
+                <div class="image-placeholder">
+                    <i data-lucide="image"></i>
+                    <p>Photo saved to your device</p>
+                    <p class="file-name">${media.name || 'Photo'}</p>
+                </div>
             </div>`;
             break;
         case 'video':
             content = `<div class="media-video">
-                <video controls>
-                    <source src="${media.fileUrl}" type="${media.fileType}">
-                    Your browser does not support the video tag.
-                </video>
+                <div class="video-placeholder">
+                    <i data-lucide="video"></i>
+                    <p>Video saved to your device</p>
+                    <p class="file-name">${media.name || 'Video'}</p>
+                </div>
             </div>`;
             break;
         case 'note':
@@ -85,6 +90,7 @@ function createMediaElement(media) {
         </div>
         <div class="media-info">
             ${media.name ? `<p class="media-name">${media.name}</p>` : ''}
+            ${media.description ? `<p class="media-description">${media.description}</p>` : ''}
         </div>
     `;
     
@@ -92,6 +98,11 @@ function createMediaElement(media) {
     const deleteButton = mediaElement.querySelector('.delete-media');
     if (deleteButton) {
         deleteButton.addEventListener('click', () => deleteMedia(media.id));
+    }
+    
+    // Initialize Lucide icons
+    if (window.lucide && typeof window.lucide.createIcons === 'function') {
+        window.lucide.createIcons();
     }
     
     return mediaElement;
@@ -105,53 +116,53 @@ function setupPhotoCapture() {
     if (!photoBtn) return;
     
     photoBtn.addEventListener('click', () => {
-        // Create a hidden input element
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.accept = 'image/*';
-        input.capture = 'environment'; // Use the back camera
-        
-        // Handle file selection
-        input.onchange = function(e) {
-            if (e.target.files && e.target.files[0]) {
-                const file = e.target.files[0];
-                
-                // Create a temporary URL for preview
-                const fileUrl = URL.createObjectURL(file);
-                
-                // Create media object
-                const newMedia = {
-                    id: `media_${Date.now()}`,
-                    type: 'photo',
-                    name: file.name,
-                    fileType: file.type,
-                    fileUrl: fileUrl,
-                    createdAt: new Date().toISOString(),
-                    updatedAt: new Date().toISOString()
-                };
-                
-                // Save media reference to localStorage
-                if (window.addItem) {
-                    window.addItem('MEDIA', newMedia);
-                } else {
-                    saveMedia(newMedia);
+        // Show file naming dialog first
+        showMediaNameDialog('photo', (name, description) => {
+            // Create a hidden input element with capture attribute
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+            input.capture = 'environment'; // Use the environment-facing camera (usually back camera)
+            
+            // Handle file selection
+            input.onchange = function(e) {
+                if (e.target.files && e.target.files[0]) {
+                    const file = e.target.files[0];
+                    
+                    // Create media reference object
+                    const newMedia = {
+                        id: `media_${Date.now()}`,
+                        type: 'photo',
+                        name: name || file.name,
+                        description: description || '',
+                        fileType: file.type,
+                        createdAt: new Date().toISOString(),
+                        updatedAt: new Date().toISOString()
+                    };
+                    
+                    // Save media reference to localStorage
+                    if (window.addItem) {
+                        window.addItem('MEDIA', newMedia);
+                    } else {
+                        saveMedia(newMedia);
+                    }
+                    
+                    // Reload media list
+                    window.UI.loadRecords('media', {
+                        recordType: 'MEDIA',
+                        createRecordElementFn: createMediaElement
+                    });
+                    
+                    // Show success message
+                    if (window.showNotification) {
+                        window.showNotification('Photo Captured', 'Your photo has been saved to your device.');
+                    }
                 }
-                
-                // Reload media list
-                window.UI.loadRecords('media', {
-                    recordType: 'MEDIA',
-                    createRecordElementFn: createMediaElement
-                });
-                
-                // Show success message
-                if (window.showNotification) {
-                    window.showNotification('Photo Added', 'Your photo has been saved to your gallery.');
-                }
-            }
-        };
-        
-        // Trigger the file input click
-        input.click();
+            };
+            
+            // Trigger the file input click
+            input.click();
+        });
     });
 }
 
@@ -163,54 +174,106 @@ function setupVideoCapture() {
     if (!videoBtn) return;
     
     videoBtn.addEventListener('click', () => {
-        // Create a hidden input element
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.accept = 'video/*';
-        input.capture = 'environment'; // Use the back camera
-        
-        // Handle file selection
-        input.onchange = function(e) {
-            if (e.target.files && e.target.files[0]) {
-                const file = e.target.files[0];
-                
-                // Create a temporary URL for preview
-                const fileUrl = URL.createObjectURL(file);
-                
-                // Create media object
-                const newMedia = {
-                    id: `media_${Date.now()}`,
-                    type: 'video',
-                    name: file.name,
-                    fileType: file.type,
-                    fileUrl: fileUrl,
-                    createdAt: new Date().toISOString(),
-                    updatedAt: new Date().toISOString()
-                };
-                
-                // Save media reference to localStorage
-                if (window.addItem) {
-                    window.addItem('MEDIA', newMedia);
-                } else {
-                    saveMedia(newMedia);
+        // Show file naming dialog first
+        showMediaNameDialog('video', (name, description) => {
+            // Create a hidden input element with capture attribute
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'video/*';
+            input.capture = 'environment'; // Use the environment-facing camera (usually back camera)
+            
+            // Handle file selection
+            input.onchange = function(e) {
+                if (e.target.files && e.target.files[0]) {
+                    const file = e.target.files[0];
+                    
+                    // Create media reference object
+                    const newMedia = {
+                        id: `media_${Date.now()}`,
+                        type: 'video',
+                        name: name || file.name,
+                        description: description || '',
+                        fileType: file.type,
+                        createdAt: new Date().toISOString(),
+                        updatedAt: new Date().toISOString()
+                    };
+                    
+                    // Save media reference to localStorage
+                    if (window.addItem) {
+                        window.addItem('MEDIA', newMedia);
+                    } else {
+                        saveMedia(newMedia);
+                    }
+                    
+                    // Reload media list
+                    window.UI.loadRecords('media', {
+                        recordType: 'MEDIA',
+                        createRecordElementFn: createMediaElement
+                    });
+                    
+                    // Show success message
+                    if (window.showNotification) {
+                        window.showNotification('Video Recorded', 'Your video has been saved to your device.');
+                    }
                 }
-                
-                // Reload media list
-                window.UI.loadRecords('media', {
-                    recordType: 'MEDIA',
-                    createRecordElementFn: createMediaElement
-                });
-                
-                // Show success message
-                if (window.showNotification) {
-                    window.showNotification('Video Added', 'Your video has been saved to your gallery.');
-                }
-            }
-        };
-        
-        // Trigger the file input click
-        input.click();
+            };
+            
+            // Trigger the file input click
+            input.click();
+        });
     });
+}
+
+/**
+ * Show dialog to name media before capture
+ * @param {string} mediaType - Type of media (photo or video)
+ * @param {Function} callback - Callback function after name is entered
+ */
+function showMediaNameDialog(mediaType, callback) {
+    // Set up form fields
+    const fields = [
+        {
+            type: 'text',
+            id: 'media-name',
+            label: `${mediaType === 'photo' ? 'Photo' : 'Video'} Name`,
+            required: true,
+            value: `${mediaType === 'photo' ? 'Photo' : 'Video'} ${new Date().toLocaleDateString()}`
+        },
+        {
+            type: 'textarea',
+            id: 'media-description',
+            label: 'Description (optional)',
+            rows: 3,
+            value: ''
+        }
+    ];
+    
+    // Create dialog using UI framework
+    const dialog = window.UI.createStandardDialog({
+        title: mediaType === 'photo' ? 'Name Your Photo' : 'Name Your Video',
+        fields: fields,
+        onSubmit: (dialog, e) => {
+            const form = e.target;
+            const nameInput = form.querySelector('#media-name');
+            const descriptionInput = form.querySelector('#media-description');
+            
+            const name = nameInput.value.trim();
+            const description = descriptionInput.value.trim();
+            
+            if (!name) {
+                alert('Please enter a name for your media');
+                return;
+            }
+            
+            dialog.close();
+            callback(name, description);
+        },
+        onCancel: (dialog) => dialog.close(),
+        submitButtonText: 'Continue',
+        cancelButtonText: 'Cancel'
+    });
+    
+    dialog.showModal();
 }
 
 // Set up media buttons with individual handlers
@@ -238,6 +301,13 @@ function showNoteDialog(existingNote = null) {
     // Set up form fields
     const fields = [
         {
+            type: 'text',
+            id: 'note-title',
+            label: 'Title',
+            required: true,
+            value: existingNote ? existingNote.name || '' : `Note ${new Date().toLocaleDateString()}`
+        },
+        {
             type: 'textarea',
             id: 'note-content',
             label: 'Content',
@@ -252,12 +322,20 @@ function showNoteDialog(existingNote = null) {
         fields: fields,
         onSubmit: (dialog, e) => {
             const form = e.target;
+            const titleInput = form.querySelector('#note-title');
             const contentInput = form.querySelector('#note-content');
             
+            const title = titleInput.value.trim();
             const content = contentInput.value;
+            
+            if (!title) {
+                alert('Please enter a title for your note');
+                return;
+            }
             
             if (existingNote) {
                 // Update existing note
+                existingNote.name = title;
                 existingNote.content = content;
                 existingNote.updatedAt = new Date().toISOString();
                 
@@ -272,6 +350,7 @@ function showNoteDialog(existingNote = null) {
                 const newNote = {
                     id: `media_${Date.now()}`,
                     type: 'note',
+                    name: title,
                     content: content,
                     createdAt: new Date().toISOString(),
                     updatedAt: new Date().toISOString()
@@ -315,7 +394,7 @@ async function deleteMedia(mediaId) {
     // Confirm deletion using UI framework
     const confirmed = await window.UI.confirmDialog({
         title: 'Delete Media',
-        message: 'Are you sure you want to delete this media?',
+        message: 'Are you sure you want to delete this media reference? Note that the actual media file on your device will not be deleted.',
         confirmText: 'Delete',
         cancelText: 'Cancel',
         isDestructive: true
@@ -355,7 +434,7 @@ async function deleteMedia(mediaId) {
         
         // Show success message
         if (window.showNotification) {
-            window.showNotification('Media Deleted', 'The media has been deleted.');
+            window.showNotification('Media Deleted', 'The media reference has been deleted.');
         }
     } catch (error) {
         console.error('Error deleting media:', error);
@@ -408,55 +487,90 @@ function addMediaStyles() {
     // Add media-specific CSS
     styleEl.textContent = `
         .media-card {
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 15px;
-            background-color: #fff;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: var(--space-lg);
+            margin-bottom: var(--space-lg);
+            background-color: var(--card-background);
+            box-shadow: var(--shadow-sm);
+            transition: all var(--transition-normal);
+        }
+        
+        .media-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+            border-color: rgba(59, 127, 245, 0.2);
         }
         
         .media-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 10px;
+            margin-bottom: var(--space-md);
         }
         
         .media-date {
-            font-size: 14px;
-            color: #666;
+            font-size: var(--font-sm);
+            color: var(--text-light);
+            background-color: var(--background-light);
+            padding: var(--space-xs) var(--space-sm);
+            border-radius: var(--radius-md);
         }
         
         .media-actions {
             display: flex;
-            gap: 8px;
+            gap: var(--space-xs);
         }
         
         .media-content {
-            margin-bottom: 15px;
+            margin: var(--space-md) 0;
         }
         
-        .media-image img {
-            max-width: 100%;
-            max-height: 300px;
-            border-radius: 4px;
-            display: block;
-            margin: 0 auto;
+        .image-placeholder, .video-placeholder {
+            background-color: var(--background-light);
+            border-radius: var(--radius-md);
+            padding: var(--space-xl);
+            text-align: center;
+            color: var(--text-medium);
+            border: 1px dashed var(--border-color);
         }
         
-        .media-video video {
-            max-width: 100%;
-            max-height: 300px;
-            border-radius: 4px;
-            display: block;
-            margin: 0 auto;
+        .image-placeholder i, .video-placeholder i {
+            width: 48px;
+            height: 48px;
+            color: var(--primary-blue-light);
+            margin-bottom: var(--space-md);
+        }
+        
+        .image-placeholder p, .video-placeholder p {
+            margin: var(--space-xs) 0;
+        }
+        
+        .file-name {
+            font-weight: 600;
+            color: var(--text-dark);
         }
         
         .media-name {
-            font-weight: bold;
-            font-size: 16px;
-            margin: 0 0 5px 0;
+            font-weight: 600;
+            font-size: var(--font-lg);
+            margin: var(--space-xs) 0;
+            color: var(--text-dark);
+        }
+        
+        .media-description {
+            color: var(--text-medium);
+            margin: var(--space-xs) 0;
+        }
+        
+        .note-content {
+            padding: var(--space-md);
+            background-color: var(--background-light);
+            border-radius: var(--radius-md);
+            white-space: pre-wrap;
+            font-size: var(--font-sm);
+            line-height: 1.7;
+            border-left: 3px solid var(--border-color);
         }
     `;
 }
@@ -468,12 +582,5 @@ document.addEventListener('pageChanged', (e) => {
     }
 });
 
-// Initialize IndexedDB when the page loads
-document.addEventListener('DOMContentLoaded', () => {
-    initMediaDB().catch(error => {
-        console.error('Error initializing media database:', error);
-    });
-});
-
 // Make function available globally
-window.initializeMedia = initializeMedia; 
+window.initializeMedia = initializeMedia;
