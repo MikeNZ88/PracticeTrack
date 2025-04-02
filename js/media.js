@@ -129,6 +129,25 @@ function setupPhotoCapture() {
                 if (e.target.files && e.target.files[0]) {
                     const file = e.target.files[0];
                     
+                    // Create a URL to the file
+                    const fileUrl = URL.createObjectURL(file);
+                    
+                    // Create a download link to save the file
+                    const downloadLink = document.createElement('a');
+                    downloadLink.href = fileUrl;
+                    downloadLink.download = name || file.name;
+                    downloadLink.style.display = 'none';
+                    document.body.appendChild(downloadLink);
+                    
+                    // Trigger the download
+                    downloadLink.click();
+                    
+                    // Clean up
+                    setTimeout(() => {
+                        URL.revokeObjectURL(fileUrl);
+                        document.body.removeChild(downloadLink);
+                    }, 100);
+                    
                     // Create media reference object
                     const newMedia = {
                         id: `media_${Date.now()}`,
@@ -186,6 +205,25 @@ function setupVideoCapture() {
             input.onchange = function(e) {
                 if (e.target.files && e.target.files[0]) {
                     const file = e.target.files[0];
+                    
+                    // Create a URL to the file
+                    const fileUrl = URL.createObjectURL(file);
+                    
+                    // Create a download link to save the file
+                    const downloadLink = document.createElement('a');
+                    downloadLink.href = fileUrl;
+                    downloadLink.download = name || file.name;
+                    downloadLink.style.display = 'none';
+                    document.body.appendChild(downloadLink);
+                    
+                    // Trigger the download
+                    downloadLink.click();
+                    
+                    // Clean up
+                    setTimeout(() => {
+                        URL.revokeObjectURL(fileUrl);
+                        document.body.removeChild(downloadLink);
+                    }, 100);
                     
                     // Create media reference object
                     const newMedia = {
