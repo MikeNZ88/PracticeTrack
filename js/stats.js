@@ -48,6 +48,9 @@ function initStats() {
     
     // Load category filter
     loadCategoryFilter();
+    
+    // Setup date input listeners
+    setupDateInputListeners();
 }
 
 function loadCategoryFilter() {
@@ -224,8 +227,8 @@ function applyFilters() {
     
     const startDateInput = document.getElementById('start-date');
     const endDateInput = document.getElementById('end-date');
-    const startDate = startDateInput ? new Date(startDateInput.value) : null;
-    const endDate = endDateInput ? new Date(endDateInput.value) : null;
+    const startDate = startDateInput && startDateInput.value ? startDateInput.value : '';
+    const endDate = endDateInput && endDateInput.value ? endDateInput.value : '';
     
     console.log('Filters:', {
         category: selectedCategory,
@@ -233,97 +236,49 @@ function applyFilters() {
         endDate: endDate
     });
     
-    // Apply category filter
-    if (selectedCategory) {
-        sessions = sessions.filter(session => session.categoryId === selectedCategory);
-        console.log('Sessions after category filter:', sessions.length);
-    }
-    
-    // Apply date filter
-    if (startDate && !isNaN(startDate)) {
-        sessions = sessions.filter(session => {
-            const sessionDate = new Date(session.startTime);
-            return sessionDate >= startDate;
+    // Use the common filterRecords function from UI framework
+    if (window.UI && typeof window.UI.filterRecords === 'function') {
+        sessions = window.UI.filterRecords(sessions, {
+            categoryId: selectedCategory,
+            startDate: startDate,
+            endDate: endDate
         });
-        console.log('Sessions after start date filter:', sessions.length);
-    }
-    
-    if (endDate && !isNaN(endDate)) {
-        sessions = sessions.filter(session => {
-            const sessionDate = new Date(session.startTime);
-            return sessionDate <= endDate;
-        });
-        console.log('Sessions after end date filter:', sessions.length);
-    }
-    
-    // Get or create stats container
-    const container = document.querySelector('.stats-container');
-    if (!container) {
-        console.error('Stats container not found');
-        return;
-    }
-    
-    // Remove only the stats grid, preserve the lesson countdown card
-    const statsGrid = container.querySelector('.stats-grid');
-    if (statsGrid) {
-        statsGrid.remove();
-    }
-    
-    // Show empty state if no sessions match filters
-    if (!sessions || sessions.length === 0) {
-        const emptyState = document.createElement('div');
-        emptyState.className = 'empty-state';
-        emptyState.innerHTML = `
-            <i data-lucide="bar-chart-2"></i>
-            <p>No practice sessions found for the selected filters.</p>
-        `;
-        container.appendChild(emptyState);
-        if (window.lucide && window.lucide.createIcons) {
-            window.lucide.createIcons();
+    } else {
+        // Fallback to direct filtering if UI framework not available
+        // Apply category filter
+        if (selectedCategory) {
+            sessions = sessions.filter(session => session.categoryId === selectedCategory);
+            console.log('Sessions after category filter:', sessions.length);
         }
-        return;
+        
+        // Apply date filter
+        if (startDate) {
+            const startDateObj = new Date(startDate);
+            if (!isNaN(startDateObj.getTime())) {
+                sessions = sessions.filter(session => {
+                    const sessionDate = new Date(session.startTime);
+                    return sessionDate >= startDateObj;
+                });
+                console.log('Sessions after start date filter:', sessions.length);
+            }
+        }
+        
+        if (endDate) {
+            const endDateObj = new Date(endDate);
+            if (!isNaN(endDateObj.getTime())) {
+                // Set to end of day
+                endDateObj.setHours(23, 59, 59, 999);
+                sessions = sessions.filter(session => {
+                    const sessionDate = new Date(session.startTime);
+                    return sessionDate <= endDateObj;
+                });
+                console.log('Sessions after end date filter:', sessions.length);
+            }
+        }
     }
     
-    // Calculate stats
-    const totalTime = sessions.reduce((sum, session) => sum + (session.duration || 0), 0);
-    const avgTime = Math.round(totalTime / sessions.length);
-    const maxTime = Math.max(...sessions.map(s => s.duration || 0));
-    const sessionsThisWeek = sessions.filter(session => {
-        const sessionDate = new Date(session.startTime);
-        const today = new Date();
-        const weekStart = new Date(today.setDate(today.getDate() - today.getDay()));
-        weekStart.setHours(0, 0, 0, 0);
-        return sessionDate >= weekStart;
-    }).length;
-    
-    // Create new stats grid
-    const newStatsGrid = document.createElement('div');
-    newStatsGrid.className = 'stats-grid';
-    newStatsGrid.innerHTML = `
-        <div class="stat-card">
-            <h3>Total Practice Time</h3>
-            <div class="stat-value">${formatDuration(totalTime)}</div>
-            <div class="stat-description">Total time spent practicing</div>
-        </div>
-        <div class="stat-card">
-            <h3>Average Session</h3>
-            <div class="stat-value">${formatDuration(avgTime)}</div>
-            <div class="stat-description">Average duration per session</div>
-        </div>
-        <div class="stat-card">
-            <h3>Longest Session</h3>
-            <div class="stat-value">${formatDuration(maxTime)}</div>
-            <div class="stat-description">Duration of longest practice session</div>
-        </div>
-        <div class="stat-card">
-            <h3>Sessions This Week</h3>
-            <div class="stat-value">${sessionsThisWeek}</div>
-            <div class="stat-description">Number of practice sessions this week</div>
-        </div>
-    `;
-    
-    // Append new stats grid
-    container.appendChild(newStatsGrid);
+    // Display filtered stats
+    displayStats(sessions);
 }
 
 // Listen for categories changed event
@@ -597,3 +552,21 @@ const addStatsStyles = () => {
     `;
     document.head.appendChild(style);
 };
+
+// Add a new function to setup date input listeners
+function setupDateInputListeners() {
+    const startDateInput = document.getElementById('start-date');
+    const endDateInput = document.getElementById('end-date');
+    
+    if (startDateInput) {
+        startDateInput.addEventListener('change', () => {
+            applyFilters();
+        });
+    }
+    
+    if (endDateInput) {
+        endDateInput.addEventListener('change', () => {
+            applyFilters();
+        });
+    }
+}

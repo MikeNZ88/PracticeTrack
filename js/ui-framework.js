@@ -36,20 +36,27 @@ window.UI = (function() {
         // Get DOM elements
         const listContainer = document.getElementById(listContainerId);
         const addButton = document.getElementById(addButtonId);
-        const searchInput = document.querySelector(searchInputSelector);
-        const categoryFilter = document.querySelector(categoryFilterSelector);
+        const searchInput = searchInputSelector ? document.querySelector(searchInputSelector) : null;
+        const categoryFilter = categoryFilterSelector ? document.querySelector(categoryFilterSelector) : null;
         const dateInputs = dateInputsSelector ? document.querySelectorAll(dateInputsSelector) : null;
         const statusFilter = statusFilterSelector ? document.querySelector(statusFilterSelector) : null;
         
         // Store references
-        domCache[pageId].listContainer = listContainer;
-        domCache[pageId].addButton = addButton;
-        domCache[pageId].searchInput = searchInput;
-        domCache[pageId].categoryFilter = categoryFilter;
-        domCache[pageId].dateInputs = dateInputs;
-        domCache[pageId].statusFilter = statusFilter;
-        domCache[pageId].recordType = recordType;
-        domCache[pageId].createRecordElementFn = createRecordElementFn;
+        domCache[pageId] = {
+            listContainer,
+            addButton,
+            searchInput,
+            categoryFilter,
+            dateInputs,
+            statusFilter,
+            recordType,
+            createRecordElementFn,
+            emptyStateMessage,
+            emptyStateIcon,
+            addEmptyStateButtonId,
+            addEmptyStateButtonText,
+            showDialogFn
+        };
         
         // Setup UI components
         if (categoryFilter) {
@@ -67,45 +74,33 @@ window.UI = (function() {
         
         if (searchInput) {
             searchInput.addEventListener('input', () => {
-                loadRecords(pageId, {
-                    recordType,
-                    createRecordElementFn
-                });
+                loadRecords(pageId);
+            });
+        }
+
+        // *** Add listener for category filter ***
+        if (categoryFilter) {
+            categoryFilter.addEventListener('change', () => {
+                loadRecords(pageId);
             });
         }
         
         if (dateInputs) {
             dateInputs.forEach(input => {
                 input.addEventListener('change', () => {
-                    loadRecords(pageId, {
-                        recordType,
-                        createRecordElementFn
-                    });
+                    loadRecords(pageId);
                 });
             });
         }
         
         if (statusFilter) {
             statusFilter.addEventListener('change', () => {
-                loadRecords(pageId, {
-                    recordType,
-                    createRecordElementFn
-                });
+                loadRecords(pageId);
             });
         }
         
-        // Store options for empty state
-        domCache[pageId].emptyStateMessage = emptyStateMessage;
-        domCache[pageId].emptyStateIcon = emptyStateIcon;
-        domCache[pageId].addEmptyStateButtonId = addEmptyStateButtonId;
-        domCache[pageId].addEmptyStateButtonText = addEmptyStateButtonText;
-        domCache[pageId].showDialogFn = showDialogFn;
-        
         // Initial load of records
-        loadRecords(pageId, {
-            recordType,
-            createRecordElementFn
-        });
+        loadRecords(pageId);
     }
     
     /**
@@ -141,45 +136,38 @@ window.UI = (function() {
     /**
      * Load records with filters
      * @param {string} pageId - The page ID
-     * @param {Object} options - Additional options
      */
-    function loadRecords(pageId, options = {}) {
+    function loadRecords(pageId) { // Removed options, always use cache
         const cache = domCache[pageId];
-        if (!cache) return;
+        if (!cache || !cache.listContainer) {
+            console.error(`Cache or list container not found for pageId: ${pageId}`);
+            return;
+        }
         
-        const {
-            recordType = cache.recordType,
-            createRecordElementFn = cache.createRecordElementFn
-        } = options;
-        
-        const listContainer = cache.listContainer;
-        if (!listContainer) return;
+        const { recordType, createRecordElementFn, listContainer } = cache;
         
         // Clear list
         listContainer.innerHTML = '';
         
         try {
-            // Get search filters
+            // Get filter values directly from cache
             const filters = {
-                search: cache.searchInput ? cache.searchInput.value.trim() : '',
+                search: cache.searchInput ? cache.searchInput.value.trim().toLowerCase() : '',
                 categoryId: cache.categoryFilter ? cache.categoryFilter.value : '',
-                status: cache.statusFilter ? cache.statusFilter.value : null
+                status: cache.statusFilter ? cache.statusFilter.value : null,
+                startDate: (cache.dateInputs && cache.dateInputs[0]) ? cache.dateInputs[0].value : '',
+                endDate: (cache.dateInputs && cache.dateInputs[1]) ? cache.dateInputs[1].value : ''
             };
-            
-            // Get date filters
-            if (cache.dateInputs && cache.dateInputs.length > 0) {
-                filters.startDate = cache.dateInputs[0].value || '';
-                if (cache.dateInputs.length > 1) {
-                    filters.endDate = cache.dateInputs[1].value || '';
-                }
-            }
             
             // Get records from data layer
             let records = window.getItems ? window.getItems(recordType) : 
-                JSON.parse(localStorage.getItem(`practiceTrack_${recordType.toLowerCase()}`)) || [];
+                JSON.parse(localStorage.getItem(`practiceTrack_${recordType}`)) || [];
             
-            // Apply filters
-            records = filterRecords(records, filters);
+            // *** Add logging before filtering ***
+            console.log(`[DEBUG ${recordType} Load] Raw records loaded:`, records.length > 0 ? JSON.parse(JSON.stringify(records)) : '[]', 'Filters to apply:', JSON.parse(JSON.stringify(filters)));
+
+            // Apply filters (pass recordType for specific search)
+            records = filterRecords(records, filters, recordType);
             
             // Sort records
             records = sortRecords(records, recordType);
@@ -187,18 +175,17 @@ window.UI = (function() {
             // Show empty state if no records
             if (records.length === 0) {
                 showEmptyState(pageId, listContainer);
-                return;
-            }
-            
-            // Create record elements
-            records.forEach(record => {
-                if (typeof createRecordElementFn === 'function') {
-                    const element = createRecordElementFn(record);
-                    if (element) {
-                        listContainer.appendChild(element);
+            } else {
+                // Create record elements
+                records.forEach(record => {
+                    if (typeof createRecordElementFn === 'function') {
+                        const element = createRecordElementFn(record);
+                        if (element) {
+                            listContainer.appendChild(element);
+                        }
                     }
-                }
-            });
+                });
+            }
             
             // Initialize icons
             if (window.lucide && typeof window.lucide.createIcons === 'function') {
@@ -217,11 +204,37 @@ window.UI = (function() {
     
     /**
      * Filter records based on search criteria
+     * This function handles filtering for all tabs with a consistent implementation:
+     * 
+     * Goals Tab:
+     * - Search: .goals-search-input (searches title, description, notes, and category)
+     * - Category: .goals-category-filter (filters by category)
+     * - Status: .goals-status-filter (active/completed/all)
+     *
+     * Sessions Tab:
+     * - Search: .search-input (searches notes and category) -> Now: name, category, notes
+     * - Category: .category-filter (filters by category)
+     * - Date: .date-input (filters by date range)
+     *
+     * Media Tab:
+     * - Search: .search-input (searches name, description, and content) -> Now: name, category, description, content
+     * - Type: .media-type-filter (photo/video/note)
+     * - Date: .date-input (filters by date range)
+     *
+     * Stats Tab:
+     * - Category: #category-filter (filters by category)
+     * - Date: #start-date and #end-date (filters by date range)
+     *
      * @param {Array} records - The records to filter
      * @param {Object} filters - The filter criteria
+     * @param {string} recordType - The type of record being filtered (GOALS, SESSIONS, MEDIA)
      * @returns {Array} - Filtered records
      */
-    function filterRecords(records, filters) {
+    function filterRecords(records, filters, recordType) { // Added recordType parameter
+        if (!records || !Array.isArray(records)) {
+            return [];
+        }
+        
         let filtered = [...records];
         
         // Filter by category
@@ -229,64 +242,106 @@ window.UI = (function() {
             filtered = filtered.filter(record => record.categoryId === filters.categoryId);
         }
         
-        // Filter by status (for goals) or media type
+        // Filter by status for goals or type for media
         if (filters.status) {
-            if (filters.status === 'active') {
-                filtered = filtered.filter(record => !record.completed);
-            } else if (filters.status === 'completed') {
-                filtered = filtered.filter(record => record.completed);
-            } else if (filters.status === 'photo' || filters.status === 'video' || filters.status === 'note') {
-                filtered = filtered.filter(record => record.type === filters.status);
+            if (recordType === 'GOALS') {
+                if (filters.status === 'active') {
+                    filtered = filtered.filter(record => record.completed === false);
+                } else if (filters.status === 'completed') {
+                    filtered = filtered.filter(record => record.completed === true);
+                }
+            } else if (recordType === 'MEDIA') {
+                 if (['photo', 'video', 'note'].includes(filters.status)) {
+                     filtered = filtered.filter(record => record.type === filters.status);
+                 }
             }
-            // 'all' status doesn't filter
+            // 'all' status doesn't filter anything
         }
         
-        // Filter by search term
-        if (filters.search) {
-            const searchTerm = filters.search.toLowerCase();
+        // Filter by search term (now uses recordType)
+        if (filters.search && filters.search.length > 0) { // Simplified check
+            const searchTerm = filters.search; // Already lowercase from loadRecords
+            
             filtered = filtered.filter(record => {
-                // Search in name and description for media
-                if (record.type) {
-                    return (record.name && record.name.toLowerCase().includes(searchTerm)) ||
-                           (record.description && record.description.toLowerCase().includes(searchTerm));
+                if (!record) return false;
+                
+                // Get category name once
+                let categoryName = '';
+                if (record.categoryId) {
+                    const categories = window.getItems ? window.getItems('CATEGORIES') : 
+                        JSON.parse(localStorage.getItem('practiceTrack_categories')) || [];
+                    const category = categories.find(c => c.id === record.categoryId);
+                    categoryName = category ? category.name.toLowerCase() : 'unknown';
+                } else {
+                    categoryName = 'unknown';
                 }
                 
-                // Get category name
-                const categories = window.getItems ? window.getItems('CATEGORIES') : 
-                    JSON.parse(localStorage.getItem('practiceTrack_categories')) || [];
-                const category = categories.find(c => c.id === record.categoryId);
-                const categoryName = category ? category.name.toLowerCase() : '';
+                // Determine searchable fields based on recordType
+                let fieldsToSearch = [];
+                if (recordType === 'GOALS') {
+                    // Goals: name (title), category, description
+                     fieldsToSearch = [
+                        record.title ? record.title.toLowerCase() : '',
+                        categoryName,
+                        record.description ? record.description.toLowerCase() : ''
+                    ];
+                } else if (recordType === 'SESSIONS') {
+                    // Sessions: name (not available), category, notes
+                     fieldsToSearch = [
+                        categoryName, 
+                        record.notes ? record.notes.toLowerCase() : ''
+                        // Assuming session doesn't have a name/title field to search
+                    ];
+                    // *** Add specific logging for Sessions search ***
+                    if (searchTerm.length > 0) { // Log only when searching
+                        console.log(`[DEBUG Sessions Filter] Searching for: "${searchTerm}" | Record Category: "${categoryName}" | Record Notes: "${record.notes ? record.notes.toLowerCase() : ''}"`);
+                    }
+                } else if (recordType === 'MEDIA') {
+                     // Media: name, category, description, content
+                     fieldsToSearch = [
+                        record.name ? record.name.toLowerCase() : '',
+                        categoryName,
+                        record.description ? record.description.toLowerCase() : '',
+                        record.content ? record.content.toLowerCase() : '' // For notes
+                    ];
+                }
                 
-                // Search in different fields based on record type
-                return (
-                    // Common fields
-                    (record.notes && record.notes.toLowerCase().includes(searchTerm)) ||
-                    categoryName.includes(searchTerm) ||
-                    
-                    // Record-specific fields
-                    (record.title && record.title.toLowerCase().includes(searchTerm)) ||
-                    (record.description && record.description.toLowerCase().includes(searchTerm)) ||
-                    (record.name && record.name.toLowerCase().includes(searchTerm))
-                );
+                // Check if any specified field contains the search term
+                return fieldsToSearch.some(field => field && field.includes(searchTerm));
             });
         }
         
         // Filter by date range
         if (filters.startDate) {
-            const startDate = new Date(filters.startDate);
-            filtered = filtered.filter(record => {
-                const dateField = record.startTime || record.date || record.createdAt;
-                return dateField && new Date(dateField) >= startDate;
-            });
+            try {
+                const startDate = new Date(filters.startDate);
+                if (!isNaN(startDate.getTime())) { 
+                    startDate.setHours(0, 0, 0, 0); 
+                    filtered = filtered.filter(record => {
+                        if (!record) return false;
+                        const dateField = record.startTime || record.date || record.createdAt;
+                        if (!dateField) return false;
+                        const recordDate = new Date(dateField);
+                        return !isNaN(recordDate.getTime()) && recordDate >= startDate;
+                    });
+                }
+            } catch (e) { console.error("Error parsing start date:", filters.startDate, e); }
         }
         
         if (filters.endDate) {
-            const endDate = new Date(filters.endDate);
-            endDate.setHours(23, 59, 59, 999); // End of day
-            filtered = filtered.filter(record => {
-                const dateField = record.startTime || record.date || record.createdAt;
-                return dateField && new Date(dateField) <= endDate;
-            });
+             try {
+                const endDate = new Date(filters.endDate);
+                if (!isNaN(endDate.getTime())) { 
+                    endDate.setHours(23, 59, 59, 999); 
+                    filtered = filtered.filter(record => {
+                        if (!record) return false;
+                        const dateField = record.startTime || record.date || record.createdAt;
+                        if (!dateField) return false;
+                        const recordDate = new Date(dateField);
+                        return !isNaN(recordDate.getTime()) && recordDate <= endDate;
+                    });
+                }
+            } catch (e) { console.error("Error parsing end date:", filters.endDate, e); }
         }
         
         return filtered;

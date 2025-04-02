@@ -236,14 +236,18 @@ function setupVideoCapture() {
                         createdAt: new Date().toISOString(),
                         updatedAt: new Date().toISOString()
                     };
-                    
+                    console.log('[DEBUG Video Save] Created newMedia object:', JSON.stringify(newMedia)); // Log the object
+
                     // Save media reference to localStorage
                     if (window.addItem) {
+                        console.log('[DEBUG Video Save] Attempting save via window.addItem...'); // Log path
                         window.addItem('MEDIA', newMedia);
                     } else {
+                        console.log('[DEBUG Video Save] Attempting save via saveMedia...'); // Log path
                         saveMedia(newMedia);
                     }
-                    
+                    console.log('[DEBUG Video Save] Save function called. Reloading list...'); // Log after call
+
                     // Reload media list
                     window.UI.loadRecords('media', {
                         recordType: 'MEDIA',
@@ -317,7 +321,7 @@ function showMediaNameDialog(mediaType, callback) {
 
 // Set up media buttons with individual handlers
 function setupMediaButtons() {
-    console.log('Setting up media buttons');
+    console.log('[DEBUG] setupMediaButtons called'); // Log entry
     
     // Setup photo capture
     setupPhotoCapture();
@@ -328,7 +332,13 @@ function setupMediaButtons() {
     // Setup note creation
     const noteBtn = document.getElementById('add-note');
     if (noteBtn) {
-        noteBtn.addEventListener('click', () => showNoteDialog());
+        console.log('[DEBUG] Found #add-note button. Attaching listener.'); // Log button found
+        noteBtn.addEventListener('click', () => {
+            console.log('[DEBUG] #add-note button clicked!'); // Log click event
+            showNoteDialog();
+        });
+    } else {
+        console.error('[DEBUG] #add-note button NOT FOUND!'); // Log if button not found
     }
 }
 
@@ -337,6 +347,7 @@ function setupMediaButtons() {
  * @param {Object} existingNote - Optional existing note for editing
  */
 function showNoteDialog(existingNote = null) {
+    console.log('[DEBUG] showNoteDialog called. Existing note:', existingNote); // Log entry
     // Set up form fields
     const fields = [
         {
@@ -360,6 +371,7 @@ function showNoteDialog(existingNote = null) {
         title: existingNote ? 'Edit Note' : 'Add Note',
         fields: fields,
         onSubmit: (dialog, e) => {
+            console.log('[DEBUG] Note Dialog onSubmit triggered.'); // Log entry
             const form = e.target;
             const titleInput = form.querySelector('#note-title');
             const contentInput = form.querySelector('#note-content');
@@ -396,11 +408,15 @@ function showNoteDialog(existingNote = null) {
                 };
                 
                 // Save the new note
+                console.log('[DEBUG Note Save] Created newNote object:', JSON.stringify(newNote)); // Log the object
                 if (window.addItem) {
+                    console.log('[DEBUG Note Save] Attempting save via window.addItem...'); // Log path
                     window.addItem('MEDIA', newNote);
                 } else {
+                    console.log('[DEBUG Note Save] Attempting save via saveMedia...'); // Log path
                     saveMedia(newNote);
                 }
+                console.log('[DEBUG Note Save] Save function called. Reloading list...'); // Log after call
             }
             
             dialog.close();
@@ -613,13 +629,6 @@ function addMediaStyles() {
         }
     `;
 }
-
-// Initialize when page changes to media
-document.addEventListener('pageChanged', (e) => {
-    if (e.detail === 'media') {
-        initializeMedia();
-    }
-});
 
 // Make function available globally
 window.initializeMedia = initializeMedia;
