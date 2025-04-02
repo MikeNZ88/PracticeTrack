@@ -2769,3 +2769,246 @@ textarea:focus {
         bottom: 80px; /* Adjust to be above mobile navigation */
     }
 }
+
+/* Resources Page Styles */
+.filter-container {
+    background: var(--card-background);
+    padding: var(--space-lg);
+    border-radius: var(--radius-lg);
+    margin-bottom: var(--space-xl);
+    box-shadow: var(--shadow-sm);
+}
+
+.filter-buttons {
+    display: flex;
+    gap: var(--space-sm);
+    margin-top: var(--space-md);
+    flex-wrap: wrap;
+}
+
+.filter-button {
+    padding: var(--space-sm) var(--space-md);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background: var(--bg-light);
+    color: var(--text-primary);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.filter-button:hover {
+    background: var(--bg-hover);
+    border-color: var(--primary-blue);
+    color: var(--primary-blue);
+}
+
+.filter-button.active {
+    background: var(--primary-blue);
+    color: white;
+    border-color: var(--primary-blue);
+}
+
+.filter-button.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+/* Instrument Family Sections */
+.family-section {
+    margin-bottom: var(--space-2xl);
+}
+
+.family-title {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    color: var(--text-dark);
+    font-size: var(--font-xl);
+    margin-bottom: var(--space-lg);
+    padding-bottom: var(--space-sm);
+    border-bottom: 2px solid var(--border-color);
+}
+
+.family-icon {
+    width: 24px;
+    height: 24px;
+}
+
+/* Instrument Sections */
+.instrument-section {
+    background: var(--card-background);
+    border-radius: var(--radius-lg);
+    padding: var(--space-lg);
+    margin-bottom: var(--space-lg);
+    box-shadow: var(--shadow-sm);
+}
+
+.instrument-title {
+    color: var(--text-dark);
+    font-size: var(--font-lg);
+    margin-bottom: var(--space-md);
+}
+
+/* Categories List */
+.categories-list {
+    display: grid;
+    gap: var(--space-sm);
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.category-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-md);
+    background: var(--background-light);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+    transition: all var(--transition-normal);
+}
+
+.category-item:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--primary-blue);
+}
+
+.category-name {
+    color: var(--text-dark);
+    font-weight: 500;
+}
+
+.copy-button {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-sm) var(--space-md);
+    border: none;
+    border-radius: var(--radius-md);
+    background: var(--primary-blue);
+    color: white;
+    cursor: pointer;
+    transition: all var(--transition-normal);
+}
+
+.copy-button:hover {
+    background: var(--primary-blue-dark);
+    transform: translateY(-1px);
+}
+
+.copy-button i {
+    width: 16px;
+    height: 16px;
+}
+
+/* Instrument Family Colors */
+.brass .family-title,
+.brass .instrument-title {
+    color: var(--brass-color, #B8860B);
+}
+
+.drums .family-title,
+.drums .instrument-title {
+    color: var(--drums-color, #8B4513);
+}
+
+.keyboard .family-title,
+.keyboard .instrument-title {
+    color: var(--keyboard-color, #4B0082);
+}
+
+.stringed .family-title,
+.stringed .instrument-title {
+    color: var(--stringed-color, #006400);
+}
+
+.woodwind .family-title,
+.woodwind .instrument-title {
+    color: var(--woodwind-color, #8B0000);
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+    .filter-buttons {
+        flex-direction: column;
+    }
+
+    .filter-button {
+        width: 100%;
+        text-align: center;
+    }
+
+    .categories-list {
+        grid-template-columns: 1fr;
+    }
+
+    .category-item {
+        flex-direction: column;
+        gap: var(--space-md);
+        text-align: center;
+    }
+
+    .copy-button {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* Message Notifications */
+.message {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: var(--space-md) var(--space-lg);
+    border-radius: var(--radius-md);
+    background: var(--primary-blue);
+    color: white;
+    font-weight: 500;
+    box-shadow: var(--shadow-lg);
+    z-index: 1000;
+    animation: messageSlideUp 0.3s ease-out;
+}
+
+.message-success {
+    background: var(--success-color, #28a745);
+}
+
+.message-warning {
+    background: var(--warning-color, #ffc107);
+    color: var(--text-dark);
+}
+
+.message-error {
+    background: var(--error-color, #dc3545);
+}
+
+.message-hide {
+    animation: messageSlideDown 0.3s ease-out forwards;
+}
+
+@keyframes messageSlideUp {
+    from {
+        opacity: 0;
+        transform: translate(-50%, 20px);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, 0);
+    }
+}
+
+@keyframes messageSlideDown {
+    from {
+        opacity: 1;
+        transform: translate(-50%, 0);
+    }
+    to {
+        opacity: 0;
+        transform: translate(-50%, 20px);
+    }
+}
