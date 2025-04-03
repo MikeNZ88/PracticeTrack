@@ -1,0 +1,1192 @@
+# PracticeTrack Component Library Specification
+
+## Introduction
+
+This document details the reusable UI components that make up the PracticeTrack application. Each component is described with its purpose, visual specifications, implementation details, props/parameters, and usage examples. This specification builds upon the Visual Design Specifications to provide practical implementation guidance for developers.
+
+## Core Components
+
+### 1. Button
+
+Buttons provide interactive controls for user actions throughout the application.
+
+#### Variants
+
+##### Primary Button
+```javascript
+function PrimaryButton({ children, onClick, disabled = false, icon = null }) {
+  return (
+    <button 
+      className="bg-primary text-white py-2 px-4 rounded transition-all duration-300 font-medium flex items-center gap-2 hover:bg-primary-dark hover:transform hover:translate-y-[-2px] hover:shadow-sm disabled:bg-gray-300 disabled:text-gray-600 disabled:cursor-not-allowed disabled:transform-none"
+      onClick={onClick}
+      disabled={disabled}
+    >
+      {icon && <span className="button-icon">{icon}</span>}
+      {children}
+    </button>
+  );
+}
+```
+
+**Usage Example:**
+```javascript
+<PrimaryButton 
+  onClick={() => saveSession()} 
+  icon={<SaveIcon size={16} />}
+  disabled={!isValid}
+>
+  Save Session
+</PrimaryButton>
+```
+
+##### Secondary Button
+```javascript
+function SecondaryButton({ children, onClick, disabled = false, icon = null }) {
+  return (
+    <button 
+      className="bg-gray-100 text-gray-800 py-2 px-4 rounded transition-all duration-300 font-medium flex items-center gap-2 hover:bg-gray-200 hover:transform hover:translate-y-[-2px] disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed disabled:transform-none"
+      onClick={onClick}
+      disabled={disabled}
+    >
+      {icon && <span className="button-icon">{icon}</span>}
+      {children}
+    </button>
+  );
+}
+```
+
+**Usage Example:**
+```javascript
+<SecondaryButton 
+  onClick={() => cancelSession()} 
+  icon={<CancelIcon size={16} />}
+>
+  Cancel
+</SecondaryButton>
+```
+
+##### Action Button
+```javascript
+function ActionButton({ action, children, onClick, disabled = false, icon = null }) {
+  const getButtonStyles = () => {
+    switch(action) {
+      case 'save':
+        return 'bg-success text-white hover:bg-success-dark';
+      case 'delete':
+        return 'bg-error-light text-error hover:bg-error hover:text-white';
+      case 'edit':
+        return 'bg-primary-light text-primary hover:bg-primary hover:text-white';
+      default:
+        return 'bg-gray-100 text-gray-800 hover:bg-gray-200';
+    }
+  };
+
+  return (
+    <button 
+      className={`py-2 px-4 rounded transition-all duration-300 font-medium flex items-center gap-2 hover:transform hover:translate-y-[-2px] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none ${getButtonStyles()}`}
+      onClick={onClick}
+      disabled={disabled}
+    >
+      {icon && <span className="button-icon">{icon}</span>}
+      {children}
+    </button>
+  );
+}
+```
+
+**Usage Example:**
+```javascript
+<ActionButton 
+  action="delete" 
+  onClick={() => deleteSession(session.id)} 
+  icon={<TrashIcon size={16} />}
+>
+  Delete
+</ActionButton>
+```
+
+##### Record Media Button
+```javascript
+function RecordMediaButton({ onClick, disabled = false }) {
+  return (
+    <button 
+      className="bg-secondary text-white py-2 px-4 rounded-lg transition-all duration-300 font-medium flex items-center gap-2 hover:bg-secondary-dark hover:transform hover:translate-y-[-2px] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+      onClick={onClick}
+      disabled={disabled}
+    >
+      <CameraIcon size={20} />
+      Record Media
+    </button>
+  );
+}
+```
+
+##### Add Note Button
+```javascript
+function AddNoteButton({ onClick, disabled = false }) {
+  return (
+    <button 
+      className="bg-primary text-white py-2 px-4 rounded-lg transition-all duration-300 font-medium flex items-center gap-2 hover:bg-primary-dark hover:transform hover:translate-y-[-2px] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+      onClick={onClick}
+      disabled={disabled}
+    >
+      <PencilIcon size={20} />
+      Add Note
+    </button>
+  );
+}
+```
+
+#### Implementation Notes
+- Use Lucide Icons library for consistent iconography
+- Maintain minimum 44px touch target size for mobile optimization
+- Include appropriate hover, active, and disabled states
+- Ensure consistent gap (8px) between icon and text
+
+### 2. Card
+
+Cards serve as containers for content throughout the application.
+
+#### Base Card
+```javascript
+function Card({ children, onClick = null, className = "" }) {
+  return (
+    <div 
+      className={`bg-white rounded-lg shadow-md p-5 mb-5 transition-all duration-200 ${onClick ? 'cursor-pointer hover:transform hover:translate-y-[-2px] hover:shadow-lg' : ''} ${className}`}
+      onClick={onClick}
+    >
+      {children}
+    </div>
+  );
+}
+```
+
+**Usage Example:**
+```javascript
+<Card>
+  <h3 className="text-lg font-semibold mb-2">Recent Sessions</h3>
+  <p>You have practiced for 3 hours this week.</p>
+</Card>
+```
+
+#### Record Card
+```javascript
+function RecordCard({ title, date, category, children, actions, className = "" }) {
+  return (
+    <Card className={className}>
+      <div className="flex justify-between border-b border-gray-200 pb-2 mb-2">
+        <div className="text-lg font-semibold text-primary">{title}</div>
+        <div className="text-sm text-gray-600 text-right">{date}</div>
+      </div>
+      
+      {category && (
+        <span className="inline-block bg-primary-light rounded-full px-3 py-1 text-xs font-medium">
+          {category}
+        </span>
+      )}
+      
+      <div className="mt-2">
+        {children}
+      </div>
+      
+      {actions && (
+        <div className="mt-3 flex justify-end gap-2">
+          {actions}
+        </div>
+      )}
+    </Card>
+  );
+}
+```
+
+**Usage Example:**
+```javascript
+<RecordCard
+  title="Scales Practice"
+  date="Mon, Mar 15, 2024 • 3:30 PM"
+  category="Technique"
+  actions={
+    <>
+      <ActionButton action="edit" onClick={() => editSession(session.id)} icon={<EditIcon size={16} />}>Edit</ActionButton>
+      <ActionButton action="delete" onClick={() => deleteSession(session.id)} icon={<TrashIcon size={16} />}>Delete</ActionButton>
+    </>
+  }
+>
+  <p>Practice duration: 45 minutes</p>
+  <div className="bg-gray-50 p-2 border-l-3 border-gray-300 mt-2 rounded">
+    <p className="text-sm">Worked on major and minor scales. Made progress on F# minor.</p>
+  </div>
+</RecordCard>
+```
+
+#### Media Record Card
+```javascript
+function MediaRecordCard({ type, title, date, content = null, onView, onDelete }) {
+  const getTypeStyles = () => {
+    switch(type) {
+      case 'photo':
+        return 'bg-info-light text-info';
+      case 'video':
+        return 'bg-error-light text-error';
+      case 'note':
+        return 'bg-success-light text-success';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+  
+  const getTypeIcon = () => {
+    switch(type) {
+      case 'photo':
+        return <CameraIcon size={16} />;
+      case 'video':
+        return <VideoIcon size={16} />;
+      case 'note':
+        return <FileTextIcon size={16} />;
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <Card>
+      <div className={`h-7 -mx-5 -mt-5 mb-3 px-3 flex justify-between items-center rounded-t-lg ${getTypeStyles()}`}>
+        <div className="flex items-center gap-2">
+          {getTypeIcon()}
+          <span className="capitalize text-sm font-medium">{type}</span>
+        </div>
+        <span className="text-xs">{date}</span>
+      </div>
+      
+      <div className="flex flex-col gap-2 px-3">
+        <h4 className="font-semibold">{title}</h4>
+        
+        {type === 'note' && content && (
+          <div className="bg-gray-50 border-l-3 border-success p-2 rounded text-sm max-h-30 overflow-hidden text-ellipsis">
+            {content}
+          </div>
+        )}
+        
+        <div className="flex justify-end gap-2 mt-2">
+          <SecondaryButton onClick={onView} icon={<EyeIcon size={16} />}>View</SecondaryButton>
+          <ActionButton action="delete" onClick={onDelete} icon={<TrashIcon size={16} />}>Delete</ActionButton>
+        </div>
+      </div>
+    </Card>
+  );
+}
+```
+
+**Usage Example:**
+```javascript
+<MediaRecordCard
+  type="note"
+  title="Lesson Notes - March 14"
+  date="Mar 14, 2024"
+  content="Focus on articulation in the Bach piece. Practice the difficult passage on page 2 with a metronome."
+  onView={() => viewNote(note.id)}
+  onDelete={() => deleteNote(note.id)}
+/>
+```
+
+#### Implementation Notes
+- Use consistent padding (20px) and border-radius (8px)
+- Apply consistent shadow for visual elevation
+- Include hover states for interactive cards
+- Maintain consistent spacing between elements inside cards
+
+### 3. Form Elements
+
+#### Text Input
+```javascript
+function TextInput({
+  label,
+  value,
+  onChange,
+  placeholder = "",
+  required = false,
+  disabled = false,
+  error = null,
+  id = generateId(),
+}) {
+  return (
+    <div className="mb-4">
+      {label && (
+        <label 
+          htmlFor={id} 
+          className="block text-sm font-medium text-gray-700 mb-1"
+        >
+          {label} {required && <span className="text-error">*</span>}
+        </label>
+      )}
+      <input
+        id={id}
+        type="text"
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
+        disabled={disabled}
+        className={`w-full h-10 px-3 py-2 bg-gray-50 border rounded-md transition-all duration-300 focus:border-primary focus:shadow-outline-primary focus:outline-none ${
+          error ? 'border-error' : 'border-gray-300'
+        } ${disabled ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''}`}
+      />
+      {error && <p className="mt-1 text-sm text-error">{error}</p>}
+    </div>
+  );
+}
+```
+
+**Usage Example:**
+```javascript
+const [title, setTitle] = useState('');
+
+<TextInput
+  label="Session Title"
+  value={title}
+  onChange={(e) => setTitle(e.target.value)}
+  placeholder="Enter a title for this session"
+  required={true}
+  error={!title && formSubmitted ? "Title is required" : null}
+/>
+```
+
+#### Select Dropdown
+```javascript
+function Select({
+  label,
+  value,
+  onChange,
+  options,
+  placeholder = "Select an option",
+  required = false,
+  disabled = false,
+  error = null,
+  id = generateId(),
+}) {
+  return (
+    <div className="mb-4">
+      {label && (
+        <label 
+          htmlFor={id} 
+          className="block text-sm font-medium text-gray-700 mb-1"
+        >
+          {label} {required && <span className="text-error">*</span>}
+        </label>
+      )}
+      <div className="relative">
+        <select
+          id={id}
+          value={value}
+          onChange={onChange}
+          disabled={disabled}
+          className={`w-full h-10 px-3 py-2 bg-gray-50 border rounded-md appearance-none pr-10 transition-all duration-300 focus:border-primary focus:shadow-outline-primary focus:outline-none ${
+            error ? 'border-error' : 'border-gray-300'
+          } ${disabled ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''}`}
+        >
+          <option value="" disabled>
+            {placeholder}
+          </option>
+          {options.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+        <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+          <ChevronDownIcon size={18} className="text-gray-500" />
+        </div>
+      </div>
+      {error && <p className="mt-1 text-sm text-error">{error}</p>}
+    </div>
+  );
+}
+```
+
+**Usage Example:**
+```javascript
+const [category, setCategory] = useState('');
+const categoryOptions = [
+  { value: 'technique', label: 'Technique' },
+  { value: 'repertoire', label: 'Repertoire' },
+  { value: 'theory', label: 'Music Theory' },
+  { value: 'ear-training', label: 'Ear Training' },
+];
+
+<Select
+  label="Practice Category"
+  value={category}
+  onChange={(e) => setCategory(e.target.value)}
+  options={categoryOptions}
+  required={true}
+  error={!category && formSubmitted ? "Category is required" : null}
+/>
+```
+
+#### Textarea
+```javascript
+function Textarea({
+  label,
+  value,
+  onChange,
+  placeholder = "",
+  required = false,
+  disabled = false,
+  error = null,
+  rows = 4,
+  id = generateId(),
+}) {
+  return (
+    <div className="mb-4">
+      {label && (
+        <label 
+          htmlFor={id} 
+          className="block text-sm font-medium text-gray-700 mb-1"
+        >
+          {label} {required && <span className="text-error">*</span>}
+        </label>
+      )}
+      <textarea
+        id={id}
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
+        disabled={disabled}
+        rows={rows}
+        className={`w-full px-3 py-2 bg-gray-50 border rounded-md transition-all duration-300 focus:border-primary focus:shadow-outline-primary focus:outline-none resize-vertical min-h-[100px] ${
+          error ? 'border-error' : 'border-gray-300'
+        } ${disabled ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''}`}
+      />
+      {error && <p className="mt-1 text-sm text-error">{error}</p>}
+    </div>
+  );
+}
+```
+
+**Usage Example:**
+```javascript
+const [notes, setNotes] = useState('');
+
+<Textarea
+  label="Session Notes"
+  value={notes}
+  onChange={(e) => setNotes(e.target.value)}
+  placeholder="Enter notes about what you practiced"
+  rows={5}
+/>
+```
+
+#### Checkbox
+```javascript
+function Checkbox({
+  label,
+  checked,
+  onChange,
+  disabled = false,
+  id = generateId(),
+}) {
+  return (
+    <div className="flex items-center mb-2">
+      <input
+        id={id}
+        type="checkbox"
+        checked={checked}
+        onChange={onChange}
+        disabled={disabled}
+        className="w-5 h-5 border-2 border-primary rounded focus:ring-primary text-primary transition-all duration-300 cursor-pointer"
+      />
+      <label 
+        htmlFor={id}
+        className={`ml-2 text-sm font-medium ${
+          disabled ? 'text-gray-500' : 'text-gray-700'
+        } ${checked ? 'line-through opacity-70' : ''}`}
+      >
+        {label}
+      </label>
+    </div>
+  );
+}
+```
+
+**Usage Example:**
+```javascript
+const [completed, setCompleted] = useState(false);
+
+<Checkbox
+  label="Practice scales for 30 minutes daily"
+  checked={completed}
+  onChange={(e) => setCompleted(e.target.checked)}
+/>
+```
+
+#### Date/Time Input
+```javascript
+function DateTimeInput({
+  label,
+  value,
+  onChange,
+  required = false,
+  disabled = false,
+  error = null,
+  type = "datetime-local", // "date", "time", "datetime-local"
+  id = generateId(),
+}) {
+  return (
+    <div className="mb-4">
+      {label && (
+        <label 
+          htmlFor={id} 
+          className="block text-sm font-medium text-gray-700 mb-1"
+        >
+          {label} {required && <span className="text-error">*</span>}
+        </label>
+      )}
+      <div className="relative">
+        <input
+          id={id}
+          type={type}
+          value={value}
+          onChange={onChange}
+          disabled={disabled}
+          className={`w-full h-10 px-3 py-2 bg-gray-50 border rounded-md transition-all duration-300 focus:border-primary focus:shadow-outline-primary focus:outline-none ${
+            error ? 'border-error' : 'border-gray-300'
+          } ${disabled ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''}`}
+        />
+        <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+          {type.includes('date') ? (
+            <CalendarIcon size={18} className="text-gray-500" />
+          ) : (
+            <ClockIcon size={18} className="text-gray-500" />
+          )}
+        </div>
+      </div>
+      {error && <p className="mt-1 text-sm text-error">{error}</p>}
+    </div>
+  );
+}
+```
+
+**Usage Example:**
+```javascript
+const [sessionDate, setSessionDate] = useState('');
+
+<DateTimeInput
+  label="Session Date and Time"
+  value={sessionDate}
+  onChange={(e) => setSessionDate(e.target.value)}
+  type="datetime-local"
+  required={true}
+  error={!sessionDate && formSubmitted ? "Date and time are required" : null}
+/>
+```
+
+#### Implementation Notes
+- Maintain consistent styling for focus, error, and disabled states
+- Use subtle visual cues like icons for date/time pickers
+- Apply consistent spacing and padding (10px vertical, 10px horizontal)
+- Include helpful validation feedback
+
+### 4. TabNavigation
+
+```javascript
+function TabNavigation({ tabs, activeTab, onChange }) {
+  return (
+    <div className="w-full border-b border-gray-200">
+      <nav className="flex">
+        {tabs.map((tab) => (
+          <button
+            key={tab.id}
+            className={`px-4 py-3 font-medium flex items-center gap-2 transition-all duration-300 hover:bg-gray-50 hover:transform hover:translate-y-[-2px] ${
+              activeTab === tab.id
+                ? 'text-primary border-b-3 border-primary'
+                : 'text-gray-600'
+            }`}
+            onClick={() => onChange(tab.id)}
+          >
+            {tab.icon && <span>{tab.icon}</span>}
+            <span>{tab.label}</span>
+          </button>
+        ))}
+      </nav>
+    </div>
+  );
+}
+```
+
+**Usage Example:**
+```javascript
+const tabs = [
+  { id: 'timer', label: 'Timer', icon: <ClockIcon size={16} /> },
+  { id: 'sessions', label: 'Sessions', icon: <ListIcon size={16} /> },
+  { id: 'goals', label: 'Goals', icon: <TargetIcon size={16} /> },
+  { id: 'stats', label: 'Stats', icon: <BarChartIcon size={16} /> },
+  { id: 'media', label: 'Media', icon: <ImageIcon size={16} /> },
+  { id: 'settings', label: 'Settings', icon: <SettingsIcon size={16} /> },
+];
+
+const [activeTab, setActiveTab] = useState('timer');
+
+<TabNavigation
+  tabs={tabs}
+  activeTab={activeTab}
+  onChange={setActiveTab}
+/>
+```
+
+#### Mobile Navigation Variant
+```javascript
+function MobileNavigation({ tabs, activeTab, onChange }) {
+  return (
+    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-2 py-1">
+      <div className="flex justify-around">
+        {tabs.map((tab) => (
+          <button
+            key={tab.id}
+            className={`px-2 py-2 flex flex-col items-center transition-all duration-300 ${
+              activeTab === tab.id
+                ? 'text-primary'
+                : 'text-gray-600'
+            }`}
+            onClick={() => onChange(tab.id)}
+          >
+            <div className={`mb-1 ${activeTab === tab.id ? 'text-primary' : 'text-gray-500'}`}>
+              {tab.icon}
+            </div>
+            <span className="text-xs">{tab.label}</span>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+```
+
+### 5. Timer Component
+
+```javascript
+function Timer({ 
+  time, 
+  isRunning, 
+  isPaused,
+  category,
+  onStart,
+  onPause,
+  onResume,
+  onStop,
+  onCategoryChange
+}) {
+  // Format time in HH:MM:SS
+  const formatTime = (timeInSeconds) => {
+    const hours = Math.floor(timeInSeconds / 3600);
+    const minutes = Math.floor((timeInSeconds % 3600) / 60);
+    const seconds = timeInSeconds % 60;
+    
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  };
+  
+  const categories = [
+    { value: 'technique', label: 'Technique' },
+    { value: 'repertoire', label: 'Repertoire' },
+    { value: 'theory', label: 'Music Theory' },
+    { value: 'ear-training', label: 'Ear Training' },
+    { value: 'sight-reading', label: 'Sight Reading' },
+    { value: 'lesson', label: 'Lesson' }
+  ];
+  
+  return (
+    <div className="w-full max-w-md mx-auto">
+      <Select
+        label="Practice Category"
+        value={category}
+        onChange={(e) => onCategoryChange(e.target.value)}
+        options={categories}
+        disabled={isRunning || isPaused}
+      />
+      
+      <div className={`text-center my-8 text-5xl font-bold ${isRunning ? 'animate-pulse text-primary' : ''} ${isPaused ? 'text-warning' : ''}`}>
+        {formatTime(time)}
+      </div>
+      
+      <div className="h-2 bg-gray-200 rounded-full overflow-hidden mb-6">
+        <div 
+          className="h-full bg-primary rounded-full transition-all duration-1000 linear"
+          style={{ width: `${time % 60 / 60 * 100}%` }}
+        ></div>
+      </div>
+      
+      <div className="flex justify-center gap-4">
+        {!isRunning && !isPaused && (
+          <PrimaryButton onClick={onStart} icon={<PlayIcon size={20} />}>
+            Start
+          </PrimaryButton>
+        )}
+        
+        {isRunning && (
+          <PrimaryButton onClick={onPause} icon={<PauseIcon size={20} />}>
+            Pause
+          </PrimaryButton>
+        )}
+        
+        {isPaused && (
+          <PrimaryButton onClick={onResume} icon={<PlayIcon size={20} />}>
+            Resume
+          </PrimaryButton>
+        )}
+        
+        {(isRunning || isPaused) && (
+          <SecondaryButton onClick={onStop} icon={<StopIcon size={20} />}>
+            Stop
+          </SecondaryButton>
+        )}
+      </div>
+    </div>
+  );
+}
+```
+
+**Usage Example:**
+```javascript
+const [time, setTime] = useState(0);
+const [isRunning, setIsRunning] = useState(false);
+const [isPaused, setIsPaused] = useState(false);
+const [category, setCategory] = useState('');
+const timerRef = useRef(null);
+
+const startTimer = () => {
+  setIsRunning(true);
+  timerRef.current = setInterval(() => {
+    setTime(prevTime => prevTime + 1);
+  }, 1000);
+};
+
+const pauseTimer = () => {
+  setIsRunning(false);
+  setIsPaused(true);
+  clearInterval(timerRef.current);
+};
+
+const resumeTimer = () => {
+  setIsRunning(true);
+  setIsPaused(false);
+  timerRef.current = setInterval(() => {
+    setTime(prevTime => prevTime + 1);
+  }, 1000);
+};
+
+const stopTimer = () => {
+  setIsRunning(false);
+  setIsPaused(false);
+  clearInterval(timerRef.current);
+  // Save session logic here
+  saveSession({
+    duration: time,
+    category: category,
+    date: new Date().toISOString()
+  });
+  setTime(0);
+  setCategory('');
+};
+
+<Timer
+  time={time}
+  isRunning={isRunning}
+  isPaused={isPaused}
+  category={category}
+  onStart={startTimer}
+  onPause={pauseTimer}
+  onResume={resumeTimer}
+  onStop={stopTimer}
+  onCategoryChange={setCategory}
+/>
+```
+
+### 6. Statistics Components
+
+#### StatCard
+```javascript
+function StatCard({ label, value, icon }) {
+  return (
+    <div className="bg-white p-4 rounded-lg shadow-sm">
+      <div className="flex items-center justify-between mb-2">
+        <div className="text-gray-600 text-sm">{label}</div>
+        {icon && <div className="text-primary">{icon}</div>}
+      </div>
+      <div className="text-2xl md:text-3xl font-bold text-primary">
+        {value}
+      </div>
+    </div>
+  );
+}
+```
+
+**Usage Example:**
+```javascript
+<div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+  <StatCard 
+    label="Total Practice Time" 
+    value="42h 30m" 
+    icon={<ClockIcon size={20} />} 
+  />
+  <StatCard 
+    label="Sessions This Week" 
+    value="12" 
+    icon={<CalendarIcon size={20} />} 
+  />
+  <StatCard 
+    label="Current Streak" 
+    value="5 days" 
+    icon={<TrendingUpIcon size={20} />} 
+  />
+  <StatCard 
+    label="Days Until Lesson" 
+    value="3" 
+    icon={<MusicIcon size={20} />} 
+  />
+</div>
+```
+
+#### PracticeChart
+```javascript
+function PracticeChart({ data }) {
+  return (
+    <div className="bg-white p-4 rounded-lg shadow-sm h-64">
+      <h3 className="text-lg font-semibold mb-4">Weekly Practice Time</h3>
+      <ResponsiveContainer width="100%" height="85%">
+        <BarChart data={data}>
+          <CartesianGrid strokeDasharray="3 3" vertical={false} />
+          <XAxis dataKey="day" />
+          <YAxis />
+          <Tooltip />
+          <Bar 
+            dataKey="minutes" 
+            fill="#7681e4" 
+            radius={[3, 3, 0, 0]}
+            activeBar={{ fill: '#4154b3' }}
+          />
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
+```
+
+**Usage Example:**
+```javascript
+const weeklyData = [
+  { day: 'Mon', minutes: 45 },
+  { day: 'Tue', minutes: 30 },
+  { day: 'Wed', minutes: 60 },
+  { day: 'Thu', minutes: 0 },
+  { day: 'Fri', minutes: 20 },
+  { day: 'Sat', minutes: 90 },
+  { day: 'Sun', minutes: 45 }
+];
+
+<PracticeChart data={weeklyData} />
+```
+
+#### CategoryDistribution
+```javascript
+function CategoryDistribution({ data }) {
+  return (
+    <div className="bg-white p-4 rounded-lg shadow-sm h-64">
+      <h3 className="text-lg font-semibold mb-4">Practice Distribution</h3>
+      <ResponsiveContainer width="100%" height="85%">
+        <PieChart>
+          <Pie
+            data={data}
+            cx="50%"
+            cy="50%"
+            outerRadius={80}
+            dataKey="value"
+            nameKey="name"
+            label={({name, percent}) => `${name}: ${(percent * 100).toFixed(0)}%`}
+          >
+            {data.map((entry, index) => (
+              <Cell key={`cell-${index}`} fill={entry.color} />
+            ))}
+          </Pie>
+          <Tooltip formatter={(value) => `${value} minutes`} />
+          <Legend />
+        </PieChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
+```
+
+**Usage Example:**
+```javascript
+const categoryData = [
+  { name: 'Technique', value: 120, color: '#4154b3' },
+  { name: 'Repertoire', value: 180, color: '#7681e4' },
+  { name: 'Theory', value: 60, color: '#FF6A4B' },
+  { name: 'Ear Training', value: 45, color: '#ffb4a1' },
+  { name: 'Sight Reading', value: 30, color: '#4caf50' }
+];
+
+<CategoryDistribution data={categoryData} />
+```
+
+### 7. Filter Components
+
+#### FilterBar
+```javascript
+function FilterBar({ children, onApply }) {
+  return (
+    <div className="bg-white p-4 mb-4 rounded-lg shadow-sm">
+      <div className="flex flex-wrap gap-4">
+        {children}
+      </div>
+      
+      {onApply && (
+        <div className="mt-4 flex justify-end">
+          <PrimaryButton onClick={onApply} icon={<FilterIcon size={16} />}>
+            Apply Filters
+          </PrimaryButton>
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+#### DateRangeFilter
+```javascript
+function DateRangeFilter({ startDate, endDate, onStartChange, onEndChange, label = "Date Range" }) {
+  return (
+    <div className="flex-1 min-w-[200px]">
+      <label className="block text-sm font-medium text-gray-700 mb-1">
+        {label}
+      </label>
+      <div className="flex gap-2">
+        <div className="w-1/2">
+          <div className="relative">
+            <input
+              type="date"
+              value={startDate}
+              onChange={onStartChange}
+              className="w-full h-10 px-3 py-2 bg-gray-50 border border-gray-300 rounded-md appearance-none transition-all duration-300 focus:border-primary focus:outline-none"
+            />
+            <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+              <CalendarIcon size={18} className="text-gray-500" />
+            </div>
+          </div>
+        </div>
+        <div className="w-1/2">
+          <div className="relative">
+            <input
+              type="date"
+              value={endDate}
+              onChange={onEndChange}
+              min={startDate}
+              className="w-full h-10 px-3 py-2 bg-gray-50 border border-gray-300 rounded-md appearance-none transition-all duration-300 focus:border-primary focus:outline-none"
+            />
+            <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+              <CalendarIcon size={18} className="text-gray-500" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+```
+
+#### CategoryFilter
+```javascript
+function CategoryFilter({ value, onChange, categories }) {
+  return (
+    <div className="flex-1 min-w-[200px]">
+      <label className="block text-sm font-medium text-gray-700 mb-1">
+        Category
+      </label>
+      <div className="relative">
+        <select
+          value={value}
+          onChange={onChange}
+          className="w-full h-10 px-3 py-2 bg-gray-50 border border-gray-300 rounded-md appearance-none transition-all duration-300 focus:border-primary focus:outline-none"
+        >
+          <option value="">All Categories</option>
+          {categories.map((category) => (
+            <option key={category.value} value={category.value}>
+              {category.label}
+            </option>
+          ))}
+        </select>
+        <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+          <ChevronDownIcon size={18} className="text-gray-500" />
+        </div>
+      </div>
+    </div>
+  );
+}
+```
+
+#### SearchFilter
+```javascript
+function SearchFilter({ value, onChange, placeholder = "Search..." }) {
+  return (
+    <div className="flex-1 min-w-[200px]">
+      <label className="block text-sm font-medium text-gray-700 mb-1">
+        Search
+      </label>
+      <div className="relative">
+        <input
+          type="text"
+          value={value}
+          onChange={onChange}
+          placeholder={placeholder}
+          className="w-full h-10 pl-10 pr-3 py-2 bg-gray-50 border border-gray-300 rounded-md transition-all duration-300 focus:border-primary focus:outline-none"
+        />
+        <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+          <SearchIcon size={18} className="text-gray-500" />
+        </div>
+      </div>
+    </div>
+  );
+}
+```
+
+**Usage Example:**
+```javascript
+const [searchTerm, setSearchTerm] = useState('');
+const [category, setCategory] = useState('');
+const [startDate, setStartDate] = useState('');
+const [endDate, setEndDate] = useState('');
+
+const categories = [
+  { value: 'technique', label: 'Technique' },
+  { value: 'repertoire', label: 'Repertoire' },
+  { value: 'theory', label: 'Music Theory' },
+  { value: 'ear-training', label: 'Ear Training' },
+];
+
+const applyFilters = () => {
+  // Filter logic
+};
+
+<FilterBar onApply={applyFilters}>
+  <SearchFilter
+    value={searchTerm}
+    onChange={(e) => setSearchTerm(e.target.value)}
+    placeholder="Search sessions..."
+  />
+  <CategoryFilter
+    value={category}
+    onChange={(e) => setCategory(e.target.value)}
+    categories={categories}
+  />
+  <DateRangeFilter
+    startDate={startDate}
+    endDate={endDate}
+    onStartChange={(e) => setStartDate(e.target.value)}
+    onEndChange={(e) => setEndDate(e.target.value)}
+  />
+</FilterBar>
+```
+
+### 8. Empty State Component
+
+```javascript
+function EmptyState({ 
+  icon, 
+  message, 
+  actionText = null, 
+  onAction = null 
+}) {
+  return (
+    <div className="text-center p-8 bg-gray-50 rounded-lg">
+      <div className="inline-block text-gray-400 mb-4">
+        {icon}
+      </div>
+      <p className="text-base font-medium text-gray-600 mb-4">
+        {message}
+      </p>
+      {actionText && onAction && (
+        <PrimaryButton onClick={onAction}>
+          {actionText}
+        </PrimaryButton>
+      )}
+    </div>
+  );
+}
+```
+
+**Usage Example:**
+```javascript
+<EmptyState
+  icon={<MusicIcon size={48} />}
+  message="You haven't tracked any practice sessions yet."
+  actionText="Start Practicing"
+  onAction={() => setActiveTab('timer')}
+/>
+```
+
+## Component Implementation Guidelines
+
+### Responsive Behavior
+
+- All components should adapt to different screen sizes
+- Use flexbox and grid layouts for responsive design
+- Mobile-first approach with media queries for larger screens:
+  ```css
+  /* Mobile first */
+  .component {
+    width: 100%;
+  }
+  
+  /* Tablet (768px and up) */
+  @media (min-width: 768px) {
+    .component {
+      width: 50%;
+    }
+  }
+  
+  /* Desktop (1024px and up) */
+  @media (min-width: 1024px) {
+    .component {
+      width: 33%;
+    }
+  }
+  ```
+
+### Accessibility Considerations
+
+- Use semantic HTML elements (button, nav, section, etc.)
+- Include proper ARIA attributes where needed
+- Ensure minimum contrast ratios (4.5:1 for normal text)
+- Use focus indicators for keyboard navigation
+- Provide text alternatives for non-text content
+- Minimum touch target size of 44px x 44px
+
+### Performance Optimization
+
+- Use CSS transitions instead of JavaScript animations when possible
+- Implement lazy loading for components that aren't immediately visible
+- Minimize DOM updates and reflows
+- Use memoization for expensive calculations
+- Debounce event handlers for resize, scroll, and text input events
+
+### Code Organization
+
+- Keep components small and focused on a single responsibility
+- Use consistent naming conventions
+- Separate business logic from presentation logic
+- Create higher-order components for common patterns
+- Document prop types, default values, and usage examples
+
+## Implementation Checklist
+
+Before implementing a component:
+
+1. ✅ Ensure it follows the visual design specification
+2. ✅ Check that it's responsive across all target breakpoints
+3. ✅ Verify accessibility compliance
+4. ✅ Test performance impact
+5. ✅ Document props, variants, and usage examples
+
+## References
+
+- **Color Palette**: See Visual Design Specification section 3.1-3.4
+- **Typography**: See Visual Design Specification section 4.1-4.4
+- **Spacing**: See Visual Design Specification section 5.1-5.4

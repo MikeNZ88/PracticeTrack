@@ -202,12 +202,13 @@ window.UI = (function() {
 
             // Apply filters
             records = filterRecords(records, filters, recordType);
-            console.log(`[DEBUG ${recordType} Load] Records after filtering: ${records.length}`); // <<< Log after filtering
+            console.log(`[DEBUG ${recordType} Load] Records after filtering: ${records.length}`);
             
             // Sort records
-            console.log(`[DEBUG ${recordType} Load] Attempting to sort ${records.length} records...`); // <<< Log before sorting
+            console.log(`[DEBUG ${recordType} Load] Attempting to sort ${records.length} records...`);
+            console.log(`[DEBUG ${recordType} Load] >>> CALLING sortRecords NOW for ${recordType}...`); // <<< Added explicit call log
             records = sortRecords(records, recordType);
-            console.log(`[DEBUG ${recordType} Load] Records after sorting:`, records.length > 0 ? JSON.parse(JSON.stringify(records.map(r => r.id))) : '[]'); // <<< Log after sorting (show IDs)
+            console.log(`[DEBUG ${recordType} Load] Records after sorting:`, records.length > 0 ? JSON.parse(JSON.stringify(records.map(r => r.id))) : '[]');
             
             // Show empty state if no records
             if (records.length === 0) {
@@ -400,37 +401,67 @@ window.UI = (function() {
     }
     
     /**
-     * Sort records based on type and criteria
-     * @param {Array} records - The records to sort
-     * @param {string} recordType - The type of records
-     * @returns {Array} - Sorted records
+     * Sort records (default: newest first based on startTime/date/createdAt)
+     * @param {Array} records - Array of records
+     * @param {string} recordType - Type of records (e.g., SESSIONS, GOALS)
+     * @returns {Array} - Sorted array
      */
     function sortRecords(records, recordType) {
-        // Default sort is by date (newest first)
-        return records.sort((a, b) => {
-            if (recordType === 'GOALS') {
-                // For goals, sort by completion status first, then by date
-                if (a.completed !== b.completed) {
-                    return a.completed ? 1 : -1; // Active goals first
-                }
-            }
-            
-            // Get date fields based on record type
+        // <<< Log entry and record IDs before sort >>>
+        if (recordType === 'SESSIONS') {
+            // <<< Simplified entry log >>>
+            console.log(`[DEBUG Sort Sessions ENTRY] Sorting ${records.length} SESSIONS records. First record ID (if exists): ${records.length > 0 && records[0] ? records[0].id : 'N/A'}`);
+        }
+        
+        const sortedRecords = records.sort((a, b) => {
+            // Default sort: newest first based on startTime or date or createdAt
             const aDateSource = a.startTime || a.date || a.createdAt;
             const bDateSource = b.startTime || b.date || b.createdAt;
             const aDate = new Date(aDateSource);
             const bDate = new Date(bDateSource);
 
-            // Log the comparison (Enhanced for clarity)
+            // Log the comparison (Focus on Parsed Local Time)
             if (recordType === 'SESSIONS') { 
-                 console.log(`[DEBUG Sort Sessions] Comparing:
-                     A: ID=${a.id}, Source='${a.startTime ? 'startTime' : (a.date ? 'date' : 'createdAt')}', Value='${aDateSource}', Parsed=${aDate.toISOString()}
-                     B: ID=${b.id}, Source='${b.startTime ? 'startTime' : (b.date ? 'date' : 'createdAt')}', Value='${bDateSource}', Parsed=${bDate.toISOString()}
-                     Result (bDate - aDate): ${bDate - aDate}`);
+                 // Updated log format
+                 console.log(`[DEBUG Sort Sessions COMPARING]:\n` +
+                     `    A: ID=${a.id}, SourceValue='${aDateSource}', ParsedLocal='${aDate.toString()}' ${isNaN(aDate.getTime()) ? '[INVALID]' : ''}\n` +
+                     `    B: ID=${b.id}, SourceValue='${bDateSource}', ParsedLocal='${bDate.toString()}' ${isNaN(bDate.getTime()) ? '[INVALID]' : ''}\n` +
+                     `    Result (B.time - A.time): ${bDate.getTime() - aDate.getTime()}`);
             }
             
-            return bDate - aDate; // Newest first
+            // Handle Invalid Dates - push them to the end (older)
+            if (isNaN(aDate.getTime()) && isNaN(bDate.getTime())) return 0; // Both invalid, keep order
+            if (isNaN(aDate.getTime())) return 1; // a is invalid, put b first (b is newer)
+            if (isNaN(bDate.getTime())) return -1; // b is invalid, put a first (a is newer)
+            
+            // Primary Sort: Start Time (Newest First)
+            const timeDiff = bDate.getTime() - aDate.getTime();
+            
+            // <<< Secondary Sort: createdAt (Newest First) if start times are identical >>>
+            if (timeDiff === 0) {
+                const aCreatedAt = new Date(a.createdAt);
+                const bCreatedAt = new Date(b.createdAt);
+                
+                // Handle potential invalid createdAt dates as well
+                if (isNaN(aCreatedAt.getTime()) && isNaN(bCreatedAt.getTime())) return 0;
+                if (isNaN(aCreatedAt.getTime())) return 1; 
+                if (isNaN(bCreatedAt.getTime())) return -1;
+                
+                const createdAtDiff = bCreatedAt.getTime() - aCreatedAt.getTime();
+                console.log(`[DEBUG Sort Sessions SECONDARY] timeDiff=0, Comparing createdAt: A=${aCreatedAt.toISOString()}, B=${bCreatedAt.toISOString()}, Result=${createdAtDiff}`);
+                return createdAtDiff; 
+            }
+            // <<< End Secondary Sort >>>
+            
+            return timeDiff; // Return primary sort result if times differ
         });
+        
+        // <<< Log record IDs after sort >>>
+        if (recordType === 'SESSIONS') {
+             console.log(`[DEBUG Sort Sessions EXIT] IDs after sort:`, sortedRecords.map(r => r.id));
+        }
+        
+        return sortedRecords;
     }
     
     /**

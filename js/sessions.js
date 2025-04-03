@@ -143,6 +143,7 @@ function createSessionElement(session) {
     const dateStr = startTime.toLocaleDateString();
     const timeStr = startTime.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
 
+    // --- Restored Original HTML --- 
     sessionElement.innerHTML = `
         <div class="session-header">
              <span class="session-category card-name-pill">${category.name}</span>
@@ -153,22 +154,15 @@ function createSessionElement(session) {
             <span class="session-date">${dateStr} at ${timeStr}</span> 
             <div class="action-buttons"> <!-- Wrap buttons -->
                 ${session.isLesson ? '<span class="lesson-badge">Lesson</span>' : ''}
-                <button class="icon-button edit-session" title="Edit Session">
-                    <i data-lucide="edit"></i>
-                </button>
                 <button class="icon-button delete-session" title="Delete Session">
                     <i data-lucide="trash"></i>
                 </button>
             </div>
         </div>
     `;
+    // --- End Restored Original HTML ---
 
     // Add event listeners
-    const editBtn = sessionElement.querySelector('.edit-session');
-    if (editBtn) {
-        editBtn.addEventListener('click', () => showSessionDialog(session.id));
-    }
-
     const deleteBtn = sessionElement.querySelector('.delete-session');
     if (deleteBtn) {
         deleteBtn.addEventListener('click', () => deleteSession(session.id));
@@ -273,17 +267,28 @@ function handleSessionFormSubmit(dialog, e, sessionId) {
     console.log('[DEBUG Sessions] handleSessionFormSubmit received sessionId:', sessionId);
     
     try {
-        // Moved the original log inside the try block
         console.log('[DEBUG Sessions] Inside try block. Session ID:', sessionId);
         
+        // --- Edit Specific Logging --- 
+        if (sessionId) {
+            console.log(`[DEBUG Sessions EDIT] Attempting to edit session ID: ${sessionId}`);
+        }
+        // --- End Edit Specific Logging --- 
+
         // Fetch original record if editing to preserve createdAt
         let originalCreatedAt = null;
         if (sessionId) {
             const originalRecord = window.getItemById ? window.getItemById('SESSIONS', sessionId) : 
                 (JSON.parse(localStorage.getItem('practiceTrack_sessions')) || []).find(s => s.id === sessionId);
-            if (originalRecord && originalRecord.createdAt) {
+            if (originalRecord) { // <<< Log even if createdAt is missing
                 originalCreatedAt = originalRecord.createdAt;
-                console.log('[DEBUG Sessions] Editing session. Found original createdAt:', originalCreatedAt);
+                console.log('[DEBUG Sessions EDIT] Found original record:', originalRecord);
+                console.log('[DEBUG Sessions EDIT] Using original createdAt:', originalCreatedAt);
+            } else {
+                 console.warn(`[DEBUG Sessions EDIT] Could not find original record for ID: ${sessionId}`);
+                 // Decide how to handle - maybe prevent save?
+                 alert('Error: Could not find the original session record to edit.');
+                 return;
             }
         }
 
@@ -291,21 +296,38 @@ function handleSessionFormSubmit(dialog, e, sessionId) {
         const formData = new FormData(dialog.querySelector('form'));
         const categoryId = formData.get('session-category');
         const dateValue = formData.get('session-date'); // YYYY-MM-DD
-        const durationMinutes = parseInt(formData.get('session-duration'), 10);
+        const durationMinutesRaw = formData.get('session-duration'); // Get raw value first
+        const durationMinutes = parseInt(durationMinutesRaw, 10);
         const notes = formData.get('dialog-session-notes');
 
-        // <<< Log values BEFORE validation check >>>
-        console.log(`[DEBUG Sessions] Values for validation: categoryId='${categoryId}', dateValue='${dateValue}', durationMinutes=${durationMinutes}`);
-
-        // Validate required fields
-        if (!categoryId || !dateValue || isNaN(durationMinutes) || durationMinutes <= 0) {
-            console.error('[DEBUG Sessions] Validation failed:', { categoryId, dateValue, durationMinutes });
-            // Replace non-existent showNotification with a simple alert
-            alert('Missing Information: Please fill in Category, Date, and a valid Duration (minutes).');
-            return; // Stop processing if validation fails
+        // --- Detailed Validation --- 
+        let validationError = null;
+        if (!categoryId) {
+            validationError = 'Category not selected.';
+        } else if (!dateValue) {
+            validationError = 'Date not selected.';
+        } else if (isNaN(durationMinutes)) {
+            validationError = 'Duration is not a valid number.';
+        } else if (durationMinutes <= 0) {
+            validationError = 'Duration must be greater than 0.';
         }
         
-        // --- Calculate startTime and endTime --- 
+        // Log validation result
+        console.log(`[DEBUG Sessions VALIDATION] Category='${categoryId}', Date='${dateValue}', Duration=${durationMinutes}. Error: ${validationError || 'None'}`);
+
+        // Check if validation failed
+        if (validationError) { 
+            console.error('[DEBUG Sessions] Validation failed:', validationError);
+            // Show specific error in alert
+            alert(`Invalid Input: ${validationError}`); 
+            return; // Stop processing
+        }
+        // --- End Detailed Validation ---
+        
+        // Validation passed, proceed with calculation
+        console.log('[DEBUG Sessions] Validation passed.');
+
+        // --- Calculate startTime and endTime ---
         const sessionDate = new Date(dateValue); // Parses YYYY-MM-DD
         // IMPORTANT: Set time to noon in the LOCAL timezone to avoid UTC conversion issues
         // When just YYYY-MM-DD is parsed, it defaults to UTC midnight.
@@ -342,14 +364,19 @@ function handleSessionFormSubmit(dialog, e, sessionId) {
         console.log('[DEBUG Sessions] Prepared session data:', JSON.parse(JSON.stringify(sessionData)));
 
         // Save session using the data layer
-        if (window.addItem && window.updateItem) {
-            if (sessionId) {
-                window.updateItem('SESSIONS', sessionId, sessionData);
-            } else {
-                window.addItem('SESSIONS', sessionData);
-            }
+        if (sessionId) {
+             console.log('[DEBUG Sessions EDIT] Updating existing item with ID:', sessionId);
+        }
+        // <<< Reverted to use addItem/updateItem or fallback >>>
+        if (window.addItem && window.updateItem) { // Check if data layer functions exist
+             if (sessionId) {
+                 window.updateItem('SESSIONS', sessionId, sessionData);
+             } else {
+                 window.addItem('SESSIONS', sessionData);
+             }
         } else {
-            // Legacy localStorage handling
+            // Fallback to direct localStorage manipulation if data layer is not present
+            console.warn('[DEBUG Sessions] Data layer functions not found. Using localStorage fallback.');
             let sessions = [];
             try {
                 const stored = localStorage.getItem('practiceTrack_sessions');
@@ -357,24 +384,39 @@ function handleSessionFormSubmit(dialog, e, sessionId) {
                     sessions = JSON.parse(stored);
                 }
             } catch (e) {
-                console.error('Error reading sessions:', e);
-                sessions = [];
+                console.error('Error reading sessions from localStorage:', e);
+                sessions = []; // Start fresh if storage is corrupted
             }
             
             if (sessionId) {
                 // Update existing session
                 const index = sessions.findIndex(s => s.id === sessionId);
                 if (index !== -1) {
-                    sessions[index] = sessionData;
+                    sessions[index] = { ...sessions[index], ...sessionData }; // Merge to preserve any fields not in sessionData
+                     console.log('[DEBUG Sessions LocalStorage] Updated session at index:', index);
+                } else {
+                     console.error('[DEBUG Sessions LocalStorage] Could not find session index for update:', sessionId);
+                     // Avoid adding as new if update fails
+                     throw new Error('Failed to find session to update in localStorage');
                 }
             } else {
                 // Add new session
                 sessions.push(sessionData);
+                 console.log('[DEBUG Sessions LocalStorage] Added new session.');
             }
             
-            // Save to localStorage
-            localStorage.setItem('practiceTrack_sessions', JSON.stringify(sessions));
+            // Save back to localStorage
+            try {
+                localStorage.setItem('practiceTrack_sessions', JSON.stringify(sessions));
+                 console.log('[DEBUG Sessions LocalStorage] Saved sessions back to localStorage.');
+            } catch (e) {
+                 console.error('Error saving sessions to localStorage:', e);
+                 throw new Error('Failed to save session to localStorage');
+            }
         }
+        // <<< End Reverted section >>>
+        
+        console.log('[DEBUG Sessions] Session save/update call successful.'); // Updated log message
         
         const saveButton = dialog.querySelector('button[type="submit"]');
         if (saveButton) {

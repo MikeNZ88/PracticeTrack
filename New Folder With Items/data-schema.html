@@ -1,0 +1,816 @@
+# PracticeTrack Data Schema Documentation
+
+## Introduction
+
+This document outlines the data structures used in the PracticeTrack application. It details the schema for each entity type, their relationships, and the storage approach using browser localStorage. Understanding these data structures is essential for consistent data handling throughout the application.
+
+## Storage Architecture
+
+PracticeTrack uses the browser's localStorage API for client-side data persistence. All application data is stored locally on the user's device, with no server-side storage or transmission.
+
+### localStorage Keys
+
+The application organizes data using the following localStorage key structure:
+
+| Key | Description | Example |
+|-----|-------------|---------|
+| `practicetrack_sessions` | Array of practice session records | `[{id: "s1", ...}, {id: "s2", ...}]` |
+| `practicetrack_goals` | Array of goal records | `[{id: "g1", ...}, {id: "g2", ...}]` |
+| `practicetrack_settings` | User configuration settings object | `{primaryInstrument: "piano", ...}` |
+| `practicetrack_media` | Array of media reference records | `[{id: "m1", ...}, {id: "m2", ...}]` |
+| `practicetrack_categories` | Array of practice categories | `[{id: "c1", ...}, {id: "c2", ...}]` |
+
+### Data Access Layer
+
+The application implements a data access layer that provides methods for:
+
+- Reading data from localStorage
+- Writing data to localStorage
+- Validating data before storage
+- Managing localStorage capacity limits
+
+Example data access implementation:
+
+```javascript
+// data.js - Data access layer
+
+// Get all items of a specific type
+export const getItems = (itemType) => {
+  const key = `practicetrack_${itemType}`;
+  const items = localStorage.getItem(key);
+  return items ? JSON.parse(items) : [];
+};
+
+// Get a single item by ID
+export const getItemById = (itemType, id) => {
+  const items = getItems(itemType);
+  return items.find(item => item.id === id) || null;
+};
+
+// Save an item (create or update)
+export const saveItem = (itemType, item) => {
+  const items = getItems(itemType);
+  const existingIndex = items.findIndex(i => i.id === item.id);
+  
+  if (existingIndex >= 0) {
+    // Update existing item
+    items[existingIndex] = item;
+  } else {
+    // Add new item
+    items.push(item);
+  }
+  
+  localStorage.setItem(`practicetrack_${itemType}`, JSON.stringify(items));
+  return item;
+};
+
+// Delete an item
+export const deleteItem = (itemType, id) => {
+  const items = getItems(itemType);
+  const newItems = items.filter(item => item.id !== id);
+  localStorage.setItem(`practicetrack_${itemType}`, JSON.stringify(newItems));
+  return id;
+};
+
+// Clear all data (for testing or reset)
+export const clearAllData = () => {
+  localStorage.removeItem('practicetrack_sessions');
+  localStorage.removeItem('practicetrack_goals');
+  localStorage.removeItem('practicetrack_settings');
+  localStorage.removeItem('practicetrack_media');
+  localStorage.removeItem('practicetrack_categories');
+};
+
+// Export data to JSON
+export const exportData = () => {
+  return {
+    sessions: getItems('sessions'),
+    goals: getItems('goals'),
+    settings: getItems('settings')[0] || {},
+    media: getItems('media'),
+    categories: getItems('categories')
+  };
+};
+
+// Import data from JSON
+export const importData = (data) => {
+  if (data.sessions) localStorage.setItem('practicetrack_sessions', JSON.stringify(data.sessions));
+  if (data.goals) localStorage.setItem('practicetrack_goals', JSON.stringify(data.goals));
+  if (data.settings) localStorage.setItem('practicetrack_settings', JSON.stringify([data.settings]));
+  if (data.media) localStorage.setItem('practicetrack_media', JSON.stringify(data.media));
+  if (data.categories) localStorage.setItem('practicetrack_categories', JSON.stringify(data.categories));
+};
+```
+
+## Entity Schemas
+
+### 1. Practice Session
+
+Practice sessions represent time spent practicing with associated metadata.
+
+#### Schema
+
+```javascript
+/**
+ * Practice Session Schema
+ * 
+ * @typedef {Object} Session
+ * @property {string} id - Unique identifier (UUID)
+ * @property {string} categoryId - Reference to the practice category
+ * @property {Date} startTime - When the session started (ISO string)
+ * @property {Date} endTime - When the session ended (ISO string)
+ * @property {number} duration - Duration in seconds
+ * @property {string} notes - Optional notes about the session
+ * @property {boolean} isLesson - Whether this session was a lesson
+ * @property {Date} createdAt - When this record was created
+ * @property {Date} updatedAt - When this record was last updated
+ */
+```
+
+#### Example
+
+```javascript
+{
+  "id": "s-1647892354982",
+  "categoryId": "c-technique",
+  "startTime": "2024-03-21T14:30:00.000Z",
+  "endTime": "2024-03-21T15:15:00.000Z",
+  "duration": 2700, // 45 minutes in seconds
+  "notes": "Worked on scales and arpeggios. Made good progress with F# minor.",
+  "isLesson": false,
+  "createdAt": "2024-03-21T15:15:05.000Z",
+  "updatedAt": "2024-03-21T15:15:05.000Z"
+}
+```
+
+### 2. Practice Goal
+
+Goals represent specific practice targets the user sets for themselves.
+
+#### Schema
+
+```javascript
+/**
+ * Practice Goal Schema
+ * 
+ * @typedef {Object} Goal
+ * @property {string} id - Unique identifier (UUID)
+ * @property {string} text - Description of the goal
+ * @property {string} categoryId - Reference to the practice category (optional)
+ * @property {boolean} completed - Whether the goal is completed
+ * @property {Date} completedAt - When the goal was completed (ISO string, null if not completed)
+ * @property {Date} dueDate - Target completion date (ISO string, optional)
+ * @property {Date} createdAt - When this record was created
+ * @property {Date} updatedAt - When this record was last updated
+ */
+```
+
+#### Example
+
+```javascript
+{
+  "id": "g-1647892354983",
+  "text": "Practice scales for 30 minutes every day this week",
+  "categoryId": "c-technique",
+  "completed": false,
+  "completedAt": null,
+  "dueDate": "2024-03-28T23:59:59.000Z",
+  "createdAt": "2024-03-21T10:15:00.000Z",
+  "updatedAt": "2024-03-21T10:15:00.000Z"
+}
+```
+
+### 3. User Settings
+
+Settings contain user preferences and configuration options.
+
+#### Schema
+
+```javascript
+/**
+ * User Settings Schema
+ * 
+ * @typedef {Object} Settings
+ * @property {string} primaryInstrument - User's main instrument
+ * @property {number} lessonDay - Day of week for regular lessons (0-6, where 0 is Sunday)
+ * @property {string} lessonTime - Time of day for lessons (HH:MM format)
+ * @property {string[]} hiddenCategories - Array of category IDs to hide
+ * @property {string} theme - UI theme preference (light/dark)
+ * @property {boolean} notificationsEnabled - Whether to show browser notifications
+ * @property {Date} updatedAt - When settings were last updated
+ */
+```
+
+#### Example
+
+```javascript
+{
+  "primaryInstrument": "piano",
+  "lessonDay": 2, // Wednesday
+  "lessonTime": "15:30",
+  "hiddenCategories": ["c-theory"],
+  "theme": "light",
+  "notificationsEnabled": true,
+  "updatedAt": "2024-03-20T09:45:00.000Z"
+}
+```
+
+### 4. Media Reference
+
+Media references store metadata about practice-related media (photos, videos, notes).
+
+#### Schema
+
+```javascript
+/**
+ * Media Reference Schema
+ * 
+ * @typedef {Object} MediaReference
+ * @property {string} id - Unique identifier (UUID)
+ * @property {string} name - User-provided name for the media
+ * @property {string} type - Type of media ("photo", "video", "note")
+ * @property {string} content - For notes: the text content; For photos/videos: null
+ * @property {string} categoryId - Reference to related practice category (optional)
+ * @property {Date} createdAt - When this media was created
+ * @property {string} devicePath - For photos/videos: reference to device file path (optional)
+ */
+```
+
+#### Example (Note)
+
+```javascript
+{
+  "id": "m-1647892354984",
+  "name": "Lesson Notes - March 21",
+  "type": "note",
+  "content": "Teacher recommended focusing on wrist position during scales. Need to work on evenness in Bach prelude, especially measures 12-15.",
+  "categoryId": "c-lesson",
+  "createdAt": "2024-03-21T16:30:00.000Z",
+  "devicePath": null
+}
+```
+
+#### Example (Photo)
+
+```javascript
+{
+  "id": "m-1647892354985",
+  "name": "Hand Position Reference",
+  "type": "photo",
+  "content": null,
+  "categoryId": "c-technique",
+  "createdAt": "2024-03-22T10:15:00.000Z",
+  "devicePath": "file:///user/photos/practicetrack/2024-03-22-101500.jpg"
+}
+```
+
+### 5. Practice Category
+
+Categories help organize practice sessions by skill area or focus.
+
+#### Schema
+
+```javascript
+/**
+ * Practice Category Schema
+ * 
+ * @typedef {Object} Category
+ * @property {string} id - Unique identifier
+ * @property {string} name - Display name for the category
+ * @property {string} color - Color code for visual identification
+ * @property {boolean} isDefault - Whether this is a default category
+ * @property {boolean} isHidden - Whether user has hidden this category
+ * @property {string[]} instrumentIds - Array of instruments this category applies to
+ */
+```
+
+#### Example
+
+```javascript
+{
+  "id": "c-technique",
+  "name": "Technique",
+  "color": "#7681e4",
+  "isDefault": true,
+  "isHidden": false,
+  "instrumentIds": ["piano", "guitar", "violin"]
+}
+```
+
+## Data Relationships
+
+The following diagram illustrates the relationships between different entities:
+
+```
+┌─────────────┐       ┌───────────────┐
+│   Session   │       │     Goal      │
+├─────────────┤       ├───────────────┤
+│ id          │       │ id            │
+│ categoryId ─┼───────┼─> categoryId  │
+│ ...         │       │ ...           │
+└─────────────┘       └───────────────┘
+        │                     │
+        │                     │
+        ▼                     ▼
+┌─────────────┐       ┌───────────────┐
+│  Category   │<──────┤MediaReference │
+├─────────────┤       ├───────────────┤
+│ id          │       │ id            │
+│ name        │       │ categoryId   ─┘
+│ ...         │       │ ...           │
+└─────────────┘       └───────────────┘
+        ▲
+        │
+        │
+┌─────────────┐
+│  Settings   │
+├─────────────┤
+│ hidden      │
+│ Categories ─┘
+│ ...         │
+└─────────────┘
+```
+
+### Key Relationships
+
+1. **Session → Category**: Each session belongs to a practice category (technique, repertoire, etc.)
+2. **Goal → Category**: Goals can be associated with specific categories (optional)
+3. **MediaReference → Category**: Media items can be linked to categories (optional)
+4. **Settings → Category**: User settings include preferences about which categories to display
+
+## Data Validation
+
+### Session Validation
+
+```javascript
+const validateSession = (session) => {
+  const errors = {};
+  
+  if (!session.categoryId) {
+    errors.categoryId = 'Category is required';
+  }
+  
+  if (!session.startTime) {
+    errors.startTime = 'Start time is required';
+  }
+  
+  if (!session.endTime) {
+    errors.endTime = 'End time is required';
+  }
+  
+  if (session.endTime && session.startTime && new Date(session.endTime) <= new Date(session.startTime)) {
+    errors.endTime = 'End time must be after start time';
+  }
+  
+  if (!session.duration || session.duration <= 0) {
+    errors.duration = 'Duration must be greater than 0';
+  }
+  
+  return {
+    valid: Object.keys(errors).length === 0,
+    errors
+  };
+};
+```
+
+### Goal Validation
+
+```javascript
+const validateGoal = (goal) => {
+  const errors = {};
+  
+  if (!goal.text || goal.text.trim() === '') {
+    errors.text = 'Goal text is required';
+  }
+  
+  if (goal.dueDate && new Date(goal.dueDate) < new Date()) {
+    errors.dueDate = 'Due date cannot be in the past';
+  }
+  
+  return {
+    valid: Object.keys(errors).length === 0,
+    errors
+  };
+};
+```
+
+### Media Reference Validation
+
+```javascript
+const validateMediaReference = (media) => {
+  const errors = {};
+  
+  if (!media.name || media.name.trim() === '') {
+    errors.name = 'Media name is required';
+  }
+  
+  if (!media.type || !['photo', 'video', 'note'].includes(media.type)) {
+    errors.type = 'Invalid media type';
+  }
+  
+  if (media.type === 'note' && (!media.content || media.content.trim() === '')) {
+    errors.content = 'Note content is required';
+  }
+  
+  return {
+    valid: Object.keys(errors).length === 0,
+    errors
+  };
+};
+```
+
+## Data Migration and Versioning
+
+To support future changes to the data schema, the application includes a versioning and migration system:
+
+```javascript
+// Current schema version
+const SCHEMA_VERSION = 1;
+
+// Check if data migration is needed
+const migrateDataIfNeeded = () => {
+  const storedVersion = localStorage.getItem('practicetrack_schema_version');
+  
+  if (!storedVersion) {
+    // First-time setup
+    localStorage.setItem('practicetrack_schema_version', SCHEMA_VERSION);
+    return;
+  }
+  
+  const version = parseInt(storedVersion, 10);
+  
+  if (version < SCHEMA_VERSION) {
+    // Perform migration based on version difference
+    if (version === 1) {
+      migrateFromV1ToV2();
+    }
+    
+    // Update schema version
+    localStorage.setItem('practicetrack_schema_version', SCHEMA_VERSION);
+  }
+};
+
+// Example migration function
+const migrateFromV1ToV2 = () => {
+  // Get all sessions
+  const sessions = JSON.parse(localStorage.getItem('practicetrack_sessions') || '[]');
+  
+  // Apply migration changes
+  const migratedSessions = sessions.map(session => {
+    // Example: Add a new field with default value
+    return {
+      ...session,
+      isLesson: session.isLesson || false
+    };
+  });
+  
+  // Save migrated data
+  localStorage.setItem('practicetrack_sessions', JSON.stringify(migratedSessions));
+};
+```
+
+## Storage Limit Management
+
+Browser localStorage has size limits (typically 5-10MB). The application implements management strategies:
+
+```javascript
+// Check available storage
+const checkStorageCapacity = () => {
+  let totalSize = 0;
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key.startsWith('practicetrack_')) {
+      const value = localStorage.getItem(key);
+      totalSize += (key.length + value.length) * 2; // Approximate size in bytes
+    }
+  }
+  
+  return {
+    used: totalSize,
+    percentage: (totalSize / 5242880) * 100, // Comparing to 5MB
+    approaching: totalSize > 4194304, // 4MB
+    exceeded: totalSize > 5242880 // 5MB
+  };
+};
+
+// Handle storage limits for media references
+const pruneOldMediaIfNeeded = () => {
+  const capacity = checkStorageCapacity();
+  
+  if (capacity.approaching) {
+    // Notify user about storage concerns
+    console.warn('Storage usage approaching limit:', capacity.percentage.toFixed(2) + '%');
+    
+    if (capacity.exceeded) {
+      // Get media sorted by date (oldest first)
+      const media = getItems('media').sort((a, b) => 
+        new Date(a.createdAt) - new Date(b.createdAt)
+      );
+      
+      // Remove oldest items until below threshold
+      while (checkStorageCapacity().exceeded && media.length > 0) {
+        const oldest = media.shift();
+        deleteItem('media', oldest.id);
+      }
+      
+      return true; // Pruning occurred
+    }
+  }
+  
+  return false; // No pruning needed
+};
+```
+
+## Data Import/Export
+
+The application supports full data export and import to facilitate backups and device transfers:
+
+### Export Format
+
+```javascript
+/**
+ * PracticeTrack Export Format
+ * 
+ * @typedef {Object} ExportData
+ * @property {string} version - Schema version of the export
+ * @property {Date} exportDate - When the export was created
+ * @property {Session[]} sessions - Array of all practice sessions
+ * @property {Goal[]} goals - Array of all goals
+ * @property {Object} settings - User settings object
+ * @property {MediaReference[]} media - Array of media references
+ * @property {Category[]} categories - Array of practice categories
+ */
+```
+
+### Example Export
+
+```javascript
+{
+  "version": "1",
+  "exportDate": "2024-03-25T14:30:00.000Z",
+  "sessions": [
+    {
+      "id": "s-1647892354982",
+      "categoryId": "c-technique",
+      "startTime": "2024-03-21T14:30:00.000Z",
+      "endTime": "2024-03-21T15:15:00.000Z",
+      "duration": 2700,
+      "notes": "Worked on scales and arpeggios.",
+      "isLesson": false,
+      "createdAt": "2024-03-21T15:15:05.000Z",
+      "updatedAt": "2024-03-21T15:15:05.000Z"
+    }
+  ],
+  "goals": [
+    {
+      "id": "g-1647892354983",
+      "text": "Practice scales for 30 minutes every day this week",
+      "categoryId": "c-technique",
+      "completed": false,
+      "completedAt": null,
+      "dueDate": "2024-03-28T23:59:59.000Z",
+      "createdAt": "2024-03-21T10:15:00.000Z",
+      "updatedAt": "2024-03-21T10:15:00.000Z"
+    }
+  ],
+  "settings": {
+    "primaryInstrument": "piano",
+    "lessonDay": 2,
+    "lessonTime": "15:30",
+    "hiddenCategories": ["c-theory"],
+    "theme": "light",
+    "notificationsEnabled": true,
+    "updatedAt": "2024-03-20T09:45:00.000Z"
+  },
+  "media": [
+    {
+      "id": "m-1647892354984",
+      "name": "Lesson Notes - March 21",
+      "type": "note",
+      "content": "Teacher recommended focusing on wrist position during scales.",
+      "categoryId": "c-lesson",
+      "createdAt": "2024-03-21T16:30:00.000Z",
+      "devicePath": null
+    }
+  ],
+  "categories": [
+    {
+      "id": "c-technique",
+      "name": "Technique",
+      "color": "#7681e4",
+      "isDefault": true,
+      "isHidden": false,
+      "instrumentIds": ["piano", "guitar", "violin"]
+    }
+  ]
+}
+```
+
+## Data Management Module
+
+The application implements a comprehensive data management module that provides a unified interface for working with all data entities:
+
+```javascript
+// dataManager.js
+
+import { getItems, getItemById, saveItem, deleteItem, exportData, importData } from './data';
+
+// Session management
+export const getSessions = (filters = {}) => {
+  const sessions = getItems('sessions');
+  
+  return sessions.filter(session => {
+    // Apply date range filter
+    if (filters.startDate && new Date(session.startTime) < new Date(filters.startDate)) {
+      return false;
+    }
+    
+    if (filters.endDate && new Date(session.startTime) > new Date(filters.endDate)) {
+      return false;
+    }
+    
+    // Apply category filter
+    if (filters.categoryId && session.categoryId !== filters.categoryId) {
+      return false;
+    }
+    
+    // Apply search filter
+    if (filters.search && !session.notes.toLowerCase().includes(filters.search.toLowerCase())) {
+      return false;
+    }
+    
+    return true;
+  });
+};
+
+export const getSessionById = (id) => getItemById('sessions', id);
+
+export const createSession = (sessionData) => {
+  const now = new Date().toISOString();
+  const newSession = {
+    id: `s-${Date.now()}`,
+    ...sessionData,
+    createdAt: now,
+    updatedAt: now
+  };
+  
+  return saveItem('sessions', newSession);
+};
+
+export const updateSession = (id, sessionData) => {
+  const session = getSessionById(id);
+  if (!session) return null;
+  
+  const updatedSession = {
+    ...session,
+    ...sessionData,
+    updatedAt: new Date().toISOString()
+  };
+  
+  return saveItem('sessions', updatedSession);
+};
+
+export const deleteSession = (id) => deleteItem('sessions', id);
+
+// Similar methods for goals, media, and categories...
+
+// Computation functions
+export const getSessionStatistics = (filters = {}) => {
+  const sessions = getSessions(filters);
+  
+  // Total practice time
+  const totalSeconds = sessions.reduce((total, session) => total + session.duration, 0);
+  
+  // Sessions by category
+  const sessionsByCategory = sessions.reduce((acc, session) => {
+    acc[session.categoryId] = (acc[session.categoryId] || 0) + session.duration;
+    return acc;
+  }, {});
+  
+  // Sessions by day of week
+  const sessionsByDay = sessions.reduce((acc, session) => {
+    const day = new Date(session.startTime).getDay();
+    acc[day] = (acc[day] || 0) + session.duration;
+    return acc;
+  }, {});
+  
+  return {
+    totalSeconds,
+    sessionCount: sessions.length,
+    sessionsByCategory,
+    sessionsByDay
+  };
+};
+```
+
+## Default Data
+
+The application includes default data to provide a starting point for new users:
+
+```javascript
+// defaultData.js
+
+export const defaultCategories = [
+  {
+    id: "c-technique",
+    name: "Technique",
+    color: "#7681e4",
+    isDefault: true,
+    isHidden: false,
+    instrumentIds: ["piano", "guitar", "violin", "drums", "voice", "flute", "clarinet", "trumpet", "bass", "cello"]
+  },
+  {
+    id: "c-repertoire",
+    name: "Repertoire",
+    color: "#4154b3",
+    isDefault: true,
+    isHidden: false,
+    instrumentIds: ["piano", "guitar", "violin", "drums", "voice", "flute", "clarinet", "trumpet", "bass", "cello"]
+  },
+  {
+    id: "c-theory",
+    name: "Music Theory",
+    color: "#FF6A4B",
+    isDefault: true,
+    isHidden: false,
+    instrumentIds: ["piano", "guitar", "violin", "drums", "voice", "flute", "clarinet", "trumpet", "bass", "cello"]
+  },
+  {
+    id: "c-ear-training",
+    name: "Ear Training",
+    color: "#ffb4a1",
+    isDefault: true,
+    isHidden: false,
+    instrumentIds: ["piano", "guitar", "violin", "drums", "voice", "flute", "clarinet", "trumpet", "bass", "cello"]
+  },
+  {
+    id: "c-sight-reading",
+    name: "Sight Reading",
+    color: "#4caf50",
+    isDefault: true,
+    isHidden: false,
+    instrumentIds: ["piano", "guitar", "violin", "flute", "clarinet", "trumpet", "bass", "cello"]
+  },
+  {
+    id: "c-improvisation",
+    name: "Improvisation",
+    color: "#2196f3",
+    isDefault: true,
+    isHidden: false,
+    instrumentIds: ["piano", "guitar", "violin", "drums", "trumpet", "bass", "saxophone"]
+  },
+  {
+    id: "c-lesson",
+    name: "Lesson",
+    color: "#ff9800",
+    isDefault: true,
+    isHidden: false,
+    instrumentIds: ["piano", "guitar", "violin", "drums", "voice", "flute", "clarinet", "trumpet", "bass", "cello"]
+  }
+];
+
+export const defaultSettings = {
+  primaryInstrument: "",
+  lessonDay: -1,
+  lessonTime: "",
+  hiddenCategories: [],
+  theme: "light",
+  notificationsEnabled: false,
+  updatedAt: new Date().toISOString()
+};
+
+// Initialize app with default data if none exists
+export const initializeDefaultData = () => {
+  // Check if data exists
+  const categories = getItems('categories');
+  const settings = getItems('settings')[0];
+  
+  // If no categories exist, create defaults
+  if (categories.length === 0) {
+    defaultCategories.forEach(category => {
+      saveItem('categories', category);
+    });
+  }
+  
+  // If no settings exist, create defaults
+  if (!settings) {
+    saveItem('settings', defaultSettings);
+  }
+};
+```
+
+## Data Storage Optimization
+
+To optimize localStorage usage and ensure the application runs efficiently:
+
+1. **Minimize data duplication**: Store IDs rather than embedding entire objects
+2. **Compress long text fields**: For long notes, consider basic compression
+3. **Limit data retention**: Implement automatic archiving of old sessions
+4. **Use pagination**: Load records in batches when displaying lists
+5. **Implement data pruning**: Remove unused or old data when approaching storage limits
+
+## Conclusion
+
+This data schema documentation provides a comprehensive reference for the PracticeTrack application's data structures. By following these schemas and implementing the recommended data management approaches, the application can maintain data integrity, optimize performance, and provide users with a reliable practice tracking experience.
+
+The schemas are designed to support all the functionality described in the requirements while maintaining flexibility for future enhancements. The localStorage-based architecture ensures users' data remains private and available offline, with export/import capabilities for data portability.

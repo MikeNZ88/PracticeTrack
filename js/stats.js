@@ -189,12 +189,25 @@ function displayStats(sessions, container) {
         return;
     }
 
-    // --- Calculate Stats --- 
+    // --- Calculate Base Session Stats --- 
     const totalTime = sessions.reduce((sum, session) => sum + (session.duration || 0), 0);
     const sessionCount = sessions.length;
     const avgTime = sessionCount > 0 ? Math.round(totalTime / sessionCount) : 0;
-    const maxTime = sessionCount > 0 ? Math.max(...sessions.map(s => s.duration || 0)) : 0;
     
+    // --- Calculate Goal Stats ---
+    let completedGoals = 0;
+    let totalGoals = 0;
+    try {
+        const allGoals = window.getItems ? window.getItems('GOALS') : 
+            JSON.parse(localStorage.getItem('practiceTrack_goals')) || [];
+        totalGoals = allGoals.length;
+        completedGoals = allGoals.filter(goal => goal.completed).length;
+        console.log(`[Stats Display] Found ${completedGoals} completed goals out of ${totalGoals} total.`);
+    } catch (e) {
+        console.error("Error fetching or processing goals for stats display:", e);
+    }
+    // --- End Goal Stats ---
+
     // --- Calculate Most Practiced & Most Frequent Categories --- 
     let mostPracticedCategoryName = 'N/A';
     let mostPracticedCategoryTime = 0;
@@ -267,16 +280,14 @@ function displayStats(sessions, container) {
         mostFrequentCategoryDays = maxDays; // Store the max days regardless of ties
     }
     
-    console.log('Calculated stats:', {
-        totalTime,
-        avgTime,
-        maxTime,
-        sessionCount,
+    console.log('Calculated stats for display:', {
+        totalTime, avgTime, sessionCount,
         mostPracticed: { name: mostPracticedCategoryName, time: mostPracticedCategoryTime },
-        mostFrequent: { name: mostFrequentCategoryName, days: mostFrequentCategoryDays }
+        mostFrequent: { name: mostFrequentCategoryName, days: mostFrequentCategoryDays },
+        completedGoals, totalGoals
     });
 
-    // --- Create stats grid HTML --- 
+    // --- Create stats grid HTML (Corrected) --- 
     container.innerHTML = `
         <div class="stats-grid">
             <div class="card stat-card">
@@ -290,9 +301,9 @@ function displayStats(sessions, container) {
                 <div class="stat-description">Average duration per session</div>
             </div>
             <div class="card stat-card">
-                <h3>Longest Session</h3>
-                <div class="stat-value">${formatDuration(maxTime)}</div>
-                <div class="stat-description">Duration of longest practice session</div>
+                <h3>Completed Goals</h3>
+                <div class="stat-value">${completedGoals} / ${totalGoals}</div>
+                <div class="stat-description">Completed / Total Goals</div>
             </div>
             <div class="card stat-card">
                 <h3>Number of Sessions</h3>
@@ -335,7 +346,8 @@ function displayEmptyState(container) {
 }
 
 function formatDuration(seconds) {
-    if (!seconds) return '0m';
+    if (!seconds || seconds === 0) return '0m'; // Handle 0 explicitly
+    seconds = parseInt(seconds);
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
     return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;

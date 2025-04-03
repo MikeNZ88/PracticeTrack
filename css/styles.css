@@ -1551,10 +1551,31 @@ textarea.form-control {
     justify-content: center;
     gap: var(--space-md);
     margin-bottom: var(--space-xl);
+    flex-wrap: wrap; /* <<< Allow buttons to wrap */
 }
 
 .media-controls button {
     min-width: 120px;
+    /* Ensure buttons inherit base styles for padding etc. */
+    /* Maybe add flex-basis if needed on larger screens */
+}
+
+/* Mobile specific adjustments for media controls */
+@media (max-width: 768px) { /* Or your preferred mobile breakpoint */
+    .media-controls {
+        gap: var(--space-sm); /* Reduce gap slightly on mobile */
+    }
+    
+    .media-controls button {
+        min-width: 0; /* Remove min-width on mobile */
+        flex-grow: 1; /* Allow buttons to fill space */
+        flex-basis: calc(33.33% - var(--space-sm)); /* Aim for 3 buttons per row, adjust calc */
+        /* Ensure text doesn't get too squished */
+        white-space: normal; 
+        line-height: 1.3;
+        padding: var(--space-sm) var(--space-xs); /* Adjust padding for smaller buttons */
+        height: auto; /* Allow height to adjust */
+    }
 }
 
 /* Media Cards - Enhanced Design */
