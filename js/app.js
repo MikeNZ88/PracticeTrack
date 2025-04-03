@@ -33,6 +33,9 @@ const initializeApp = () => {
     
     // Initialize theme
     initializeTheme();
+
+    // Setup Back to Top Button
+    setupBackToTopButton();
     
     // Initialize Lucide icons
     if (typeof lucide !== 'undefined' && lucide.createIcons) {
@@ -238,6 +241,36 @@ window.showNotification = function(title, message) {
             }
         }, 500);
     }, 3000);
+};
+
+// Setup Back to Top Button functionality
+const setupBackToTopButton = () => {
+    const backToTopButton = document.getElementById('back-to-top-btn');
+    
+    if (!backToTopButton) {
+        console.warn('Back to Top button not found.');
+        return;
+    }
+
+    // Show/hide button based on scroll position
+    window.addEventListener('scroll', () => {
+        if (window.scrollY > 300) { // Show after scrolling 300px
+            backToTopButton.classList.add('visible');
+        } else {
+            backToTopButton.classList.remove('visible');
+        }
+    });
+
+    // Scroll to top on click
+    backToTopButton.addEventListener('click', (event) => {
+        event.preventDefault(); // Prevent default link behavior if it were an <a>
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth' // Smooth scroll animation
+        });
+    });
+
+    console.log('Back to Top button initialized.'); // Confirmation log
 };
 
 // Make functions available globally

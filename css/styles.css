@@ -4335,3 +4335,94 @@ textarea:focus {
     font-family: var(--font-sans);
     opacity: 0.8; 
 } */
+
+/* Resources Page Styles */
+.resource-controls {
+    display: flex;
+    flex-wrap: wrap; /* Keep wrap for responsiveness */
+    align-items: center;
+    gap: var(--space-md);
+    margin-bottom: var(--space-lg);
+    padding: var(--space-md);
+    background-color: var(--card-background); /* Changed from secondary for consistency */
+    border-radius: var(--radius-lg); /* Match other filter bars */
+    box-shadow: var(--shadow-sm); /* Add shadow */
+    max-width: 900px; /* Standard max-width */
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.resource-controls .search-container {
+    display: flex; /* Ensure it's a flex item */
+    flex-grow: 1; /* Allow search to grow */
+    flex-basis: 250px; /* Give it a base width before growing */
+    min-width: 200px;
+}
+
+/* Target the input directly if needed for width */
+.resource-controls .search-container #search-input {
+    width: 100%; /* Make input fill the container */
+}
+
+.resource-controls .filters.resource-filters {
+    display: flex;
+    flex-wrap: wrap; /* Allow buttons to wrap */
+    gap: var(--space-sm);
+    flex-grow: 0; /* Prevent filter group growing */
+    flex-shrink: 1; /* Allow filter group to shrink if needed */
+    /* Removed flex-grow: 0; */
+    /* justify-content: flex-end; /* Optional: Align buttons to the right if space allows */
+}
+
+
+.practice-categories-container {
+    /* Styles for the main content area */
+}
+
+/* ... rest of existing styles ... */
+
+/* Back to Top Button */
+#back-to-top-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(to right, var(--primary-blue), var(--primary-blue-dark));
+    color: white;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: var(--shadow-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity var(--transition-normal), visibility var(--transition-normal), transform var(--transition-normal);
+    z-index: 1000;
+}
+
+#back-to-top-btn.visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+#back-to-top-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-xl);
+}
+
+#back-to-top-btn i {
+    width: 24px;
+    height: 24px;
+}
+
+@media (max-width: 768px) {
+    #back-to-top-btn {
+        bottom: 80px; /* Adjust to be above mobile nav */
+    }
+}
+
+/* ... rest of css ... */
