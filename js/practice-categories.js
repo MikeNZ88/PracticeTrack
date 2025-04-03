@@ -603,29 +603,47 @@ function showResourceMessage(text, type = 'success') {
 
 // Function to filter categories based on search term and family
 function filterCategories(searchTerm, familyFilter) {
+    searchTerm = searchTerm.toLowerCase();
     const sections = document.querySelectorAll('#practice-categories-container .family-section');
+    
     sections.forEach(section => {
         const sectionFamily = section.dataset.family;
-        const items = section.querySelectorAll('.category-item');
+        const instrumentSections = section.querySelectorAll('.instrument-section');
         let sectionHasVisibleItems = false;
 
-        items.forEach(item => {
-            const categoryName = item.dataset.categoryName;
-            const matchesSearch = categoryName.includes(searchTerm);
-            const matchesFamily = familyFilter === 'all' || sectionFamily === familyFilter;
+        instrumentSections.forEach(instrumentSection => {
+            const instrumentName = instrumentSection.querySelector('.instrument-title').textContent.toLowerCase();
+            const items = instrumentSection.querySelectorAll('.category-item');
+            let instrumentHasVisibleItems = false;
 
-            if (matchesSearch && matchesFamily) {
-                item.style.display = 'flex'; // Or 'block'
-                sectionHasVisibleItems = true;
-            } else {
-                item.style.display = 'none';
-            }
+            // Check if the instrument name matches the search
+            const instrumentMatches = instrumentName.includes(searchTerm);
+
+            items.forEach(item => {
+                const categoryName = item.querySelector('.category-name').textContent.toLowerCase();
+                const matchesSearch = searchTerm === '' || 
+                    categoryName.includes(searchTerm) || 
+                    instrumentMatches;
+                const matchesFamily = familyFilter === 'all' || sectionFamily === familyFilter;
+
+                if (matchesSearch && matchesFamily) {
+                    item.style.display = 'flex';
+                    instrumentHasVisibleItems = true;
+                    sectionHasVisibleItems = true;
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+
+            // Show/hide the instrument section based on whether it has visible items
+            instrumentSection.style.display = instrumentHasVisibleItems ? 'block' : 'none';
         });
 
+        // Show/hide the family section based on whether it has visible items
         if ((familyFilter === 'all' || sectionFamily === familyFilter) && sectionHasVisibleItems) {
             section.classList.remove('hidden-family');
         } else {
-             section.classList.add('hidden-family');
+            section.classList.add('hidden-family');
         }
     });
 }
@@ -706,7 +724,7 @@ if (document.readyState === 'interactive' || document.readyState === 'complete')
     document.addEventListener('DOMContentLoaded', () => {
         if (window.location.hash === '#resources' || document.getElementById('resources-page')?.classList.contains('active')) {
              console.log("[DEBUG Resources] Initializing resources on direct load (DOMContentLoaded).")
-            initializeResources();
-        }
-    });
+        initializeResources();
+    }
+}); 
 }

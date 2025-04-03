@@ -183,25 +183,25 @@
                     <h1>Practice Goals</h1>
                 </div>
                 <div class="page-content-container">
-                    <div class="filters">
-                        <input type="text" class="goals-search-input" placeholder="Search goals...">
-                        <select class="goals-category-filter">
-                            <option value="">All Categories</option>
-                        </select>
-                        <select class="goals-status-filter">
-                            <option value="all">All Goals</option>
-                            <option value="active" selected>Active Goals</option>
-                            <option value="completed">Completed Goals</option>
-                        </select>
-                    </div>
+                <div class="filters">
+                    <input type="text" class="goals-search-input" placeholder="Search goals...">
+                    <select class="goals-category-filter">
+                        <option value="">All Categories</option>
+                    </select>
+                    <select class="goals-status-filter">
+                        <option value="all">All Goals</option>
+                        <option value="active" selected>Active Goals</option>
+                        <option value="completed">Completed Goals</option>
+                    </select>
+                </div>
                     <div class="page-actions centered">
-                        <button id="add-goal-btn" class="primary-button add-goal-button">
-                            <i data-lucide="plus"></i>
-                            Add Goal
-                        </button>
-                    </div>
-                    <div id="goals-list" class="goals-list">
-                        <!-- Goals will be populated here -->
+                    <button id="add-goal-btn" class="primary-button add-goal-button">
+                        <i data-lucide="plus"></i>
+                        Add Goal
+                    </button>
+                </div>
+                <div id="goals-list" class="goals-list">
+                    <!-- Goals will be populated here -->
                     </div>
                 </div>
             </section>
@@ -213,10 +213,10 @@
                 </div>
                 <!-- Moved Filters Above Countdown -->
                 <div class="page-content-container">
-                    <div class="filters">
+                <div class="filters">
                         <select id="category-filter" class="stats-category-filter filter-select">
-                            <option value="">All Categories</option>
-                        </select>
+                        <option value="">All Categories</option>
+                    </select>
                         <!-- Date Preset Dropdown -->
                         <select class="date-preset-filter filter-select" title="Select Date Range Preset">
                             <option value="all">All Time</option>
@@ -226,7 +226,7 @@
                             <option value="ytd">Year to Date</option>
                             <option value="custom">Custom Range</option>
                         </select>
-                        <div class="date-range">
+                    <div class="date-range">
                             <label for="stats-start-date">Start:</label>
                             <input type="date" id="stats-start-date" class="stats-date-input date-input" placeholder="Start Date">
                             <label for="stats-end-date">End:</label>
@@ -236,8 +236,8 @@
                     <!-- Lesson Countdown -->
                     <div id="lesson-countdown-container" class="lesson-countdown-container">
                          <!-- Countdown card will be inserted here by JS -->
-                    </div>
-                    <div class="stats-container">
+                </div>
+                <div class="stats-container">
                         <!-- Stats grid will be displayed here by JS -->
                     </div>
                 </div>
@@ -249,14 +249,14 @@
                     <h1>Practice Media</h1>
                 </div>
                 <div class="page-content-container">
-                    <div class="filters">
-                        <input type="text" class="search-input" placeholder="Search media...">
-                        <select class="media-type-filter">
-                            <option value="">All Types</option>
-                            <option value="photo">Photos</option>
-                            <option value="video">Videos</option>
-                            <option value="note">Notes</option>
-                        </select>
+                <div class="filters">
+                    <input type="text" class="search-input" placeholder="Search media...">
+                    <select class="media-type-filter">
+                        <option value="">All Types</option>
+                        <option value="photo">Photos</option>
+                        <option value="video">Videos</option>
+                        <option value="note">Notes</option>
+                    </select>
                         <!-- Date Preset Dropdown -->
                         <select class="date-preset-filter filter-select" title="Select Date Range Preset">
                             <option value="all">All Time</option>
@@ -266,7 +266,7 @@
                             <option value="ytd">Year to Date</option>
                             <option value="custom">Custom Range</option>
                         </select>
-                        <div class="date-range">
+                    <div class="date-range">
                             <label for="media-start-date">Start:</label>
                             <input type="date" id="media-start-date" class="date-input" placeholder="Start Date">
                             <label for="media-end-date">End:</label>
@@ -288,8 +288,8 @@
                         </button>
                     </div>
                     <div class="media-container">
-                        <div id="media-list" class="media-list">
-                            <!-- Media items will be populated here -->
+                    <div id="media-list" class="media-list">
+                        <!-- Media items will be populated here -->
                         </div>
                     </div>
                 </div>
@@ -298,7 +298,7 @@
             <!-- Resources Page -->
             <section id="resources-page" class="page">
                 <div class="page-header">
-                    <h1>Practice Resources</h1>
+                    <h1>Resources</h1>
                     <p>Explore practice ideas and add them to your custom categories.</p>
                 </div>
 
@@ -306,22 +306,22 @@
                     <!-- Search Input -->
                     <div class="search-container">
                         <i data-lucide="search"></i>
-                        <input type="text" id="search-input" class="search-input" placeholder="Search resources...">
+                        <input type="text" id="resource-search" class="search-input" placeholder="Search for instrument or practice category">
                     </div>
-                    
+
                     <!-- Filter Buttons -->
                     <div class="filters resource-filters">
-                        <button class="filter-button active" data-family="all">All</button>
-                        <button class="filter-button" data-family="Woodwinds">Woodwinds</button>
-                        <button class="filter-button" data-family="Brass Instruments">Brass</button>
-                        <button class="filter-button" data-family="Strings">Strings</button>
-                        <button class="filter-button" data-family="Bass Guitar">Bass Guitar</button>
-                        <button class="filter-button" data-family="Keyboard Instruments">Keyboard</button>
-                        <button class="filter-button" data-family="Percussion">Percussion</button>
-                        <button class="filter-button" data-family="Guitar">Guitar</button>
-                        <button class="filter-button" data-family="Voice">Voice</button>
-                    </div>
-                </div>
+                        <button class="filter-btn active" data-family="all">All</button>
+                        <button class="filter-btn" data-family="Woodwinds">Woodwinds</button>
+                        <button class="filter-btn" data-family="Brass Instruments">Brass</button>
+                        <button class="filter-btn" data-family="Strings">Strings</button>
+                        <button class="filter-btn" data-family="Bass Guitar">Bass Guitar</button>
+                        <button class="filter-btn" data-family="Keyboard Instruments">Keyboard</button>
+                        <button class="filter-btn" data-family="Percussion">Percussion</button>
+                        <button class="filter-btn" data-family="Guitar">Guitar</button>
+                        <button class="filter-btn" data-family="Voice">Voice</button>
+                        </div>
+                        </div>
 
                 <!-- Category List Container (Will be populated by JS) -->
                 <div id="practice-categories-container" class="practice-categories-container">

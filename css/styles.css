@@ -4339,90 +4339,130 @@ textarea:focus {
 /* Resources Page Styles */
 .resource-controls {
     display: flex;
-    flex-wrap: wrap; /* Keep wrap for responsiveness */
-    align-items: center;
+    flex-direction: column; /* Stack search and filters vertically */
     gap: var(--space-md);
     margin-bottom: var(--space-lg);
-    padding: var(--space-md);
-    background-color: var(--card-background); /* Changed from secondary for consistency */
-    border-radius: var(--radius-lg); /* Match other filter bars */
-    box-shadow: var(--shadow-sm); /* Add shadow */
-    max-width: 900px; /* Standard max-width */
+    padding: var(--space-lg);
+    background-color: var(--card-background);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    max-width: 900px;
     margin-left: auto;
     margin-right: auto;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .resource-controls .search-container {
-    display: flex; /* Ensure it's a flex item */
-    flex-grow: 1; /* Allow search to grow */
-    flex-basis: 250px; /* Give it a base width before growing */
-    min-width: 200px;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    position: relative;
 }
 
-/* Target the input directly if needed for width */
-.resource-controls .search-container #search-input {
-    width: 100%; /* Make input fill the container */
+.resource-controls .search-container i {
+    position: absolute;
+    left: var(--space-md);
+    color: var(--text-medium);
+    pointer-events: none;
+}
+
+.resource-controls .search-container input {
+    width: 100%;
+    padding: var(--space-md) var(--space-md) var(--space-md) calc(var(--space-md) * 2.5);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background-color: var(--background-light);
+    color: var(--text-dark);
+    font-size: var(--font-md);
+}
+
+.resource-controls .search-container input:focus {
+    outline: none;
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 3px rgba(59, 127, 245, 0.12);
 }
 
 .resource-controls .filters.resource-filters {
     display: flex;
-    flex-wrap: wrap; /* Allow buttons to wrap */
+    flex-wrap: wrap;
     gap: var(--space-sm);
-    flex-grow: 0; /* Prevent filter group growing */
-    flex-shrink: 1; /* Allow filter group to shrink if needed */
-    /* Removed flex-grow: 0; */
-    /* justify-content: flex-end; /* Optional: Align buttons to the right if space allows */
+    width: 100%;
 }
 
-
-.practice-categories-container {
-    /* Styles for the main content area */
-}
-
-/* ... rest of existing styles ... */
-
-/* Back to Top Button */
-#back-to-top-btn {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    width: 48px;
-    height: 48px;
-    background: linear-gradient(to right, var(--primary-blue), var(--primary-blue-dark));
-    color: white;
-    border: none;
-    border-radius: 50%;
+.resource-controls .filter-btn {
+    padding: var(--space-sm) var(--space-md);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background-color: var(--background-light);
+    color: var(--text-dark);
+    font-size: var(--font-md);
+    font-weight: 500;
     cursor: pointer;
-    box-shadow: var(--shadow-lg);
-    display: flex;
+    transition: all var(--transition-fast);
+    flex: 0 1 auto; /* Don't grow, allow shrink, auto basis */
+    min-width: 120px; /* Set minimum width */
+    max-width: 120px; /* Set maximum width to ensure consistency */
+    text-align: center;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity var(--transition-normal), visibility var(--transition-normal), transform var(--transition-normal);
-    z-index: 1000;
+    gap: var(--space-sm);
+    white-space: nowrap; /* Prevent text wrapping */
+    overflow: hidden; /* Hide overflow */
+    text-overflow: ellipsis; /* Show ellipsis for overflow text */
 }
 
-#back-to-top-btn.visible {
-    opacity: 1;
-    visibility: visible;
-    transform: translateY(0);
+.resource-controls .filter-btn:hover {
+    background-color: var(--background-hover);
+    border-color: var(--primary-blue);
+    color: var(--primary-blue);
 }
 
-#back-to-top-btn:hover {
-    transform: translateY(-3px);
-    box-shadow: var(--shadow-xl);
-}
-
-#back-to-top-btn i {
-    width: 24px;
-    height: 24px;
+.resource-controls .filter-btn.active {
+    background-color: var(--primary-blue);
+    color: white;
+    border-color: var(--primary-blue);
 }
 
 @media (max-width: 768px) {
-    #back-to-top-btn {
-        bottom: 80px; /* Adjust to be above mobile nav */
+    .resource-controls {
+        padding: var(--space-md);
+    }
+
+    .resource-controls .filter-btn {
+        flex: 1 1 calc(50% - var(--space-sm));
+        min-width: 120px;
     }
 }
 
-/* ... rest of css ... */
+/* Family sections styling */
+.family-section {
+    margin-bottom: var(--space-2xl);
+    opacity: 1;
+    transition: opacity 0.3s ease, height 0.3s ease;
+}
+
+.family-section.hidden-family {
+    opacity: 0;
+    height: 0;
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
+}
+
+.family-title {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-lg);
+    color: var(--text-dark);
+    font-size: var(--font-xl);
+    font-weight: 600;
+}
+
+.family-title i {
+    color: var(--primary-blue);
+}
+
+/* ... existing code ... */
