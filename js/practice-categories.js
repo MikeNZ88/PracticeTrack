@@ -1,321 +1,8 @@
 // Practice Categories Module
 // Manages the practice categories library and copying functionality
 
-// Function to dynamically display categories from defaultCategories array
-function displayPracticeCategories() {
-    const container = document.getElementById('practice-categories-container');
-    if (!container) {
-        console.error('Practice categories container not found!');
-        return;
-    }
-    container.innerHTML = ''; // Clear existing content
-
-    // Group categories by family first
-    const families = {};
-    defaultCategories.forEach(category => {
-        if (!families[category.family]) {
-            families[category.family] = [];
-        }
-        families[category.family].push(category);
-    });
-
-    // Generate HTML for each family
-    for (const familyName in families) {
-        const familyData = families[familyName];
-        
-        const familySection = document.createElement('section');
-        familySection.className = 'family-section';
-        familySection.dataset.family = familyName;
-        
-        // Add family title with icon (need a mapping for icons)
-        const familyIcon = getFamilyIcon(familyName); // Helper function needed
-        familySection.innerHTML = `
-            <h2 class="family-title">
-                <i class="family-icon" data-lucide="${familyIcon}"></i>${familyName}
-            </h2>
-        `;
-
-        // Generate HTML for each instrument within the family
-        familyData.forEach(instrument => {
-            const instrumentSection = document.createElement('div');
-            instrumentSection.className = 'instrument-section';
-            
-            instrumentSection.innerHTML = `<h3 class="instrument-title">${instrument.name}</h3>`;
-            
-            const categoriesList = document.createElement('ul');
-            categoriesList.className = 'categories-list';
-            
-            instrument.items.forEach(item => {
-                const listItem = document.createElement('li');
-                listItem.className = `category-item`;
-                listItem.innerHTML = `
-                    <span class="category-name">${item}</span>
-                    <button class="copy-button" data-category="${item}" title="Add to My Categories">
-                        <i data-lucide="plus"></i>
-                        Add
-                    </button>
-                `;
-                // Add event listener to the copy button
-                const copyBtn = listItem.querySelector('.copy-button');
-                if (copyBtn) {
-                    copyBtn.addEventListener('click', () => handleCopy(copyBtn));
-                }
-                categoriesList.appendChild(listItem);
-            });
-            
-            instrumentSection.appendChild(categoriesList);
-            familySection.appendChild(instrumentSection);
-        });
-
-        container.appendChild(familySection);
-    }
-    
-    // Re-initialize Lucide icons for the newly added elements
-    if (window.lucide) {
-        window.lucide.createIcons();
-    }
-}
-
-// Helper function to get an icon name based on family (simple example)
-function getFamilyIcon(familyName) {
-    switch (familyName) {
-        case "Woodwinds": return "flute";
-        case "Brass Instruments": return "trumpet";
-        case "Strings": return "violin";
-        case "Bass Guitar": return "guitar"; // Using guitar icon for bass too
-        case "Keyboard Instruments": return "piano";
-        case "Percussion": return "drum";
-        case "Guitar": return "guitar";
-        case "Voice": return "mic";
-        default: return "music";
-    }
-}
-
-// Modify initializeResources to call the display function
-function initializeResources() {
-    console.log('[DEBUG Filters] Initializing resources page...'); // Log: Confirm init
-    
-    // Display the categories first
-    displayPracticeCategories(); 
-    
-    const searchInput = document.getElementById('search-input');
-    const filterButtons = document.querySelectorAll('.filter-button');
-    // We need to re-query copy buttons AFTER they are created
-    // const copyButtons = document.querySelectorAll('.copy-button'); 
-
-    // Set up search functionality
-    if (searchInput) {
-        searchInput.addEventListener('input', handleSearch);
-    } else {
-        console.error('[DEBUG Filters] Search input not found!'); // Error check
-    }
-
-    // Set up filter buttons
-    if (filterButtons.length > 0) {
-        filterButtons.forEach(button => {
-            button.addEventListener('click', () => handleFilter(button));
-        });
-        console.log(`[DEBUG Filters] Added filter listeners to ${filterButtons.length} buttons.`); // Log: Confirm listeners added
-    } else {
-         console.error('[DEBUG Filters] Filter buttons not found!'); // Error check
-    }
-
-    // Copy button listeners are now added within displayPracticeCategories
-    /* 
-    copyButtons.forEach(button => {
-        button.addEventListener('click', () => handleCopy(button));
-    });
-    */
-
-    // Icons are initialized at the end of displayPracticeCategories
-    /*
-    if (window.lucide) {
-        window.lucide.createIcons();
-    }
-    */
-}
-
-// Refactored Handle search input
-function handleSearch(event) {
-    console.log('[DEBUG] Search triggered');
-    const searchTerm = event.target.value.trim().toLowerCase();
-    console.log('[DEBUG] Search term:', searchTerm);
-
-    const filterButtons = document.querySelectorAll('.filter-button');
-    filterButtons.forEach(button => {
-        button.disabled = !!searchTerm;
-        button.classList.toggle('disabled', !!searchTerm);
-    });
-
-    const familySections = document.querySelectorAll('.family-section');
-
-    familySections.forEach(familySection => {
-        const familyTitle = familySection.querySelector('.family-title')?.textContent.toLowerCase() || '';
-        let familyShouldBeVisible = familyTitle.includes(searchTerm); // Visible if title matches
-
-        const instrumentSections = familySection.querySelectorAll('.instrument-section');
-        instrumentSections.forEach(instrumentSection => {
-            const instrumentTitle = instrumentSection.querySelector('.instrument-title')?.textContent.toLowerCase() || '';
-            let instrumentShouldBeVisible = instrumentTitle.includes(searchTerm); // Visible if title matches
-
-            const categoryItems = instrumentSection.querySelectorAll('.category-item');
-            categoryItems.forEach(item => {
-                const categoryName = item.querySelector('.category-name')?.textContent.toLowerCase() || '';
-                // Item is visible if its name, instrument title, or family title matches
-                const itemMatchesSearch = categoryName.includes(searchTerm) || instrumentTitle.includes(searchTerm) || familyTitle.includes(searchTerm);
-
-                item.style.display = itemMatchesSearch ? 'block' : 'none';
-
-                // If an item is visible, its parent instrument section should also be visible
-                if (itemMatchesSearch) {
-                    instrumentShouldBeVisible = true;
-                }
-            });
-
-            instrumentSection.style.display = instrumentShouldBeVisible ? 'block' : 'none';
-
-            // If an instrument section is visible, its parent family section should also be visible
-            if (instrumentShouldBeVisible) {
-                familyShouldBeVisible = true;
-            }
-        });
-
-        familySection.style.display = familyShouldBeVisible ? 'block' : 'none';
-    });
-
-    // If search term is empty, ensure everything is visible and filters enabled
-    if (searchTerm === '') {
-        document.querySelectorAll('.family-section, .instrument-section, .category-item').forEach(el => {
-            el.style.display = 'block';
-        });
-         // Re-apply the active filter if search is cleared
-         const activeFilter = document.querySelector('.filter-button.active');
-         if (activeFilter && activeFilter.dataset.family !== 'all') {
-             handleFilter(activeFilter); // Re-apply filter
-         }
-    }
-}
-
-// Handle filter button clicks
-function handleFilter(button) {
-    console.log('[DEBUG Filters] handleFilter called for button:', button); // Log: Confirm call
-    const family = button.dataset.family; 
-    console.log('[DEBUG Filters] Selected family filter:', family); // Log: Log button family
-    const searchInput = document.getElementById('search-input');
-    const searchTerm = searchInput.value.toLowerCase();
-    
-    // If there's a search term, don't apply filters
-    if (searchTerm) {
-        console.log('[DEBUG Filters] Search term active, skipping filter.');
-        return;
-    }
-    
-    // Update active state of filter buttons
-    document.querySelectorAll('.filter-button').forEach(btn => {
-        btn.classList.remove('active');
-    });
-    button.classList.add('active');
-    
-    // Show/hide sections based on filter
-    document.querySelectorAll('.family-section').forEach(section => {
-        const sectionFamily = section.dataset.family;
-        console.log(`[DEBUG Filters] Comparing filter "${family}" with section "${sectionFamily}"`); // Log: Log comparison values
-        if (family === 'all' || sectionFamily === family) {
-            console.log(`[DEBUG Filters] Showing section: "${sectionFamily}"`);
-            section.classList.remove('hidden-family');
-            // Show all category items within this family
-            section.querySelectorAll('.instrument-section, .category-item').forEach(el => {
-                el.style.display = 'block';
-            });
-            // Show all instrument sections within this family
-            // section.querySelectorAll('.instrument-section').forEach(instrument => {
-            //     instrument.style.display = 'block';
-            // });
-        } else {
-            console.log(`[DEBUG Filters] Hiding section: "${sectionFamily}"`);
-            section.classList.add('hidden-family');
-        }
-    });
-}
-
-// Handle copy button clicks
-function handleCopy(button) {
-    const categoryName = button.dataset.category;
-    const instrumentFamily = button.classList.contains('brass') ? 'brass' :
-                            button.classList.contains('drums') ? 'drums' :
-                            button.classList.contains('keyboard') ? 'keyboard' :
-                            button.classList.contains('stringed') ? 'stringed' :
-                            button.classList.contains('woodwind') ? 'woodwind' : '';
-
-    // Get existing categories
-    const categories = JSON.parse(localStorage.getItem('practiceTrack_categories')) || [];
-    
-    // Check if category already exists
-    const existingCategory = categories.find(c => c.name === categoryName && c.family === instrumentFamily);
-    if (existingCategory) {
-        showResourceMessage('Category already exists!', 'warning');
-        return;
-    }
-    
-    // Add new category
-    const newCategory = {
-        id: Date.now().toString(),
-        name: categoryName,
-        family: instrumentFamily,
-        isDefault: false,
-        isVisible: true
-    };
-    
-    categories.push(newCategory);
-    localStorage.setItem('practiceTrack_categories', JSON.stringify(categories));
-    
-    // Show success message
-    showResourceMessage('Category added successfully!', 'success');
-}
-
-// Show message notification (Renamed Function)
-function showResourceMessage(text, type = 'success') {
-    // Remove any existing message
-    const existingMessage = document.querySelector('.message');
-    if (existingMessage) {
-        existingMessage.remove();
-    }
-    
-    // Create new message
-    const message = document.createElement('div');
-    message.className = `message message-${type}`;
-    message.textContent = text;
-    
-    // Add to document
-    document.body.appendChild(message);
-    
-    // Remove after 3 seconds
-    setTimeout(() => {
-        message.classList.add('message-hide');
-        setTimeout(() => message.remove(), 300);
-    }, 3000);
-}
-
-// Make functions available globally
-window.initializeResources = initializeResources;
-
-// Initialize when DOM is loaded
-document.addEventListener('DOMContentLoaded', () => {
-    if (document.getElementById('resources-page')) {
-        initializeResources();
-    }
-});
-
-// Initialize when page changes to resources
-document.addEventListener('pageChanged', (e) => {
-    if (e.detail === 'resources') {
-        initializeResources();
-    }
-});
-
 // Data: Default Practice Categories
 const defaultCategories = [
-    // Woodwinds
     {
         family: "Woodwinds",
         name: "Flute",
@@ -762,5 +449,264 @@ const defaultCategories = [
             "Contemporary vocal agility", "Stage presence for rock/pop", "Breath support for contemporary styles",
             "Voice care for high-energy singing", "Stylistic interpretation", "Rock/pop phrasing concepts"
         ]
+    },
+    {
+        "family": "General Exercises",
+        "name": "General Musicianship",
+        "items": [
+            "Sight-reading practice (various clefs/instruments)",
+            "Ear training (intervals, chords, melodies)",
+            "Rhythm practice (clapping, tapping, using metronome)",
+            "Music theory review (harmony, form, analysis)",
+            "Transcription (solos, melodies, chord progressions)",
+            "Improvisation practice (over backing tracks or changes)",
+            "Memorization techniques",
+            "Mental practice / visualization",
+            "Score study",
+            "Performance preparation skills"
+        ]
     }
-]; 
+];
+
+// Helper function to get the icon name for a family
+function getFamilyIcon(familyName) {
+    switch (familyName) {
+        case "Woodwinds": return "wind";
+        case "Brass": return "trumpet";
+        case "Strings": return "violin";
+        case "Bass Guitar": return "guitar";
+        case "Keyboard": return "piano";
+        case "Percussion": return "drum";
+        case "Guitar": return "guitar";
+        case "Voice": return "mic";
+        default: return "music";
+    }
+}
+
+// Function to display practice categories dynamically
+function displayPracticeCategories() {
+    const container = document.getElementById('practice-categories-container');
+    if (!container) {
+        console.error('[DEBUG Resources] Practice categories container not found!');
+        return;
+    }
+    container.innerHTML = ''; // Clear existing content
+
+    // Group categories by family first
+    const families = {};
+    defaultCategories.forEach(category => {
+        if (!families[category.family]) {
+            families[category.family] = [];
+        }
+        families[category.family].push(category);
+    });
+
+    // Generate HTML for each family
+    for (const familyName in families) {
+        const familyData = families[familyName];
+        
+        const familySection = document.createElement('section');
+        familySection.className = 'family-section';
+        familySection.dataset.family = familyName;
+
+        // Add family title with icon
+        const familyIcon = getFamilyIcon(familyName);
+        familySection.innerHTML = `
+            <h2 class="family-title">
+                <i data-lucide="${familyIcon}"></i>${familyName}
+            </h2>
+        `;
+
+        // Generate HTML for each instrument within the family
+        familyData.forEach(instrument => {
+            const instrumentSection = document.createElement('div');
+            instrumentSection.className = 'instrument-section';
+            
+            instrumentSection.innerHTML = `<h3 class="instrument-title">${instrument.name}</h3>`;
+            
+            const categoriesList = document.createElement('ul');
+            categoriesList.className = 'categories-list';
+            
+            instrument.items.forEach(item => {
+                const listItem = document.createElement('li');
+                listItem.className = 'category-item';
+                listItem.dataset.categoryName = item.toLowerCase();
+                listItem.innerHTML = `
+                    <span class="category-name">${item}</span>
+                    <button class="copy-button" data-category="${item}" title="Add to My Categories">
+                        <i data-lucide="plus"></i>
+                        Add
+                    </button>
+                `;
+                categoriesList.appendChild(listItem);
+            });
+            
+            instrumentSection.appendChild(categoriesList);
+            familySection.appendChild(instrumentSection);
+        });
+
+        container.appendChild(familySection);
+    }
+
+    // Initialize Lucide icons for the newly added elements
+    if (window.lucide) {
+        console.log("[DEBUG Resources] Initializing icons for newly added elements");
+        lucide.createIcons();
+    } else {
+        console.warn("[DEBUG Resources] Lucide not available for icon initialization");
+    }
+
+    // Add event listeners to copy buttons after they are created
+    container.querySelectorAll('.copy-button').forEach(button => {
+        button.addEventListener('click', () => handleCopy(button));
+    });
+}
+
+// Handle copy button clicks
+function handleCopy(button) {
+    const categoryName = button.dataset.category;
+    const instrumentFamily = button.closest('.family-section').dataset.family;
+
+    // Get existing categories
+    const categories = JSON.parse(localStorage.getItem('practiceTrack_categories')) || [];
+    
+    // Check if category already exists
+    const existingCategory = categories.find(c => c.name === categoryName);
+    if (existingCategory) {
+        showResourceMessage('Category already exists!', 'warning');
+        return;
+    }
+    
+    // Add new category
+    const newCategory = {
+        id: Date.now().toString(),
+        name: categoryName,
+        family: instrumentFamily,
+        isDefault: false,
+        isVisible: true
+    };
+    
+    categories.push(newCategory);
+    localStorage.setItem('practiceTrack_categories', JSON.stringify(categories));
+    
+    // Show success message
+    showResourceMessage('Category added successfully!', 'success');
+
+    // Update any category dropdowns
+    window.updateCategoryDropdowns();
+}
+
+// Show message notification
+function showResourceMessage(text, type = 'success') {
+    window.showNotification(text, type);
+}
+
+// Function to filter categories based on search term and family
+function filterCategories(searchTerm, familyFilter) {
+    const sections = document.querySelectorAll('#practice-categories-container .family-section');
+    sections.forEach(section => {
+        const sectionFamily = section.dataset.family;
+        const items = section.querySelectorAll('.category-item');
+        let sectionHasVisibleItems = false;
+
+        items.forEach(item => {
+            const categoryName = item.dataset.categoryName;
+            const matchesSearch = categoryName.includes(searchTerm);
+            const matchesFamily = familyFilter === 'all' || sectionFamily === familyFilter;
+
+            if (matchesSearch && matchesFamily) {
+                item.style.display = 'flex'; // Or 'block'
+                sectionHasVisibleItems = true;
+            } else {
+                item.style.display = 'none';
+            }
+        });
+
+        if ((familyFilter === 'all' || sectionFamily === familyFilter) && sectionHasVisibleItems) {
+            section.classList.remove('hidden-family');
+        } else {
+             section.classList.add('hidden-family');
+        }
+    });
+}
+
+// Restore initializeResources to handle setup directly
+function initializeResources() {
+    console.log("[DEBUG Resources] Initializing resources page...");
+
+    // Check if the resources page container exists - prevents errors on other pages
+    const resourcesPage = document.getElementById('resources-page');
+    if (!resourcesPage) {
+        console.log("[DEBUG Resources] Resources page element not found, skipping initialization.");
+        return; // Exit if not on the correct page
+    }
+
+    displayPracticeCategories(); // Generate the HTML for categories
+
+    // Initialize Lucide icons
+    if (window.lucide) {
+        console.log("[DEBUG Resources] Lucide found, calling createIcons().");
+        lucide.createIcons();
+    } else {
+        console.error("[DEBUG Resources] Lucide object not found during initializeResources!");
+    }
+
+    const searchInput = document.getElementById('resource-search');
+    const filterButtons = document.querySelectorAll('#resources-page .filter-btn'); // Scope to resources page
+    const categoriesContainer = document.getElementById('practice-categories-container');
+
+    if (!categoriesContainer) {
+        console.error("[DEBUG Resources] Practice categories container not found after display!");
+        return;
+    }
+    
+    // Add event listener for search input
+    if (searchInput) {
+        searchInput.addEventListener('input', () => {
+             const activeFilter = document.querySelector('#resources-page .filter-btn.active');
+             filterCategories(searchInput.value.toLowerCase(), activeFilter?.dataset.family || 'all');
+        });
+    } else {
+        console.warn("[DEBUG Resources] Resource search input not found!");
+    }
+
+    // Add event listeners for filter buttons
+    filterButtons.forEach(button => {
+        // Remove previous listeners if any to prevent duplicates (optional but good practice)
+        // Note: This simple removal might not work if the listener function is anonymous.
+        // A more robust approach involves named functions or storing listener references.
+        // For now, we assume initializeResources is called only once per page load/view.
+        button.addEventListener('click', () => {
+            filterButtons.forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+            const family = button.dataset.family;
+            filterCategories(searchInput?.value.toLowerCase() || '', family);
+        });
+    });
+
+    // Initial filter display
+    const initialActiveFilter = document.querySelector('#resources-page .filter-btn.active');
+    filterCategories('', initialActiveFilter?.dataset.family || 'all');
+    console.log("[DEBUG Resources] Resources page initialization complete.");
+}
+
+// Ensure initializeResources is available globally for app.js to call
+window.initializeResources = initializeResources;
+
+// Call initializeResources when the page is navigated to (handled by app.js navigateToPage)
+// We might also need an initial call if the app loads directly onto the resources page
+// Check if the current page is resources on initial load
+if (document.readyState === 'interactive' || document.readyState === 'complete') {
+    // Check hash or path to see if we are on resources page initially
+    if (window.location.hash === '#resources' || document.getElementById('resources-page')?.classList.contains('active')) {
+        console.log("[DEBUG Resources] Initializing resources on direct load.")
+        initializeResources();
+    }
+} else {
+    document.addEventListener('DOMContentLoaded', () => {
+        if (window.location.hash === '#resources' || document.getElementById('resources-page')?.classList.contains('active')) {
+             console.log("[DEBUG Resources] Initializing resources on direct load (DOMContentLoaded).")
+            initializeResources();
+        }
+    });
+}
