@@ -37,10 +37,16 @@ const initializeApp = () => {
     // Setup Back to Top Button
     setupBackToTopButton();
     
-    // Initialize Lucide icons
-    if (typeof lucide !== 'undefined' && lucide.createIcons) {
-        lucide.createIcons();
-    }
+    // Initialize Lucide icons - Use setTimeout to ensure the library is ready
+    setTimeout(() => {
+      console.log('Attempting lucide.createIcons() after short delay...');
+      if (typeof lucide !== 'undefined' && lucide.createIcons) {
+          lucide.createIcons();
+          console.log('lucide.createIcons() called via setTimeout.');
+      } else {
+          console.error('Lucide still not ready after delay!');
+      }
+    }, 100); // Delay 100ms
     
     // Navigate to initial page
     navigateToPage(currentPage || 'timer');
