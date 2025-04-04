@@ -23,7 +23,7 @@ window.UserGuide = (function() {
                     <div class="filter-container">
                         <div class="filter-buttons guide-filter-buttons">
                             <button class="filter-button all active" data-section="all">Overview</button>
-                            <button class="filter-button" data-section="timer">Timer</button>
+                            <button class="filter-button" data-section="timer">Timer & Metronome</button>
                             <button class="filter-button" data-section="sessions">Sessions</button>
                             <button class="filter-button" data-section="goals">Goals</button>
                             <button class="filter-button" data-section="media">Media</button>
@@ -66,12 +66,13 @@ window.UserGuide = (function() {
 
                             <h3>Getting Started</h3>
                             <ol class="steps">
-                                <li>Set up your practice categories in the Settings tab</li>
-                                <li>Configure your lesson day and time (optional)</li>
-                                <li>Explore existing practice categories in the Resources tab</li>
-                                <li>Create practice goals in the Goals tab (optional)</li>
-                                <li>View practice statistics in the Stats tab</li>
-                                <li>Create practice or lesson notes, or record photos or videos</li>
+                                <li>Set up your initial practice categories in the Settings tab</li>
+                                <li>Configure your lesson day and time for the countdown (optional)</li>
+                                <li>Explore predefined practice categories in the Resources tab and copy useful ones to your list</li>
+                                <li>Set practice goals in the Goals tab (optional)</li>
+                                <li>Track your practice using the Timer and Metronome</li>
+                                <li>Review your practice history and progress in the Sessions and Stats tabs</li>
+                                <li>Add photos, videos, or notes about your practice in the Media tab</li>
                             </ol>
                         </div>
 
@@ -88,9 +89,19 @@ window.UserGuide = (function() {
                                 <li>When finished, click "Save Session" to record your practice time</li>
                             </ol>
 
+                            <h3>Using the Metronome</h3>
+                            <p>A metronome is built into the Timer page to help you keep time:</p>
+                            <ol class="steps">
+                                <li>Adjust the Beats Per Minute (BPM) using the slider or +/- buttons</li>
+                                <li>Select a common or complex time signature using the buttons</li>
+                                <li>Choose a metronome sound (Click, Wood, Digital, Soft)</li>
+                                <li>Click the "Start" button below the BPM control to start/stop the metronome</li>
+                                <li>Visual beat indicators show the current beat and accent</li>
+                            </ol>
+
                             <div class="note">
                                 <h3>Note</h3>
-                                <p>Your practice session is automatically saved when you click "Save Session." Don't forget to add notes about what you practiced before saving!</p>
+                                <p>Your practice session is automatically saved when you click "Save Session." Don't forget to add notes about what you practiced before saving! The metronome runs independently of the main practice timer.</p>
                             </div>
                         </div>
 
@@ -101,25 +112,25 @@ window.UserGuide = (function() {
                             <div class="feature-grid">
                                 <div class="feature-card">
                                     <h4>View History</h4>
-                                    <p>Access all your past practice sessions with detailed information about each one.</p>
+                                    <p>Access your past practice sessions. By default, it shows sessions from "This Week".</p>
                                 </div>
                                 <div class="feature-card">
                                     <h4>Filter & Search</h4>
-                                    <p>Filter sessions by category or date range, and search for specific practice content.</p>
+                                    <p>Filter sessions by category or date range (using presets or custom dates), and search notes.</p>
                                 </div>
                                 <div class="feature-card">
-                                    <h4>Delete Sessions</h4>
-                                    <p>Remove practice sessions that were recorded incorrectly.</p>
+                                    <h4>Edit & Delete</h4>
+                                    <p>Correct mistakes by editing session details (category, notes) or remove sessions entirely.</p>
                                 </div>
                                 <div class="feature-card">
                                     <h4>Manual Entry</h4>
-                                    <p>Add practice sessions manually that you didn't track with the timer.</p>
+                                    <p>Use the "Add Session" button to log practice you didn't track with the timer.</p>
                                 </div>
                             </div>
                             
                             <div class="tip">
                                 <h3>Pro Tip</h3>
-                                <p>Use the "Add Session" button to manually add practice sessions you didn't track with the timer, such as practice you did away from your device.</p>
+                                <p>Regularly review your session notes to reinforce learning and track progress over time.</p>
                             </div>
                         </div>
 
@@ -130,19 +141,19 @@ window.UserGuide = (function() {
                             <div class="feature-grid">
                                 <div class="feature-card">
                                     <h4>Create Goals</h4>
-                                    <p>Set specific, measurable practice goals to work toward.</p>
+                                    <p>Set specific, measurable practice goals (e.g., "Master C Major scale at 120 bpm").</p>
                                 </div>
                                 <div class="feature-card">
                                     <h4>Target Dates</h4>
-                                    <p>Assign deadlines to keep yourself accountable and on track.</p>
+                                    <p>Assign optional target dates to keep yourself accountable.</p>
                                 </div>
                                 <div class="feature-card">
-                                    <h4>Goal History</h4>
-                                    <p>View a record of your past and current practice goals.</p>
+                                    <h4>Categorize</h4>
+                                    <p>Link goals to your practice categories for better organization.</p>
                                 </div>
                                 <div class="feature-card">
-                                    <h4>Mark Completed</h4>
-                                    <p>Celebrate your achievements by marking goals as completed.</p>
+                                    <h4>Track Progress</h4>
+                                    <p>Mark goals as completed as you achieve them.</p>
                                 </div>
                             </div>
                         </div>
@@ -154,54 +165,54 @@ window.UserGuide = (function() {
                             <div class="feature-grid">
                                 <div class="feature-card">
                                     <h4>Photos</h4>
-                                    <p>Capture photos during practice to document technique or progress.</p>
+                                    <p>Capture photos (e.g., hand position, sheet music setup) using your device camera.</p>
                                 </div>
                                 <div class="feature-card">
                                     <h4>Videos</h4>
-                                    <p>Record videos of your playing to review your form and sound.</p>
+                                    <p>Record videos of your playing to review form and sound later.</p>
                                 </div>
                                 <div class="feature-card">
                                     <h4>Notes</h4>
-                                    <p>Create text notes about techniques, insights, or feedback.</p>
+                                    <p>Create standalone text notes for quick thoughts, feedback, or ideas.</p>
                                 </div>
                                 <div class="feature-card">
                                     <h4>Organization</h4>
-                                    <p>Tag and categorize your media for easy reference and retrieval.</p>
+                                    <p>Filter media by type or date range. Give items names and descriptions.</p>
                                 </div>
                             </div>
                             
                             <div class="note">
                                 <h3>Note</h3>
-                                <p>Photos and videos are saved to your device's gallery. PracticeTrack keeps track of their references to help you organize your progress documentation.</p>
+                                <p>Photos and videos are saved directly to your device's gallery or files. PracticeTrack only stores a reference, description, and timestamp.</p>
                             </div>
                         </div>
 
                         <div class="section-resources" data-section="resources">
-                            <h3>Practice Categories</h3>
-                            <p>PracticeTrack uses categories to organize your practice sessions:</p>
+                            <h3>Practice Resources</h3>
+                            <p>The Resources tab provides a library of predefined practice categories:</p>
                             
                             <div class="feature-grid">
                                 <div class="feature-card">
-                                    <h4>Browse Resources</h4>
-                                    <p>Explore predefined categories by instrument family in the Resources tab.</p>
+                                    <h4>Browse Categories</h4>
+                                    <p>Explore structured categories organized by instrument family (Woodwinds, Brass, Guitar, etc.).</p>
                                 </div>
                                 <div class="feature-card">
-                                    <h4>Add Categories</h4>
-                                    <p>Add categories to your personal list with just one click.</p>
+                                    <h4>Filter & Search</h4>
+                                    <p>Use the filter buttons to show specific instrument families or search for keywords.</p>
                                 </div>
                                 <div class="feature-card">
-                                    <h4>Custom Categories</h4>
-                                    <p>Create your own practice categories, including specific songs, in the Settings tab.</p>
+                                    <h4>Add to Your List</h4>
+                                    <p>Click the '+' button next to a category name to add it to your personal list in Settings.</p>
                                 </div>
-                                <div class="feature-card">
-                                    <h4>Better Analysis</h4>
-                                    <p>Categorize sessions for more detailed practice statistics.</p>
+                                 <div class="feature-card">
+                                    <h4>Difficulty Levels</h4>
+                                    <p>Categories are tagged with suggested difficulty levels (Beginner, Intermediate, Advanced).</p>
                                 </div>
                             </div>
                             
                             <div class="tip">
                                 <h3>Pro Tip</h3>
-                                <p>Use the search function in the Resources tab to quickly find specific practice categories for your instrument.</p>
+                                <p>Use the Resources tab to quickly populate your category list with relevant techniques and concepts for your instrument.</p>
                             </div>
                         </div>
 
@@ -212,19 +223,23 @@ window.UserGuide = (function() {
                             <div class="feature-grid">
                                 <div class="feature-card">
                                     <h4>Lesson Schedule</h4>
-                                    <p>Set your regular lesson day and time for countdown display.</p>
+                                    <p>Set your lesson day/time to see a countdown on the Stats page.</p>
                                 </div>
                                 <div class="feature-card">
-                                    <h4>Categories</h4>
-                                    <p>Create, edit, and organize your practice categories.</p>
+                                    <h4>Manage Categories</h4>
+                                    <p>Create custom categories (like specific songs) or hide/show default/copied ones from dropdowns.</p>
                                 </div>
                                 <div class="feature-card">
                                     <h4>Export Data</h4>
-                                    <p>Save your practice data for backup or transfer to another device.</p>
+                                    <p>Save all your sessions, goals, media references, and categories to a file for backup.</p>
                                 </div>
                                 <div class="feature-card">
                                     <h4>Import Data</h4>
-                                    <p>Load previously exported data to restore or sync between devices.</p>
+                                    <p>Load data from an exported file to restore or sync between devices.</p>
+                                </div>
+                                 <div class="feature-card">
+                                    <h4>Clear Data</h4>
+                                    <p>Permanently delete all stored data (sessions, goals, etc.). Use with caution!</p>
                                 </div>
                             </div>
                         </div>
@@ -249,65 +264,54 @@ window.UserGuide = (function() {
 
         // Add tab navigation functionality
         const filterButtons = dialog.querySelectorAll('.guide-filter-buttons .filter-button');
-        const sections = dialog.querySelectorAll('.guide-content > div[data-section]');
+        const contentSections = dialog.querySelectorAll('.guide-content > div[data-section]');
 
         filterButtons.forEach(button => {
             button.addEventListener('click', () => {
-                // Remove active class from all buttons
+                // Update button active state
                 filterButtons.forEach(btn => btn.classList.remove('active'));
-                
-                // Add active class to current button
                 button.classList.add('active');
-                
-                // Hide all sections
-                sections.forEach(section => section.classList.remove('visible'));
-                
-                // Show selected section
-                const sectionName = button.getAttribute('data-section');
-                if (sectionName === 'all') {
-                    // Show only the overview section
-                    dialog.querySelector('.section-overview').classList.add('visible');
-                } else {
-                    // Show the specific section
-                    dialog.querySelector(`.section-${sectionName}`).classList.add('visible');
-                }
+
+                // Show/Hide content sections
+                const targetSection = button.dataset.section;
+                contentSections.forEach(section => {
+                    if (section.dataset.section === targetSection || targetSection === 'all') {
+                        section.classList.add('visible');
+                    } else {
+                        section.classList.remove('visible');
+                    }
+                });
             });
         });
-
-        // Close on escape key
+        
+        // Close dialog on escape key
         document.addEventListener('keydown', function closeOnEscape(e) {
             if (e.key === 'Escape') {
-                dialog.remove();
-                document.removeEventListener('keydown', closeOnEscape);
+                const currentDialog = document.querySelector('.user-guide-dialog');
+                if (currentDialog) {
+                    currentDialog.remove();
+                    document.removeEventListener('keydown', closeOnEscape); // Clean up listener
+                }
             }
-        });
+        }, { once: true }); // Option ensures listener is removed after first escape
     }
 
-    // Initialize event listeners
+    // Function to initialize the guide button
     function initialize() {
-        // Timer page button
-        const timerButton = document.getElementById('how-to-use-btn');
-        if (timerButton) {
-            timerButton.addEventListener('click', showUserGuide);
-        }
-
-        // Resources page button
-        const resourcesButton = document.getElementById('resources-how-to-use-btn');
-        if (resourcesButton) {
-            resourcesButton.addEventListener('click', showUserGuide);
+        const howToUseButton = document.getElementById('resources-how-to-use-btn');
+        if (howToUseButton) {
+            howToUseButton.addEventListener('click', showUserGuide);
+        } else {
+            console.warn('How to use button not found in resources page.');
         }
     }
 
-    // Initialize when DOM is loaded
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initialize);
-    } else {
-        initialize();
-    }
-
-    // Make functions available globally
+    // Expose public functions
     return {
-        showUserGuide,
-        initialize
+        initialize,
+        showUserGuide
     };
-})(); 
+})();
+
+// Initialize the guide when the DOM is ready
+document.addEventListener('DOMContentLoaded', window.UserGuide.initialize); 

@@ -1533,11 +1533,18 @@ textarea.form-control {
     /* Remove margin-bottom, now handled by .card */
 }
 
-/* Refactored Stat Card */
+/* Refactored Stat Card - Ensure base styles are applied */
 .stat-card {
-    /* Inherits from .card */
-    /* Keep specific styles */
-    display: flex;
+    /* Explicitly Apply Base Card Styles */
+    background-color: var(--card-background);
+    border-radius: var(--radius-lg);
+    padding: var(--space-lg);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-color);
+    transition: all var(--transition-normal);
+    
+    /* Stat Card Specific */
+    display: flex; 
     flex-direction: column;
     position: relative;
     overflow: hidden;
@@ -1546,7 +1553,8 @@ textarea.form-control {
 /* Override hover effect if desired */
 .stat-card:hover {
     transform: translateY(-4px); /* Keep stronger lift for stat cards */
-    /* Other hover styles inherited or overridden as needed */
+    box-shadow: var(--shadow-md);
+    border-color: rgba(59, 127, 245, 0.2); 
 }
 
 /* Stat card specific top border */
@@ -1561,30 +1569,109 @@ textarea.form-control {
     opacity: 0.8;
 }
 
-/* Renamed h3 to .stat-title for better semantics maybe? */
-.stat-card h3 { 
+.stat-card h3 {
     font-size: var(--font-sm);
     font-weight: 600;
     color: var(--text-medium);
     margin-bottom: var(--space-sm);
+    order: 1; /* Ensure title is first */
+    /* Center title and icon */
+    display: flex; /* Use flex for centering icon and text */
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-xs); /* Add gap between icon and text */
+    text-align: center; /* Fallback for non-flex support? */
+}
+
+/* Color the flame icon specifically within stat cards */
+.stat-card h3 i[data-lucide="flame"] {
+    color: var(--secondary-orange);
 }
 
 .stat-value {
     font-size: var(--font-2xl);
     font-weight: 700;
-    color: var(--text-dark);
+    color: var(--primary-blue);
+    line-height: 1.2;
+    margin-bottom: var(--space-xs); 
+    order: 2; /* Ensure it comes after title */
+    text-align: center; /* Center the value itself */
+}
+
+/* NEW Styles for compound stat values (like streaks) */
+.stat-value-compound {
+    display: flex;
+    justify-content: space-around; 
+    align-items: baseline; 
     margin-bottom: var(--space-xs);
-    background: linear-gradient(to right, var(--primary-blue-dark), var(--primary-blue));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    text-fill-color: transparent;
+    text-align: center;
+    order: 2; /* Ensure it comes after title */
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.stat-sub-value {
+    font-size: var(--font-2xl); /* Match main stat value size */
+    font-weight: 700;
+    color: var(--primary-blue);
+    line-height: 1.2;
+}
+
+.stat-sub-label {
+    font-size: var(--font-xs); /* Smaller label for sub-items */
+    color: var(--text-medium);
+    margin-top: 2px;
 }
 
 .stat-description {
-    font-size: var(--font-xs);
+    font-size: var(--font-xs); 
     color: var(--text-light);
-    margin-top: auto;
+    margin-top: auto; /* Keep this to push description down */
+    order: 3; /* Ensure description is last */
+    padding-top: var(--space-sm); /* Add some space above description */
+    text-align: center; /* <<< Ensure text is centered */
+    /* Allow space for comparison indicator */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-xs); /* Add small gap if indicator is below text */
+}
+
+/* NEW: Styles for comparison indicator */
+.stat-comparison {
+    display: inline-flex; /* Make it inline-flex for icon alignment */
+    align-items: center;
+    gap: var(--space-xs);
+    font-weight: 600;
+    font-size: var(--font-xs);
+    padding: 2px 6px;
+    border-radius: var(--radius-sm);
+}
+
+.stat-comparison.increase {
+    color: var(--success);
+    background-color: var(--success-light);
+}
+
+.stat-comparison.decrease {
+    color: var(--error);
+    background-color: var(--error-light);
+}
+
+.stat-comparison.no-change, 
+.stat-comparison.no-data {
+    color: var(--text-light);
+    background-color: var(--background-light);
+}
+
+.stat-comparison i { /* Style the icons */
+    width: 12px;
+    height: 12px;
+    stroke-width: 3;
 }
 
 /* Theme Selector - Enhanced */
@@ -5245,9 +5332,9 @@ textarea:focus {
     text-decoration: none;
     white-space: nowrap;
 
-    /* Secondary Button Appearance */
-    background: #e5e7eb; /* gray-200 */
-    color: #374151; /* gray-700 */
+    /* APPLY PRIMARY Button Appearance */
+    background: linear-gradient(to right, var(--primary-blue), var(--primary-blue-dark));
+    color: white;
 
     min-width: auto; /* Override any previous min-width */
     height: auto; /* Override any previous height */
@@ -5255,7 +5342,8 @@ textarea:focus {
 }
 
 .media-controls button:hover {
-    background: #d1d5db; /* gray-300 */
+    /* background: #d1d5db; <= Old secondary hover */
+    background: linear-gradient(to right, var(--primary-blue-dark), #2861c7); /* Darker gradient for hover */
     transform: translateY(-2px);
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
 }
@@ -5263,7 +5351,9 @@ textarea:focus {
 .media-controls button:active {
     transform: translateY(0);
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    background: #d1d5db; /* Keep hover color on active */
+    /* background: #d1d5db; <= Old secondary active */
+    /* Keep hover background or slightly darker */
+    background: linear-gradient(to right, var(--primary-blue-dark), #2861c7);
 }
 
 .media-controls button i {
@@ -5289,11 +5379,13 @@ textarea:focus {
 }
 
 #resources-page .search-container {
-    flex-grow: 1;
+    flex-grow: 1; /* Allow container to grow */
     position: relative;
+    width: 100%; /* Ensure container takes full width */
+    margin-bottom: var(--space-lg); /* Add space below search bar */
 }
 
-#resources-page #search-resources {
+#resources-page #resource-search {
     width: 100%;
     padding: 0.75rem 1rem 0.75rem 2.5rem; /* Add padding for icon */
     border: 1px solid #ced4da;
@@ -5552,3 +5644,106 @@ textarea:focus {
     background-color: var(--primary-blue-dark); /* Slightly darker on hover when active */
     border-color: var(--primary-blue-dark);
 }
+
+/* == Stats Page Specific Styles == */
+
+/* REMOVED .stats-summary-row { ... } */
+
+/* REMOVED .stats-summary-card { ... } */
+
+/* Adjust lesson countdown container to be standalone again */
+.lesson-countdown-container {
+    /* Use card base style */
+    background-color: var(--card-background);
+    border-radius: var(--radius-lg);
+    padding: var(--space-lg);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-color);
+    margin-bottom: var(--space-lg); /* Add margin below it */
+    /* Remove flex properties if added previously */
+    /* flex: 1; min-width: 250px; height: 100%; */
+    max-width: 400px; /* Optional: constrain width */
+    margin-left: auto;
+    margin-right: auto;
+}
+ 
+/* REMOVED .streak-card-container styles { ... } */
+
+.stats-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--space-lg);
+    margin-bottom: var(--space-lg);
+}
+
+/* Back to Top Button */
+#back-to-top-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    border-radius: 50%; /* Circular */
+    width: 44px;
+    height: 44px;
+    padding: 0; /* No padding needed for icon */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--primary-blue);
+    color: white;
+    border: none; /* Remove default border */
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease, background-color 0.3s ease, transform 0.2s ease;
+}
+
+#back-to-top-btn:hover {
+    background: var(--primary-blue-dark);
+    transform: translateY(-2px); 
+}
+
+
+#back-to-top-btn.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+#back-to-top-btn i {
+    width: 20px;
+    height: 20px;
+    color: white; 
+}
+
+/* Centering container for How to Use button */
+.how-to-use-container {
+    text-align: center;
+    margin: 1.5rem 0;
+}
+
+/* Ensure the button itself is treated as inline-block and has no extra margin */
+#resources-how-to-use-btn {
+    /* Re-apply standard app-button styles if needed, or style specifically */
+    display: inline-flex; /* Keep flex for icon alignment */
+    /* Styles inherited from .app-button .app-button--secondary should still apply via HTML */
+    margin: 0; /* Remove any potential default margins */
+/* Enhance the 'How to use PracticeTrack' button */
+#resources-how-to-use-btn {
+    background-color: #4154b3; /* Primary color */
+    color: #fff; /* White text */
+    padding: 10px 20px; /* Add padding for better click area */
+    border: none; /* Remove default border */
+    border-radius: 5px; /* Rounded corners */
+    transition: background-color 0.3s ease; /* Smooth transition for hover */
+}
+
+#resources-how-to-use-btn:hover {
+    background-color: #2e3a8c; /* Darker shade on hover */
+}    max-width: fit-content;
+}
+
+
+/*--------------------------------------------------------------
+# Media Queries
+--------------------------------------------------------------*/

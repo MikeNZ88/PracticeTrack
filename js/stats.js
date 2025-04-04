@@ -16,36 +16,170 @@ function formatTime(seconds) {
     return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
 }
 
+/**
+ * Calculates practice streaks based on session data.
+ * @param {Array<Object>} sessions - Array of session objects with startTime.
+ * @returns {Object} An object containing { currentStreak, longestStreak }.
+ */
+function calculateStreaks(sessions) {
+    if (!sessions || sessions.length === 0) {
+        return { currentStreak: 0, longestStreak: 0 };
+    }
+
+    // 1. Get unique practice dates (YYYY-MM-DD format)
+    const practiceDates = new Set();
+    sessions.forEach(session => {
+        if (session && session.startTime) {
+            try {
+                const date = new Date(session.startTime);
+                if (!isNaN(date.getTime())) { // Check if date is valid
+                    // Use UTC dates to avoid timezone shifts affecting date logic
+                    const year = date.getUTCFullYear();
+                    const month = String(date.getUTCMonth() + 1).padStart(2, '0'); // Months are 0-indexed
+                    const day = String(date.getUTCDate()).padStart(2, '0');
+                    practiceDates.add(`${year}-${month}-${day}`);
+                }
+            } catch (e) {
+                console.warn("Error processing session date for streak:", session.startTime, e);
+            }
+        }
+    });
+
+    // Convert set to sorted array
+    const sortedDates = Array.from(practiceDates).sort();
+
+    if (sortedDates.length === 0) {
+        return { currentStreak: 0, longestStreak: 0 };
+    }
+
+    // 2. Calculate streaks
+    let currentStreak = 0;
+    let longestStreak = 0;
+    let currentCount = 0;
+
+    for (let i = 0; i < sortedDates.length; i++) {
+        const currentDate = new Date(`${sortedDates[i]}T00:00:00Z`); // Treat as UTC
+        
+        if (i === 0) {
+            // First date in the list
+            currentCount = 1;
+        } else {
+            const previousDate = new Date(`${sortedDates[i-1]}T00:00:00Z`);
+            // Check if the difference is exactly one day (in milliseconds)
+            const diff = currentDate.getTime() - previousDate.getTime();
+            if (diff === 24 * 60 * 60 * 1000) {
+                currentCount++;
+            } else {
+                // Streak broken
+                if (currentCount > longestStreak) {
+                    longestStreak = currentCount;
+                }
+                currentCount = 1; // Start new streak
+            }
+        }
+    }
+    // Update longest streak one last time after the loop
+    if (currentCount > longestStreak) {
+        longestStreak = currentCount;
+    }
+
+    // 3. Check current streak based on today/yesterday
+    const today = new Date();
+    const todayYear = today.getUTCFullYear();
+    const todayMonth = String(today.getUTCMonth() + 1).padStart(2, '0');
+    const todayDay = String(today.getUTCDate()).padStart(2, '0');
+    const todayStr = `${todayYear}-${todayMonth}-${todayDay}`;
+    
+    const yesterday = new Date(today);
+    yesterday.setUTCDate(today.getUTCDate() - 1);
+    const yesterdayYear = yesterday.getUTCFullYear();
+    const yesterdayMonth = String(yesterday.getUTCMonth() + 1).padStart(2, '0');
+    const yesterdayDay = String(yesterday.getUTCDate()).padStart(2, '0');
+    const yesterdayStr = `${yesterdayYear}-${yesterdayMonth}-${yesterdayDay}`;
+
+    if (practiceDates.has(todayStr) || practiceDates.has(yesterdayStr)) {
+        // If practiced today or yesterday, the current streak is the last calculated count
+        currentStreak = currentCount;
+    } else {
+        // If no practice today or yesterday, current streak is 0
+        currentStreak = 0;
+    }
+
+    return { currentStreak, longestStreak };
+}
+
+/**
+ * Displays the practice streak card.
+ * @param {Object} streakData - Object with { currentStreak, longestStreak }.
+ * @param {HTMLElement} container - The container element (#streak-card-container).
+ */
+function displayStreakCard(streakData, container) {
+    if (!container) {
+        console.error("Streak card container not provided.");
+        return;
+    }
+    
+    const { currentStreak, longestStreak } = streakData;
+    
+    container.innerHTML = `
+        <h3><i data-lucide="flame"></i> Practice Streaks</h3>
+        <div class="streak-content">
+            <div class="streak-item">
+                <div class="streak-value">${currentStreak}</div>
+                <div class="streak-label">Current Streak${currentStreak === 1 ? ' day' : ' days'}</div>
+            </div>
+            <div class="streak-item">
+                <div class="streak-value">${longestStreak}</div>
+                <div class="streak-label">Longest Streak${longestStreak === 1 ? ' day' : ' days'}</div>
+            </div>
+        </div>
+        <p class="stat-description">Consecutive days with practice recorded.</p>
+    `;
+    
+    // Initialize icon
+    if (window.lucide) {
+        window.lucide.createIcons({ context: container });
+    }
+}
+
 // Stats Module
 function initStats() {
     console.log('Initializing stats module');
     
     // Get or create containers
     const statsContainer = document.querySelector('.stats-container');
-    const countdownContainer = document.getElementById('lesson-countdown-container'); // Get new container
+    const countdownContainer = document.getElementById('lesson-countdown-container'); 
     if (!statsContainer || !countdownContainer) {
-        console.error('Required containers (.stats-container or #lesson-countdown-container) not found');
+        console.error('Required containers (.stats-container, #lesson-countdown-container) not found');
         return;
     }
     
     // Clear existing content
     statsContainer.innerHTML = '';
-    countdownContainer.innerHTML = ''; // Clear countdown container too
-    
+    countdownContainer.innerHTML = ''; 
+
     // Update lesson countdown (always do this)
     updateLessonCountdown(countdownContainer);
     
-    // Get sessions from localStorage
-    let sessions = JSON.parse(localStorage.getItem('practiceTrack_sessions')) || [];
-    console.log('Found sessions:', sessions.length);
+    // Filter sessions based on initial date filter for main stats display
+    // Note: We re-fetch here or use a filtered version for displayStats
+    let initialFilteredSessions = [];
+    try {
+        initialFilteredSessions = JSON.parse(localStorage.getItem('practiceTrack_sessions')) || [];
+         // TODO: Apply initial date filter ('week') here before passing to displayStats
+    } catch (e) {
+        console.error("Error fetching sessions for initial display:", e);
+    }
     
-    // Show empty state in stats container if no sessions initially
-    if (!sessions || sessions.length === 0) {
+    // Show empty state or stats based on potentially filtered sessions
+    if (!initialFilteredSessions || initialFilteredSessions.length === 0) {
         displayEmptyState(statsContainer);
-        // Don't return, still need filters
     } else {
-        // Initial display of stats (unfiltered)
-        displayStats(sessions, statsContainer);
+        // Apply initial filters before displaying stats (important!)
+        // The applyFilters function will call displayStats with filtered data
+        // applyFilters(); // This will be called later after setup
+        // For now, let's display based on unfiltered, will be replaced by applyFilters call
+        // displayStats(initialFilteredSessions, statsContainer);
     }
     
     // Load category filter
@@ -62,7 +196,8 @@ function initStats() {
     const dateRangeDiv = pageElement ? pageElement.querySelector('.date-range') : null;
 
     if (presetFilter && startDateInput && endDateInput && dateRangeDiv) {
-        presetFilter.addEventListener('change', () => {
+        // Define the handler function
+        const handleStatsPresetChange = () => {
             const selectedPreset = presetFilter.value;
             const today = new Date();
             let startDate = '';
@@ -88,13 +223,14 @@ function initStats() {
                     startDate = new Date(today.getFullYear(), 0, 1).toISOString().split('T')[0];
                     endDate = new Date().toISOString().split('T')[0];
                     break;
-                case 'all':
-                    startDate = '';
-                    endDate = '';
-                    break;
-                case 'custom':
+                case 'custom': // Keep custom values if selected
                      startDate = startDateInput.value;
                      endDate = endDateInput.value;
+                     break;
+                 case 'all': // Default case for 'all'
+                 default:
+                    startDate = '';
+                    endDate = '';
                     break;
             }
             
@@ -104,7 +240,10 @@ function initStats() {
              }
             // Apply filters directly in stats
              applyFilters(); 
-        });
+        };
+        
+        // Attach the handler
+        presetFilter.addEventListener('change', handleStatsPresetChange);
         
          // Ensure changing custom dates updates preset and triggers filter
          startDateInput.addEventListener('change', () => {
@@ -118,14 +257,15 @@ function initStats() {
               applyFilters(); // Trigger filter
          });
 
-        // Set initial state - Default to 'all' and hide custom range
-        presetFilter.value = 'all';
-        dateRangeDiv.style.display = 'none'; 
-        startDateInput.value = ''; // Ensure custom dates are cleared initially
-        endDateInput.value = '';
+        // Set initial state to 'week'
+        presetFilter.value = 'week';
+        // dateRangeDiv.style.display = 'none'; // Handler will set this
+        // startDateInput.value = ''; // Handler will set this
+        // endDateInput.value = ''; // Handler will set this
 
-        // Apply initial filters (defaulting to 'all' time)
-        applyFilters(); 
+        // Apply initial filters by calling the handler
+        handleStatsPresetChange(); 
+        // REMOVED: applyFilters(); // Handler calls this now
     }
     // --- End Date Preset Logic ---
 }
@@ -172,7 +312,7 @@ function loadCategoryFilter() {
     }
 }
 
-function displayStats(sessions, container) {
+function displayStats(sessions, container, previousPeriodStats) {
     console.log('Displaying stats for sessions:', sessions.length);
     
     if (!container) {
@@ -189,7 +329,18 @@ function displayStats(sessions, container) {
         return;
     }
 
-    // --- Calculate Base Session Stats --- 
+    // --- Calculate Streaks (using ALL sessions) ---
+    let allSessionsForStreaks = [];
+    try {
+        allSessionsForStreaks = window.getItems ? window.getItems('SESSIONS') : 
+            JSON.parse(localStorage.getItem('practiceTrack_sessions')) || [];
+    } catch(e) {
+        console.error("Error fetching sessions for streak calculation in displayStats:", e);
+    }
+    const { currentStreak, longestStreak } = calculateStreaks(allSessionsForStreaks);
+    // --- End Streak Calculation ---
+
+    // --- Calculate Base Session Stats (using FILTERED sessions) --- 
     const totalTime = sessions.reduce((sum, session) => sum + (session.duration || 0), 0);
     const sessionCount = sessions.length;
     const avgTime = sessionCount > 0 ? Math.round(totalTime / sessionCount) : 0;
@@ -276,8 +427,8 @@ function displayStats(sessions, container) {
         } else if (mostFrequentIds.length > 1) {
             mostFrequentCategoryName = 'Multiple'; // Indicate a tie
         }
-        // Keep N/A if no days found
-        mostFrequentCategoryDays = maxDays; // Store the max days regardless of ties
+        // Keep N/A if no frequency found
+        mostFrequentCategoryDays = maxDays; // Store max days regardless of ties
     }
     
     console.log('Calculated stats for display:', {
@@ -287,46 +438,89 @@ function displayStats(sessions, container) {
         completedGoals, totalGoals
     });
 
-    // --- Create stats grid HTML (Corrected) --- 
-    container.innerHTML = `
-        <div class="stats-grid">
-            <div class="card stat-card">
-                <h3>Total Practice Time</h3>
-                <div class="stat-value">${formatDuration(totalTime)}</div>
-                <div class="stat-description">Total time spent practicing</div>
-            </div>
-            <div class="card stat-card">
-                <h3>Average Session</h3>
-                <div class="stat-value">${formatDuration(avgTime)}</div>
-                <div class="stat-description">Average duration per session</div>
-            </div>
-            <div class="card stat-card">
-                <h3>Completed Goals</h3>
-                <div class="stat-value">${completedGoals} / ${totalGoals}</div>
-                <div class="stat-description">Completed / Total Goals</div>
-            </div>
-            <div class="card stat-card">
-                <h3>Number of Sessions</h3>
-                <div class="stat-value">${sessionCount}</div>
-                <div class="stat-description">Total practice sessions recorded</div>
-            </div>
-            <div class="card stat-card">
-                <h3>Most Practiced</h3>
-                <div class="stat-value">${mostPracticedCategoryName}</div>
-                <div class="stat-description">Category with most time (${formatDuration(mostPracticedCategoryTime)})</div>
-            </div>
-            <div class="card stat-card">
-                <h3>Most Frequent</h3>
-                <div class="stat-value">${mostFrequentCategoryName}</div>
-                <div class="stat-description">Category practiced most days (${mostFrequentCategoryDays} ${mostFrequentCategoryDays === 1 ? 'day' : 'days'})</div>
-            </div>
+    // --- Helper to generate comparison string ---
+    const getComparisonHTML = (currentValue, previousValue) => {
+        if (previousPeriodStats === null || previousValue === undefined || currentValue === undefined) {
+            return '<span class="stat-comparison no-data">--</span>'; // No comparison possible
+        }
+        if (previousValue === 0) {
+            return '<span class="stat-comparison increase"><i data-lucide="trending-up"></i> New</span>'; // Increase from zero
+        }
+        
+        const change = currentValue - previousValue;
+        const percentChange = Math.round((change / previousValue) * 100);
+        
+        if (percentChange > 0) {
+            return `<span class="stat-comparison increase"><i data-lucide="trending-up"></i> +${percentChange}%</span>`;
+        } else if (percentChange < 0) {
+            return `<span class="stat-comparison decrease"><i data-lucide="trending-down"></i> ${percentChange}%</span>`;
+        } else {
+            return '<span class="stat-comparison no-change">No Change</span>';
+        }
+    };
+
+    // --- Create Stats Grid HTML ---
+    const statsGridHTML = `
+        <div class="stat-card">
+            <h3>Total Practice Time</h3>
+            <div class="stat-value">${formatTime(totalTime)}</div>
+            <p class="stat-description">
+                Total time spent practicing 
+                ${getComparisonHTML(totalTime, previousPeriodStats?.totalTime)}
+            </p>
+        </div>
+        <div class="stat-card">
+            <h3>Average Session</h3>
+            <div class="stat-value">${formatTime(avgTime)}</div>
+            <p class="stat-description">
+                Average duration per session 
+                ${getComparisonHTML(avgTime, previousPeriodStats?.avgTime)}
+            </p>
+        </div>
+        <div class="stat-card">
+            <h3>Completed Goals</h3>
+            <div class="stat-value">${completedGoals} / ${totalGoals}</div>
+            <p class="stat-description">Completed / Total Goals</p> <!-- No comparison for goals -->
+        </div>
+        <div class="stat-card">
+            <h3>Number of Sessions</h3>
+            <div class="stat-value">${sessionCount}</div>
+            <p class="stat-description">
+                Total practice sessions recorded 
+                ${getComparisonHTML(sessionCount, previousPeriodStats?.sessionCount)}
+            </p>
+        </div>
+        <div class="stat-card"> <!-- Practice Streaks Card -->
+            <h3><i data-lucide="flame"></i> Practice Streaks</h3>
+            <div class="stat-value-compound">
+                 <div class="stat-item">
+                     <span class="stat-sub-value">${currentStreak}</span>
+                     <span class="stat-sub-label">Current</span>
+                 </div>
+                 <div class="stat-item">
+                     <span class="stat-sub-value">${longestStreak}</span>
+                     <span class="stat-sub-label">Longest</span>
+                 </div>
+             </div>
+            <p class="stat-description">Consecutive days practiced</p> <!-- No comparison for streaks -->
+        </div>
+        <div class="stat-card">
+            <h3>Most Frequent</h3>
+            <div class="stat-value">${mostFrequentCategoryName}</div>
+            <p class="stat-description">Category practiced most days (${mostFrequentCategoryDays} days)</p> <!-- No comparison for most frequent -->
         </div>
     `;
-
-    // Initialize Lucide icons
-    if (window.lucide && window.lucide.createIcons) {
-        window.lucide.createIcons();
+    // --- End Stats Grid HTML ---
+    
+    container.innerHTML = statsGridHTML;
+    
+    // Initialize Lucide icons within the stats grid
+    if (window.lucide) {
+        window.lucide.createIcons({ context: container });
     }
+    
+    // Add any specific chart rendering logic here if needed
+    // renderCharts(sessions, container);
 }
 
 function displayEmptyState(container) {
@@ -371,42 +565,94 @@ function applyFilters() {
     const categoryFilter = document.getElementById('category-filter');
     const selectedCategory = categoryFilter ? categoryFilter.value : '';
     
-    const startDateInput = document.getElementById('start-date');
-    const endDateInput = document.getElementById('end-date');
-    const startDate = startDateInput && startDateInput.value ? startDateInput.value : '';
-    const endDate = endDateInput && endDateInput.value ? endDateInput.value : '';
+    const startDateInput = document.getElementById('stats-start-date');
+    const endDateInput = document.getElementById('stats-end-date');
+    const startDateStr = startDateInput ? startDateInput.value : '';
+    const endDateStr = endDateInput ? endDateInput.value : '';
     
     console.log('Filters:', {
         category: selectedCategory,
-        startDate: startDate,
-        endDate: endDate
+        startDate: startDateStr,
+        endDate: endDateStr
     });
     
-    // Use the common filterRecords function from UI framework
-    let filteredSessions = [];
-    if (window.UI && typeof window.UI.filterRecords === 'function') {
-        filteredSessions = window.UI.filterRecords(sessions, {
-            categoryId: selectedCategory,
-            startDate: startDate,
-            endDate: endDate
-        });
-    } else {
-        // Fallback logic (keep for safety, though unlikely needed)
-        console.warn('UI.filterRecords not found, using fallback filtering.');
-        filteredSessions = sessions; // Start with all
-        if (selectedCategory) {
-            filteredSessions = filteredSessions.filter(session => session.categoryId === selectedCategory);
+    // Clear current stats display while loading
+    if (statsContainer) {
+        statsContainer.innerHTML = '<p class="loading-stats">Loading stats...</p>';
+    }
+
+    const allSessions = window.getItems ? window.getItems('SESSIONS') : JSON.parse(localStorage.getItem('practiceTrack_sessions')) || [];
+    
+    // Filter sessions based on category and date
+    const categoryId = categoryFilter ? categoryFilter.value : '';
+    const filterStartDate = startDateStr ? new Date(startDateStr + 'T00:00:00') : null;
+    const filterEndDate = endDateStr ? new Date(endDateStr + 'T23:59:59') : null;
+    
+    const filteredSessions = allSessions.filter(session => {
+        let keep = true;
+        if (categoryId && session.categoryId !== categoryId) {
+            keep = false;
         }
-        if (startDate) {
-            // ... (fallback date logic) ...
+        if (filterStartDate && new Date(session.startTime) < filterStartDate) {
+            keep = false;
         }
-        if (endDate) {
-            // ... (fallback date logic) ...
+        if (filterEndDate && new Date(session.startTime) > filterEndDate) {
+            keep = false;
+        }
+        return keep;
+    });
+    
+    // --- Calculate Previous Period Stats --- 
+    let previousPeriodStats = null;
+    if (filterStartDate && filterEndDate) {
+        try {
+            const currentStartMs = filterStartDate.getTime();
+            const currentEndMs = filterEndDate.getTime();
+            const currentDurationMs = currentEndMs - currentStartMs;
+            
+            // Calculate previous period dates
+            const prevEndMs = currentStartMs - (24 * 60 * 60 * 1000); // Day before current start
+            const prevStartMs = prevEndMs - currentDurationMs; 
+            
+            const prevStartDate = new Date(prevStartMs);
+            const prevEndDate = new Date(prevEndMs);
+            
+            // Filter sessions for the previous period
+            const previousSessions = allSessions.filter(session => {
+                 const sessionTime = new Date(session.startTime).getTime();
+                 return sessionTime >= prevStartMs && sessionTime <= prevEndMs && 
+                        (!categoryId || session.categoryId === categoryId); // Apply category filter too
+            });
+            
+            // Calculate stats for the previous period
+            if (previousSessions.length > 0) {
+                const previousTotalTime = previousSessions.reduce((sum, s) => sum + (s.duration || 0), 0);
+                const previousSessionCount = previousSessions.length;
+                const previousAvgTime = previousSessionCount > 0 ? Math.round(previousTotalTime / previousSessionCount) : 0;
+                
+                previousPeriodStats = {
+                    totalTime: previousTotalTime,
+                    sessionCount: previousSessionCount,
+                    avgTime: previousAvgTime
+                };
+                console.log("[Stats] Previous Period Data:", previousPeriodStats);
+            } else {
+                 previousPeriodStats = { totalTime: 0, sessionCount: 0, avgTime: 0 }; // Set to zero if no data
+                 console.log("[Stats] No data found for the previous period.");
+            }
+        } catch (e) {
+            console.error("Error calculating previous period stats:", e);
+            previousPeriodStats = null; // Ensure it's null on error
         }
     }
-    
-    // Display filtered stats (pass the specific container)
-    displayStats(filteredSessions, statsContainer);
+    // --- End Previous Period Stats --- 
+
+    // Display filtered stats, passing previous period data
+    if (statsContainer) {
+        displayStats(filteredSessions, statsContainer, previousPeriodStats);
+    } else {
+        console.error("Stats container not found when trying to display results.");
+    }
 }
 
 // Listen for categories changed event

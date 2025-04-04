@@ -76,7 +76,7 @@ function createGoalElement(goal) {
                     <i data-lucide="edit"></i>
                 </button>
                 <button class="icon-button delete-goal app-button app-button--secondary" title="Delete Goal">
-                    <i data-lucide="trash"></i>
+                    <i data-lucide="trash-2"></i>
                 </button>
             </div>
         </div>
@@ -84,7 +84,10 @@ function createGoalElement(goal) {
     
     // Initialize icons
     if (window.lucide) {
-        window.lucide.createIcons({ context: goalElement }); 
+        window.lucide.createIcons({ 
+             icons: ['check-circle', 'circle', 'edit', 'trash-2'],
+             context: goalElement 
+        }); 
     }
     
     // Add event listeners

@@ -341,9 +341,10 @@
                         </div>
                         <!-- Lesson Countdown -->
                         <div id="lesson-countdown-container" class="lesson-countdown-container">
-                             <!-- Countdown card will be inserted here by JS -->
-                    </div>
-                    <div class="stats-container">
+                            <!-- Countdown card will be inserted here by JS -->
+                        </div>
+                        <!-- Main Stats Container -->
+                        <div class="stats-container">
                             <!-- Stats grid will be displayed here by JS -->
                         </div>
                     </div>
@@ -417,14 +418,11 @@
                          <p>Explore practice categories and helpful materials.</p>
                     </div>
                      <div class="page-content-container">
-                         <!-- Search Input -->
-                         <div class="search-container">
-                             <i data-lucide="search"></i>
-                             <input type="text" id="resource-search" class="search-input" placeholder="Search for instrument or practice category">
-                         </div>
-
+                         <!-- Search Input Removed from here -->
+                         
                          <!-- Filter Buttons -->
                          <div class="filters resource-filters">
+                             <input type="text" id="resource-search" class="search-input" placeholder="Search for instrument or practice category">
                              <button class="filter-btn app-button app-button--secondary active" data-family="all">All</button>
                              <button class="filter-btn app-button app-button--secondary" data-family="Bass Guitar">Bass</button>
                              <button class="filter-btn app-button app-button--secondary" data-family="Brass">Brass</button>
@@ -448,10 +446,13 @@
                               </select>
                          </div>
 
-                         <button id="resources-how-to-use-btn" class="app-button app-button--secondary">
-                              <i data-lucide="help-circle"></i>
-                              <span>How to use PracticeTrack</span>
-                          </button>
+                         <div style="text-align: center; margin: 20px 0;">
+                             <button id="resources-how-to-use-btn" class="app-button app-button--secondary" style="margin: 0 auto;">
+                                  <i data-lucide="help-circle"></i>
+                                  <span>How to use PracticeTrack</span>
+                              </button>
+                         </div>
+                         
                          <!-- Category List Container (Will be populated by JS) -->
                          <div id="practice-categories-container" class="practice-categories-container">
                              <!-- Static HTML content removed -->
@@ -585,7 +586,7 @@
     <!-- Dialog has been removed in the simplified approach -->
 
     <!-- Back to Top Button -->
-    <button id="back-to-top-btn" title="Back to Top">
+    <button id="back-to-top-btn" class="app-button app-button--primary" style="position: fixed; bottom: 20px; right: 20px; border-radius: 50%; width: 44px; height: 44px; padding: 0; display: flex; align-items: center; justify-content: center;" title="Back to Top">
         <i data-lucide="arrow-up"></i>
     </button>
 </body>

@@ -39,7 +39,8 @@ function initializeMedia() {
     const dateRangeDiv = pageElement ? pageElement.querySelector('.date-range') : null;
 
     if (presetFilter && startDateInput && endDateInput && dateRangeDiv) {
-        presetFilter.addEventListener('change', () => {
+        // Define the handler function
+        const handleMediaPresetChange = () => {
             const selectedPreset = presetFilter.value;
             const today = new Date();
             let startDate = '';
@@ -65,13 +66,14 @@ function initializeMedia() {
                     startDate = new Date(today.getFullYear(), 0, 1).toISOString().split('T')[0];
                     endDate = new Date().toISOString().split('T')[0];
                     break;
-                case 'all':
-                    startDate = '';
-                    endDate = '';
-                    break;
-                case 'custom':
+                case 'custom': // Keep custom values if selected
                      startDate = startDateInput.value;
                      endDate = endDateInput.value;
+                     break;
+                 case 'all': // Default case for 'all'
+                 default:
+                    startDate = '';
+                    endDate = '';
                     break;
             }
             
@@ -79,10 +81,15 @@ function initializeMedia() {
                  startDateInput.value = startDate;
                  endDateInput.value = endDate;
              }
+             // Trigger UI framework load
              window.UI.loadRecords('media');
-        });
+        };
         
-         startDateInput.addEventListener('change', () => {
+        // Attach the handler to the change event
+        presetFilter.addEventListener('change', handleMediaPresetChange);
+        
+        // Custom date input handlers
+        startDateInput.addEventListener('change', () => {
              presetFilter.value = 'custom';
              dateRangeDiv.style.display = 'flex';
              // loadRecords is already attached by initRecordPage
@@ -93,12 +100,15 @@ function initializeMedia() {
              // loadRecords is already attached by initRecordPage
          });
 
-        presetFilter.value = 'all';
-        dateRangeDiv.style.display = 'none'; 
-        startDateInput.value = '';
-        endDateInput.value = '';
+        // Set initial state to 'week'
+        presetFilter.value = 'week';
+        // dateRangeDiv.style.display = 'none'; // Handler will set this
+        // startDateInput.value = ''; // Handler will set this
+        // endDateInput.value = ''; // Handler will set this
 
-         window.UI.loadRecords('media');
+        // Apply the initial filter by calling the handler
+        handleMediaPresetChange();
+        // REMOVED: window.UI.loadRecords('media'); // Handler calls this now
     }
     // --- End Date Preset Logic ---
 }
@@ -160,6 +170,9 @@ function createMediaElement(media) {
         <div class="media-footer">
             <span class="media-date">${dateStr} at ${timeStr}</span>
             <div class="media-actions">
+                <button class="icon-button edit-media app-button app-button--secondary" title="Edit Media">
+                    <i data-lucide="edit"></i>
+                </button>
                 <button class="icon-button delete-media app-button app-button--secondary" title="Delete Media">
                     <i data-lucide="trash-2"></i>
                 </button>
@@ -170,15 +183,131 @@ function createMediaElement(media) {
     // Add event listener for delete
     const deleteButton = mediaElement.querySelector('.delete-media');
     if (deleteButton) {
-        deleteButton.addEventListener('click', () => deleteMedia(media.id));
+        deleteButton.addEventListener('click', (e) => {
+             e.stopPropagation(); // Prevent card click or other actions
+             deleteMedia(media.id)
+        });
+    }
+
+    // Add event listener for edit
+    const editButton = mediaElement.querySelector('.edit-media');
+    if (editButton) {
+        editButton.addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevent card click or other actions
+            showMediaDialog(media.id); // Call function to show edit dialog
+        });
     }
     
     // Initialize Lucide icons
     if (window.lucide && typeof window.lucide.createIcons === 'function') {
-        window.lucide.createIcons({ context: mediaElement });
+        // Make sure to include the 'edit' icon
+        window.lucide.createIcons({ icons: ['trash-2', 'edit', 'image', 'video'], context: mediaElement });
     }
     
     return mediaElement;
+}
+
+/**
+ * Show media dialog for editing
+ * @param {string} mediaId - The ID of the media item to edit
+ */
+function showMediaDialog(mediaId) {
+    if (!mediaId) {
+        console.error('showMediaDialog called without mediaId');
+        return;
+    }
+    
+    // Get media data
+    const mediaData = window.getItemById ? window.getItemById('MEDIA', mediaId) : null;
+    
+    if (!mediaData) {
+        console.error(`Media item not found: ${mediaId}`);
+        alert('Could not find the media item to edit.');
+        return;
+    }
+    
+    // Set up form fields for editing (Name and Description only)
+    const fields = [
+        {
+            type: 'text',
+            id: 'media-name',
+            label: 'Name',
+            value: mediaData.name || '',
+            required: false // Name is optional
+        },
+        {
+            type: 'textarea',
+            id: 'media-description',
+            label: 'Description',
+            rows: 4,
+            value: mediaData.description || ''
+        },
+        {
+            type: 'static', // Display type, but don't allow editing
+            label: 'Type',
+            value: mediaData.type.charAt(0).toUpperCase() + mediaData.type.slice(1) // Capitalize first letter
+        }
+    ];
+    
+    // Create dialog using UI framework
+    const editDialog = window.UI.createStandardDialog({
+        title: 'Edit Media Details',
+        fields: fields,
+        onSubmit: (dialog, e) => handleMediaFormSubmit(dialog, e, mediaId), // Pass mediaId
+        onCancel: (dialog) => dialog.close(),
+        submitButtonText: 'Save Changes',
+        cancelButtonText: 'Cancel'
+    });
+    
+    // Show dialog
+    editDialog.showModal();
+}
+
+/**
+ * Handle media form submission for editing
+ * @param {HTMLElement} dialog - The dialog element
+ * @param {Event} e - The submit event
+ * @param {string} mediaId - The ID of the media item being edited
+ */
+function handleMediaFormSubmit(dialog, e, mediaId) {
+    try {
+        const form = e.target;
+        const nameInput = form.querySelector('#media-name');
+        const descriptionInput = form.querySelector('#media-description');
+        
+        // Get existing data to preserve fields we don't edit
+        const existingData = window.getItemById ? window.getItemById('MEDIA', mediaId) : null;
+        if (!existingData) {
+             throw new Error(`Failed to retrieve existing media data for ID: ${mediaId}`);
+        }
+
+        // Create updated media object
+        const updatedData = {
+            ...existingData, // Copy existing fields
+            name: nameInput ? nameInput.value.trim() : existingData.name, // Update name
+            description: descriptionInput ? descriptionInput.value.trim() : existingData.description, // Update description
+            updatedAt: new Date().toISOString() // Update timestamp
+        };
+        
+        // Save updated media data using the data layer
+        if (window.updateItem) {
+            window.updateItem('MEDIA', mediaId, updatedData);
+             if (window.showNotification) {
+                 window.showNotification('Media Updated', 'Your media details have been saved.');
+             }
+        } else {
+            console.error('window.updateItem function not found. Cannot save media updates.');
+            alert('Error: Could not save media updates.');
+            return; // Prevent dialog close if save failed
+        }
+        
+        dialog.close(); // Close the dialog on success
+
+    } catch (error) {
+        console.error('Error handling media form submission:', error);
+        alert('An error occurred while saving media details. Please try again.');
+        // Keep dialog open on error
+    }
 }
 
 /**

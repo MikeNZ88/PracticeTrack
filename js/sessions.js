@@ -9,11 +9,15 @@ let sessionDialog = null;
 // Cache for categories to improve performance
 let cachedCategories = null;
 
+// Constants for lazy loading
+const BATCH_SIZE = 20; // Number of sessions to load per batch
+let currentBatchIndex = 0;
+
 /**
  * Initialize sessions page with performance optimizations
  */
 function initializeSessions() {
-    console.log('[DEBUG Sessions] Initializing Sessions page...'); // Restore log
+    console.log('[DEBUG Sessions] Initializing Sessions page...');
     // Pre-cache categories
     cachedCategories = window.getItems ? window.getItems('CATEGORIES') : 
         JSON.parse(localStorage.getItem('practiceTrack_categories')) || [];
@@ -35,6 +39,9 @@ function initializeSessions() {
         showDialogFn: showSessionDialog // Ensure this function exists and works
     });
     
+    // Load the first batch of sessions
+    loadSessionBatch();
+
     // Add Date Preset Logic with optimizations - RESTORED
     const pageElement = document.getElementById('sessions-page');
     if (!pageElement) {
@@ -117,16 +124,15 @@ function initializeSessions() {
         console.log('[DEBUG Sessions] Date filter event listeners added.');
     }
 
-    // Set initial state (run only once or ensure it doesn't reset user selection)
-    // Maybe check if values are already set?
-    // For now, assume init is called only when needed.
-    elements.presetFilter.value = 'all'; 
-    elements.dateRangeDiv.style.display = 'none';
-    elements.startDateInput.value = '';
-    elements.endDateInput.value = '';
+    // Set initial state to "This Week"
+    elements.presetFilter.value = 'week'; 
+    // elements.dateRangeDiv.style.display = 'none'; // handlePresetChange will hide/show this
+    // elements.startDateInput.value = ''; // handlePresetChange will set these
+    // elements.endDateInput.value = ''; // handlePresetChange will set these
 
-    // Explicitly trigger load after ensuring date filters are set (Mirroring old working code)
-    window.UI.loadRecords('sessions');
+    // Explicitly trigger the preset change handler to apply the default filter
+    handlePresetChange();
+    // REMOVED: window.UI.loadRecords('sessions'); // handlePresetChange now triggers this via UI framework
 
     console.log('[DEBUG Sessions] Initialization complete.');
 }
@@ -137,12 +143,55 @@ function initializeSessions() {
  * @returns {HTMLElement} - The session element
  */
 function createSessionElement(session) {
-    // Create element
     const sessionElement = document.createElement('div');
     sessionElement.className = 'card session-item';
     sessionElement.dataset.id = session.id;
 
-    // Format duration once
+    // Format duration
+    const durationStr = formatDuration(session);
+
+    // Format date and time
+    const { dateStr, timeStr } = formatDateTime(session.startTime);
+
+    // Get category name
+    const category = getCategoryName(session.categoryId);
+
+    // Build HTML using template literal
+    sessionElement.innerHTML = `
+        <div class="session-header">
+             <span class="session-category card-name-pill">${category}</span>
+             <span class="session-duration">${durationStr}</span>
+        </div>
+        ${session.notes ? `<div class="session-notes">${session.notes}</div>` : ''}
+        <div class="session-actions"> 
+            <span class="session-date">${dateStr} at ${timeStr}</span> 
+            <div class="action-buttons">
+                ${session.isLesson ? '<span class="lesson-badge">Lesson</span>' : ''}
+                <button class="icon-button edit-session app-button app-button--secondary" title="Edit Session">
+                    <i data-lucide="edit"></i>
+                </button>
+                <button class="icon-button delete-session app-button app-button--secondary" title="Delete Session">
+                    <i data-lucide="trash-2"></i>
+                </button>
+            </div>
+        </div>
+    `;
+
+    // Add event listeners
+    addSessionEventListeners(sessionElement, session.id);
+
+    // Initialize icons
+    initializeIcons(sessionElement);
+
+    return sessionElement;
+}
+
+/**
+ * Format duration into a string
+ * @param {Object} session - The session data
+ * @returns {string} - Formatted duration string
+ */
+function formatDuration(session) {
     const durationSeconds = (session.endTime && session.startTime) 
         ? Math.round((new Date(session.endTime).getTime() - new Date(session.startTime).getTime()) / 1000)
         : session.duration || 0;
@@ -151,50 +200,49 @@ function createSessionElement(session) {
     const minutes = Math.floor((durationSeconds % 3600) / 60);
     const seconds = durationSeconds % 60;
 
-    // Build duration string efficiently
     const durationParts = [];
     if (hours > 0) durationParts.push(`${hours}h`);
     if (minutes > 0 || hours > 0) durationParts.push(`${minutes}m`);
     durationParts.push(`${seconds}s`);
-    const durationStr = durationParts.join(' ');
+    return durationParts.join(' ');
+}
 
-    // Format date and time once
-    const startTime = new Date(session.startTime);
-    const dateStr = startTime.toLocaleDateString();
-    const timeStr = startTime.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+/**
+ * Format date and time
+ * @param {string} startTime - The session start time
+ * @returns {Object} - Formatted date and time strings
+ */
+function formatDateTime(startTime) {
+    const start = new Date(startTime);
+    return {
+        dateStr: start.toLocaleDateString(),
+        timeStr: start.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
+    };
+}
 
-    // Get category name once
+/**
+ * Get category name
+ * @param {string} categoryId - The category ID
+ * @returns {string} - The category name
+ */
+function getCategoryName(categoryId) {
     const categories = window.getItems ? window.getItems('CATEGORIES') : 
         JSON.parse(localStorage.getItem('practiceTrack_categories')) || [];
-    const category = categories.find(c => c.id === session.categoryId) || { name: 'Unknown' };
+    const category = categories.find(c => c.id === categoryId) || { name: 'Unknown' };
+    return category.name || 'No Category';
+}
 
-    // Build HTML efficiently using template literal
-    sessionElement.innerHTML = `
-        <div class="session-header">
-             <span class="session-category card-name-pill">${category.name || 'No Category'}</span>
-             <span class="session-duration">${durationStr}</span>
-        </div>
-        ${session.notes ? `<div class="session-notes">${session.notes}</div>` : ''}
-        <div class="session-actions"> 
-            <span class="session-date">${dateStr} at ${timeStr}</span> 
-            <div class="action-buttons">
-                ${session.isLesson ? '<span class="lesson-badge">Lesson</span>' : ''}
-                <button class="icon-button delete-session app-button app-button--secondary" title="Delete Session">
-                    <i data-lucide="trash"></i>
-                </button>
-                 <button class="icon-button edit-session app-button app-button--secondary" title="Edit Session">
-                    <i data-lucide="edit"></i>
-                </button>
-            </div>
-        </div>
-    `;
-
-    // Add event listener
+/**
+ * Add event listeners to session element
+ * @param {HTMLElement} sessionElement - The session element
+ * @param {string} sessionId - The session ID
+ */
+function addSessionEventListeners(sessionElement, sessionId) {
     const deleteBtn = sessionElement.querySelector('.delete-session');
     if (deleteBtn) {
         deleteBtn.addEventListener('click', (e) => {
-            e.stopPropagation(); // Prevent event bubbling
-            deleteSession(session.id);
+            e.stopPropagation();
+            deleteSession(sessionId);
         });
     }
     
@@ -202,20 +250,23 @@ function createSessionElement(session) {
     if (editBtn) {
         editBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            showSessionDialog(session.id);
+            showSessionDialog(sessionId);
         });
     }
-    
-    // Initialize icons efficiently
+}
+
+/**
+ * Initialize icons within a session element
+ * @param {HTMLElement} sessionElement - The session element
+ */
+function initializeIcons(sessionElement) {
     if (window.lucide?.createIcons) {
         window.lucide.createIcons({ 
-            icons: ['trash', 'edit'],
+            icons: ['trash-2', 'edit'],
             stroke: 'currentColor',
             context: sessionElement 
         });
     }
-
-    return sessionElement;
 }
 
 /**
@@ -260,12 +311,14 @@ function showSessionDialog(sessionId) {
             value: sessionData ? sessionData.startTime.split('T')[0] : dateString
         },
         {
-            type: 'number',
-            id: 'session-duration',
-            label: 'Duration (minutes)',
+            type: 'text',
+            id: 'session-duration-hms',
+            label: 'Duration (HH:MM:SS)',
             required: true,
-            min: 1,
-            value: sessionData ? Math.round(sessionData.duration / 60) : ''
+            placeholder: 'e.g., 1:25:30 or 45:00 or 90',
+            pattern: "^\\d*[:]?\\d{0,2}[:]?\\d{0,2}$",
+            title: "Enter duration as H:MM:SS, MM:SS, or just seconds",
+            value: (sessionData && typeof sessionData.duration === 'number') ? formatSecondsAsHMS(sessionData.duration) : ''
         },
         {
             type: 'textarea',
@@ -291,6 +344,64 @@ function showSessionDialog(sessionId) {
     
     // Show dialog
     sessionDialog.showModal();
+}
+
+/**
+ * Helper function to format total seconds into HH:MM:SS string
+ * @param {number} totalSeconds 
+ * @returns {string} Formatted string
+ */
+function formatSecondsAsHMS(totalSeconds) {
+    if (typeof totalSeconds !== 'number' || isNaN(totalSeconds) || totalSeconds < 0) {
+        return '0:00:00'; // Default or error case
+    }
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    
+    // Pad minutes and seconds with leading zeros if needed
+    const paddedMinutes = String(minutes).padStart(2, '0');
+    const paddedSeconds = String(seconds).padStart(2, '0');
+    
+    return `${hours}:${paddedMinutes}:${paddedSeconds}`;
+}
+
+/**
+ * Helper function to parse H:M:S string into total seconds
+ * @param {string} hmsString - String like "1:23:45", "45:30", "90"
+ * @returns {number} Total seconds, or 0 if invalid
+ */
+function parseDurationHMS(hmsString) {
+    if (!hmsString || typeof hmsString !== 'string') return 0;
+    
+    const parts = hmsString.trim().split(':').map(part => parseInt(part, 10));
+    let hours = 0, minutes = 0, seconds = 0;
+
+    if (parts.length === 3) {
+        // H:M:S
+        hours = parts[0] || 0;
+        minutes = parts[1] || 0;
+        seconds = parts[2] || 0;
+    } else if (parts.length === 2) {
+        // M:S
+        minutes = parts[0] || 0;
+        seconds = parts[1] || 0;
+    } else if (parts.length === 1 && !isNaN(parts[0])) {
+        // Just seconds
+        seconds = parts[0];
+    } else {
+        // Invalid format
+        return 0; 
+    }
+    
+    // Basic validation (ensure components are numbers and within reasonable bounds)
+    if (isNaN(hours) || isNaN(minutes) || isNaN(seconds) || 
+        hours < 0 || minutes < 0 || seconds < 0 || 
+        minutes >= 60 || seconds >= 60) { 
+        return 0; 
+    }
+    
+    return (hours * 3600) + (minutes * 60) + seconds;
 }
 
 /**
@@ -331,28 +442,27 @@ function handleSessionFormSubmit(dialog, e, sessionId) {
             }
         }
 
-        // Get form data
+        // Get form data and parse, defaulting empty/invalid to 0
         const formData = new FormData(dialog.querySelector('form'));
         const categoryId = formData.get('session-category');
         const dateValue = formData.get('session-date'); // YYYY-MM-DD
-        const durationMinutesRaw = formData.get('session-duration'); // Get raw value first
-        const durationMinutes = parseInt(durationMinutesRaw, 10);
+        const durationHMS = formData.get('session-duration-hms');
         const notes = formData.get('dialog-session-notes');
 
         // --- Detailed Validation --- 
         let validationError = null;
+        const totalDurationSeconds = durationHMS ? parseDurationHMS(durationHMS) : 0;
+
         if (!categoryId) {
             validationError = 'Category not selected.';
         } else if (!dateValue) {
             validationError = 'Date not selected.';
-        } else if (isNaN(durationMinutes)) {
-            validationError = 'Duration is not a valid number.';
-        } else if (durationMinutes <= 0) {
-            validationError = 'Duration must be greater than 0.';
+        } else if (totalDurationSeconds <= 0) { // Check total duration is positive and parsing was successful
+             validationError = 'Duration must be a valid time (e.g., H:MM:SS, MM:SS, or seconds) and greater than 0.';
         }
         
         // Log validation result
-        console.log(`[DEBUG Sessions VALIDATION] Category='${categoryId}', Date='${dateValue}', Duration=${durationMinutes}. Error: ${validationError || 'None'}`);
+        console.log(`[DEBUG Sessions VALIDATION] Category='${categoryId}', Date='${dateValue}', Duration='${durationHMS || "N/A"}' (Parsed Total: ${totalDurationSeconds}s). Error: ${validationError || 'None'}`);
 
         // Check if validation failed
         if (validationError) { 
@@ -374,14 +484,13 @@ function handleSessionFormSubmit(dialog, e, sessionId) {
         console.log(`[DEBUG Sessions] Parsed date value: ${dateValue}, Created Date object: ${sessionDate.toString()}`);
 
         const sessionStartTime = sessionDate.getTime(); // Milliseconds since epoch
-        const durationSeconds = durationMinutes * 60;
-        const sessionEndTime = sessionStartTime + (durationSeconds * 1000);
+        const sessionEndTime = sessionStartTime + (totalDurationSeconds * 1000);
         
         const startTimeISO = new Date(sessionStartTime).toISOString();
         const endTimeISO = new Date(sessionEndTime).toISOString();
         
         console.log(`[DEBUG Sessions] Calculated Times:
-                     Duration: ${durationMinutes} min (${durationSeconds} sec)
+                     Duration: ${durationHMS || 'N/A'}
                      Start (ms): ${sessionStartTime}, Start (ISO): ${startTimeISO}
                      End (ms): ${sessionEndTime}, End (ISO): ${endTimeISO}`);
         // --- End Time Calculation --- 
@@ -391,7 +500,7 @@ function handleSessionFormSubmit(dialog, e, sessionId) {
             categoryId: categoryId || '', // Ensure empty string if null/undefined
             startTime: startTimeISO, // Store as ISO string
             endTime: endTimeISO,   // Store as ISO string
-            duration: durationSeconds, // Store duration in seconds
+            duration: totalDurationSeconds, // Store calculated total duration in seconds
             notes: notes || '',
             isLesson: false, // Assuming manual entries are not lessons by default
             updatedAt: new Date().toISOString(),
@@ -495,6 +604,70 @@ async function deleteSession(sessionId) {
         alert('Error deleting session. Please try again.');
     }
 }
+
+/**
+ * Load a batch of sessions
+ */
+function loadSessionBatch() {
+    const allSessions = window.getItems ? window.getItems('SESSIONS') : JSON.parse(localStorage.getItem('practiceTrack_sessions')) || [];
+    const start = currentBatchIndex * BATCH_SIZE;
+    const end = start + BATCH_SIZE;
+    const sessionBatch = allSessions.slice(start, end);
+
+    const listContainer = document.getElementById('sessions-list');
+    const fragment = document.createDocumentFragment();
+
+    sessionBatch.forEach(session => {
+        const sessionElement = createSessionElement(session);
+        fragment.appendChild(sessionElement);
+    });
+
+    listContainer.appendChild(fragment);
+    currentBatchIndex++;
+
+    // Check if more sessions are available
+    if (end < allSessions.length) {
+        // Add scroll event listener to load more sessions
+        window.addEventListener('scroll', handleScroll);
+    } else {
+        // Remove scroll listener if all sessions are loaded
+        window.removeEventListener('scroll', handleScroll);
+    }
+}
+
+/**
+ * Handle scroll event to load more sessions
+ */
+function handleScroll() {
+    const scrollPosition = window.innerHeight + window.scrollY;
+    const documentHeight = document.body.offsetHeight;
+
+    if (scrollPosition >= documentHeight - 100) { // Load more when near bottom
+        loadSessionBatch();
+    }
+}
+
+// Debounce function to limit the rate of function execution
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+};
+
+// Modify handleScroll to use debounce
+const debouncedHandleScroll = debounce(handleScroll, 200);
+
+// Update event listener to use debounced function
+window.addEventListener('scroll', debouncedHandleScroll);
+
+// Remove the original scroll event listener
+window.removeEventListener('scroll', handleScroll);
 
 // Initialize when page changes to sessions
 // document.addEventListener('pageChanged', (e) => {
