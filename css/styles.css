@@ -2441,6 +2441,18 @@ textarea.form-control {
     .media-card {
         padding: var(--space-md);
     }
+
+    /* Reduce font size for stats values on very small screens */
+    .stat-card .stat-value,
+    .stat-card .stat-sub-value {
+        font-size: var(--font-xl); /* Decrease from 2xl to xl (e.g., 20px) */
+    }
+
+    /* Ensure stat description text wraps */
+    .stat-card .stat-description {
+        white-space: normal; /* Allow wrapping */
+        word-break: break-word; /* Break long words */
+    }
 }
 
 /* Print Styles */
@@ -5890,181 +5902,54 @@ textarea:focus {
     max-width: 100%;
 }
 
-/* Update primary button base style */
-.app-button--primary {
-    /* ... other styles ... */
-    background-color: var(--primary-blue-light); /* Use LIGHTER blue */
-    color: var(--text-dark); /* Adjust text color for light background if needed */
+/* == Mobile Responsive Fixes == */
+
+@media (max-width: 600px) {
+
+    /* --- Media Tab Fixes --- */
+
+    /* Ensure footer content aligns and wraps */
+    .media-card .media-footer {
+        display: flex;
+        flex-wrap: wrap; /* Allow wrapping */
+        justify-content: space-between;
+        align-items: center;
+        gap: var(--space-sm); /* Add gap between date and actions */
+    }
+
+    /* Prevent buttons from overflowing */
+    .media-card .media-actions {
+        display: flex;
+        gap: var(--space-xs); /* Reduce gap between buttons */
+        flex-shrink: 0; /* Prevent shrinking */
+        /* flex-basis: auto; Ensure buttons don't take up unnecessary space */
+    }
+
+    /* Reduce padding on icon buttons if needed */
+    .media-card .media-actions .icon-button {
+        padding: var(--space-xs); 
+    }
+
+    /* Allow media name/title to wrap */
+    .media-card .media-name,
+    .media-card .card-name-pill {
+        white-space: normal; /* Allow wrapping */
+        word-break: break-word; /* Break long words if necessary */
+        max-width: 100%; /* Ensure it doesn't expand container */
+        line-height: 1.3; /* Adjust line height for wrapped text */
+    }
+
+    /* Ensure chart container is visible (adjust selector if different) */
+    #media-chart-container, /* Common ID pattern */
+    .media-chart /* Common class pattern */
+    {
+        display: block !important; /* Override any potential display: none */
+        width: 100%;
+        max-width: 100%;
+        margin-top: var(--space-lg);
+    }
+
+    /* Add other mobile fixes as needed */
+
 }
 
-.app-button--primary:hover {
-    /* ... other styles ... */
-    background-color: var(--primary-blue); /* Use original blue for hover */
-}
-
-/* Update timer start/pause button */
-.timer-btn.primary-action {
-    background: var(--primary-blue-light); /* Use LIGHTER blue */
-    color: var(--text-dark); /* Adjust text color */
-}
-/* Remove gradient override for pause state if it exists */
-.timer-btn.primary-action.pause-state {
-     /* background: linear-gradient(to right, #f59e0b, #fbbf24); */ /* Keep yellow/orange? or use light blue? */
-     /* Let's keep pause state visually distinct for now, maybe orange? */
-      background: linear-gradient(to right, var(--warning), #fbbf24); /* Keep orange/yellow */
-      color: var(--text-dark);
-}
-
-.timer-btn.primary-action:hover {
-    background: var(--primary-blue); /* Use original blue for hover */
-}
-
-/* Update specific #resources-how-to-use-btn */
-#resources-how-to-use-btn {
-    background-color: var(--primary-blue-light); /* Use LIGHTER blue */
-    color: var(--text-dark); /* Adjust text color */
-    padding: 10px 20px;
-    border: none;
-    border-radius: 5px;
-    transition: background-color 0.3s ease;
-    display: inline-flex;
-    max-width: fit-content;
-    font-family: var(--font-sans);
-    font-size: var(--font-sm);
-    font-weight: 500;
-    text-decoration: none;
-    cursor: pointer;
-    align-items: center; /* Align icon and text if icon is present */
-    justify-content: center;
-}
-
-#resources-how-to-use-btn:hover {
-    background-color: var(--primary-blue); /* Use original blue for hover */
-}
-
-    justify-content: center;
-    box-shadow: var(--shadow-sm);
-}
-
-#resources-how-to-use-btn:hover {
-    background: linear-gradient(to bottom, var(--primary-blue), var(--primary-blue-dark)); /* Darker gradient on hover */
-    box-shadow: var(--shadow-md);
-    transform: translateY(-1px);
-}
-
-/* == Corrected Primary Button Styles == */
-
-/* Base style for primary action buttons */
-.app-button--primary,
-.media-controls .primary-button { /* Target media buttons */
-    background-color: var(--primary-blue); /* Solid primary blue */
-    color: white; /* White text */
-    border: 1px solid var(--primary-blue-dark); /* Consistent border */
-    /* Ensure other base styles are inherited or defined (padding, radius, etc.) */
-    padding: 10px 18px; /* Example padding */
-    border-radius: var(--radius-md);
-    transition: all var(--transition-normal);
-    font-weight: 500;
-    box-shadow: var(--shadow-sm);
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: var(--space-sm);
-}
-
-.app-button--primary:hover,
-.media-controls .primary-button:hover {
-    background-color: var(--primary-blue-dark); /* Darker blue on hover */
-    border-color: var(--primary-blue-dark);
-    box-shadow: var(--shadow-md);
-    transform: translateY(-1px);
-}
-
-/* Timer start/pause button */
-.timer-btn.primary-action {
-    background-color: var(--primary-blue); /* Solid primary blue */
-    color: white; /* White text */
-    border: 1px solid var(--primary-blue-dark);
-    /* Apply standard button padding/radius if not inherited */
-    padding: 0.75rem 1.5rem;
-    border-radius: var(--radius-full);
-    /* Keep other specific timer button styles if needed */
-}
-
-.timer-btn.primary-action:hover {
-    background-color: var(--primary-blue-dark); /* Darker blue on hover */
-    border-color: var(--primary-blue-dark);
-}
-
-/* Keep Pause state distinct */
-.timer-btn.primary-action.pause-state {
-    background: linear-gradient(to right, var(--warning), #fbbf24); /* Keep orange/yellow */
-    color: var(--text-dark);
-    border: 1px solid #e35f2a; /* Darker orange border */
-}
-
-/* How to Use button */
-#resources-how-to-use-btn {
-    background-color: var(--primary-blue); /* Solid primary blue */
-    color: white; /* White text */
-    border: 1px solid var(--primary-blue-dark);
-    padding: 10px 20px;
-    border-radius: var(--radius-md); /* Consistent radius */
-    transition: all var(--transition-normal);
-    display: inline-flex;
-    max-width: fit-content;
-    font-family: var(--font-sans);
-    font-size: var(--font-sm);
-    font-weight: 500;
-    text-decoration: none;
-    cursor: pointer;
-    align-items: center;
-    justify-content: center;
-    box-shadow: var(--shadow-sm);
-    gap: var(--space-sm);
-}
-
-#resources-how-to-use-btn:hover {
-    background-color: var(--primary-blue-dark); /* Darker blue on hover */
-    border-color: var(--primary-blue-dark);
-    box-shadow: var(--shadow-md);
-    transform: translateY(-1px);
-}
-
-/* == Checkbox Alignment Fix == */
-
-.checkbox-label {
-    display: flex;
-    align-items: center; /* Vertically align checkbox and text */
-    gap: var(--space-sm); /* Use smaller gap */
-    padding: var(--space-sm) 0; /* Adjust padding if needed */
-    cursor: pointer;
-    user-select: none;
-    border-radius: var(--radius-md);
-    transition: background-color var(--transition-fast);
-    margin-bottom: 0; /* Remove bottom margin if handled by form gap */
-}
-
-.checkbox-label:hover {
-    background: var(--background-light);
-}
-
-.checkbox-label input[type="checkbox"] {
-    width: 18px; /* Checkbox size */
-    height: 18px;
-    margin: 0; /* Remove default margins */
-    cursor: pointer;
-    border-radius: var(--radius-sm);
-    accent-color: var(--primary-blue);
-    flex-shrink: 0; /* Prevent checkbox from shrinking */
-    position: relative; /* Helps with potential baseline alignment issues */
-    top: -1px; /* Minor adjustment if needed for perfect vertical center */
-}
-
-.checkbox-label span {
-    color: var(--text-dark);
-    font-size: var(--font-md);
-    font-weight: 500;
-    line-height: 1.2; /* Adjust line-height */
-}
