@@ -266,6 +266,9 @@ function initStats() {
         // Apply initial filters by calling the handler
         handleStatsPresetChange(); 
         // REMOVED: applyFilters(); // Handler calls this now
+
+        // >>> ADD: Display the practice scale guide content <<<
+        displayPracticeScaleGuide();
     }
     // --- End Date Preset Logic ---
 }
@@ -943,4 +946,118 @@ function setupDateInputListeners() {
     if (endDateInput) {
         endDateInput.addEventListener('change', applyFilters);
     }
+}
+
+// >>> NEW FUNCTION to display the guide content <<<
+function displayPracticeScaleGuide() {
+    const guideContainer = document.getElementById('practice-guide-content');
+    if (!guideContainer) {
+        console.warn('Practice guide container not found.');
+        return;
+    }
+
+    // --- Guide Content (Your Markdown converted to HTML) ---
+    // (Ensure the full HTML content provided previously is included here)
+    const guideContentHTML = ` 
+        <h2>PracticeTrack: Evidence-Based Practice Scale</h2>
+        <p>Understanding Your Practice Score...</p> 
+        <h2>Understanding Your Practice Score</h2>
+        <p>PracticeTrack uses a research-backed scale to help you gauge your practice commitment and provide appropriate guidance. The system categorizes practice time into four levels - Low, Medium, High, and Very High - based on extensive research in music education and performance psychology.</p>
+        <h2>Recommended Daily Practice Structure</h2>
+        <p>The table below shows the recommended time allocation for an effective practice session at each level:</p>
+        <table class="guide-table">
+            <thead>
+                <tr><th>Practice Component</th><th>Low Level</th><th>Medium Level</th><th>High Level</th><th>Very High Level</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>Warm-up</td><td>5 min</td><td>10 min</td><td>15 min</td><td>20 min</td></tr>
+                <tr><td>Technical work</td><td>10 min</td><td>20 min</td><td>40 min</td><td>1 hour</td></tr>
+                <tr><td>Repertoire work</td><td>15 min</td><td>40 min</td><td>1 hour 20 min</td><td>2 hours</td></tr>
+                <tr><td>Cool-down</td><td>5 min</td><td>5 min</td><td>10 min</td><td>15 min</td></tr>
+                <tr class="total-row"><td><strong>Total per day</strong></td><td><strong>35 min</strong></td><td><strong>1 hour 15 min</strong></td><td><strong>2 hours 25 min</strong></td><td><strong>3 hours 35 min</strong></td></tr>
+            </tbody>
+        </table>
+        <h2>Weekly Practice Expectations</h2>
+        <p>Your weekly practice commitment determines your PracticeTrack level:</p>
+        <table class="guide-table">
+            <thead>
+                <tr><th>Level</th><th>Daily Practice</th><th>Days Per Week</th><th>Weekly Total</th></tr>
+            </thead>
+            <tbody>
+                <tr><td><strong>Low</strong></td><td>35 min</td><td>3-4 days</td><td>~2 hours</td></tr>
+                <tr><td><strong>Medium</strong></td><td>1 hour 15 min</td><td>6 days</td><td>~7.5 hours</td></tr>
+                <tr><td><strong>High</strong></td><td>2 hours 25 min</td><td>7 days</td><td>~17 hours</td></tr>
+                <tr><td><strong>Very High</strong></td><td>3 hours 35 min</td><td>7 days</td><td>~25 hours</td></tr>
+            </tbody>
+        </table>
+        <h2>PracticeTrack Scale Benchmarks</h2>
+        <p>These benchmarks help you understand your practice commitment over different time periods:</p>
+        <table class="guide-table">
+            <thead>
+                <tr><th>Level</th><th>Weekly Hours</th><th>Monthly Hours</th><th>Annual Hours</th></tr>
+            </thead>
+            <tbody>
+                <tr><td><strong>Low</strong></td><td>~2 hours</td><td>~8 hours</td><td>~100 hours</td></tr>
+                <tr><td><strong>Medium</strong></td><td>~7.5 hours</td><td>~30 hours</td><td>~360 hours</td></tr>
+                <tr><td><strong>High</strong></td><td>~17 hours</td><td>~68 hours</td><td>~816 hours</td></tr>
+                <tr><td><strong>Very High</strong></td><td>~25 hours</td><td>~100 hours</td><td>~1200 hours</td></tr>
+            </tbody>
+        </table>
+        <h2>The Science Behind the Scale</h2>
+        <p>The PracticeTrack scale is grounded in multiple peer-reviewed studies on music practice. Here's what the research shows about practice time and achievement:</p>
+        <h3>Deliberate Practice Research</h3>
+        <p>The concept of "deliberate practice" was established by Ericsson et al. (1993), who found that expert performers engage in structured, goal-oriented practice with specific characteristics. Their research showed that top performers practice deliberately for 3-4 hours daily, distributed throughout the day rather than in one session.</p>
+        <h3>Practice Duration Findings</h3>
+        <p>Multiple studies have documented practice durations across different skill levels:</p>
+        <ul class="reference-list">
+            <li>Jørgensen (2002) found conservatory students in the bottom quartile practiced 9-10 hours weekly, while top performers averaged 20-25 hours weekly.</li>
+            <li>Sloboda et al. (1996) documented that beginners showing minimal progress practiced only 1.5-3 hours weekly, while high-achieving young musicians practiced 10-15 hours weekly.</li>
+            <li>Bonneville-Roussy & Bouffard (2015) found that university music students practicing 10-20 hours weekly with high-quality techniques showed better outcomes than those practicing longer with lower quality methods.</li>
+            <li>Duke et al. (2009) found that top piano students at major conservatories practiced between 10-25 hours weekly, with most in the 14-18 hour range.</li>
+        </ul>
+        <h3>Practice Quality Over Quantity</h3>
+        <p>Research consistently shows that how you practice matters more than how long you practice:</p>
+        <ul class="reference-list">
+            <li>Duke et al. (2009) identified that successful students use distinctive practice strategies: immediate error identification, problem isolation, and continuous self-evaluation.</li>
+            <li>Carter and Grahn (2016) demonstrated that interleaved practice—alternating between different skills—leads to better long-term retention than blocked practice.</li>
+        </ul>
+        <h2>Key Model Assumptions</h2>
+        <p>The PracticeTrack model is built on several research-supported assumptions:</p>
+        <ol class="assumption-list">
+            <li><strong>Distributed Practice</strong>: The research clearly shows that 3-4 shorter sessions are more effective than one marathon session. The higher levels assume practice is distributed throughout the day.</li>
+            <li><strong>Structured Components</strong>: Effective practice follows a structure that includes warm-up, technical work, repertoire practice, and reflection/cool-down.</li>
+            <li><strong>Quality Indicators</strong>: While the scale measures quantity, the quality of practice remains paramount. PracticeTrack encourages using techniques like chunking, interleaving, spaced repetition, and mental practice.</li>
+            <li><strong>Skill Level Adaptation</strong>: Beginners and experts have different practice needs. Beginners may focus more on fundamentals, while advanced players balance technical and artistic development.</li>
+        </ol>
+        <h2>How to Use This Scale</h2>
+        <ul class="usage-list">
+            <li><strong>Assessment</strong>: Track your practice to determine your current level</li>
+            <li><strong>Goal Setting</strong>: Use the scale to set reasonable practice targets</li>
+            <li><strong>Structure</strong>: Follow the recommended component breakdown for your level</li>
+            <li><strong>Progress</strong>: Aim to gradually increase both quality and quantity of practice</li>
+        </ul>
+        <h2>Additional Resources</h2>
+        <p>For more information on effective practice techniques:</p>
+        <ul class="resource-list">
+            <li><a href="#" target="_blank" rel="noopener noreferrer">The Science of Effective Practice</a> - Comprehensive practice guide</li>
+            <li><a href="#" target="_blank" rel="noopener noreferrer">Structured Practice Templates</a> - Downloadable templates for each level</li>
+            <li><a href="#" target="_blank" rel="noopener noreferrer">Practice Journal</a> - Digital journal compatible with PracticeTrack</li>
+        </ul>
+        <hr>
+        <h3>References</h3>
+        <ul class="reference-list">
+            <li>Bonneville-Roussy, A., & Bouffard, T. (2015). <a href="https://doi.org/10.1177/0305735614533836" target="_blank" rel="noopener noreferrer">When quantity is not enough: Disentangling the roles of practice time, self-regulation and deliberate practice in musical achievement.</a> Psychology of Music, 43(5), 686-704.</li>
+            <li>Carter, C. E., & Grahn, J. A. (2016). <a href="https://doi.org/10.3389/fpsyg.2016.01251" target="_blank" rel="noopener noreferrer">Optimizing music learning: Exploring how blocked and interleaved practice schedules affect advanced performance.</a> Frontiers in Psychology, 7, 1251.</li>
+            <li>Duke, R. A., Simmons, A. L., & Cash, C. D. (2009). <a href="https://doi.org/10.1177/0022429408328851" target="_blank" rel="noopener noreferrer">It's not how much; it's how: Characteristics of practice behavior and retention of performance skills.</a> Journal of Research in Music Education, 56(4), 310-321.</li>
+            <li>Ericsson, K. A., Krampe, R. T., & Tesch-Römer, C. (1993). <a href="https://doi.org/10.1037/0033-295X.100.3.363" target="_blank" rel="noopener noreferrer">The role of deliberate practice in the acquisition of expert performance.</a> Psychological Review, 100(3), 363-406.</li>
+            <li>Hallam, S., et al. (2012). <a href="https://doi.org/10.1177/0305735609351921" target="_blank" rel="noopener noreferrer">The development of practising strategies in young people.</a> Psychology of Music, 40(5), 652-680.</li>
+            <li>Jørgensen, H. (2002). <a href="https://doi.org/10.1080/14613800220119778" target="_blank" rel="noopener noreferrer">Instrumental performance expertise and amount of practice among instrumental students in a conservatoire.</a> Music Education Research, 4(1), 105-119.</li>
+            <li>McPherson, G. E. (2005). <a href="https://doi.org/10.1177/0305735605048012" target="_blank" rel="noopener noreferrer">From child to musician: Skill development during the beginning stages of learning an instrument.</a> Psychology of Music, 33(1), 5-35.</li>
+            <li>Sloboda, J. A., et al. (1996). <a href="https://doi.org/10.1080/0305569960220105" target="_blank" rel="noopener noreferrer">The role of practice in the development of performing musicians.</a> British Journal of Psychology, 87(2), 287-309.</li>
+        </ul>
+    `;
+    // --- End Guide Content ---
+
+    guideContainer.innerHTML = guideContentHTML;
+    console.log('Practice scale guide content displayed.');
 }

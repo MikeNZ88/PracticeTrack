@@ -5728,6 +5728,8 @@ textarea:focus {
     display: inline-flex; /* Keep flex for icon alignment */
     /* Styles inherited from .app-button .app-button--secondary should still apply via HTML */
     margin: 0; /* Remove any potential default margins */
+}
+
 /* Enhance the 'How to use PracticeTrack' button */
 #resources-how-to-use-btn {
     background-color: #4154b3; /* Primary color */
@@ -5736,14 +5738,130 @@ textarea:focus {
     border: none; /* Remove default border */
     border-radius: 5px; /* Rounded corners */
     transition: background-color 0.3s ease; /* Smooth transition for hover */
+    display: inline-flex; /* Keep flex for icon alignment */
+    max-width: fit-content; /* Moved this inside */
 }
 
 #resources-how-to-use-btn:hover {
     background-color: #2e3a8c; /* Darker shade on hover */
-}    max-width: fit-content;
 }
-
 
 /*--------------------------------------------------------------
 # Media Queries
 --------------------------------------------------------------*/
+
+/* Styles for Practice Scale Guide Content (embedded) */
+.practice-guide-section {
+    margin-top: var(--space-2xl); /* Space above the guide */
+    padding: var(--space-xl);
+    background-color: var(--card-background);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-color);
+}
+
+.practice-guide-section h2 {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--primary-blue);
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.practice-guide-section h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-dark);
+    margin-top: 1.2rem;
+    margin-bottom: 0.5rem;
+}
+
+.practice-guide-section p {
+    margin-bottom: 1rem;
+    line-height: 1.6;
+}
+
+.practice-guide-section table.guide-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 1.5rem;
+    font-size: 0.85rem;
+}
+
+.practice-guide-section table.guide-table th,
+.practice-guide-section table.guide-table td {
+    border: 1px solid var(--border-color);
+    padding: 0.6rem 0.8rem;
+    text-align: left;
+}
+
+.practice-guide-section table.guide-table th {
+    background-color: var(--background-light);
+    font-weight: 600;
+}
+
+.practice-guide-section table.guide-table tr:nth-child(even) td {
+    background-color: var(--background-light);
+}
+
+.practice-guide-section table.guide-table .total-row td {
+    background-color: var(--info-light);
+    font-weight: bold;
+}
+
+.practice-guide-section ul,
+.practice-guide-section ol {
+    margin-left: 1.5rem; /* Indent lists */
+    margin-bottom: 1rem;
+    padding-left: 1rem;
+}
+
+.practice-guide-section li {
+    margin-bottom: 0.5rem;
+}
+
+.practice-guide-section hr {
+    border: none;
+    border-top: 1px solid var(--border-color);
+    margin: 1.5rem 0;
+}
+
+.practice-guide-section .reference-list li,
+.practice-guide-section .resource-list li,
+.practice-guide-section .assumption-list li,
+.practice-guide-section .usage-list li {
+    font-size: 0.85rem;
+}
+
+.practice-guide-section a {
+    color: var(--primary-blue);
+    text-decoration: none;
+}
+
+.practice-guide-section a:hover {
+    text-decoration: underline;
+}
+
+/* Utility class for text truncation with ellipsis */
+.text-ellipsis {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%; /* Adjust as needed for specific elements */
+    display: block; /* Ensure the element is a block to respect width */
+}
+
+/* Apply text-ellipsis to card titles and descriptions */
+.media-name,
+.session-header h3,
+.goal-title,
+.media-description,
+.session-notes,
+.goal-description {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
