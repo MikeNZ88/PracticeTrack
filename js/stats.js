@@ -284,10 +284,6 @@ function initStats() {
             dateRangeDiv.style.display = (selectedPreset === 'custom') ? 'flex' : 'none';
 
             switch (selectedPreset) {
-                case 'today': // Add Today case
-                    startDate = today.toISOString().split('T')[0];
-                    endDate = startDate;
-                    break;
                 case 'week':
                     const firstDayOfWeek = new Date(today.setDate(today.getDate() - today.getDay()));
                     startDate = firstDayOfWeek.toISOString().split('T')[0];
@@ -339,8 +335,8 @@ function initStats() {
               applyFilters(); // Trigger filter
          });
 
-        // Set initial state to 'today' instead of 'week'
-        presetFilter.value = 'today';
+        // Set initial state to 'week'
+        presetFilter.value = 'week';
         // dateRangeDiv.style.display = 'none'; // Handler will set this
         // startDateInput.value = ''; // Handler will set this
         // endDateInput.value = ''; // Handler will set this
