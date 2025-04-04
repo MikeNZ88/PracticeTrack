@@ -970,13 +970,14 @@ textarea.form-control {
 
 .checkbox-label {
     display: flex;
-    align-items: center;
-    gap: var(--space-md);
-    padding: var(--space-sm);
+    align-items: center; /* Vertically align checkbox and text */
+    gap: var(--space-sm); /* Use smaller gap */
+    padding: var(--space-sm) 0; /* Adjust padding if needed, maybe only vertical */
     cursor: pointer;
     user-select: none;
     border-radius: var(--radius-md);
     transition: background-color var(--transition-fast);
+    margin-bottom: 0; /* Remove bottom margin if handled by form gap */
 }
 
 .checkbox-label:hover {
@@ -984,18 +985,20 @@ textarea.form-control {
 }
 
 .checkbox-label input[type="checkbox"] {
-    width: 22px;
-    height: 22px;
-    margin: 0;
+    width: 18px; /* Slightly smaller checkbox */
+    height: 18px;
+    margin: 0; /* Remove default margins */
     cursor: pointer;
     border-radius: var(--radius-sm);
     accent-color: var(--primary-blue);
+    flex-shrink: 0; /* Prevent checkbox from shrinking */
 }
 
 .checkbox-label span {
     color: var(--text-dark);
     font-size: var(--font-md);
     font-weight: 500;
+    line-height: 1.2; /* Adjust line-height */
 }
 
 /* Button States */
@@ -5297,11 +5300,24 @@ textarea:focus {
 .timer-btn svg, .timer-btn i { width: 20px; height: 20px; }
 
 /* Apply specific timer button looks */
-.timer-btn.primary-action { background: linear-gradient(to right, #4f46e5, #6366f1); color: white; }
-.timer-btn.primary-action.pause-state { background: linear-gradient(to right, #f59e0b, #fbbf24); }
-.timer-btn.secondary-action { background: #e5e7eb; color: #374151; }
-.timer-btn.secondary-action:hover { background: #d1d5db; }
-.timer-btn.save-action { background: linear-gradient(to right, #10b981, #34d399); color: white; }
+.timer-btn.primary-action {
+    background: linear-gradient(to right, #4f46e5, #6366f1);
+    color: white;
+}
+.timer-btn.primary-action.pause-state {
+     background: linear-gradient(to right, #f59e0b, #fbbf24);
+}
+.timer-btn.secondary-action {
+    background: #e5e7eb;
+    color: #374151;
+}
+.timer-btn.secondary-action:hover {
+    background: #d1d5db;
+}
+.timer-btn.save-action {
+    background: linear-gradient(to right, #10b981, #34d399);
+    color: white;
+}
 .timer-btn.save-action:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); }
 
 /* ======================= */
@@ -5732,18 +5748,26 @@ textarea:focus {
 
 /* Enhance the 'How to use PracticeTrack' button */
 #resources-how-to-use-btn {
-    background-color: #4154b3; /* Primary color */
-    color: #fff; /* White text */
-    padding: 10px 20px; /* Add padding for better click area */
-    border: none; /* Remove default border */
-    border-radius: 5px; /* Rounded corners */
-    transition: background-color 0.3s ease; /* Smooth transition for hover */
-    display: inline-flex; /* Keep flex for icon alignment */
-    max-width: fit-content; /* Moved this inside */
+    background-color: var(--primary-blue); /* Use primary blue variable */
+    color: #fff;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+    display: inline-flex;
+    max-width: fit-content;
+    /* Add any other base button styles if they are missing */
+    font-family: var(--font-sans);
+    font-size: var(--font-sm);
+    font-weight: 500;
+    text-decoration: none;
+    cursor: pointer;
+    align-items: center; /* Align icon and text if icon is present */
+    justify-content: center;
 }
 
 #resources-how-to-use-btn:hover {
-    background-color: #2e3a8c; /* Darker shade on hover */
+    background-color: var(--primary-blue-dark); /* Use darker blue for hover */
 }
 
 /*--------------------------------------------------------------
@@ -5864,4 +5888,183 @@ textarea:focus {
     overflow: hidden;
     text-overflow: ellipsis;
     max-width: 100%;
+}
+
+/* Update primary button base style */
+.app-button--primary {
+    /* ... other styles ... */
+    background-color: var(--primary-blue-light); /* Use LIGHTER blue */
+    color: var(--text-dark); /* Adjust text color for light background if needed */
+}
+
+.app-button--primary:hover {
+    /* ... other styles ... */
+    background-color: var(--primary-blue); /* Use original blue for hover */
+}
+
+/* Update timer start/pause button */
+.timer-btn.primary-action {
+    background: var(--primary-blue-light); /* Use LIGHTER blue */
+    color: var(--text-dark); /* Adjust text color */
+}
+/* Remove gradient override for pause state if it exists */
+.timer-btn.primary-action.pause-state {
+     /* background: linear-gradient(to right, #f59e0b, #fbbf24); */ /* Keep yellow/orange? or use light blue? */
+     /* Let's keep pause state visually distinct for now, maybe orange? */
+      background: linear-gradient(to right, var(--warning), #fbbf24); /* Keep orange/yellow */
+      color: var(--text-dark);
+}
+
+.timer-btn.primary-action:hover {
+    background: var(--primary-blue); /* Use original blue for hover */
+}
+
+/* Update specific #resources-how-to-use-btn */
+#resources-how-to-use-btn {
+    background-color: var(--primary-blue-light); /* Use LIGHTER blue */
+    color: var(--text-dark); /* Adjust text color */
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+    display: inline-flex;
+    max-width: fit-content;
+    font-family: var(--font-sans);
+    font-size: var(--font-sm);
+    font-weight: 500;
+    text-decoration: none;
+    cursor: pointer;
+    align-items: center; /* Align icon and text if icon is present */
+    justify-content: center;
+}
+
+#resources-how-to-use-btn:hover {
+    background-color: var(--primary-blue); /* Use original blue for hover */
+}
+
+    justify-content: center;
+    box-shadow: var(--shadow-sm);
+}
+
+#resources-how-to-use-btn:hover {
+    background: linear-gradient(to bottom, var(--primary-blue), var(--primary-blue-dark)); /* Darker gradient on hover */
+    box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
+}
+
+/* == Corrected Primary Button Styles == */
+
+/* Base style for primary action buttons */
+.app-button--primary,
+.media-controls .primary-button { /* Target media buttons */
+    background-color: var(--primary-blue); /* Solid primary blue */
+    color: white; /* White text */
+    border: 1px solid var(--primary-blue-dark); /* Consistent border */
+    /* Ensure other base styles are inherited or defined (padding, radius, etc.) */
+    padding: 10px 18px; /* Example padding */
+    border-radius: var(--radius-md);
+    transition: all var(--transition-normal);
+    font-weight: 500;
+    box-shadow: var(--shadow-sm);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-sm);
+}
+
+.app-button--primary:hover,
+.media-controls .primary-button:hover {
+    background-color: var(--primary-blue-dark); /* Darker blue on hover */
+    border-color: var(--primary-blue-dark);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
+}
+
+/* Timer start/pause button */
+.timer-btn.primary-action {
+    background-color: var(--primary-blue); /* Solid primary blue */
+    color: white; /* White text */
+    border: 1px solid var(--primary-blue-dark);
+    /* Apply standard button padding/radius if not inherited */
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--radius-full);
+    /* Keep other specific timer button styles if needed */
+}
+
+.timer-btn.primary-action:hover {
+    background-color: var(--primary-blue-dark); /* Darker blue on hover */
+    border-color: var(--primary-blue-dark);
+}
+
+/* Keep Pause state distinct */
+.timer-btn.primary-action.pause-state {
+    background: linear-gradient(to right, var(--warning), #fbbf24); /* Keep orange/yellow */
+    color: var(--text-dark);
+    border: 1px solid #e35f2a; /* Darker orange border */
+}
+
+/* How to Use button */
+#resources-how-to-use-btn {
+    background-color: var(--primary-blue); /* Solid primary blue */
+    color: white; /* White text */
+    border: 1px solid var(--primary-blue-dark);
+    padding: 10px 20px;
+    border-radius: var(--radius-md); /* Consistent radius */
+    transition: all var(--transition-normal);
+    display: inline-flex;
+    max-width: fit-content;
+    font-family: var(--font-sans);
+    font-size: var(--font-sm);
+    font-weight: 500;
+    text-decoration: none;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow-sm);
+    gap: var(--space-sm);
+}
+
+#resources-how-to-use-btn:hover {
+    background-color: var(--primary-blue-dark); /* Darker blue on hover */
+    border-color: var(--primary-blue-dark);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
+}
+
+/* == Checkbox Alignment Fix == */
+
+.checkbox-label {
+    display: flex;
+    align-items: center; /* Vertically align checkbox and text */
+    gap: var(--space-sm); /* Use smaller gap */
+    padding: var(--space-sm) 0; /* Adjust padding if needed */
+    cursor: pointer;
+    user-select: none;
+    border-radius: var(--radius-md);
+    transition: background-color var(--transition-fast);
+    margin-bottom: 0; /* Remove bottom margin if handled by form gap */
+}
+
+.checkbox-label:hover {
+    background: var(--background-light);
+}
+
+.checkbox-label input[type="checkbox"] {
+    width: 18px; /* Checkbox size */
+    height: 18px;
+    margin: 0; /* Remove default margins */
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+    accent-color: var(--primary-blue);
+    flex-shrink: 0; /* Prevent checkbox from shrinking */
+    position: relative; /* Helps with potential baseline alignment issues */
+    top: -1px; /* Minor adjustment if needed for perfect vertical center */
+}
+
+.checkbox-label span {
+    color: var(--text-dark);
+    font-size: var(--font-md);
+    font-weight: 500;
+    line-height: 1.2; /* Adjust line-height */
 }

@@ -169,12 +169,6 @@ function showGoalDialog(goalId) {
             label: 'Description',
             rows: 4,
             value: goalData ? goalData.description || '' : ''
-        },
-        {
-            type: 'checkbox',
-            id: 'goal-completed',
-            label: 'Mark as completed',
-            checked: goalData ? goalData.completed : false
         }
     ];
     
@@ -200,12 +194,19 @@ function showGoalDialog(goalId) {
  */
 function handleGoalFormSubmit(dialog, e, goalId) {
     try {
+        // Get original goal data IF editing to preserve completion status
+        let originalGoalData = null;
+        if (goalId) {
+            originalGoalData = window.getItemById ? window.getItemById('GOALS', goalId) : 
+                (JSON.parse(localStorage.getItem('practiceTrack_goals')) || [])
+                    .find(g => g.id === goalId);
+        }
+
         const form = e.target;
         const titleInput = form.querySelector('#goal-title');
         const categorySelect = form.querySelector('#goal-category');
         const targetDateInput = form.querySelector('#goal-target-date');
         const descriptionInput = form.querySelector('#goal-description');
-        const completedCheckbox = form.querySelector('#goal-completed');
         
         // Validate inputs - only title is required
         if (!titleInput || !titleInput.value) {
@@ -213,6 +214,9 @@ function handleGoalFormSubmit(dialog, e, goalId) {
             return;
         }
         
+        // Determine completion status: preserve if editing, false if new
+        const isCompleted = goalId && originalGoalData ? originalGoalData.completed : false;
+
         // Create goal object
         const goalData = {
             id: goalId || `goal_${Date.now()}`,
@@ -220,8 +224,8 @@ function handleGoalFormSubmit(dialog, e, goalId) {
             categoryId: categorySelect ? categorySelect.value : null,
             targetDate: targetDateInput && targetDateInput.value ? new Date(targetDateInput.value).toISOString() : null,
             description: descriptionInput ? descriptionInput.value.trim() : '',
-            completed: completedCheckbox ? completedCheckbox.checked : false,
-            createdAt: new Date().toISOString()
+            completed: isCompleted, // Use determined status
+            createdAt: (goalId && originalGoalData) ? originalGoalData.createdAt : new Date().toISOString() // Preserve original creation date if editing
         };
         
         // Save goal using the data layer

@@ -142,6 +142,84 @@ function displayStreakCard(streakData, container) {
     }
 }
 
+// --- Add Practice Level Calculation Logic Directly ---
+const PRACTICE_LEVELS = [
+  { name: "Foundation", minDailyMinutes: 0, recommendedDays: 0 },
+  { name: "Low", minDailyMinutes: 35, recommendedDays: 3.5 },
+  { name: "Medium", minDailyMinutes: 75, recommendedDays: 6 },
+  { name: "High", minDailyMinutes: 145, recommendedDays: 7 },
+  { name: "Very High", minDailyMinutes: 215, recommendedDays: 7 }
+];
+
+function determineLevelFromDailyAverage(averageDailyMinutes) {
+   let userLevel = {
+      name: PRACTICE_LEVELS[0].name,
+      targetDailyMinutes: PRACTICE_LEVELS[0].minDailyMinutes
+  };
+  if (isNaN(averageDailyMinutes) || averageDailyMinutes <= 0) {
+     return userLevel;
+  }
+  for (let i = PRACTICE_LEVELS.length - 1; i > 0; i--) {
+    const level = PRACTICE_LEVELS[i];
+    const threshold = level.minDailyMinutes * 0.9;
+    if (averageDailyMinutes >= threshold) {
+      userLevel = {
+          name: level.name,
+          targetDailyMinutes: level.minDailyMinutes
+      };
+      break;
+    }
+  }
+  return userLevel;
+}
+
+// Function to calculate the number of days in the selected date range (Keep this or ensure it exists)
+function calculateNumberOfDays(startDateStr, endDateStr) {
+    // Handle "All Time" case - need a way to determine start date or approximate
+    if (!startDateStr || !endDateStr) {
+       // For "All Time", we might need to find the first session date
+       // Or return a default large number / handle differently?
+       // For now, let's return 1 to avoid NaN, but this needs refinement for 'All'
+       try {
+           const allSessions = JSON.parse(localStorage.getItem('practiceTrack_sessions')) || [];
+           if (allSessions.length === 0) return 1; // Avoid NaN if no sessions
+           allSessions.sort((a, b) => new Date(a.startTime) - new Date(b.startTime));
+           const firstDate = new Date(allSessions[0].startTime);
+           const today = new Date();
+           // Use today if endDateStr is missing (implicit end date for 'all time')
+           const effectiveEndDate = endDateStr ? new Date(endDateStr) : today;
+           const timeDiff = Math.abs(effectiveEndDate - firstDate);
+            // Add 1 because the difference calculation excludes the start day itself.
+           return Math.max(1, Math.ceil(timeDiff / (1000 * 60 * 60 * 24)) + 1);
+       } catch (e) {
+           console.error("Error calculating days for 'All Time':", e);
+           return 1; // Fallback
+       }
+    }
+
+    try {
+        const start = new Date(startDateStr);
+        const end = new Date(endDateStr);
+        // Ensure dates are valid
+        if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+            console.warn("Invalid date(s) for day calculation:", startDateStr, endDateStr);
+            return 1; // Avoid NaN
+        }
+        // Ensure end date is not before start date
+        if (end < start) {
+            console.warn("End date is before start date:", startDateStr, endDateStr);
+            return 1; // Avoid negative/zero days
+        }
+        const timeDiff = Math.abs(end - start);
+        // Add 1 because the difference calculation excludes the start day itself.
+        return Math.max(1, Math.ceil(timeDiff / (1000 * 60 * 60 * 24)) + 1);
+    } catch (e) {
+        console.error("Error calculating number of days:", e);
+        return 1; // Fallback
+    }
+}
+// --- End Practice Level Logic ---
+
 // Stats Module
 function initStats() {
     console.log('Initializing stats module');
@@ -315,72 +393,72 @@ function loadCategoryFilter() {
     }
 }
 
-function displayStats(sessions, container, previousPeriodStats) {
+function displayStats(sessions, container, previousPeriodStats, practiceLevel) {
     console.log('Displaying stats for sessions:', sessions.length);
-    
+    console.log('Practice Level Data:', practiceLevel);
+
     if (!container) {
         console.error('Stats container element not provided to displayStats');
         return;
     }
-    
-    // Clear only the stats grid container before displaying
-    container.innerHTML = '';
-    
-    // If no sessions after filtering, show empty state in stats container
+
+    container.innerHTML = ''; // Clear existing stats grid
+
+    // Also find and clear the chart container initially
+    const chartContainer = document.getElementById('category-time-chart-container');
+    if (chartContainer) chartContainer.innerHTML = '';
+
     if (sessions.length === 0) {
         displayEmptyState(container);
+        if (practiceLevel) {
+            const levelCardHTML = `
+                <div class="stat-card">
+                     <h3><i data-lucide="gauge"></i> Practice Level</h3>
+                     <div class="stat-value">${practiceLevel.name}</div>
+                     <p class="stat-description">Based on avg. daily practice in period</p>
+                 </div>
+            `;
+            container.insertAdjacentHTML('beforeend', levelCardHTML);
+        }
+        if (window.lucide) {
+            window.lucide.createIcons({ context: container });
+        }
+        // No chart to render if no sessions
         return;
     }
 
-    // --- Calculate Streaks (using ALL sessions) ---
+    // --- Calculations (Keep all existing like Streaks, Base Stats, Goals, Most Practiced/Frequent) ---
     let allSessionsForStreaks = [];
     try {
-        allSessionsForStreaks = window.getItems ? window.getItems('SESSIONS') : 
-            JSON.parse(localStorage.getItem('practiceTrack_sessions')) || [];
-    } catch(e) {
-        console.error("Error fetching sessions for streak calculation in displayStats:", e);
-    }
+        allSessionsForStreaks = window.getItems ? window.getItems('SESSIONS') : JSON.parse(localStorage.getItem('practiceTrack_sessions')) || [];
+    } catch(e) { console.error("Error fetching sessions for streak calculation in displayStats:", e); }
     const { currentStreak, longestStreak } = calculateStreaks(allSessionsForStreaks);
-    // --- End Streak Calculation ---
 
-    // --- Calculate Base Session Stats (using FILTERED sessions) --- 
     const totalTime = sessions.reduce((sum, session) => sum + (session.duration || 0), 0);
     const sessionCount = sessions.length;
     const avgTime = sessionCount > 0 ? Math.round(totalTime / sessionCount) : 0;
-    
-    // --- Calculate Goal Stats ---
+
     let completedGoals = 0;
     let totalGoals = 0;
     try {
-        const allGoals = window.getItems ? window.getItems('GOALS') : 
-            JSON.parse(localStorage.getItem('practiceTrack_goals')) || [];
+        const allGoals = window.getItems ? window.getItems('GOALS') : JSON.parse(localStorage.getItem('practiceTrack_goals')) || [];
         totalGoals = allGoals.length;
         completedGoals = allGoals.filter(goal => goal.completed).length;
-        console.log(`[Stats Display] Found ${completedGoals} completed goals out of ${totalGoals} total.`);
-    } catch (e) {
-        console.error("Error fetching or processing goals for stats display:", e);
-    }
-    // --- End Goal Stats ---
+    } catch (e) { console.error("Error fetching or processing goals for stats display:", e); }
 
-    // --- Calculate Most Practiced & Most Frequent Categories --- 
+    // Keep Most Practiced/Frequent calculations even if not displayed in grid
     let mostPracticedCategoryName = 'N/A';
     let mostPracticedCategoryTime = 0;
     let mostFrequentCategoryName = 'N/A';
     let mostFrequentCategoryDays = 0;
     const categories = window.getItems ? window.getItems('CATEGORIES') : JSON.parse(localStorage.getItem('practiceTrack_categories')) || [];
-    
     if (sessionCount > 0 && categories.length > 0) {
         const durationByCategory = {};
         const daysByCategory = {};
-
         sessions.forEach(session => {
-            if (!session.categoryId) return; // Skip sessions without category
-            
-            // Duration
+            if (!session.categoryId) return;
             durationByCategory[session.categoryId] = (durationByCategory[session.categoryId] || 0) + (session.duration || 0);
-            
-            // Frequency (Unique Days)
-            if (session.startTime) { // Need startTime for date calculation
+            if (session.startTime) {
                 const datePart = new Date(session.startTime).toISOString().split('T')[0];
                 if (!daysByCategory[session.categoryId]) {
                     daysByCategory[session.categoryId] = new Set();
@@ -388,108 +466,109 @@ function displayStats(sessions, container, previousPeriodStats) {
                 daysByCategory[session.categoryId].add(datePart);
             }
         });
-
-        // Find Most Practiced
         let maxDuration = 0;
-        let mostPracticedIds = []; // Store IDs of tied categories
+        let mostPracticedIds = [];
         for (const categoryId in durationByCategory) {
             const currentDuration = durationByCategory[categoryId];
             if (currentDuration > maxDuration) {
                 maxDuration = currentDuration;
-                mostPracticedIds = [categoryId]; // New leader
+                mostPracticedIds = [categoryId];
             } else if (currentDuration === maxDuration && maxDuration > 0) {
-                mostPracticedIds.push(categoryId); // Tie
+                mostPracticedIds.push(categoryId);
             }
         }
-        // Determine display name based on ties
         if (mostPracticedIds.length === 1) {
             const category = categories.find(c => c.id === mostPracticedIds[0]);
             mostPracticedCategoryName = category ? category.name : 'Unknown';
         } else if (mostPracticedIds.length > 1) {
-            mostPracticedCategoryName = 'Multiple'; // Indicate a tie
+            mostPracticedCategoryName = 'Multiple';
         }
-        // Keep N/A if no duration found
-        mostPracticedCategoryTime = maxDuration; // Store the max time regardless of ties
+        mostPracticedCategoryTime = maxDuration;
 
-        // Find Most Frequent
         let maxDays = 0;
-        let mostFrequentIds = []; // Store IDs of tied categories
+        let mostFrequentIds = [];
         for (const categoryId in daysByCategory) {
             const currentDays = daysByCategory[categoryId].size;
             if (currentDays > maxDays) {
                 maxDays = currentDays;
-                mostFrequentIds = [categoryId]; // New leader
+                mostFrequentIds = [categoryId];
             } else if (currentDays === maxDays && maxDays > 0) {
-                mostFrequentIds.push(categoryId); // Tie
+                mostFrequentIds.push(categoryId);
             }
         }
-        // Determine display name based on ties
         if (mostFrequentIds.length === 1) {
             const category = categories.find(c => c.id === mostFrequentIds[0]);
             mostFrequentCategoryName = category ? category.name : 'Unknown';
         } else if (mostFrequentIds.length > 1) {
-            mostFrequentCategoryName = 'Multiple'; // Indicate a tie
+            mostFrequentCategoryName = 'Multiple';
         }
-        // Keep N/A if no frequency found
-        mostFrequentCategoryDays = maxDays; // Store max days regardless of ties
+        mostFrequentCategoryDays = maxDays;
     }
-    
-    console.log('Calculated stats for display:', {
-        totalTime, avgTime, sessionCount,
-        mostPracticed: { name: mostPracticedCategoryName, time: mostPracticedCategoryTime },
-        mostFrequent: { name: mostFrequentCategoryName, days: mostFrequentCategoryDays },
-        completedGoals, totalGoals
+    // --- End Existing Calculations ---
+
+    // --- Calculate Time per Category (for Chart) --- ADD THIS BACK ---
+    const timeByCategory = {};
+    // Use the categories variable already fetched above
+    const categoryMap = categories.reduce((map, cat) => { map[cat.id] = cat.name; return map; }, {});
+
+    sessions.forEach(session => {
+        const categoryId = session.categoryId || 'uncategorized'; // Handle sessions without category
+        const categoryName = categoryMap[categoryId] || 'Uncategorized';
+        timeByCategory[categoryName] = (timeByCategory[categoryName] || 0) + (session.duration || 0);
     });
 
-    // --- Helper to generate comparison string ---
+    const categoryLabels = Object.keys(timeByCategory);
+    const categoryData = Object.values(timeByCategory);
+    // --- End Category Time Calculation ---
+
+    // --- Helper to generate comparison string (Keep existing) ---
     const getComparisonHTML = (currentValue, previousValue) => {
         if (previousPeriodStats === null || previousValue === undefined || currentValue === undefined) {
-            return '<span class="stat-comparison no-data">--</span>'; // No comparison possible
+            return '<span class="stat-comparison no-data">--</span>';
         }
-        if (previousValue === 0) {
-            return '<span class="stat-comparison increase"><i data-lucide="trending-up"></i> New</span>'; // Increase from zero
-        }
-        
+        if (previousValue === 0 && currentValue > 0) { return '<span class="stat-comparison increase"><i data-lucide="trending-up"></i> New</span>';}
+        if (previousValue === 0 && currentValue === 0) { return '<span class="stat-comparison no-change">--</span>'; }
+        if (previousValue === 0) return '<span class="stat-comparison increase"><i data-lucide="trending-up"></i> New</span>'; // Fallback
         const change = currentValue - previousValue;
         const percentChange = Math.round((change / previousValue) * 100);
-        
-        if (percentChange > 0) {
-            return `<span class="stat-comparison increase"><i data-lucide="trending-up"></i> +${percentChange}%</span>`;
-        } else if (percentChange < 0) {
-            return `<span class="stat-comparison decrease"><i data-lucide="trending-down"></i> ${percentChange}%</span>`;
-        } else {
-            return '<span class="stat-comparison no-change">No Change</span>';
-        }
+        if (percentChange > 0) { return `<span class="stat-comparison increase"><i data-lucide="trending-up"></i> +${percentChange}%</span>`;
+        } else if (percentChange < 0) { return `<span class="stat-comparison decrease"><i data-lucide="trending-down"></i> ${percentChange}%</span>`;
+        } else { return '<span class="stat-comparison no-change">No Change</span>'; }
     };
 
-    // --- Create Stats Grid HTML ---
+    // --- Create Stats Grid HTML (Remove Most Frequent Card) ---
     const statsGridHTML = `
         <div class="stat-card">
-            <h3>Total Practice Time</h3>
+            <h3><i data-lucide="clock"></i> Total Practice Time</h3>
             <div class="stat-value">${formatTime(totalTime)}</div>
             <p class="stat-description">
-                Total time spent practicing 
+                Total time spent practicing
                 ${getComparisonHTML(totalTime, previousPeriodStats?.totalTime)}
             </p>
         </div>
         <div class="stat-card">
-            <h3>Average Session</h3>
+            <h3><i data-lucide="timer"></i> Average Session</h3>
             <div class="stat-value">${formatTime(avgTime)}</div>
             <p class="stat-description">
-                Average duration per session 
+                Average duration per session
                 ${getComparisonHTML(avgTime, previousPeriodStats?.avgTime)}
             </p>
         </div>
+         <div class="stat-card"> <!-- Practice Level Card -->
+            <h3><i data-lucide="gauge"></i> Practice Level</h3>
+            <div class="stat-value">${practiceLevel ? practiceLevel.name : 'N/A'}</div>
+            <p class="stat-description">Based on avg. daily practice in period</p>
+         </div>
         <div class="stat-card">
-            <h3>Completed Goals</h3>
+            <h3><i data-lucide="target"></i> Completed Goals</h3>
             <div class="stat-value">${completedGoals} / ${totalGoals}</div>
-            <p class="stat-description">Completed / Total Goals</p> <!-- No comparison for goals -->
+            <p class="stat-description">Completed / Total Goals</p>
         </div>
         <div class="stat-card">
-            <h3>Number of Sessions</h3>
+            <h3><i data-lucide="list-checks"></i> Number of Sessions</h3>
             <div class="stat-value">${sessionCount}</div>
             <p class="stat-description">
-                Total practice sessions recorded 
+                Total practice sessions recorded
                 ${getComparisonHTML(sessionCount, previousPeriodStats?.sessionCount)}
             </p>
         </div>
@@ -505,26 +584,169 @@ function displayStats(sessions, container, previousPeriodStats) {
                      <span class="stat-sub-label">Longest</span>
                  </div>
              </div>
-            <p class="stat-description">Consecutive days practiced</p> <!-- No comparison for streaks -->
-        </div>
-        <div class="stat-card">
-            <h3>Most Frequent</h3>
-            <div class="stat-value">${mostFrequentCategoryName}</div>
-            <p class="stat-description">Category practiced most days (${mostFrequentCategoryDays} days)</p> <!-- No comparison for most frequent -->
+            <p class="stat-description">Consecutive days practiced</p>
         </div>
     `;
     // --- End Stats Grid HTML ---
-    
+
     container.innerHTML = statsGridHTML;
-    
-    // Initialize Lucide icons within the stats grid
+
     if (window.lucide) {
         window.lucide.createIcons({ context: container });
     }
-    
-    // Add any specific chart rendering logic here if needed
-    // renderCharts(sessions, container);
+
+    // --- Render Category Time Chart ---
+    if (typeof Chart !== 'undefined') {
+        renderCategoryTimeChart(categoryLabels, categoryData); // Call the function
+    } else {
+        console.warn("Chart.js not found. Skipping chart rendering.");
+        if (chartContainer) chartContainer.innerHTML = '<p>Error: Chart library not loaded.</p>';
+    }
 }
+
+// --- ADD Chart Rendering Function --- ADD THIS BACK ---
+let categoryTimeChartInstance = null;
+
+function renderCategoryTimeChart(labels, data) {
+    const ctxContainer = document.getElementById('category-time-chart-container');
+    if (!ctxContainer) {
+        console.error("Chart container 'category-time-chart-container' not found.");
+        return;
+    }
+    ctxContainer.innerHTML = '<canvas id="categoryTimeChart"></canvas>';
+    const ctx = document.getElementById('categoryTimeChart').getContext('2d');
+
+    if (categoryTimeChartInstance) {
+        categoryTimeChartInstance.destroy();
+    }
+
+    const categoryFilter = document.getElementById('category-filter');
+    const selectedCategoryId = categoryFilter ? categoryFilter.value : '';
+    let chartTitle = 'Practice Time by Category';
+
+    if (selectedCategoryId && labels.length === 1) {
+        chartTitle = `Practice Time for ${labels[0]}`;
+    } else if (labels.length === 0) {
+        ctxContainer.innerHTML = '<p class="empty-state">No practice time recorded for selected category/period.</p>';
+        return;
+    }
+
+    // --- Generate Colors with Brand Priority (Lighter Blue First) ---
+    const brandColors = [
+        '#73a6ff', // --primary-blue-light (NOW FIRST)
+        '#ff7a43', // --secondary-orange
+        '#3b7ff5', // --primary-blue (Original)
+        '#ffa484', // --secondary-orange-light
+        '#2861c7'  // --primary-blue-dark
+        // Add more brand variations if desired
+    ];
+
+    // Combine labels and data to sort by data value (descending)
+    const combined = labels.map((label, index) => ({ label, value: data[index] }));
+    combined.sort((a, b) => b.value - a.value); // Sort descending by value
+
+    // Re-extract sorted labels and data
+    const sortedLabels = combined.map(item => item.label);
+    const sortedData = combined.map(item => item.value);
+
+    const backgroundColors = [];
+    const hoverBackgroundColors = [];
+    const goldenAngle = 137.5;
+    const saturation = 70;
+    const lightness = 60;
+    let fallbackHue = Math.random() * 360;
+
+    for (let i = 0; i < sortedLabels.length; i++) {
+        let color;
+        let hoverColor;
+        if (i < brandColors.length) {
+            color = brandColors[i];
+            // Simple darken effect for hover (Needs proper HSL conversion for accuracy)
+            // For simplicity, we just pick the next darker shade if available or darken hex
+            let darkerShade = brandColors[i+2] || brandColors[i+1] || brandColors[0]; // Simple fallback
+            if (color === '#73a6ff') darkerShade = '#3b7ff5'; // Explicit hover for light blue
+            else if (color === '#ff7a43') darkerShade = '#e35f2a'; // Explicit hover for orange
+            else if (color === '#3b7ff5') darkerShade = '#2861c7'; // Explicit hover for blue
+            else if (color === '#ffa484') darkerShade = '#ff7a43'; // Explicit hover for light orange
+            else if (color === '#2861c7') darkerShade = '#1e4a99'; // Approximate darker blue
+
+            hoverColor = darkerShade;
+
+        } else {
+            // Use golden angle for remaining slices
+            const hue = (fallbackHue + (i - brandColors.length) * goldenAngle) % 360;
+            color = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+            hoverColor = `hsl(${hue}, ${saturation}%, ${lightness - 10}%)`;
+        }
+        backgroundColors.push(color);
+        hoverBackgroundColors.push(hoverColor);
+    }
+    // --- End Color Generation ---
+
+    categoryTimeChartInstance = new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: sortedLabels,
+            datasets: [{
+                label: 'Practice Time (seconds)',
+                data: sortedData,
+                backgroundColor: backgroundColors,
+                hoverBackgroundColor: hoverBackgroundColors,
+                borderColor: '#ffffff',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                title: {
+                    display: true,
+                    text: chartTitle,
+                    font: { size: 16 },
+                    padding: { top: 10, bottom: 20 }
+                },
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        usePointStyle: true,
+                        boxWidth: 10,
+                        padding: 15,
+                        generateLabels: function(chart) {
+                            const data = chart.data;
+                            if (data.labels.length && data.datasets.length) {
+                                return data.labels.map((label, i) => {
+                                    const meta = chart.getDatasetMeta(0);
+                                    const style = meta.controller.getStyle(i) || { backgroundColor: '#ccc', borderColor: '#ccc', borderWidth: 1 }; // Fallback style
+                                    const value = data.datasets[0].data[i];
+                                    return {
+                                        text: `${label} (${formatTime(value)})`,
+                                        fillStyle: style.backgroundColor,
+                                        strokeStyle: style.borderColor,
+                                        lineWidth: style.borderWidth,
+                                        hidden: isNaN(value) || meta.data[i]?.hidden, // Optional chaining for safety
+                                        index: i
+                                    };
+                                });
+                            }
+                            return [];
+                        }
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.label || '';
+                            const value = context.parsed;
+                            return `${label}: ${formatTime(value)}`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+// --- End Chart Rendering Function ---
 
 function displayEmptyState(container) {
     console.log('Displaying empty state in:', container);
@@ -605,6 +827,22 @@ function applyFilters() {
         return keep;
     });
     
+    // --- Calculate Practice Level ---
+    let practiceLevel = null;
+    try {
+        const totalMinutes = filteredSessions.reduce((sum, session) => sum + (session.duration || 0), 0);
+        // Pass the actual date strings to calculateNumberOfDays
+        const numDays = calculateNumberOfDays(startDateStr, endDateStr);
+        // Handle division by zero or invalid numDays
+        const averageDailyMinutes = (numDays > 0) ? (totalMinutes / 60 / numDays) : 0; // Convert total seconds to minutes first
+         console.log(`Calculating Level: Total Minutes=${totalMinutes/60}, Num Days=${numDays}, Avg Daily Mins=${averageDailyMinutes}`);
+        practiceLevel = determineLevelFromDailyAverage(averageDailyMinutes);
+    } catch (e) {
+        console.error("Error calculating practice level:", e);
+        practiceLevel = { name: "Error", targetDailyMinutes: 0 }; // Indicate error in display
+    }
+    // --- End Practice Level ---
+
     // --- Calculate Previous Period Stats --- 
     let previousPeriodStats = null;
     if (filterStartDate && filterEndDate) {
@@ -650,9 +888,9 @@ function applyFilters() {
     }
     // --- End Previous Period Stats --- 
 
-    // Display filtered stats, passing previous period data
+    // Display filtered stats, passing previous period data AND practiceLevel
     if (statsContainer) {
-        displayStats(filteredSessions, statsContainer, previousPeriodStats);
+        displayStats(filteredSessions, statsContainer, previousPeriodStats, practiceLevel);
     } else {
         console.error("Stats container not found when trying to display results.");
     }
