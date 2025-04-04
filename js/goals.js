@@ -72,10 +72,10 @@ function createGoalElement(goal) {
              <span class="goal-category card-name-pill">${category.name}</span>
              <span class="goal-date-time">${dateStr} at ${timeStr}${targetDateStr}</span> 
              <div class="goal-actions">
-                <button class="icon-button edit-goal" title="Edit Goal">
+                <button class="icon-button edit-goal app-button app-button--secondary" title="Edit Goal">
                     <i data-lucide="edit"></i>
                 </button>
-                <button class="icon-button delete-goal" title="Delete Goal">
+                <button class="icon-button delete-goal app-button app-button--secondary" title="Delete Goal">
                     <i data-lucide="trash"></i>
                 </button>
             </div>

@@ -2,22 +2,36 @@
 class Timer {
     constructor() {
         // DOM Elements
-        this.timerDisplay = document.querySelector('.timer-display');
+        this.timerDigits = document.querySelector('.timer-digits');
+        this.timerStatus = document.querySelector('.timer-status');
+        this.timerDisplayContainer = document.querySelector('.timer-display-container');
         this.startButton = document.getElementById('start-timer');
-        this.stopButton = document.getElementById('stop-timer');
         this.resetButton = document.getElementById('reset-timer');
         this.saveButton = document.getElementById('save-timer');
-        this.progressBar = document.querySelector('.timer-progress');
+        this.outerProgress = document.querySelector('.outer-progress');
+        this.innerProgress = document.querySelector('.inner-progress');
         this.categorySelect = document.getElementById('practice-category');
         this.sessionNotes = document.getElementById('session-notes');
-        
+
+        // SVG elements for icons
+        this.playIconSVG = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>';
+        this.pauseIconSVG = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>';
+
+        // SVG circle measurements
+        this.outerCircumference = 2 * Math.PI * 50;
+        this.innerCircumference = 2 * Math.PI * 35;
+
+        // Set initial stroke-dasharray values for progress circles
+        this.outerProgress.setAttribute('stroke-dasharray', this.outerCircumference);
+        this.innerProgress.setAttribute('stroke-dasharray', this.innerCircumference);
+
         // Timer state
         this.timeElapsed = 0;
         this.isRunning = false;
         this.isPaused = false;
         this.timerInterval = null;
         this.startTime = null;
-        
+
         // Initialize
         this.setupEventListeners();
         this.resetDisplay();
@@ -25,7 +39,6 @@ class Timer {
     }
 
     setupEventListeners() {
-        // Start/Pause button
         this.startButton.addEventListener('click', () => {
             if (this.isRunning) {
                 this.pauseTimer();
@@ -34,36 +47,31 @@ class Timer {
             }
         });
 
-        // Stop button
-        this.stopButton.addEventListener('click', () => {
-            this.stopTimer();
-        });
-
-        // Reset button
         this.resetButton.addEventListener('click', () => {
             this.resetTimer();
         });
 
-        // Save button
         this.saveButton.addEventListener('click', () => {
             this.saveSession();
-        });
+        }, true);
 
-        // Keyboard shortcuts
         document.addEventListener('keydown', (e) => {
-            const isTypingElement = e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT';
-            
-            if (e.code === 'Space' && !e.repeat && !isTypingElement) {
+            const activeElement = document.activeElement;
+            const isTyping = activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA' || activeElement.isContentEditable;
+
+            if (e.code === 'Space' && !e.repeat && !isTyping) {
                 e.preventDefault();
-                if (this.isRunning) {
-                    this.pauseTimer();
-                } else {
-                    this.startTimer();
+                // Toggle timer only if the focus is not on a button or select
+                if (!['BUTTON', 'SELECT'].includes(activeElement.tagName)) {
+                    if (this.isRunning) {
+                        this.pauseTimer();
+                    } else {
+                        this.startTimer();
+                    }
                 }
             }
         });
-        
-        // Listen for category data changes
+
         document.addEventListener('dataChanged', (e) => {
             if (e.detail && e.detail.type === 'CATEGORIES') {
                 this.loadCategories();
@@ -72,27 +80,34 @@ class Timer {
     }
 
     updateButtonStates() {
-        // Update Start/Pause/Resume button text and icon
+        const startButtonSpan = this.startButton.querySelector('span');
+
         if (this.isRunning) {
-            this.startButton.innerHTML = '<i data-lucide="pause"></i> Pause';
-            this.startButton.classList.add('active');
+            this.startButton.innerHTML = `${this.pauseIconSVG} <span>Pause</span>`;
+            this.startButton.classList.add('pause-state');
+            this.timerDisplayContainer.classList.remove('paused');
+            this.timerStatus.textContent = 'Running';
         } else if (this.isPaused) {
-            this.startButton.innerHTML = '<i data-lucide="play"></i> Resume';
-            this.startButton.classList.remove('active');
+            this.startButton.innerHTML = `${this.playIconSVG} <span>Resume</span>`;
+            this.startButton.classList.remove('pause-state');
+            this.timerDisplayContainer.classList.add('paused');
+            this.timerStatus.textContent = 'Paused';
         } else {
-            this.startButton.innerHTML = '<i data-lucide="play"></i> Start';
-            this.startButton.classList.remove('active');
+            this.startButton.innerHTML = `${this.playIconSVG} <span>Start</span>`;
+            this.startButton.classList.remove('pause-state');
+            this.timerDisplayContainer.classList.remove('paused');
+            this.timerStatus.textContent = 'Ready';
         }
-        
-        // Show/hide Stop, Reset and Save buttons based on state
-        this.stopButton.classList.toggle('hidden', this.timeElapsed === 0);
-        this.resetButton.classList.toggle('hidden', this.timeElapsed === 0);
-        this.saveButton.classList.toggle('hidden', this.timeElapsed === 0);
-        
-        // Update Lucide icons
-        if (window.lucide && typeof window.lucide.createIcons === 'function') {
-            window.lucide.createIcons();
-        }
+
+        // Show/hide Reset and Save buttons
+        const showSecondaryButtons = this.timeElapsed > 0;
+        this.resetButton.classList.toggle('hidden', !showSecondaryButtons);
+        this.saveButton.classList.toggle('hidden', !showSecondaryButtons || this.isRunning); // Hide save if running
+
+        // Enable/Disable category select and notes
+        const inputsDisabled = this.isRunning || this.isPaused;
+        this.categorySelect.disabled = inputsDisabled;
+        this.sessionNotes.disabled = inputsDisabled;
     }
 
     startTimer() {
@@ -102,18 +117,14 @@ class Timer {
             if (!this.startTime) {
                 this.startTime = new Date();
             }
-            
-            // Use local variable to ensure 'this' is captured correctly
+
             const self = this;
-            this.timerInterval = setInterval(function() {
+            this.timerInterval = setInterval(() => {
                 self.timeElapsed++;
                 self.updateDisplay();
             }, 1000);
-            
+
             this.updateButtonStates();
-            this.categorySelect.disabled = true;
-            
-            // Save timer state
             this.saveTimerState();
         }
     }
@@ -124,76 +135,63 @@ class Timer {
             this.isPaused = true;
             clearInterval(this.timerInterval);
             this.updateButtonStates();
-            
-            // Save timer state
             this.saveTimerState();
         }
     }
 
-    stopTimer() {
+    resetTimer() {
         this.isRunning = false;
         this.isPaused = false;
         clearInterval(this.timerInterval);
+        this.timeElapsed = 0;
+        this.startTime = null;
+
+        this.resetDisplay();
         this.updateButtonStates();
-        
-        // Save timer state
-        this.saveTimerState();
+        this.saveTimerState(); // Save the reset state
+        this.sessionNotes.value = ''; // Clear notes on reset
     }
 
     saveSession() {
-        // Check if timer is running and has elapsed time
         if (this.timeElapsed === 0) {
-            alert('Timer has not started yet.');
+            alert('Timer has not run yet.');
+            return;
+        }
+        if (this.isRunning) {
+            alert('Please pause or stop the timer before saving.');
             return;
         }
 
+        const categoryId = this.categorySelect.value;
         const sessionStartTime = this.startTime || new Date(Date.now() - this.timeElapsed * 1000);
-        const sessionEndTime = new Date(sessionStartTime.getTime() + this.timeElapsed * 1000); // Correct endTime calculation
+        const sessionEndTime = new Date(sessionStartTime.getTime() + this.timeElapsed * 1000);
 
         const sessionData = {
             id: `session_${Date.now()}`,
-            categoryId: this.categorySelect.value,
+            categoryId: categoryId,
             startTime: sessionStartTime.toISOString(),
-            endTime: sessionEndTime.toISOString(), // Save calculated end time
-            duration: this.timeElapsed, // Save duration in seconds
+            endTime: sessionEndTime.toISOString(),
+            duration: this.timeElapsed,
             notes: this.sessionNotes.value.trim(),
-            isLesson: false, // Assuming timer sessions aren't lessons
-            createdAt: new Date().toISOString()
+            isLesson: false,
+            createdAt: new Date().toISOString(),
+            source: 'timer'
         };
-        
+
         try {
-            // Use data layer to save session
             if (window.addItem) {
                 window.addItem('SESSIONS', sessionData);
-            } else {
-                // Legacy localStorage fallback
-                let sessions = [];
-                try {
-                    const storedSessions = localStorage.getItem('practiceTrack_sessions');
-                    if (storedSessions) {
-                        sessions = JSON.parse(storedSessions);
-                    }
-                } catch (e) {
-                    console.error('Error reading sessions:', e);
-                    sessions = [];
+                if (window.showNotification) {
+                    window.showNotification('Session Saved', 'Your practice session has been saved successfully.');
                 }
-                
-                sessions.push(sessionData);
-                localStorage.setItem('practiceTrack_sessions', JSON.stringify(sessions));
-            }
-            
-            // Show success notification
-            if (window.showNotification) {
-                window.showNotification('Session Saved', 'Your practice session has been saved successfully.');
+                this.resetTimer(); // Reset after successful save
             } else {
-                alert('Practice session saved successfully');
+                console.error('Data layer function addItem not found.');
+                alert('Error: Could not save session. Data layer unavailable.');
             }
-            
-            // Reset timer
-            this.resetTimer();
         } catch (error) {
             console.error('Error saving session:', error);
-            alert('Failed to save session. Please try again.');
+            alert('Failed to save session. Please check console for details.');
         }
     }
 
@@ -207,9 +205,7 @@ class Timer {
                 categoryId: this.categorySelect.value,
                 notes: this.sessionNotes.value
             };
-            
-            // Save to localStorage
-            localStorage.setItem('practiceTrack_timer', JSON.stringify(timerState));
+            localStorage.setItem('practiceTrack_timerState', JSON.stringify(timerState));
         } catch (error) {
             console.error('Error saving timer state:', error);
         }
@@ -217,113 +213,87 @@ class Timer {
 
     loadTimerState() {
         try {
-            const storedState = localStorage.getItem('practiceTrack_timer');
-            if (!storedState) return false;
-            
-            const timerState = JSON.parse(storedState);
-            
-            // Only restore if there was time recorded
-            if (timerState.timeElapsed > 0) {
-                this.timeElapsed = timerState.timeElapsed;
-                this.isPaused = timerState.isPaused;
+            const storedState = localStorage.getItem('practiceTrack_timerState');
+            if (storedState) {
+                const timerState = JSON.parse(storedState);
+
+                this.timeElapsed = timerState.timeElapsed || 0;
+                this.isPaused = timerState.isPaused || false;
                 this.startTime = timerState.startTime ? new Date(timerState.startTime) : null;
-                
+
                 if (timerState.categoryId) {
                     this.categorySelect.value = timerState.categoryId;
-                    this.categorySelect.disabled = true;
                 }
-                
                 if (timerState.notes) {
                     this.sessionNotes.value = timerState.notes;
                 }
-                
+
+                // Don't auto-start, just restore state and let user decide
                 this.updateDisplay();
                 this.updateButtonStates();
-                
-                // Prompt to resume or discard
-                if (confirm('Previous timer session found. Resume it?')) {
-                    return true;
-                } else {
-                    this.resetTimer();
-                    return false;
+
+                if (timerState.isRunning) {
+                    // If it was running, treat it as paused on reload
+                    this.isPaused = true;
+                    this.isRunning = false;
+                    this.updateButtonStates();
                 }
             }
-            
-            return false;
         } catch (error) {
             console.error('Error loading timer state:', error);
-            return false;
+            // Clear potentially corrupted state
+            localStorage.removeItem('practiceTrack_timerState');
         }
-    }
-
-    resetTimer() {
-        this.stopTimer();
-        this.timeElapsed = 0;
-        this.startTime = null;
-        this.updateDisplay();
-        this.updateButtonStates();
-        this.categorySelect.disabled = false;
-        this.sessionNotes.value = '';
-        
-        // Clear saved timer state
-        localStorage.removeItem('practiceTrack_timer');
-    }
-
-    formatTime(seconds) {
-        const hrs = Math.floor(seconds / 3600);
-        const mins = Math.floor((seconds % 3600) / 60);
-        const secs = seconds % 60;
-        return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
     }
 
     updateDisplay() {
-        this.timerDisplay.textContent = this.formatTime(this.timeElapsed);
-        
-        // Update progress bar
-        const progress = (this.timeElapsed % 3600) / 3600 * 100;
-        this.progressBar.style.width = `${progress}%`;
+        const hours = Math.floor(this.timeElapsed / 3600);
+        const minutes = Math.floor((this.timeElapsed % 3600) / 60);
+        const seconds = this.timeElapsed % 60;
+        this.timerDigits.textContent = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        this.updateProgressCircles();
     }
 
-    loadCategories() {
-        // Clear existing options
-        this.categorySelect.innerHTML = '';
-        
-        // Add default option
-        const defaultOption = document.createElement('option');
-        defaultOption.value = '';
-        defaultOption.textContent = 'Select a category';
-        this.categorySelect.appendChild(defaultOption);
-        
-        try {
-            // Get categories from data layer or localStorage
-            let categories = [];
-            if (window.getItems) {
-                categories = window.getItems('CATEGORIES') || [];
-            } else {
-                const storedCategories = localStorage.getItem('practiceTrack_categories');
-                if (storedCategories) {
-                    categories = JSON.parse(storedCategories);
-                }
-            }
-            
-            // Add categories to dropdown
-            categories.forEach(category => {
-                const option = document.createElement('option');
-                option.value = category.id;
-                option.textContent = category.name;
-                this.categorySelect.appendChild(option);
-            });
-        } catch (error) {
-            console.error('Error loading categories:', error);
-        }
+    updateProgressCircles() {
+        const minuteProgress = (this.timeElapsed % 3600) / 3600;
+        const outerOffset = this.outerCircumference * (1 - minuteProgress);
+        this.outerProgress.style.strokeDashoffset = outerOffset;
+
+        const hourProgress = Math.min(this.timeElapsed / 3600, 1); // Cap at 1 (1 hour)
+        const innerOffset = this.innerCircumference * (1 - hourProgress);
+        this.innerProgress.style.strokeDashoffset = innerOffset;
     }
 
     resetDisplay() {
-        this.timerDisplay.textContent = '00:00:00';
-        this.progressBar.style.width = '0%';
-        this.updateButtonStates();
+        this.timerDigits.textContent = '00:00:00';
+        this.outerProgress.style.strokeDashoffset = this.outerCircumference;
+        this.innerProgress.style.strokeDashoffset = this.innerCircumference;
+        this.updateButtonStates(); // Reflect reset state in buttons/UI
+    }
+
+    loadCategories() {
+        while (this.categorySelect.options.length > 1) {
+            this.categorySelect.remove(1);
+        }
+        let categories = [];
+        if (window.getItems) {
+            categories = window.getItems('CATEGORIES') || [];
+        } else {
+            console.warn('Data layer function getItems not found for categories.');
+        }
+        categories.forEach(category => {
+            const option = document.createElement('option');
+            option.value = category.id;
+            option.textContent = category.name;
+            this.categorySelect.appendChild(option);
+        });
     }
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+    const timer = new Timer();
+    timer.loadTimerState(); // Load state after initialization
+});
 
 // Initialize timer when page activates
 function activateTimerPage() {

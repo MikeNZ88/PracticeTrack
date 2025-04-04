@@ -31,42 +31,42 @@ window.UI = (function() {
             showDialogFn
         } = options;
         
-        // Add check: If page already initialized, log and return
-        if (initializedPages[pageId]) {
+        // Flag to track if page was already initialized
+        const wasAlreadyInitialized = initializedPages[pageId];
+        if (wasAlreadyInitialized) {
             console.warn(`[UI Framework] initRecordPage called again for already initialized page: ${pageId}. Skipping listener setup.`);
-            return; 
+        } else {
+             console.log(`[UI Framework] Initializing page: ${pageId}`); // Log initialization attempt
         }
-        console.log(`[UI Framework] Initializing page: ${pageId}`); // Log initialization attempt
         
-        // Clear DOM cache for this page
-        domCache[pageId] = {};
+        // >>> Always update DOM cache references <<< 
+        // (Useful if elements were dynamically added/removed)
+        domCache[pageId] = {}; 
         
         // Get DOM elements
         const pageElement = document.getElementById(`${pageId}-page`);
         if (!pageElement) {
             console.error(`[UI Framework] Page element #${pageId}-page not found! Cannot initialize.`);
-            return;
+            return; // Still need to return if page element is missing
         }
         
         // Get elements, scoping filters within the specific pageElement
-        const listContainer = document.getElementById(listContainerId); // IDs should be unique globally
-        const addButton = addButtonId ? document.getElementById(addButtonId) : null; // IDs should be unique globally
-        
+        const listContainer = document.getElementById(listContainerId); 
+        const addButton = addButtonId ? document.getElementById(addButtonId) : null; 
         const searchInput = searchInputSelector ? pageElement.querySelector(searchInputSelector) : null;
         const categoryFilter = categoryFilterSelector ? pageElement.querySelector(categoryFilterSelector) : null;
         const dateInputs = dateInputsSelector ? pageElement.querySelectorAll(dateInputsSelector) : null;
         const statusFilter = statusFilterSelector ? pageElement.querySelector(statusFilterSelector) : null;
 
-        // Add checks to ensure filter elements were found within the page
+        // Add checks (optional, but keep if useful)
         if (searchInputSelector && !searchInput) {
-            console.warn(`[UI Framework - ${pageId}] Search input with selector '${searchInputSelector}' not found within #${pageElement.id}`);
+            console.warn(`[UI Framework - ${pageId}] Search input not found...`);
         }
         if (categoryFilterSelector && !categoryFilter) {
-             console.warn(`[UI Framework - ${pageId}] Category filter with selector '${categoryFilterSelector}' not found within #${pageElement.id}`);
+             console.warn(`[UI Framework - ${pageId}] Category filter not found...`);
         }
-        // Similar checks could be added for date/status filters if needed
         
-        // Store references
+        // Store references in cache
         domCache[pageId] = {
             listContainer,
             addButton,
@@ -83,15 +83,15 @@ window.UI = (function() {
             showDialogFn
         };
         
-        // Setup UI components
-        if (categoryFilter) {
-            setupCategoryFilter(categoryFilter, recordType);
-        }
-        
-        // Add event listeners
-        if (addButton) {
-            // Check flag before adding listener
-            if (!initializedPages[pageId]) { 
+        // >>> Only setup components and listeners ONCE <<< 
+        if (!wasAlreadyInitialized) {
+            // Setup UI components
+            if (categoryFilter) {
+                setupCategoryFilter(categoryFilter, recordType);
+            }
+            
+            // Add event listeners
+            if (addButton) {
                 console.log(`[UI Framework] Attaching listener to Add button for page: ${pageId}`);
                 addButton.addEventListener('click', () => {
                     if (typeof showDialogFn === 'function') {
@@ -99,37 +99,37 @@ window.UI = (function() {
                     }
                 });
             }
-        }
-        
-        if (searchInput) {
-            searchInput.addEventListener('input', (event) => {
-                console.log(`[DEBUG ${pageId} Search Input] Event fired! Value:`, event.target.value);
-                loadRecords(pageId);
-            });
-        }
-
-        // *** Add listener for category filter ***
-        if (categoryFilter) {
-            categoryFilter.addEventListener('change', () => {
-                loadRecords(pageId);
-            });
-        }
-        
-        if (dateInputs) {
-            dateInputs.forEach(input => {
-                input.addEventListener('change', () => {
+            
+            if (searchInput) {
+                searchInput.addEventListener('input', (event) => {
+                    console.log(`[DEBUG ${pageId} Search Input] Event fired! Value:`, event.target.value);
                     loadRecords(pageId);
                 });
-            });
-        }
+            }
+
+            if (categoryFilter) {
+                categoryFilter.addEventListener('change', () => {
+                    loadRecords(pageId);
+                });
+            }
+            
+            if (dateInputs) {
+                dateInputs.forEach(input => {
+                    input.addEventListener('change', () => {
+                        loadRecords(pageId);
+                    });
+                });
+            }
+            
+            if (statusFilter) {
+                statusFilter.addEventListener('change', () => {
+                    loadRecords(pageId);
+                });
+            }
+        } // End of if (!wasAlreadyInitialized) for listeners
         
-        if (statusFilter) {
-            statusFilter.addEventListener('change', () => {
-                loadRecords(pageId);
-            });
-        }
-        
-        // Initial load of records
+        // Removed log before initial loadRecords call
+        // >>> Always call loadRecords <<< 
         loadRecords(pageId);
         
         // Set the initialized flag for this page at the end
@@ -198,6 +198,8 @@ window.UI = (function() {
             let records = window.getItems ? window.getItems(recordType) : 
                 JSON.parse(localStorage.getItem(`practiceTrack_${recordType}`)) || [];
             
+            // Removed RAW Records log
+
             console.log(`[DEBUG ${recordType} Load] Raw records loaded:`, records.length > 0 ? JSON.parse(JSON.stringify(records)) : '[]', 'Filters to apply:', JSON.parse(JSON.stringify(filters)));
 
             // Apply filters
@@ -372,6 +374,7 @@ window.UI = (function() {
                         const dateField = record.startTime || record.date || record.createdAt;
                         if (!dateField) return false;
                         const recordDate = new Date(dateField);
+                        // Removed log for Start Date Check
                         return !isNaN(recordDate.getTime()) && recordDate >= startDate;
                     });
                 }
@@ -389,6 +392,7 @@ window.UI = (function() {
                         const dateField = record.startTime || record.date || record.createdAt;
                         if (!dateField) return false;
                         const recordDate = new Date(dateField);
+                        // Removed log for End Date Check
                         return !isNaN(recordDate.getTime()) && recordDate <= endDate;
                     });
                 }
@@ -407,61 +411,47 @@ window.UI = (function() {
      * @returns {Array} - Sorted array
      */
     function sortRecords(records, recordType) {
-        // <<< Log entry and record IDs before sort >>>
-        if (recordType === 'SESSIONS') {
-            // <<< Simplified entry log >>>
-            console.log(`[DEBUG Sort Sessions ENTRY] Sorting ${records.length} SESSIONS records. First record ID (if exists): ${records.length > 0 && records[0] ? records[0].id : 'N/A'}`);
-        }
-        
-        const sortedRecords = records.sort((a, b) => {
-            // Default sort: newest first based on startTime or date or createdAt
-            const aDateSource = a.startTime || a.date || a.createdAt;
-            const bDateSource = b.startTime || b.date || b.createdAt;
-            const aDate = new Date(aDateSource);
-            const bDate = new Date(bDateSource);
+        if (!records || records.length === 0) return records;
 
-            // Log the comparison (Focus on Parsed Local Time)
-            if (recordType === 'SESSIONS') { 
-                 // Updated log format
-                 console.log(`[DEBUG Sort Sessions COMPARING]:\n` +
-                     `    A: ID=${a.id}, SourceValue='${aDateSource}', ParsedLocal='${aDate.toString()}' ${isNaN(aDate.getTime()) ? '[INVALID]' : ''}\n` +
-                     `    B: ID=${b.id}, SourceValue='${bDateSource}', ParsedLocal='${bDate.toString()}' ${isNaN(bDate.getTime()) ? '[INVALID]' : ''}\n` +
-                     `    Result (B.time - A.time): ${bDate.getTime() - aDate.getTime()}`);
+        // Create a Map for faster date lookups
+        const dateMap = new Map();
+        
+        return records.sort((a, b) => {
+            // Get or calculate dates
+            let aDate = dateMap.get(a.id);
+            if (!aDate) {
+                aDate = new Date(a.startTime || a.date || a.createdAt);
+                dateMap.set(a.id, aDate);
             }
             
-            // Handle Invalid Dates - push them to the end (older)
-            if (isNaN(aDate.getTime()) && isNaN(bDate.getTime())) return 0; // Both invalid, keep order
-            if (isNaN(aDate.getTime())) return 1; // a is invalid, put b first (b is newer)
-            if (isNaN(bDate.getTime())) return -1; // b is invalid, put a first (a is newer)
-            
-            // Primary Sort: Start Time (Newest First)
+            let bDate = dateMap.get(b.id);
+            if (!bDate) {
+                bDate = new Date(b.startTime || b.date || b.createdAt);
+                dateMap.set(b.id, bDate);
+            }
+
+            // Handle invalid dates
+            if (isNaN(aDate.getTime()) && isNaN(bDate.getTime())) return 0;
+            if (isNaN(aDate.getTime())) return 1;
+            if (isNaN(bDate.getTime())) return -1;
+
+            // Primary sort by date
             const timeDiff = bDate.getTime() - aDate.getTime();
             
-            // <<< Secondary Sort: createdAt (Newest First) if start times are identical >>>
+            // Secondary sort by createdAt if dates are equal
             if (timeDiff === 0) {
                 const aCreatedAt = new Date(a.createdAt);
                 const bCreatedAt = new Date(b.createdAt);
                 
-                // Handle potential invalid createdAt dates as well
                 if (isNaN(aCreatedAt.getTime()) && isNaN(bCreatedAt.getTime())) return 0;
-                if (isNaN(aCreatedAt.getTime())) return 1; 
+                if (isNaN(aCreatedAt.getTime())) return 1;
                 if (isNaN(bCreatedAt.getTime())) return -1;
                 
-                const createdAtDiff = bCreatedAt.getTime() - aCreatedAt.getTime();
-                console.log(`[DEBUG Sort Sessions SECONDARY] timeDiff=0, Comparing createdAt: A=${aCreatedAt.toISOString()}, B=${bCreatedAt.toISOString()}, Result=${createdAtDiff}`);
-                return createdAtDiff; 
+                return bCreatedAt.getTime() - aCreatedAt.getTime();
             }
-            // <<< End Secondary Sort >>>
             
-            return timeDiff; // Return primary sort result if times differ
+            return timeDiff;
         });
-        
-        // <<< Log record IDs after sort >>>
-        if (recordType === 'SESSIONS') {
-             console.log(`[DEBUG Sort Sessions EXIT] IDs after sort:`, sortedRecords.map(r => r.id));
-        }
-        
-        return sortedRecords;
     }
     
     /**

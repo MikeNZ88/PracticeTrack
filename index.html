@@ -22,7 +22,7 @@
     <!-- End Favicons and PWA meta tags -->
 
     <!-- Include Lucide Icons -->
-    <script src="https://cdn.jsdelivr.net/npm/lucide@0.284.0/dist/umd/lucide.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
     <!-- Application Scripts -->
     <script src="js/data.js" defer></script>
     <script src="js/ui-framework.js" defer></script>
@@ -35,6 +35,7 @@
     <script src="js/media.js" defer></script>
     <script src="js/practice-categories.js" defer></script>
     <script src="js/user-guide.js" defer></script>
+    <script src="js/metronome.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.0/papaparse.min.js"></script>
 </head>
@@ -86,53 +87,145 @@
         <main class="main-content">
             <!-- Timer Page -->
             <section id="timer-page" class="page active">
-                <div class="page-header">
-                    <h1>Practice Timer</h1>
-                    <div class="action-buttons">
-                        <button id="how-to-use-btn" class="secondary-button">
-                            <i data-lucide="help-circle"></i>
-                            How to use PracticeTrack
-                        </button>
+                <!-- Wrapper to constrain header and content width -->
+                <div class="timer-page-wrapper">
+                    <!-- Gradient Header -->
+                    <div class="page-gradient-header">
+                        <h1>Practice Timer</h1>
+                        <p>Track your practice time and keep notes on your progress</p>
                     </div>
-                </div>
-                <div class="timer-container">
-                    <div class="form-group">
-                        <label for="practice-category">Practice Category</label>
-                        <select id="practice-category" class="form-control">
-                            <option value="">Select Practice Category</option>
-                        </select>
-                    </div>
-                    
-                    <div class="timer-display-container">
-                        <div class="timer-display">00:00:00</div>
-                        <div class="timer-progress-container">
-                            <div class="timer-progress"></div>
+
+                    <!-- Main Timer Content Area -->
+                    <div class="timer-content-area">
+                        <!-- Main Timer Card -->
+                        <div class="timer-card">
+                            <!-- Category Selection -->
+                            <div class="form-group">
+                                <select id="practice-category" class="form-control">
+                                    <option value="">Select Practice Category</option>
+                                    <!-- Options loaded dynamically -->
+                                </select>
+                            </div>
+
+                            <!-- Timer Display with SVG Circles -->
+                            <div class="timer-display-container">
+                                <svg class="timer-svg" viewBox="0 0 120 120">
+                                    <circle cx="60" cy="60" r="50" class="timer-circle-bg outer-circle" />
+                                    <circle cx="60" cy="60" r="50" class="timer-circle-progress outer-progress" transform="rotate(-90 60 60)" />
+                                    <circle cx="60" cy="60" r="35" class="timer-circle-bg inner-circle" />
+                                    <circle cx="60" cy="60" r="35" class="timer-circle-progress inner-progress" transform="rotate(-90 60 60)" />
+                                </svg>
+                                <div class="timer-time">
+                                    <div class="timer-digits">00:00:00</div>
+                                    <div class="timer-status">Ready</div>
+                                </div>
+                            </div>
+
+                            <!-- Timer Controls -->
+                            <div class="timer-controls">
+                                <!-- Start/Pause/Resume Button -->
+                                <button id="start-timer" class="timer-btn primary-action">
+                                    <!-- Icon and text updated by JS -->
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                                    </svg>
+                                    <span>Start</span>
+                                </button>
+                                <!-- Reset Button (conditional) -->
+                                <button id="reset-timer" class="timer-btn secondary-action hidden">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M3 2v6h6"></path>
+                                        <path d="M21 12A9 9 0 0 0 6 5.3L3 8"></path>
+                                        <path d="M21 22v-6h-6"></path>
+                                        <path d="M3 12a9 9 0 0 0 15 6.7l3-2.7"></path>
+                                    </svg>
+                                    <span>Reset</span>
+                                </button>
+                            </div>
+
+                            <!-- Save Button (conditional) -->
+                            <div class="save-button-container">
+                                <button id="save-timer" class="timer-btn save-action hidden">
+                                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                                        <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                                        <polyline points="7 3 7 8 15 8"></polyline>
+                                    </svg>
+                                    <span>Save Session</span>
+                                </button>
+                            </div>
+
+                            <!-- Session Notes -->
+                            <div class="session-form">
+                                <!-- Label removed -->
+                                <textarea id="session-notes" class="form-control" rows="4" placeholder="Add notes about your practice session..."></textarea>
+                            </div>
                         </div>
-                    </div>
-                    
-                    <div class="timer-controls">
-                        <button id="start-timer" class="primary-button">
-                            <i data-lucide="play"></i>
-                            Start
-                        </button>
-                        <button id="stop-timer" class="secondary-button">
-                            <i data-lucide="square"></i>
-                            Stop
-                        </button>
-                        <button id="reset-timer" class="secondary-button">
-                            <i data-lucide="rotate-ccw"></i>
-                            Reset
-                        </button>
-                        <button id="save-timer" class="primary-button">
-                            <i data-lucide="save"></i>
-                            Save Session
-                        </button>
-                    </div>
-                    
-                    <div class="session-form">
-                        <div class="form-group">
-                            <label for="session-notes">Session Notes</label>
-                            <textarea id="session-notes" class="form-control" rows="4" placeholder="Add notes about your practice session..."></textarea>
+
+                        <!-- Metronome Section -->
+                        <div class="metronome-card">
+                             <div class="metronome-content">
+                                <!-- Add Metronome Heading Here -->
+                                <h2>Metronome</h2>
+                                <!-- BPM Control -->
+                                <div class="bpm-control">
+                                    <div class="bpm-display"><span id="bpm-value">120</span> BPM</div>
+                                    <input type="range" id="bpm-slider" min="30" max="300" value="120" class="bpm-slider">
+                                    <div class="bpm-range-labels">
+                                        <span>30</span>
+                                        <span>300</span>
+                                    </div>
+                                    <div class="bpm-buttons">
+                                        <button id="decrease-bpm" class="bpm-btn">
+                                            <i data-lucide="minus"></i>
+                                        </button>
+                                        <button id="increase-bpm" class="bpm-btn">
+                                             <i data-lucide="plus"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Start/Stop Button -->
+                                <button id="metronome-toggle" class="metronome-start-btn">
+                                    <!-- Text updated by JS -->
+                                    <span>Start</span>
+                                </button>
+
+                                <!-- Beat Visualization -->
+                                <div class="beat-visualization">
+                                    <!-- Beat indicators added by JS -->
+                                </div>
+
+                                <!-- Time Signatures & Sound Options -->
+                                <div class="metronome-settings">
+                                    <div class="time-signature-section">
+                                        <h3>Common Time Signatures</h3>
+                                        <div class="time-signature-buttons">
+                                            <button class="time-signature-btn active" data-signature="4/4">4/4</button>
+                                            <button class="time-signature-btn" data-signature="3/4">3/4</button>
+                                            <button class="time-signature-btn" data-signature="6/8">6/8</button>
+                                        </div>
+                                    </div>
+                                    <div class="time-signature-section">
+                                        <h3>Complex Time Signatures</h3>
+                                        <div class="time-signature-buttons">
+                                            <button class="time-signature-btn" data-signature="5/4">5/4</button>
+                                            <button class="time-signature-btn" data-signature="7/4">7/4</button>
+                                            <button class="time-signature-btn" data-signature="7/8">7/8</button>
+                                            <button class="time-signature-btn" data-signature="9/8">9/8</button>
+                                        </div>
+                                    </div>
+                                    <div class="sound-section">
+                                        <h3>Sound Options</h3>
+                                        <div class="sound-buttons">
+                                            <button class="sound-btn active" data-sound="click">Click</button>
+                                            <button class="sound-btn" data-sound="wood">Wood</button>
+                                            <button class="sound-btn" data-sound="digital">Digital</button>
+                                            <button class="sound-btn" data-sound="soft">Soft</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -140,156 +233,175 @@
 
             <!-- Sessions Page -->
             <section id="sessions-page" class="page">
-                <div class="page-header">
-                    <h1>Practice Sessions</h1>
-                </div>
-                <div class="page-content-container">
-                    <div class="filters">
-                        <input type="text" class="search-input" placeholder="Search sessions...">
-                        <select class="category-filter">
-                            <option value="">All Categories</option>
-                        </select>
-                        <!-- Date Preset Dropdown -->
-                        <select class="date-preset-filter filter-select" title="Select Date Range Preset">
-                            <option value="all">All Time</option>
-                            <option value="week">This Week</option>
-                            <option value="month">This Month</option>
-                            <option value="year">This Year</option>
-                            <option value="ytd">Year to Date</option>
-                            <option value="custom">Custom Range</option>
-                        </select>
-                        <div class="date-range">
-                            <label for="session-start-date">Start:</label>
-                            <input type="date" id="session-start-date" class="date-input" placeholder="Start Date">
-                            <label for="session-end-date">End:</label>
-                            <input type="date" id="session-end-date" class="date-input" placeholder="End Date">
+                <!-- Wrapper to constrain header and content width -->
+                <div class="page-wrapper">
+                    <!-- Gradient Header -->
+                    <div class="page-gradient-header">
+                        <h1>Practice Sessions</h1>
+                        <p>Review, edit, and manage your practice history.</p>
+                    </div>
+                    <div class="page-content-container">
+                        <div class="filters">
+                            <input type="text" class="search-input" placeholder="Search sessions...">
+                            <select class="category-filter">
+                                <option value="">All Categories</option>
+                            </select>
+                            <!-- Date Preset Dropdown -->
+                            <select class="date-preset-filter filter-select" title="Select Date Range Preset">
+                                <option value="all">All Time</option>
+                                <option value="week">This Week</option>
+                                <option value="month">This Month</option>
+                                <option value="year">This Year</option>
+                                <option value="ytd">Year to Date</option>
+                                <option value="custom">Custom Range</option>
+                            </select>
+                            <div class="date-range">
+                                <label for="session-start-date">Start:</label>
+                                <input type="date" id="session-start-date" class="date-input" placeholder="Start Date">
+                                <label for="session-end-date">End:</label>
+                                <input type="date" id="session-end-date" class="date-input" placeholder="End Date">
+                            </div>
                         </div>
-                    </div>
-                    <div class="page-actions centered">
-                        <button id="add-session-btn" class="primary-button">
-                            <i data-lucide="plus"></i>
-                            Add Session
-                        </button>
-                    </div>
-                    <div id="sessions-list" class="sessions-list">
-                        <!-- Sessions will be added here -->
+                        <div class="page-actions centered">
+                            <button id="add-session-btn" class="app-button app-button--primary">
+                                <i data-lucide="plus"></i>
+                                <span>Add Session</span>
+                            </button>
+                        </div>
+                        <div id="sessions-list" class="sessions-list">
+                            <!-- Sessions will be added here -->
+                        </div>
                     </div>
                 </div>
             </section>
 
             <!-- Goals Page -->
             <section id="goals-page" class="page">
-                <div class="page-header">
-                    <h1>Practice Goals</h1>
-                </div>
-                <div class="page-content-container">
-                <div class="filters">
-                    <input type="text" class="goals-search-input" placeholder="Search goals...">
-                    <select class="goals-category-filter">
-                        <option value="">All Categories</option>
-                    </select>
-                    <select class="goals-status-filter">
-                        <option value="all">All Goals</option>
-                        <option value="active" selected>Active Goals</option>
-                        <option value="completed">Completed Goals</option>
-                    </select>
-                </div>
-                    <div class="page-actions centered">
-                    <button id="add-goal-btn" class="primary-button add-goal-button">
-                        <i data-lucide="plus"></i>
-                        Add Goal
-                    </button>
-                </div>
-                <div id="goals-list" class="goals-list">
-                    <!-- Goals will be populated here -->
+                <!-- Wrapper to constrain header and content width -->
+                <div class="page-wrapper">
+                    <!-- Gradient Header -->
+                    <div class="page-gradient-header">
+                        <h1>Practice Goals</h1>
+                        <p>Set, track, and achieve your musical objectives.</p>
+                    </div>
+                    <div class="page-content-container">
+                    <div class="filters">
+                        <input type="text" class="goals-search-input" placeholder="Search goals...">
+                        <select class="goals-category-filter">
+                            <option value="">All Categories</option>
+                        </select>
+                        <select class="goals-status-filter">
+                            <option value="all">All Goals</option>
+                            <option value="active" selected>Active Goals</option>
+                            <option value="completed">Completed Goals</option>
+                        </select>
+                    </div>
+                        <div class="page-actions centered">
+                        <button id="add-goal-btn" class="app-button app-button--primary">
+                            <i data-lucide="plus"></i>
+                            <span>Add Goal</span>
+                        </button>
+                    </div>
+                    <div id="goals-list" class="goals-list">
+                        <!-- Goals will be populated here -->
+                        </div>
                     </div>
                 </div>
             </section>
 
             <!-- Stats Page -->
             <section id="stats-page" class="page">
-                <div class="page-header">
-                    <h1>Practice Statistics</h1>
-                </div>
-                <!-- Moved Filters Above Countdown -->
-                <div class="page-content-container">
-                <div class="filters">
-                        <select id="category-filter" class="stats-category-filter filter-select">
-                        <option value="">All Categories</option>
-                    </select>
-                        <!-- Date Preset Dropdown -->
-                        <select class="date-preset-filter filter-select" title="Select Date Range Preset">
-                            <option value="all">All Time</option>
-                            <option value="week">This Week</option>
-                            <option value="month">This Month</option>
-                            <option value="year">This Year</option>
-                            <option value="ytd">Year to Date</option>
-                            <option value="custom">Custom Range</option>
-                        </select>
-                    <div class="date-range">
-                            <label for="stats-start-date">Start:</label>
-                            <input type="date" id="stats-start-date" class="stats-date-input date-input" placeholder="Start Date">
-                            <label for="stats-end-date">End:</label>
-                            <input type="date" id="stats-end-date" class="stats-date-input date-input" placeholder="End Date">
-                        </div>
+                <!-- Wrapper to constrain header and content width -->
+                <div class="page-wrapper">
+                    <!-- Gradient Header -->
+                    <div class="page-gradient-header">
+                        <h1>Practice Stats</h1>
+                        <p>Visualize your practice trends and progress over time.</p>
                     </div>
-                    <!-- Lesson Countdown -->
-                    <div id="lesson-countdown-container" class="lesson-countdown-container">
-                         <!-- Countdown card will be inserted here by JS -->
-                </div>
-                <div class="stats-container">
-                        <!-- Stats grid will be displayed here by JS -->
+                    <div class="page-content-container" id="stats-content">
+                    <div class="filters">
+                            <select id="category-filter" class="stats-category-filter filter-select">
+                            <option value="">All Categories</option>
+                        </select>
+                            <!-- Date Preset Dropdown -->
+                            <select class="date-preset-filter filter-select" title="Select Date Range Preset">
+                                <option value="all">All Time</option>
+                                <option value="week">This Week</option>
+                                <option value="month">This Month</option>
+                                <option value="year">This Year</option>
+                                <option value="ytd">Year to Date</option>
+                                <option value="custom">Custom Range</option>
+                            </select>
+                        <div class="date-range">
+                                <label for="stats-start-date">Start:</label>
+                                <input type="date" id="stats-start-date" class="stats-date-input date-input" placeholder="Start Date">
+                                <label for="stats-end-date">End:</label>
+                                <input type="date" id="stats-end-date" class="stats-date-input date-input" placeholder="End Date">
+                            </div>
+                        </div>
+                        <!-- Lesson Countdown -->
+                        <div id="lesson-countdown-container" class="lesson-countdown-container">
+                             <!-- Countdown card will be inserted here by JS -->
+                    </div>
+                    <div class="stats-container">
+                            <!-- Stats grid will be displayed here by JS -->
+                        </div>
                     </div>
                 </div>
             </section>
 
             <!-- Media Page -->
             <section id="media-page" class="page">
-                <div class="page-header">
-                    <h1>Practice Media</h1>
-                </div>
-                <div class="page-content-container">
-                <div class="filters">
-                    <input type="text" class="search-input" placeholder="Search media...">
-                    <select class="media-type-filter">
-                        <option value="">All Types</option>
-                        <option value="photo">Photos</option>
-                        <option value="video">Videos</option>
-                        <option value="note">Notes</option>
-                    </select>
-                        <!-- Date Preset Dropdown -->
-                        <select class="date-preset-filter filter-select" title="Select Date Range Preset">
-                            <option value="all">All Time</option>
-                            <option value="week">This Week</option>
-                            <option value="month">This Month</option>
-                            <option value="year">This Year</option>
-                            <option value="ytd">Year to Date</option>
-                            <option value="custom">Custom Range</option>
+                <!-- Wrapper to constrain header and content width -->
+                <div class="page-wrapper">
+                    <!-- Gradient Header -->
+                    <div class="page-gradient-header">
+                        <h1>Media Library</h1>
+                         <p>Upload and manage your sheet music and audio files.</p>
+                    </div>
+                    <div class="page-content-container">
+                    <div class="filters">
+                        <input type="text" class="search-input" placeholder="Search media...">
+                        <select class="media-type-filter">
+                            <option value="">All Types</option>
+                            <option value="photo">Photos</option>
+                            <option value="video">Videos</option>
+                            <option value="note">Notes</option>
                         </select>
-                    <div class="date-range">
-                            <label for="media-start-date">Start:</label>
-                            <input type="date" id="media-start-date" class="date-input" placeholder="Start Date">
-                            <label for="media-end-date">End:</label>
-                            <input type="date" id="media-end-date" class="date-input" placeholder="End Date">
+                            <!-- Date Preset Dropdown -->
+                            <select class="date-preset-filter filter-select" title="Select Date Range Preset">
+                                <option value="all">All Time</option>
+                                <option value="week">This Week</option>
+                                <option value="month">This Month</option>
+                                <option value="year">This Year</option>
+                                <option value="ytd">Year to Date</option>
+                                <option value="custom">Custom Range</option>
+                            </select>
+                        <div class="date-range">
+                                <label for="media-start-date">Start:</label>
+                                <input type="date" id="media-start-date" class="date-input" placeholder="Start Date">
+                                <label for="media-end-date">End:</label>
+                                <input type="date" id="media-end-date" class="date-input" placeholder="End Date">
+                            </div>
                         </div>
-                    </div>
-                    <div class="media-controls">
-                        <button class="primary-button" id="add-photo">
-                            <i data-lucide="camera"></i>
-                            Add Photo
-                        </button>
-                        <button class="primary-button" id="add-video">
-                            <i data-lucide="video"></i>
-                            Add Video
-                        </button>
-                        <button class="primary-button" id="add-note">
-                            <i data-lucide="file-text"></i>
-                            Add Note
-                        </button>
-                    </div>
-                    <div class="media-container">
-                    <div id="media-list" class="media-list">
-                        <!-- Media items will be populated here -->
+                        <div class="media-controls">
+                            <button class="primary-button" id="add-photo">
+                                <i data-lucide="camera"></i>
+                                Add Photo
+                            </button>
+                            <button class="primary-button" id="add-video">
+                                <i data-lucide="video"></i>
+                                Add Video
+                            </button>
+                            <button class="primary-button" id="add-note">
+                                <i data-lucide="file-text"></i>
+                                Add Note
+                            </button>
+                        </div>
+                        <div class="media-container">
+                        <div id="media-list" class="media-list">
+                            <!-- Media items will be populated here -->
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -297,37 +409,56 @@
 
             <!-- Resources Page -->
             <section id="resources-page" class="page">
-                <div class="page-header">
-                    <h1>Resources</h1>
-                    <p>Explore practice ideas and add them to your custom categories.</p>
-                </div>
-
-                <div class="resource-controls">
-                    <!-- Search Input -->
-                    <div class="search-container">
-                        <i data-lucide="search"></i>
-                        <input type="text" id="resource-search" class="search-input" placeholder="Search for instrument or practice category">
+                <!-- Wrapper to constrain header and content width -->
+                <div class="page-wrapper">
+                    <!-- Gradient Header -->
+                    <div class="page-gradient-header">
+                        <h1>Resources</h1>
+                         <p>Explore practice categories and helpful materials.</p>
                     </div>
+                     <div class="page-content-container">
+                         <!-- Search Input -->
+                         <div class="search-container">
+                             <i data-lucide="search"></i>
+                             <input type="text" id="resource-search" class="search-input" placeholder="Search for instrument or practice category">
+                         </div>
 
-                    <!-- Filter Buttons -->
-                    <div class="filters resource-filters">
-                        <button class="filter-btn active" data-family="all">All</button>
-                        <button class="filter-btn" data-family="Woodwinds">Woodwinds</button>
-                        <button class="filter-btn" data-family="Brass Instruments">Brass</button>
-                        <button class="filter-btn" data-family="Strings">Strings</button>
-                        <button class="filter-btn" data-family="Bass Guitar">Bass Guitar</button>
-                        <button class="filter-btn" data-family="Keyboard Instruments">Keyboard</button>
-                        <button class="filter-btn" data-family="Percussion">Percussion</button>
-                        <button class="filter-btn" data-family="Guitar">Guitar</button>
-                        <button class="filter-btn" data-family="Voice">Voice</button>
-                        </div>
-                        </div>
+                         <!-- Filter Buttons -->
+                         <div class="filters resource-filters">
+                             <button class="filter-btn app-button app-button--secondary active" data-family="all">All</button>
+                             <button class="filter-btn app-button app-button--secondary" data-family="Bass Guitar">Bass</button>
+                             <button class="filter-btn app-button app-button--secondary" data-family="Brass">Brass</button>
+                             <button class="filter-btn app-button app-button--secondary" data-family="Guitar">Guitar</button>
+                             <button class="filter-btn app-button app-button--secondary" data-family="Keyboard">Keyboard</button>
+                             <button class="filter-btn app-button app-button--secondary" data-family="Percussion">Percussion</button>
+                             <button class="filter-btn app-button app-button--secondary" data-family="Strings">Strings</button>
+                             <button class="filter-btn app-button app-button--secondary" data-family="Voice">Voice</button>
+                             <button class="filter-btn app-button app-button--secondary" data-family="Woodwinds">Woodwinds</button>
+                         </div>
 
-                <!-- Category List Container (Will be populated by JS) -->
-                <div id="practice-categories-container" class="practice-categories-container">
-                    <!-- Static HTML content removed -->
-                    <!-- JavaScript will generate the list here -->
-                </div>
+                         <!-- Difficulty Filter -->
+                         <div class="difficulty-filter-container">
+                              <select id="difficulty-filter" class="filter-select difficulty-filter">
+                                  <option value="all">All Difficulty Levels</option>
+                                  <option value="b1">Beginner (Foundation)</option>
+                                  <option value="b2">Beginner (Developing)</option>
+                                  <option value="i1">Intermediate (Foundation)</option>
+                                  <option value="i2">Intermediate (Advanced)</option>
+                                  <option value="a">Advanced</option>
+                              </select>
+                         </div>
+
+                         <button id="resources-how-to-use-btn" class="app-button app-button--secondary">
+                              <i data-lucide="help-circle"></i>
+                              <span>How to use PracticeTrack</span>
+                          </button>
+                         <!-- Category List Container (Will be populated by JS) -->
+                         <div id="practice-categories-container" class="practice-categories-container">
+                             <!-- Static HTML content removed -->
+                             <!-- JavaScript will generate the list here -->
+                         </div>
+                     </div>
+                 </div>
             </section>
 
             <!-- Settings Page -->
@@ -404,6 +535,21 @@
                     </div>
                 </div>
             </section>
+
+            <!-- Session Dialog (Modal) -->
+            <dialog id="session-dialog" class="standard-dialog">
+                <form id="session-form" class="session-form">
+                    <h2 id="dialog-title">Edit Session</h2>
+                    <!-- Form fields dynamically populated -->
+                    <div class="dialog-actions">
+                        <button type="button" data-close class="app-button app-button--secondary">Cancel</button>
+                        <button type="submit" id="save-session-button" class="app-button app-button--primary">Save Session</button>
+                    </div>
+                </form>
+            </dialog>
+
+            <!-- Goal Dialog (Modal) -->
+            <!-- ... existing code ... -->
         </main>
 
         <!-- Mobile Navigation -->

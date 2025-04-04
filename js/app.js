@@ -10,6 +10,11 @@ let pages;
 
 // Initialize app function
 const initializeApp = () => {
+    // Initialize Lucide icons
+    if (window.lucide) {
+        lucide.createIcons();
+    }
+
     // Read the last active tab from localStorage
     let initialPage = 'timer'; // Default page
     try {
@@ -118,6 +123,11 @@ const navigateToPage = (page) => {
     pages.forEach(p => {
         p.classList.toggle('active', p.id === `${page}-page`);
     });
+    
+    // Initialize Lucide icons after page change
+    if (window.lucide) {
+        lucide.createIcons();
+    }
     
     // Dispatch page changed event
     document.dispatchEvent(new CustomEvent('pageChanged', {

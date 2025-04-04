@@ -1,730 +1,1349 @@
 // Practice Categories Module
 // Manages the practice categories library and copying functionality
 
-// Data: Default Practice Categories
-const defaultCategories = [
+// Practice Categories Module - Structured by instrument family, category, and skill level
+const practiceCategories = [
+    // WOODWINDS
     {
         family: "Woodwinds",
         name: "Flute",
         items: [
-            "Warm-up routines", "Scales", "Arpeggios", "Sight-reading", "Ear training",
-            "Long tone exercises", "Breathing and breath control", "Tone quality and articulation",
-            "Finger dexterity exercises", "Dynamic control exercises", "Low register development",
-            "High register development", "Vibrato techniques", "Technical etudes (Taffanel & Gaubert, etc.)",
-            "Melodic interpretation", "Orchestral excerpt study", "Solo repertoire development",
-            "Chamber music skills", "Piccolo technique (auxiliary instrument)", "Extended techniques (flutter tonguing, harmonics)"
+            {
+                category: "Fundamental skills",
+                difficulty: "B1",
+                topics: [
+                    "Posture and instrument position", 
+                    "Breathing and breath support",
+                    "Embouchure formation and development",
+                    "Tone production fundamentals"
+                ]
+            },
+            {
+                category: "Core technique",
+                difficulty: "B2",
+                topics: [
+                    "Long tone exercises",
+                    "Major scales and arpeggios",
+                    "Minor scales and arpeggios",
+                    "Chromatic scale development",
+                    "Finger dexterity exercises"
+                ]
+            },
+            {
+                category: "Articulation",
+                difficulty: "I1",
+                topics: [
+                    "Articulation studies (legato, staccato)",
+                    "Double/triple tonguing techniques",
+                    "Slur patterns and exercises"
+                ]
+            },
+            {
+                category: "Register development",
+                difficulty: "I1",
+                topics: [
+                    "Low register development",
+                    "Middle register refinement",
+                    "High register development"
+                ]
+            },
+            {
+                category: "Expressive techniques",
+                difficulty: "I2",
+                topics: [
+                    "Vibrato techniques and exercises",
+                    "Dynamic control exercises",
+                    "Phrasing and musical line development"
+                ]
+            },
+            {
+                category: "Advanced techniques",
+                difficulty: "A",
+                topics: [
+                    "Harmonics exercises", 
+                    "Flutter tonguing",
+                    "Whistle tones and overtones",
+                    "Circular breathing introduction",
+                    "Baroque ornamentation practice"
+                ]
+            },
+            {
+                category: "Repertoire approaches",
+                difficulty: "I2",
+                topics: [
+                    "Technical etudes (Taffanel & Gaubert, etc.)",
+                    "Melodic interpretation",
+                    "Orchestral excerpt study",
+                    "Solo repertoire development",
+                    "Chamber music skills"
+                ]
+            },
+            {
+                category: "Related skills",
+                difficulty: "mixed",
+                topics: [
+                    "Piccolo technique (auxiliary instrument)",
+                    "Sight-reading practice",
+                    "Ear training for flutists",
+                    "Practice planning and self-assessment"
+                ]
+            }
         ]
     },
+    
+    // Add more woodwind instruments
     {
         family: "Woodwinds",
         name: "Clarinet",
         items: [
-            "Warm-up routines", "Scales", "Arpeggios", "Sight-reading", "Ear training",
-            "Embouchure development", "Long tone exercises", "Breathing techniques",
-            "Finger flexibility exercises", "Articulation studies (legato, staccato, marcato)",
-            "Crossing the break exercises", "Register transitions", "Technical etudes (Rose, Klosé, etc.)",
-            "Tone color variations", "Dynamic control", "Classical repertoire study",
-            "Orchestral excerpt practice", "Chamber music skills", "Auxiliary clarinet studies (Eb, bass clarinet)",
-            "Vibrato techniques (for jazz applications)"
+            {
+                category: "Fundamental skills",
+                difficulty: "B1",
+                topics: [
+                    "Embouchure development",
+                    "Proper instrument assembly and care",
+                    "Breath support and control",
+                    "Basic tone production"
+                ]
+            },
+            {
+                category: "Core technique",
+                difficulty: "B2",
+                topics: [
+                    "Scale studies (major and minor)",
+                    "Crossing the break exercises",
+                    "Articulation fundamentals",
+                    "Long tone development"
+                ]
+            },
+            {
+                category: "Intermediate skills",
+                difficulty: "I1",
+                topics: [
+                    "Extended scale patterns",
+                    "Alternate fingerings",
+                    "Advanced articulation techniques",
+                    "Register control exercises"
+                ]
+            },
+            {
+                category: "Advanced repertoire",
+                difficulty: "A",
+                topics: [
+                    "Mozart Clarinet Concerto",
+                    "Weber concertos",
+                    "Orchestral excerpts",
+                    "Contemporary techniques"
+                ]
+            }
         ]
     },
     {
         family: "Woodwinds",
-        name: "Saxophone (Classical)",
+        name: "Saxophone",
         items: [
-            "Warm-up routines", "Scales", "Arpeggios", "Sight-reading", "Ear training",
-            "Embouchure development", "Long tone exercises", "Overtone studies", "Vibrato development",
-            "Articulation studies", "Technical etudes (Ferling, Mule, etc.)", "Tone quality exercises",
-            "Classical repertoire study", "Altissimo register development", "Dynamic control across registers",
-            "Chamber music skills", "Contemporary extended techniques", "Orchestral excerpt practice",
-            "Circular breathing introduction", "Subtone techniques"
+            {
+                category: "Fundamental skills",
+                difficulty: "B1",
+                topics: [
+                    "Embouchure formation",
+                    "Proper instrument position",
+                    "Breath support basics",
+                    "Tone production fundamentals"
+                ]
+            },
+            {
+                category: "Jazz techniques",
+                difficulty: "I1",
+                topics: [
+                    "Blues scales and patterns",
+                    "Swing articulation",
+                    "Jazz phrasing concepts",
+                    "Improvisation basics"
+                ]
+            },
+            {
+                category: "Classical repertoire",
+                difficulty: "I2",
+                topics: [
+                    "Sonatas and concertos",
+                    "Etudes (Ferling, Mule)",
+                    "Chamber music",
+                    "Solo performance techniques"
+                ]
+            },
+            {
+                category: "Advanced techniques",
+                difficulty: "A",
+                topics: [
+                    "Altissimo register",
+                    "Extended techniques",
+                    "Circular breathing",
+                    "Multiphonics and overtones"
+                ]
+            }
+        ]
+    },
+    
+    // BRASS INSTRUMENTS
+    {
+        family: "Brass",
+        name: "Trumpet",
+        items: [
+            {
+                category: "Fundamental skills",
+                difficulty: "B1",
+                topics: [
+                    "Posture and instrument position", 
+                    "Breathing and breath support",
+                    "Mouthpiece placement",
+                    "Tone production basics"
+                ]
+            },
+            {
+                category: "Core technique",
+                difficulty: "B2",
+                topics: [
+                    "Lip slurs and flexibility",
+                    "Major scales and arpeggios",
+                    "Minor scales and arpeggios",
+                    "Mouthpiece buzzing exercises"
+                ]
+            },
+            {
+                category: "Articulation",
+                difficulty: "I1",
+                topics: [
+                    "Single tonguing technique",
+                    "Double tonguing development",
+                    "Triple tonguing introduction"
+                ]
+            },
+            {
+                category: "Range development",
+                difficulty: "I1",
+                topics: [
+                    "Pedal tone exercises",
+                    "Middle register refinement",
+                    "Upper register development"
+                ]
+            },
+            {
+                category: "Advanced techniques",
+                difficulty: "A",
+                topics: [
+                    "Endurance training",
+                    "Transposition studies",
+                    "Piccolo trumpet techniques",
+                    "Advanced flexibility exercises"
+                ]
+            },
+            {
+                category: "Repertoire",
+                difficulty: "I2",
+                topics: [
+                    "Jazz Standards", 
+                    "Orchestral Excerpts", 
+                    "Solo Literature"
+                ]
+            }
         ]
     },
     {
-        family: "Woodwinds",
-        name: "Saxophone (Jazz)",
+        family: "Brass",
+        name: "Trombone",
         items: [
-            "Warm-up routines", "Scales", "Arpeggios", "Sight-reading", "Ear training",
-            "Jazz tone development", "Blues scales and patterns", "Bebop scale practice",
-            "ii-V-I progression patterns", "Jazz articulation techniques", "Swing feel development",
-            "Improvisation over chord changes", "Transcription of jazz solos", "Jazz repertoire (standards) practice",
-            "Jazz etudes", "Rhythmic development exercises", "Guide tone lines",
-            "Pentatonic pattern development", "Modal scale exercises", "Altissimo register for jazz application"
+            {
+                category: "Fundamental skills",
+                difficulty: "B1",
+                topics: [
+                    "Slide position basics",
+                    "Breath support techniques",
+                    "Mouthpiece placement",
+                    "Basic tone production"
+                ]
+            },
+            {
+                category: "Slide technique",
+                difficulty: "B2",
+                topics: [
+                    "Legato slide movements",
+                    "Position accuracy drills",
+                    "Alternate positions",
+                    "Slide coordination exercises"
+                ]
+            },
+            {
+                category: "Advanced skills",
+                difficulty: "A",
+                topics: [
+                    "Multiple tonguing techniques",
+                    "Bass trombone techniques",
+                    "Extended range development",
+                    "Jazz improvisation approaches"
+                ]
+            },
+            {
+                category: "Repertoire",
+                difficulty: "I2",
+                topics: [
+                    "Solo works",
+                    "Orchestral excerpts",
+                    "Chamber music",
+                    "Jazz repertoire studies"
+                ]
+            }
         ]
     },
     {
-        family: "Woodwinds",
-        name: "Oboe",
-        items: [
-            "Reed making and adjustment", "Long tone exercises", "Embouchure development",
-            "Breath support techniques", "Articulation studies", "Major/minor scales and arpeggios",
-            "Finger dexterity exercises", "Vibrato development", "Dynamic control practice",
-            "Technical etudes (Barret, Ferling, etc.)", "Orchestral excerpt study", "Baroque ornamentations",
-            "Sight-reading practice", "Interval studies", "Tone quality development", "Chamber music skills",
-            "Extended registers practice", "Phrasing and musical interpretation", "English horn introduction (auxiliary)",
-            "Performance preparation/memorization"
-        ]
-    },
-    {
-        family: "Woodwinds",
-        name: "Bassoon",
-        items: [
-            "Reed adjustment and making", "Long tone exercises", "Embouchure development",
-            "Breath support and control", "Finger coordination exercises", "Articulation techniques",
-            "Major/minor scales and arpeggios", "Venting techniques", "Tenor clef reading practice",
-            "Technical etudes (Weissenborn, Milde, etc.)", "Orchestral excerpt study", "Vibrato development",
-            "Half-hole technique refinement", "Flicking technique mastery", "High register development",
-            "Sight-reading practice", "Contrabassoon introduction (auxiliary)", "Chamber music skills",
-            "Phrasing and musical interpretation", "Performance preparation/memorization"
-        ]
-    },
-    // Brass Instruments
-    {
-        family: "Brass Instruments",
-        name: "Trumpet (Classical)",
-        items: [
-            "Lip slurs and flexibility", "Long tone development", "Breathing exercises",
-            "Tonguing techniques (single, double, triple)", "Major/minor scales and arpeggios",
-            "Mouthpiece buzzing exercises", "Pedal tone development", "Technical etudes (Arban, Clarke, etc.)",
-            "Range extension exercises", "Transposition studies", "Orchestral excerpt practice",
-            "Dynamic control across registers", "Endurance training", "Sight-reading practice",
-            "Piccolo trumpet studies", "Baroque ornamentations", "Chamber music skills",
-            "Mute technique development", "Clean attacks and releases", "Performance preparation/memorization"
-        ]
-    },
-    {
-        family: "Brass Instruments",
-        name: "Trumpet (Jazz)",
-        items: [
-            "Jazz tone development", "Improvisation over chord changes", "Jazz articulation patterns",
-            "Swing feel development", "Blues scales and patterns", "Bebop scale practice",
-            "ii-V-I progression patterns", "Guide tone lines", "Jazz repertoire study",
-            "Jazz transcription practice", "Big band style studies", "Lead trumpet techniques",
-            "Jazz phrasing concepts", "Plunger mute techniques", "Growling techniques",
-            "High note development for jazz", "Lip flexibility for jazz application",
-            "Pentatonic pattern development", "Playing by ear exercises", "Trading fours/eights practice"
-        ]
-    },
-    {
-        family: "Brass Instruments",
-        name: "Trombone (Classical)",
-        items: [
-            "Slide position exercises", "Long tone development", "Lip slurs and flexibility",
-            "Legato playing techniques", "Major/minor scales and arpeggios", "Breathing exercises",
-            "Articulation studies", "Tenor clef reading practice", "Alto clef reading (for alto trombone)",
-            "Technical etudes (Bordogni, Rochut, etc.)", "Orchestral excerpt study", "Chamber music skills",
-            "Range extension exercises", "Dynamic control practice", "Alternate position studies",
-            "Sight-reading practice", "Trigger/valve technique (if applicable)", "Mute techniques",
-            "Endurance training", "Performance preparation/memorization"
-        ]
-    },
-    {
-        family: "Brass Instruments",
-        name: "Trombone (Jazz)",
-        items: [
-            "Jazz tone development", "Swing articulation patterns", "Improvisation over chord changes",
-            "Blues scales and patterns", "Jazz slide technique", "Bebop scale practice",
-            "Plunger mute techniques", "ii-V-I progression patterns", "Guide tone lines",
-            "Jazz repertoire study", "Jazz transcription practice", "Big band style studies",
-            "Growling techniques", "Fall and glissando techniques", "Jazz phrasing concepts",
-            "Pentatonic pattern development", "Vibrato techniques for jazz", "Playing by ear exercises",
-            "Rhythmic development exercises", "Trading fours/eights practice"
-        ]
-    },
-    {
-        family: "Brass Instruments",
+        family: "Brass",
         name: "French Horn",
         items: [
-            "Lip slurs and flexibility", "Long tone development", "Breathing exercises",
-            "Hand position in bell techniques", "Major/minor scales and arpeggios", "Transposition studies",
-            "Mouthpiece buzzing exercises", "Stopped horn technique", "Technical etudes (Kopprasch, Kling, etc.)",
-            "Orchestral excerpt study", "Range extension exercises", "Articulation studies",
-            "Endurance training", "Dynamic control across registers", "Finger technique for valves",
-            "Chamber music skills", "Accuracy exercises", "Sight-reading practice", "Muted techniques",
-            "Performance preparation/memorization"
+            {
+                category: "Foundation",
+                difficulty: "B1",
+                topics: [
+                    "Embouchure formation",
+                    "Hand position in bell",
+                    "Breathing techniques",
+                    "Lip buzzing exercises"
+                ]
+            },
+            {
+                category: "Technical development",
+                difficulty: "B2",
+                topics: [
+                    "Scale studies",
+                    "Lip slurs",
+                    "Finger dexterity",
+                    "Stopped horn technique"
+                ]
+            },
+            {
+                category: "Intermediate skills",
+                difficulty: "I1",
+                topics: [
+                    "Transposition practice",
+                    "Extended range development",
+                    "Advanced lip flexibility",
+                    "Accuracy exercises"
+                ]
+            },
+            {
+                category: "Advanced repertoire",
+                difficulty: "A",
+                topics: [
+                    "Mozart horn concertos",
+                    "Strauss concertos",
+                    "Orchestral excerpts",
+                    "Chamber music literature"
+                ]
+            }
         ]
     },
-    {
-        family: "Brass Instruments",
-        name: "Euphonium/Baritone",
-        items: [
-            "Long tone development", "Lip slurs and flexibility", "Breathing exercises",
-            "Major/minor scales and arpeggios", "Articulation studies", "Technical etudes (Arban, Rochut, etc.)",
-            "Range extension exercises", "Bass clef and treble clef reading", "Finger technique for valves",
-            "Dynamic control practice", "Orchestral/band excerpt study", "Chamber music skills",
-            "Solo repertoire development", "Mouthpiece buzzing exercises", "Endurance training",
-            "Sight-reading practice", "Vibrato development", "Tonguing exercises (single, double, triple)",
-            "Muted techniques", "Performance preparation/memorization"
-        ]
-    },
-    {
-        family: "Brass Instruments",
-        name: "Tuba",
-        items: [
-            "Long tone development", "Breathing exercises and breath control", "Lip slurs and flexibility",
-            "Major/minor scales and arpeggios", "Articulation studies", "Technical etudes (Bordogni, Blazhevich, etc.)",
-            "Low register development", "High register extension", "Finger technique for valves",
-            "Dynamic control practice", "Orchestral excerpt study", "Mouthpiece buzzing exercises",
-            "Endurance training", "Sight-reading practice", "Solo repertoire development", "Chamber music skills",
-            "Bass clef reading proficiency", "Tonguing exercises (single, double)", "Sound projection techniques",
-            "Performance preparation/memorization"
-        ]
-    },
-    // Strings
+    
+    // STRINGS
     {
         family: "Strings",
         name: "Violin",
         items: [
-            "Left hand finger patterns", "Bow control exercises", "String crossing techniques",
-            "Vibrato development", "Major/minor scales and arpeggios", "Position work (1st through 7th)",
-            "Shifting exercises", "Double stop practice", "Etudes (Kreutzer, Dont, etc.)",
-            "Spiccato and other bow strokes", "Tone production exercises", "Orchestral excerpt study",
-            "Dynamic control practice", "Sight-reading exercises", "Chamber music skills",
-            "Solo repertoire development", "Harmonics techniques", "Baroque bow technique",
-            "Phrasing and musical interpretation", "Performance preparation/memorization"
-        ]
-    },
-    {
-        family: "Strings",
-        name: "Viola",
-        items: [
-            "Left hand finger patterns", "Bow control exercises", "String crossing techniques",
-            "Vibrato development", "Major/minor scales and arpeggios", "Position work (1st through 5th)",
-            "Shifting exercises", "Alto clef reading mastery", "Double stop practice",
-            "Etudes (Kreutzer, Campagnoli, etc.)", "Tone production exercises", "Orchestral excerpt study",
-            "Dynamic control practice", "Sight-reading exercises", "Chamber music skills",
-            "Solo repertoire development", "Harmonics techniques", "Sound projection techniques",
-            "Phrasing and musical interpretation", "Performance preparation/memorization"
+            {
+                category: "Fundamental skills",
+                difficulty: "B1",
+                topics: [
+                    "Proper instrument hold and posture",
+                    "Bow hold fundamentals",
+                    "Left hand position",
+                    "Basic tone production"
+                ]
+            },
+            {
+                category: "Core technique",
+                difficulty: "B2",
+                topics: [
+                    "String crossing exercises",
+                    "Major scales and arpeggios",
+                    "Minor scales and arpeggios",
+                    "First position mastery"
+                ]
+            },
+            {
+                category: "Left hand technique",
+                difficulty: "I1",
+                topics: [
+                    "Position work (2nd-5th)",
+                    "Shifting exercises",
+                    "Vibrato development",
+                    "Double stop introduction"
+                ]
+            },
+            {
+                category: "Bow technique",
+                difficulty: "I2",
+                topics: [
+                    "Detaché bowing",
+                    "Martelé and staccato",
+                    "Spiccato development",
+                    "Expressive bow strokes"
+                ]
+            },
+            {
+                category: "Advanced studies",
+                difficulty: "A",
+                topics: [
+                    "Virtuosic étude work",
+                    "Advanced double stops",
+                    "Left hand agility",
+                    "High position playing"
+                ]
+            },
+            {
+                category: "Repertoire",
+                difficulty: "mixed",
+                topics: [
+                    "Bach Sonatas and Partitas",
+                    "Classical concertos",
+                    "Romantic works",
+                    "Contemporary pieces"
+                ]
+            }
         ]
     },
     {
         family: "Strings",
         name: "Cello",
         items: [
-            "Left hand finger patterns", "Bow control exercises", "String crossing techniques",
-            "Vibrato development", "Major/minor scales and arpeggios", "Position work (1st through thumb)",
-            "Shifting exercises", "Double stop practice", "Etudes (Dotzauer, Popper, etc.)",
-            "Pizzicato techniques", "Tenor and treble clef reading", "Orchestral excerpt study",
-            "Tone production exercises", "Dynamic control practice", "Thumb position development",
-            "Sight-reading exercises", "Chamber music skills", "Solo repertoire development",
-            "Harmonics techniques", "Performance preparation/memorization"
+            {
+                category: "Fundamentals",
+                difficulty: "B1",
+                topics: [
+                    "Instrument setup and posture",
+                    "Basic bow hold and technique",
+                    "Left hand positioning",
+                    "Open string exercises"
+                ]
+            },
+            {
+                category: "Basic technique",
+                difficulty: "B2",
+                topics: [
+                    "First position studies",
+                    "Basic shifting",
+                    "Scale patterns",
+                    "String crossing exercises"
+                ]
+            },
+            {
+                category: "Intermediate studies",
+                difficulty: "I1",
+                topics: [
+                    "Thumb position introduction",
+                    "Vibrato development",
+                    "Extended position work",
+                    "Legato bowing techniques"
+                ]
+            },
+            {
+                category: "Advanced repertoire",
+                difficulty: "A",
+                topics: [
+                    "Bach Cello Suites",
+                    "Concerto literature",
+                    "Orchestral excerpts",
+                    "Contemporary techniques"
+                ]
+            }
         ]
     },
     {
         family: "Strings",
         name: "Double Bass",
         items: [
-            "Left hand finger patterns", "Bow control exercises", "String crossing techniques",
-            "Position work (1/2 through thumb)", "Shifting exercises", "Major/minor scales and arpeggios",
-            "Pizzicato techniques", "Orchestral excerpt study", "Etudes (Simandl, Hrabe, etc.)",
-            "Thumb position development", "Vibrato development", "Tone production exercises",
-            "Dynamic control practice", "Sight-reading exercises", "Chamber music skills",
-            "Solo repertoire development", "French bow vs. German bow techniques", "Jazz bass introduction",
-            "Extended techniques", "Performance preparation/memorization"
+            {
+                category: "Basic position",
+                difficulty: "B1",
+                topics: [
+                    "Instrument setup and posture",
+                    "Basic hand positioning",
+                    "Pizzicato technique",
+                    "Bow hold fundamentals"
+                ]
+            },
+            {
+                category: "Technical foundation",
+                difficulty: "B2",
+                topics: [
+                    "First position mastery",
+                    "Half position studies",
+                    "Scale patterns",
+                    "Simple shifting"
+                ]
+            },
+            {
+                category: "Orchestral skills",
+                difficulty: "I1",
+                topics: [
+                    "Orchestral excerpt study",
+                    "Orchestra bowings",
+                    "Section playing techniques",
+                    "Rhythmic precision exercises"
+                ]
+            },
+            {
+                category: "Jazz techniques",
+                difficulty: "I2",
+                topics: [
+                    "Walking bass lines",
+                    "Jazz improvisation basics",
+                    "Swing feel development",
+                    "Jazz repertoire studies"
+                ]
+            }
+        ]
+    },
+    
+    // KEYBOARD INSTRUMENTS
+    {
+        family: "Keyboard",
+        name: "Piano",
+        items: [
+            {
+                category: "Fundamental skills",
+                difficulty: "B1",
+                topics: [
+                    "Proper posture and hand position",
+                    "Finger independence exercises",
+                    "Basic articulation (legato/staccato)",
+                    "Five-finger patterns"
+                ]
+            },
+            {
+                category: "Core technique",
+                difficulty: "B2",
+                topics: [
+                    "Major scales and arpeggios",
+                    "Minor scales and arpeggios",
+                    "Contrary motion scales",
+                    "Chord progressions and inversions"
+                ]
+            },
+            {
+                category: "Intermediate technique",
+                difficulty: "I1",
+                topics: [
+                    "Pedaling techniques",
+                    "Velocity and finger agility",
+                    "Octave practice",
+                    "Chord voicing and balance"
+                ]
+            },
+            {
+                category: "Advanced studies",
+                difficulty: "A",
+                topics: [
+                    "Virtuosic études (Chopin, Liszt)",
+                    "Polyphonic playing",
+                    "Complex rhythmic patterns",
+                    "Artistic pedaling"
+                ]
+            },
+            {
+                category: "Repertoire",
+                difficulty: "mixed",
+                topics: [
+                    "Classical sonatas",
+                    "Romantic character pieces",
+                    "Baroque contrapuntal works",
+                    "Contemporary compositions"
+                ]
+            }
         ]
     },
     {
-        family: "Strings",
-        name: "Double Bass (Jazz)",
+        family: "Keyboard",
+        name: "Organ",
         items: [
-            "Walking bass line development", "Jazz tone development", "Swing feel exercises",
-            "ii-V-I progression patterns", "Chord-scale relationships", "Pizzicato technique for jazz",
-            "Jazz bowing techniques", "Blues patterns and progressions", "Transcription of jazz bass lines",
-            "Jazz standard repertoire", "Rhythmic development exercises", "Soloing techniques for bass",
-            "Playing by ear exercises", "Accompanying skills", "Slap and pop techniques",
-            "Jazz phrasing concepts", "Improvisation development", "Latin jazz patterns",
-            "Duo playing with piano/drums", "Trading fours/eights practice"
+            {
+                category: "Manual technique",
+                difficulty: "B1",
+                topics: [
+                    "Finger independence",
+                    "Touch and articulation",
+                    "Hand position principles",
+                    "Basic registration concepts"
+                ]
+            },
+            {
+                category: "Pedal technique",
+                difficulty: "B2",
+                topics: [
+                    "Pedal scales and exercises",
+                    "Toe-heel technique",
+                    "Pedal articulation",
+                    "Coordination exercises"
+                ]
+            },
+            {
+                category: "Bach studies",
+                difficulty: "I2",
+                topics: [
+                    "Chorales",
+                    "Preludes and fugues",
+                    "Trio sonatas",
+                    "Contrapuntal techniques"
+                ]
+            },
+            {
+                category: "Advanced literature",
+                difficulty: "A",
+                topics: [
+                    "Romantic organ works",
+                    "French organ symphonies",
+                    "Modern compositions",
+                    "Improvisation techniques"
+                ]
+            }
         ]
     },
-    // Bass Guitar
-    {
-        family: "Bass Guitar",
-        name: "Electric Bass (Jazz)",
-        items: [
-            "Warm-up routines", "Scales", "Arpeggios", "Sight-reading", "Ear training",
-            "Walking bass line development", "Jazz tone production", "Swing feel development",
-            "ii-V-I pattern exercises", "Chord-scale relationships", "Finger technique for jazz",
-            "Blues progressions and patterns", "Jazz standard repertoire", "Transcription of jazz bass lines",
-            "Soloing techniques for jazz bass", "Jazz phrasing concepts", "Reading bass clef notation",
-            "Reading tablature", "Improvisation development", "Trading fours/eights practice"
-        ]
-    },
-    {
-        family: "Bass Guitar",
-        name: "Electric Bass (Rock/Pop)",
-        items: [
-            "Warm-up routines", "Scales", "Arpeggios", "Sight-reading", "Ear training",
-            "Finger technique development", "Pick technique", "Major/minor scales and patterns",
-            "Slap and pop techniques", "Groove development exercises", "Rhythmic accuracy training",
-            "Rock/pop song repertoire", "Chord progressions and arpeggios", "Pentatonic patterns",
-            "Octave techniques", "Fretboard knowledge development", "Reading bass clef notation",
-            "Reading tablature", "Playing with a drummer exercises", "Dynamic control practice"
-        ]
-    },
-    // Keyboard Instruments
-    {
-        family: "Keyboard Instruments",
-        name: "Piano (Classical)",
-        items: [
-            "Five-finger exercises", "Major/minor scales and arpeggios", "Hanon technical exercises",
-            "Chord progressions and inversions", "Finger independence exercises", "Sight-reading practice",
-            "Pedaling techniques", "Dynamics and articulation control", "Etudes (Czerny, Clementi, etc.)",
-            "Bach inventions/preludes study", "Classical sonata repertoire", "Romantic period repertoire",
-            "Impressionist style study", "Contemporary techniques", "Chamber music/accompanying skills",
-            "Octave technique development", "Contrapuntal playing", "Memorization techniques",
-            "Performance practice by era", "Performance preparation/recital skills"
-        ]
-    },
-    {
-        family: "Keyboard Instruments",
-        name: "Piano (Jazz)",
-        items: [
-            "Jazz chord voicings", "Comping techniques", "Blues progressions and scales",
-            "ii-V-I progression patterns", "Bebop scale practice", "Jazz standard repertoire",
-            "Left-hand walking bass with right-hand chords", "Modal jazz techniques", "Stride piano techniques",
-            "Improvisation development", "Jazz articulation and phrasing", "Transcription of jazz solos",
-            "Rhythmic comping patterns", "Latin jazz styles", "Jazz trio playing techniques",
-            "Reharmonization techniques", "Playing by ear exercises", "Guide tone line practice",
-            "Solo piano arrangements", "Trading fours/eights practice"
-        ]
-    },
-    // Percussion
+    
+    // PERCUSSION
     {
         family: "Percussion",
-        name: "Snare Drum",
+        name: "Drums (Rock)",
         items: [
-            "Warm-up routines", "Sight-reading", "Ear training", "Stick control exercises",
-            "Rudiment practice (40 essential rudiments)", "Reading rhythmic notation", "Accent patterns",
-            "Roll development (closed to open)", "Dynamic control exercises", "Technical etudes (Peters, Cirone, etc.)",
-            "Orchestral excerpt study", "Rudimental drumming style", "Concert/orchestral style",
-            "Stick heights and technique", "Multiple bounce control", "Rhythm accuracy exercises",
-            "Hand speed development", "Endurance training", "Brush technique introduction", "Marching percussion techniques"
-        ]
-    },
-    {
-        family: "Percussion",
-        name: "Timpani",
-        items: [
-            "Mallet technique development", "Pitch ear training", "Tuning exercises", "Roll development",
-            "Dampening techniques", "Cross-sticking techniques", "Technical etudes", "Orchestral excerpt study",
-            "Sight-reading practice", "Different mallet selection", "Dynamic control across drums",
-            "Multiple timpani exercises", "Glissando techniques", "Muffling techniques",
-            "Rhythm accuracy exercises", "Pedal technique", "Double-stop techniques",
-            "Coordination exercises", "Articulation development", "Performance preparation/memorization"
-        ]
-    },
-    {
-        family: "Percussion",
-        name: "Mallet Percussion (Marimba, Xylophone, Vibraphone)",
-        items: [
-            "Mallet technique (Stevens, Burton, etc.)", "Two-mallet exercises", "Four-mallet exercises",
-            "Major/minor scales and arpeggios", "Chord progressions", "Reading exercises",
-            "Dampening techniques (vibraphone)", "Pedaling techniques (vibraphone)", "Roll development",
-            "Technical etudes", "Sight-reading practice", "Orchestral excerpt study", "Solo repertoire development",
-            "Chamber music skills", "Dynamic control", "Speed and accuracy exercises", "One-handed roll techniques",
-            "Interval studies", "Repertoire by era (baroque to contemporary)", "Performance preparation/memorization"
-        ]
-    },
-    {
-        family: "Percussion",
-        name: "Vibraphone (Jazz)",
-        items: [
-            "Four-mallet technique", "Jazz chord voicings", "Dampening techniques", "Pedaling techniques",
-            "Blues progressions", "ii-V-I progression patterns", "Comping techniques", "Jazz standard repertoire",
-            "Improvisation development", "Guide tone line practice", "Bebop scale application", "Modal jazz techniques",
-            "Mallet dampening for articulation", "Transcription of jazz solos", "Playing by ear exercises",
-            "Jazz phrasing concepts", "Rhythmic development exercises", "Solo vibraphone arrangements",
-            "Jazz combo playing techniques", "Trading fours/eights practice"
+            {
+                category: "Fundamentals",
+                difficulty: "B1",
+                topics: [
+                    "Basic rock beats",
+                    "Stick grip and technique",
+                    "Drum set posture and setup",
+                    "Reading basic drum notation"
+                ]
+            },
+            {
+                category: "Groove development",
+                difficulty: "B2",
+                topics: [
+                    "Sixteenth note groove patterns",
+                    "Hi-hat technique development",
+                    "Bass drum technique",
+                    "Basic fill development"
+                ]
+            },
+            {
+                category: "Intermediate techniques",
+                difficulty: "I1",
+                topics: [
+                    "Hand and foot speed exercises",
+                    "Ghost note technique",
+                    "Linear drumming introduction",
+                    "Dynamic control in rock context"
+                ]
+            },
+            {
+                category: "Advanced concepts",
+                difficulty: "A",
+                topics: [
+                    "Odd time signatures",
+                    "Double bass drum techniques",
+                    "Polyrhythmic studies",
+                    "Metal and progressive rock techniques"
+                ]
+            }
         ]
     },
     {
         family: "Percussion",
         name: "Drums (Jazz)",
         items: [
-            "Warm-up routines", "Sight-reading", "Ear training", "Basic coordination exercises",
-            "Jazz ride cymbal patterns", "Comping with snare and bass", "Brush technique development",
-            "Jazz independence exercises", "Swing feel development", "Big band style and figures",
-            "Trading fours/eights practice", "Small group jazz techniques", "Reading big band charts",
-            "Solo development", "Jazz waltz patterns", "Jazz standard repertoire timing",
-            "Ballad brush patterns", "Bebop drumming style", "Latin jazz patterns", "Jazz time feel exercises"
+            {
+                category: "Fundamentals",
+                difficulty: "B1",
+                topics: [
+                    "Basic swing pattern",
+                    "Ride cymbal technique",
+                    "Hi-hat foot technique",
+                    "Basic brush strokes"
+                ]
+            },
+            {
+                category: "Coordination",
+                difficulty: "B2",
+                topics: [
+                    "Independence exercises",
+                    "Comping patterns",
+                    "Basic jazz fills",
+                    "Brush pattern development"
+                ]
+            },
+            {
+                category: "Intermediate jazz",
+                difficulty: "I1",
+                topics: [
+                    "Advanced comping",
+                    "Soloing concepts",
+                    "Trading fours",
+                    "Different feel applications"
+                ]
+            },
+            {
+                category: "Advanced concepts",
+                difficulty: "A",
+                topics: [
+                    "Polyrhythmic independence",
+                    "Odd-meter jazz",
+                    "Extended solo development",
+                    "Latin jazz techniques"
+                ]
+            }
         ]
     },
     {
         family: "Percussion",
-        name: "Drums (Rock)",
+        name: "Mallet Percussion",
         items: [
-            "Basic rock beats", "Sixteenth note groove patterns", "Hi-hat technique development",
-            "Bass drum technique", "Fill development", "Hand and foot speed exercises", "Double bass drum techniques",
-            "Odd time signatures", "Groove variation exercises", "Linear drumming techniques", "Ghost note technique",
-            "Dynamic control in rock context", "Rock song repertoire", "Coordination exercises", "Reading drum charts",
-            "Drum solos in rock context", "Polyrhythmic studies", "Metal drumming techniques", "Progressive rock techniques",
-            "Performance preparation skills"
+            {
+                category: "Basic technique",
+                difficulty: "B1",
+                topics: [
+                    "Mallet grip fundamentals",
+                    "Stroke types and control",
+                    "Basic scales and patterns",
+                    "Reading practice"
+                ]
+            },
+            {
+                category: "Four-mallet technique",
+                difficulty: "I1",
+                topics: [
+                    "Stevens grip basics",
+                    "Burton grip introduction",
+                    "Interval control",
+                    "Basic four-mallet patterns"
+                ]
+            },
+            {
+                category: "Repertoire approaches",
+                difficulty: "I2",
+                topics: [
+                    "Bach transcriptions",
+                    "Contemporary solo works",
+                    "Chamber music techniques",
+                    "Orchestra excerpt study"
+                ]
+            },
+            {
+                category: "Vibraphone jazz",
+                difficulty: "A",
+                topics: [
+                    "Chord voicings",
+                    "Dampening techniques",
+                    "Pedaling concepts",
+                    "Jazz improvisation techniques"
+                ]
+            }
         ]
     },
-    // Guitar
+    
+    // GUITAR AND BASS
     {
         family: "Guitar",
         name: "Guitar (Classical)",
         items: [
-            "Right hand fingerstyle technique", "Left hand finger patterns", "Major/minor scales and arpeggios",
-            "Slur technique (hammer-ons, pull-offs)", "Sight-reading practice", "Nail shape and tone production",
-            "Rest stroke vs. free stroke", "Etudes (Carcassi, Sor, etc.)", "Renaissance repertoire",
-            "Baroque repertoire", "Classical period repertoire", "Romantic repertoire", "20th century techniques",
-            "Contemporary repertoire", "Chamber music skills", "Dynamic control", "Tremolo technique",
-            "Rasgueado technique", "Musical interpretation by era", "Performance preparation/memorization"
+            {
+                category: "Fundamental skills",
+                difficulty: "B1",
+                topics: [
+                    "Right hand fingerstyle technique",
+                    "Left hand finger patterns",
+                    "Nail shape and tone production",
+                    "Basic posture and instrument position"
+                ]
+            },
+            {
+                category: "Core technique",
+                difficulty: "B2",
+                topics: [
+                    "Major/minor scales and arpeggios",
+                    "Rest stroke vs. free stroke",
+                    "Slur technique (hammer-ons, pull-offs)",
+                    "Basic sight-reading practice"
+                ]
+            },
+            {
+                category: "Repertoire",
+                difficulty: "mixed",
+                topics: [
+                    "Renaissance repertoire",
+                    "Baroque repertoire",
+                    "Classical period repertoire",
+                    "Romantic repertoire"
+                ]
+            },
+            {
+                category: "Advanced techniques",
+                difficulty: "A",
+                topics: [
+                    "Tremolo technique",
+                    "Rasgueado technique",
+                    "20th century techniques",
+                    "Contemporary repertoire"
+                ]
+            }
         ]
     },
     {
         family: "Guitar",
-        name: "Guitar (Jazz)",
+        name: "Guitar (Electric/Rock)",
         items: [
-            "Jazz chord voicings", "Comping techniques", "Walking bass lines", "Blues progressions",
-            "ii-V-I progression patterns", "Jazz standard repertoire", "Chord-melody arrangements",
-            "Bebop scale application", "Improvisation development", "Guide tone line practice",
-            "Transcription of jazz solos", "Swing feel development", "Jazz articulation techniques",
-            "Modal jazz theory application", "Playing by ear exercises", "Jazz phrasing concepts",
-            "Reading standard notation", "Reading tablature (where applicable)", "Solo jazz guitar arrangements",
-            "Trading fours/eights practice"
+            {
+                category: "Fundamental skills",
+                difficulty: "B1",
+                topics: [
+                    "Basic chord shapes",
+                    "Pick technique fundamentals",
+                    "Simple scale patterns",
+                    "Power chord technique"
+                ]
+            },
+            {
+                category: "Intermediate technique",
+                difficulty: "I1",
+                topics: [
+                    "Pentatonic scale applications",
+                    "String bending technique",
+                    "Hammer-on and pull-off patterns",
+                    "Basic improvisation concepts"
+                ]
+            },
+            {
+                category: "Lead guitar",
+                difficulty: "I2",
+                topics: [
+                    "Advanced scales (modes)",
+                    "Economy picking",
+                    "Sweep picking introduction",
+                    "Phrasing development"
+                ]
+            },
+            {
+                category: "Advanced techniques",
+                difficulty: "A",
+                topics: [
+                    "Tapping techniques",
+                    "Sweep arpeggios",
+                    "Advanced legato playing",
+                    "Speed and accuracy development"
+                ]
+            }
         ]
     },
     {
-        family: "Guitar",
-        name: "Guitar (Rock)",
+        family: "Bass Guitar",
+        name: "Electric Bass",
         items: [
-            "Open chord techniques", "Barre chord techniques", "Power chord progressions", "Alternate picking technique",
-            "Blues scale patterns", "Pentatonic scale patterns", "Palm muting techniques", "Basic tapping techniques",
-            "Rhythm guitar patterns", "Lead guitar techniques", "Hammer-on/pull-off exercises", "String bending techniques",
-            "Vibrato development", "Rock song repertoire", "Improvisation over rock progressions", "Guitar effects usage",
-            "Hybrid picking techniques", "Rock song structure study", "Rock guitar solos transcription",
-            "Performance preparation skills"
+            {
+                category: "Fundamentals",
+                difficulty: "B1",
+                topics: [
+                    "Right hand technique (fingers/pick)",
+                    "Left hand positioning",
+                    "Basic scale patterns",
+                    "Simple groove playing"
+                ]
+            },
+            {
+                category: "Groove development",
+                difficulty: "B2",
+                topics: [
+                    "Root-fifth patterns",
+                    "Eighth note bass lines",
+                    "Simple walking patterns",
+                    "Major/minor arpeggios"
+                ]
+            },
+            {
+                category: "Advanced techniques",
+                difficulty: "I2",
+                topics: [
+                    "Slap and pop technique",
+                    "Tapping approaches",
+                    "Harmonics utilization",
+                    "Advanced walking bass"
+                ]
+            },
+            {
+                category: "Styles",
+                difficulty: "mixed",
+                topics: [
+                    "Rock and pop bass lines",
+                    "Jazz bass concepts",
+                    "Funk and R&B patterns",
+                    "Latin bass techniques"
+                ]
+            }
         ]
     },
     {
-        family: "Guitar",
-        name: "Electric Bass (Rock/Pop)", // Note: Duplicate from Bass Guitar section, maybe consolidate later?
+        family: "Bass Guitar",
+        name: "Jazz Bass",
         items: [
-            "Finger technique development", "Pick technique", "Major/minor scales and patterns", "Slap and pop techniques",
-            "Groove development exercises", "Rhythmic accuracy training", "Rock/pop song repertoire", "Chord progressions and arpeggios",
-            "Pentatonic patterns", "Octave techniques", "Walking bass introduction", "Improvisation exercises",
-            "Two-finger vs. three-finger technique", "Muting techniques", "Fretboard knowledge development",
-            "Reading bass clef and tab", "Playing with a drummer exercises", "Dynamic control practice", "Bass solo techniques",
-            "Performance preparation skills"
+            {
+                category: "Walking Bass Fundamentals",
+                difficulty: "B2", // Beginner (Developing)
+                topics: [
+                    "Root-Fifth-Octave patterns",
+                    "Scale-based walking lines",
+                    "Chromatic approach notes",
+                    "Basic II-V-I lines"
+                ]
+            },
+            {
+                category: "Jazz Harmony & Theory",
+                difficulty: "I1", // Intermediate (Foundation)
+                topics: [
+                    "Understanding chord symbols",
+                    "Guide tone lines",
+                    "Chord scale relationships",
+                    "Common jazz progressions (Blues, Rhythm Changes)"
+                ]
+            },
+            {
+                category: "Style & Feel",
+                difficulty: "I1",
+                topics: [
+                    "Swing feel fundamentals",
+                    "Latin jazz bass patterns (Bossa, Samba)",
+                    "Syncopation exercises",
+                    "Playing 'in the pocket'"
+                ]
+            },
+            {
+                category: "Improvisation Basics",
+                difficulty: "I2", // Intermediate (Advanced)
+                topics: [
+                    "Arpeggio-based solos",
+                    "Using pentatonic scales",
+                    "Call and response phrasing",
+                    "Soloing over blues changes"
+                ]
+            },
+            {
+                category: "Advanced Concepts",
+                difficulty: "A", // Advanced
+                topics: [
+                    "Advanced walking bass lines (substitutions, passing chords)",
+                    "Modal jazz improvisation",
+                    "Odd meter playing",
+                    "Chord melody basics on bass"
+                ]
+            }
         ]
     },
-    // Voice
+    
+    // VOICE
     {
         family: "Voice",
         name: "Voice (Classical)",
         items: [
-            "Breath support exercises", "Vowel formation and modification", "Resonance development",
-            "Vocal range extension", "Vocal agility exercises", "Legato line development",
-            "Diction exercises (Italian, German, French)", "Sight-singing practice", "Art song repertoire",
-            "Aria study", "Vocal pedagogy awareness", "Dynamic control exercises", "Vibrato development",
-            "Register transition techniques", "Classical ensemble singing", "Recitative techniques",
-            "Phrasing and interpretation", "Foreign language pronunciation", "Acting for classical singing",
-            "Performance preparation/memorization"
+            {
+                category: "Fundamental skills",
+                difficulty: "B1",
+                topics: [
+                    "Breath support exercises",
+                    "Vowel formation and modification",
+                    "Posture and alignment",
+                    "Basic vocal warm-ups"
+                ]
+            },
+            {
+                category: "Vocal technique",
+                difficulty: "B2",
+                topics: [
+                    "Resonance development",
+                    "Vocal range extension",
+                    "Legato line development",
+                    "Register transition techniques"
+                ]
+            },
+            {
+                category: "Diction",
+                difficulty: "I1",
+                topics: [
+                    "Italian diction exercises",
+                    "German diction exercises",
+                    "French diction exercises",
+                    "English diction refinement"
+                ]
+            },
+            {
+                category: "Repertoire",
+                difficulty: "mixed",
+                topics: [
+                    "Art song repertoire",
+                    "Aria study",
+                    "Recitative techniques",
+                    "Ensemble singing"
+                ]
+            }
         ]
     },
     {
         family: "Voice",
-        name: "Voice (Jazz)",
+        name: "Voice (Contemporary)",
         items: [
-            "Jazz tone development", "Blues scale application", "Scat singing techniques",
-            "Jazz phrasing concepts", "Swing feel development", "Jazz standard repertoire",
-            "Microphone technique", "Improvisation development", "Transcription of jazz vocalists",
-            "Bebop patterns for voice", "ii-V-I progression patterns", "Guide tone line practice",
-            "Jazz articulation techniques", "Rhythmic development exercises", "Playing by ear exercises",
-            "Jazz vocal stylings", "Working with a rhythm section", "Jazz vocal interpretation",
-            "Vocalese techniques", "Performance preparation skills"
+            {
+                category: "Fundamental technique",
+                difficulty: "B1",
+                topics: [
+                    "Breath support basics",
+                    "Mic technique essentials",
+                    "Basic warm-up routines",
+                    "Pitch accuracy exercises"
+                ]
+            },
+            {
+                category: "Style development",
+                difficulty: "B2",
+                topics: [
+                    "Pop vocal styling",
+                    "Rock voice techniques",
+                    "R&B runs and riffs",
+                    "Country twang development"
+                ]
+            },
+            {
+                category: "Advanced techniques",
+                difficulty: "I2",
+                topics: [
+                    "Belt technique",
+                    "Mix voice development",
+                    "Vocal effects (distortion, growl)",
+                    "Extended range techniques"
+                ]
+            },
+            {
+                category: "Performance skills",
+                difficulty: "A",
+                topics: [
+                    "Vocal improvisation",
+                    "Stage presence",
+                    "Microphone techniques",
+                    "Stylistic authenticity"
+                ]
+            }
         ]
     },
     {
-        family: "Voice",
-        name: "Voice (Rock/Pop)",
+        family: "Guitar",
+        name: "Jazz Guitar",
         items: [
-            "Warm-up routines", "Scales", "Arpeggios", "Sight-reading", "Ear training",
-            "Contemporary vocal technique", "Mixed voice development", "Belt technique",
-            "Vocal effects (growl, distortion)", "Contemporary vibrato styles", "Microphone technique",
-            "Rock/pop song repertoire", "Contemporary runs and riffs", "Vocal range extension",
-            "Contemporary vocal agility", "Stage presence for rock/pop", "Breath support for contemporary styles",
-            "Voice care for high-energy singing", "Stylistic interpretation", "Rock/pop phrasing concepts"
-        ]
-    },
-    {
-        "family": "General Exercises",
-        "name": "General Musicianship",
-        "items": [
-            "Sight-reading practice (various clefs/instruments)",
-            "Ear training (intervals, chords, melodies)",
-            "Rhythm practice (clapping, tapping, using metronome)",
-            "Music theory review (harmony, form, analysis)",
-            "Transcription (solos, melodies, chord progressions)",
-            "Improvisation practice (over backing tracks or changes)",
-            "Memorization techniques",
-            "Mental practice / visualization",
-            "Score study",
-            "Performance preparation skills"
+            {
+                category: "Comping Fundamentals",
+                difficulty: "B2",
+                topics: [
+                    "Basic jazz chord voicings (Maj7, min7, Dom7)",
+                    "Shell voicings",
+                    "Common comping rhythms (Charleston, Swing)",
+                    "II-V-I progressions"
+                ]
+            },
+            {
+                category: "Single Note Lines & Theory",
+                difficulty: "I1",
+                topics: [
+                    "Major scale modes for improvisation",
+                    "Minor scale modes (Dorian, Aeolian)",
+                    "Arpeggio studies",
+                    "Guide tone lines over changes"
+                ]
+            },
+            {
+                category: "Chord Melody Basics",
+                difficulty: "I1",
+                topics: [
+                    "Harmonizing simple melodies",
+                    "Drop 2 and Drop 3 voicings",
+                    "Walking bass lines with chords",
+                    "Chord melody arrangements of standards"
+                ]
+            },
+            {
+                category: "Improvisation Techniques",
+                difficulty: "I2",
+                topics: [
+                    "Bebop scales and vocabulary",
+                    "Using tensions (9, 11, 13)",
+                    "Soloing over Blues and Rhythm Changes",
+                    "Developing melodic phrasing"
+                ]
+            },
+             {
+                category: "Advanced Harmony & Comping",
+                difficulty: "A",
+                topics: [
+                    "Quartal harmony voicings",
+                    "Chord substitutions (tritone sub, etc.)",
+                    "Advanced comping rhythms",
+                    "Modal comping approaches"
+                ]
+            }
         ]
     }
 ];
 
-// Helper function to get the icon name for a family
-function getFamilyIcon(familyName) {
-    switch (familyName) {
-        case "Woodwinds": return "wind";
-        case "Brass": return "trumpet";
-        case "Strings": return "violin";
-        case "Bass Guitar": return "guitar";
-        case "Keyboard": return "piano";
-        case "Percussion": return "drum";
-        case "Guitar": return "guitar";
-        case "Voice": return "mic";
-        default: return "music";
-    }
-}
+// Global state for expanded categories
+let expandedCategories = {};
 
-// Function to display practice categories dynamically
-function displayPracticeCategories() {
-    const container = document.getElementById('practice-categories-container');
-    if (!container) {
-        console.error('[DEBUG Resources] Practice categories container not found!');
-        return;
-    }
-    container.innerHTML = ''; // Clear existing content
-
-    // Group categories by family first
-    const families = {};
-    defaultCategories.forEach(category => {
-        if (!families[category.family]) {
-            families[category.family] = [];
-        }
-        families[category.family].push(category);
-    });
-
-    // Generate HTML for each family
-    for (const familyName in families) {
-        const familyData = families[familyName];
-        
-        const familySection = document.createElement('section');
-        familySection.className = 'family-section';
-        familySection.dataset.family = familyName;
-
-        // Add family title with icon
-        const familyIcon = getFamilyIcon(familyName);
-        familySection.innerHTML = `
-            <h2 class="family-title">
-                <i data-lucide="${familyIcon}"></i>${familyName}
-            </h2>
-        `;
-
-        // Generate HTML for each instrument within the family
-        familyData.forEach(instrument => {
-            const instrumentSection = document.createElement('div');
-            instrumentSection.className = 'instrument-section';
-            
-            instrumentSection.innerHTML = `<h3 class="instrument-title">${instrument.name}</h3>`;
-            
-            const categoriesList = document.createElement('ul');
-            categoriesList.className = 'categories-list';
-            
-            instrument.items.forEach(item => {
-                const listItem = document.createElement('li');
-                listItem.className = 'category-item';
-                listItem.dataset.categoryName = item.toLowerCase();
-                listItem.innerHTML = `
-                    <span class="category-name">${item}</span>
-                    <button class="copy-button" data-category="${item}" title="Add to My Categories">
-                        <i data-lucide="plus"></i>
-                        Add
-                    </button>
-                `;
-                categoriesList.appendChild(listItem);
-            });
-            
-            instrumentSection.appendChild(categoriesList);
-            familySection.appendChild(instrumentSection);
-        });
-
-        container.appendChild(familySection);
-    }
-
-    // Initialize Lucide icons for the newly added elements
-    if (window.lucide) {
-        console.log("[DEBUG Resources] Initializing icons for newly added elements");
-        lucide.createIcons();
-    } else {
-        console.warn("[DEBUG Resources] Lucide not available for icon initialization");
-    }
-
-    // Add event listeners to copy buttons after they are created
-    container.querySelectorAll('.copy-button').forEach(button => {
-        button.addEventListener('click', () => handleCopy(button));
-    });
-}
-
-// Handle copy button clicks
-function handleCopy(button) {
-    const categoryName = button.dataset.category;
-    const instrumentFamily = button.closest('.family-section').dataset.family;
-
-    // Get existing categories
-    const categories = JSON.parse(localStorage.getItem('practiceTrack_categories')) || [];
-    
-    // Check if category already exists
-    const existingCategory = categories.find(c => c.name === categoryName);
-    if (existingCategory) {
-        showResourceMessage('Category already exists!', 'warning');
-        return;
-    }
-    
-    // Add new category
-    const newCategory = {
-        id: Date.now().toString(),
-        name: categoryName,
-        family: instrumentFamily,
-        isDefault: false,
-        isVisible: true
-    };
-    
-    categories.push(newCategory);
-    localStorage.setItem('practiceTrack_categories', JSON.stringify(categories));
-    
-    // Show success message
-    showResourceMessage('Category added successfully!', 'success');
-
-    // Update any category dropdowns
-    window.updateCategoryDropdowns();
-}
-
-// Show message notification
-function showResourceMessage(text, type = 'success') {
-    window.showNotification(text, type);
-}
-
-// Function to filter categories based on search term and family
-function filterCategories(searchTerm, familyFilter) {
-    searchTerm = searchTerm.toLowerCase();
-    const sections = document.querySelectorAll('#practice-categories-container .family-section');
-    
-    sections.forEach(section => {
-        const sectionFamily = section.dataset.family;
-        const instrumentSections = section.querySelectorAll('.instrument-section');
-        let sectionHasVisibleItems = false;
-
-        instrumentSections.forEach(instrumentSection => {
-            const instrumentName = instrumentSection.querySelector('.instrument-title').textContent.toLowerCase();
-            const items = instrumentSection.querySelectorAll('.category-item');
-            let instrumentHasVisibleItems = false;
-
-            // Check if the instrument name matches the search
-            const instrumentMatches = instrumentName.includes(searchTerm);
-
-            items.forEach(item => {
-                const categoryName = item.querySelector('.category-name').textContent.toLowerCase();
-                const matchesSearch = searchTerm === '' || 
-                    categoryName.includes(searchTerm) || 
-                    instrumentMatches;
-                const matchesFamily = familyFilter === 'all' || sectionFamily === familyFilter;
-
-                if (matchesSearch && matchesFamily) {
-                    item.style.display = 'flex';
-                    instrumentHasVisibleItems = true;
-                    sectionHasVisibleItems = true;
-                } else {
-                    item.style.display = 'none';
-                }
-            });
-
-            // Show/hide the instrument section based on whether it has visible items
-            instrumentSection.style.display = instrumentHasVisibleItems ? 'block' : 'none';
-        });
-
-        // Show/hide the family section based on whether it has visible items
-        if ((familyFilter === 'all' || sectionFamily === familyFilter) && sectionHasVisibleItems) {
-            section.classList.remove('hidden-family');
-        } else {
-            section.classList.add('hidden-family');
-        }
-    });
-}
-
-// Restore initializeResources to handle setup directly
+/**
+ * Initialize the Resources page
+ */
 function initializeResources() {
-    console.log("[DEBUG Resources] Initializing resources page...");
-
-    // Check if the resources page container exists - prevents errors on other pages
-    const resourcesPage = document.getElementById('resources-page');
-    if (!resourcesPage) {
-        console.log("[DEBUG Resources] Resources page element not found, skipping initialization.");
-        return; // Exit if not on the correct page
-    }
-
-    displayPracticeCategories(); // Generate the HTML for categories
-
-    // Initialize Lucide icons
-    if (window.lucide) {
-        console.log("[DEBUG Resources] Lucide found, calling createIcons().");
-        lucide.createIcons();
-    } else {
-        console.error("[DEBUG Resources] Lucide object not found during initializeResources!");
-    }
-
+    console.log('[DEBUG Resources] Initializing Resources page...');
     const searchInput = document.getElementById('resource-search');
-    const filterButtons = document.querySelectorAll('#resources-page .filter-btn'); // Scope to resources page
+    const familyFilterButtons = document.querySelectorAll('.resource-filters .filter-btn');
+    const difficultyFilter = document.getElementById('difficulty-filter');
     const categoriesContainer = document.getElementById('practice-categories-container');
 
-    if (!categoriesContainer) {
-        console.error("[DEBUG Resources] Practice categories container not found after display!");
+    if (!searchInput || !familyFilterButtons.length || !difficultyFilter || !categoriesContainer) {
+        console.error('[DEBUG Resources] One or more essential elements not found for Resources page.');
         return;
     }
-    
-    // Add event listener for search input
-    if (searchInput) {
-        searchInput.addEventListener('input', () => {
-             const activeFilter = document.querySelector('#resources-page .filter-btn.active');
-             filterCategories(searchInput.value.toLowerCase(), activeFilter?.dataset.family || 'all');
-        });
-    } else {
-        console.warn("[DEBUG Resources] Resource search input not found!");
-    }
 
-    // Add event listeners for filter buttons
-    filterButtons.forEach(button => {
-        // Remove previous listeners if any to prevent duplicates (optional but good practice)
-        // Note: This simple removal might not work if the listener function is anonymous.
-        // A more robust approach involves named functions or storing listener references.
-        // For now, we assume initializeResources is called only once per page load/view.
+    // Display initial categories
+    displayPracticeCategories();
+
+    // Filter event listeners
+    searchInput.addEventListener('input', displayPracticeCategories);
+    difficultyFilter.addEventListener('change', displayPracticeCategories);
+
+    familyFilterButtons.forEach(button => {
         button.addEventListener('click', () => {
-            filterButtons.forEach(btn => btn.classList.remove('active'));
+            familyFilterButtons.forEach(btn => btn.classList.remove('active'));
             button.classList.add('active');
-            const family = button.dataset.family;
-            filterCategories(searchInput?.value.toLowerCase() || '', family);
+            displayPracticeCategories();
         });
     });
 
-    // Initial filter display
-    const initialActiveFilter = document.querySelector('#resources-page .filter-btn.active');
-    filterCategories('', initialActiveFilter?.dataset.family || 'all');
-    console.log("[DEBUG Resources] Resources page initialization complete.");
+    console.log('[DEBUG Resources] Resources initialized.');
 }
 
-// Ensure initializeResources is available globally for app.js to call
+/**
+ * Display practice categories based on current filters
+ */
+function displayPracticeCategories() {
+    const container = document.getElementById('practice-categories-container');
+    const searchInput = document.getElementById('resource-search');
+    const difficultyFilter = document.getElementById('difficulty-filter');
+    const activeFamilyButton = document.querySelector('.resource-filters .filter-btn.active');
+
+    if (!container || !searchInput || !difficultyFilter || !activeFamilyButton) return;
+
+    const searchTerm = searchInput.value.toLowerCase().trim();
+    const selectedDifficulty = difficultyFilter.value;
+    const selectedFamily = activeFamilyButton.dataset.family;
+
+    console.log(`[DEBUG Resources Display] Filtering - Search: '${searchTerm}', Difficulty: ${selectedDifficulty}, Family: ${selectedFamily}`);
+
+    container.innerHTML = ''; // Clear previous content
+    let foundItems = false;
+
+    // Filter and Sort practiceCategories before iterating
+    const categoriesToDisplay = practiceCategories
+        .filter(instrument => selectedFamily === 'all' || instrument.family === selectedFamily)
+        .sort((a, b) => {
+            // First sort by family name
+            if (a.family < b.family) return -1;
+            if (a.family > b.family) return 1;
+            // Then sort by instrument name within the family
+            if (a.name < b.name) return -1;
+            if (a.name > b.name) return 1;
+            return 0;
+        });
+
+    categoriesToDisplay.forEach(instrument => {
+        // Filter instrument items based on difficulty and search term
+        const filteredItems = instrument.items.filter(item => {
+            // Ensure case-insensitive comparison for difficulty
+            const difficultyMatch = selectedDifficulty === 'all' || 
+                                (item.difficulty && item.difficulty.toLowerCase() === selectedDifficulty);
+            
+            if (selectedDifficulty !== 'all') {
+                console.log(`[DEBUG Difficulty Filter] Item: ${item.category}, Item Difficulty: ${item.difficulty}, Selected: ${selectedDifficulty}, Match: ${difficultyMatch}`);
+            }
+            const searchMatch = searchTerm === '' || 
+                                instrument.name.toLowerCase().includes(searchTerm) ||
+                                item.category.toLowerCase().includes(searchTerm) || 
+                                item.topics.some(topic => topic.toLowerCase().includes(searchTerm));
+            return difficultyMatch && searchMatch;
+        });
+
+        // If no items match after filtering, skip this instrument
+        if (filteredItems.length === 0) {
+            return;
+        }
+        
+        foundItems = true; // Mark that we found something to display
+
+        // Create instrument section
+        const instrumentSection = document.createElement('section');
+        instrumentSection.className = 'instrument-section card'; // Add card class
+        instrumentSection.innerHTML = `<h3>${instrument.name} (${instrument.family})</h3>`;
+
+        filteredItems.forEach(item => {
+            const categoryId = `${instrument.name}-${item.category}`.replace(/\s+/g, '-'); // Unique ID
+            const isExpanded = expandedCategories[categoryId] || false;
+
+            const categoryElement = document.createElement('div');
+            categoryElement.className = 'category-item';
+            
+            const difficultyColor = getDifficultyColor(item.difficulty);
+            const difficultyText = getDifficultyText(item.difficulty);
+
+            categoryElement.innerHTML = `
+                <div class="category-header" data-category-id="${categoryId}">
+                    <h4>${item.category}</h4>
+                    <span class="difficulty-tag" style="background-color: ${difficultyColor};">
+                        ${difficultyText}
+                    </span>
+                    <button class="expand-btn">
+                        <i data-lucide="${isExpanded ? 'chevron-up' : 'chevron-down'}"></i>
+                    </button>
+                </div>
+                <div class="topics-grid ${isExpanded ? '' : 'hidden'}">
+                    ${item.topics.map(topic => `
+                        <div class="topic-item">
+                            <span>${topic}</span>
+                            <button class="add-topic-btn" data-topic="${topic}" title="Add to my practice categories">
+                                <i data-lucide="plus-circle"></i>
+                            </button>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            instrumentSection.appendChild(categoryElement);
+        });
+        container.appendChild(instrumentSection);
+    });
+
+    // Show empty state if no items were found across all instruments
+    if (!foundItems) {
+        container.innerHTML = '<div class="empty-state">No resources match your current filters.</div>';
+    }
+
+    // Add event listeners for new elements
+    addDynamicEventListeners(container);
+    
+    // Initialize Lucide icons for the new elements
+    if (window.lucide) {
+        window.lucide.createIcons({ context: container });
+    }
+}
+
+/**
+ * Add event listeners to dynamically created elements (expand buttons, add buttons)
+ * @param {HTMLElement} container - The container holding the dynamic content
+ */
+function addDynamicEventListeners(container) {
+    // Expand/Collapse buttons
+    container.querySelectorAll('.category-header .expand-btn').forEach(button => {
+        button.addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevent header click if needed
+            const header = button.closest('.category-header');
+            const categoryId = header.dataset.categoryId;
+            expandedCategories[categoryId] = !expandedCategories[categoryId]; // Toggle state
+            displayPracticeCategories(); // Re-render to reflect changes
+        });
+    });
+
+    // Add Topic buttons
+    container.querySelectorAll('.add-topic-btn').forEach(button => {
+        button.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const topic = button.dataset.topic;
+            handleAddCategory(topic); // Call the handler function
+        });
+    });
+}
+
+/**
+ * Placeholder function to handle adding a topic to the user's categories
+ * Replace with actual implementation.
+ * @param {string} topic - The topic string to add
+ */
+function handleAddCategory(topic) {
+  console.log('[DEBUG Resources] Add category called for:', topic);
+
+  // Create a basic category object
+  const newCategory = {
+      id: `custom_${Date.now()}`,
+      name: topic,
+      // Add other properties if your category object needs them (e.g., color, isDefault)
+      // family: 'Custom', // Example: You might want to assign a family
+      isDefault: false
+  };
+
+  try {
+      // Use data layer to add the category
+      if (window.addItem) {
+          window.addItem('CATEGORIES', newCategory);
+          console.log('[DEBUG Resources] Category added via window.addItem:', newCategory);
+          
+          // Trigger dropdown updates across the app
+          if (window.updateCategoryDropdowns) {
+              window.updateCategoryDropdowns();
+              console.log('[DEBUG Resources] Called window.updateCategoryDropdowns()');
+          } else {
+               console.warn('[DEBUG Resources] window.updateCategoryDropdowns function not found.');
+          }
+
+          // Optional: Show success feedback (can replace alert)
+          if (window.showNotification) {
+             window.showNotification('Category Added', `"${topic}" added to your practice categories.`);
+          } else {
+             alert(`"${topic}" added to your practice categories!`);
+          }
+
+      } else {
+          console.error('[DEBUG Resources] window.addItem function not found. Cannot add category.');
+          alert('Error: Could not add category. Data layer missing.');
+      }
+  } catch (error) {
+       console.error('[DEBUG Resources] Error adding category:', error);
+       alert('An error occurred while adding the category.');
+  }
+}
+
+// Function to get display text for difficulty
+function getDifficultyText(difficultyCode) {
+    if (!difficultyCode) return "Mixed";
+    
+    const code = difficultyCode.toString().toLowerCase();
+    if (code.includes('b1')) return "Beginner (Foundation)";
+    if (code.includes('b2')) return "Beginner (Developing)";
+    if (code.includes('beginner')) return "Beginner";
+    if (code.includes('i1')) return "Intermediate (Foundation)";
+    if (code.includes('i2')) return "Intermediate (Advanced)";
+    if (code.includes('inter')) return "Intermediate";
+    if (code.includes('a')) return "Advanced";
+    if (code.includes('adv')) return "Advanced";
+    if (code.includes('mixed')) return "All Levels";
+    return "Mixed Levels";
+}
+
+// Function to get color for difficulty level
+function getDifficultyColor(difficulty) {
+    if (!difficulty) return "#777";
+    
+    const level = difficulty.toString().toLowerCase();
+    if (level.includes('b1') || level.includes('beginner')) return "#4caf50";
+    if (level.includes('b2') || level.includes('begin')) return "#8bc34a";
+    if (level.includes('i1') || level.includes('inter')) return "#ff9800";
+    if (level.includes('i2')) return "#f57c00";
+    if (level.includes('a') || level.includes('adv')) return "#e91e63";
+    return "#2196f3"; // Default for mixed or undefined
+}
+
+// Expose necessary functions globally if needed (initializeResources is likely called from app.js)
 window.initializeResources = initializeResources;
-
-// Call initializeResources when the page is navigated to (handled by app.js navigateToPage)
-// We might also need an initial call if the app loads directly onto the resources page
-// Check if the current page is resources on initial load
-if (document.readyState === 'interactive' || document.readyState === 'complete') {
-    // Check hash or path to see if we are on resources page initially
-    if (window.location.hash === '#resources' || document.getElementById('resources-page')?.classList.contains('active')) {
-        console.log("[DEBUG Resources] Initializing resources on direct load.")
-        initializeResources();
-    }
-} else {
-    document.addEventListener('DOMContentLoaded', () => {
-        if (window.location.hash === '#resources' || document.getElementById('resources-page')?.classList.contains('active')) {
-             console.log("[DEBUG Resources] Initializing resources on direct load (DOMContentLoaded).")
-        initializeResources();
-    }
-}); 
-}

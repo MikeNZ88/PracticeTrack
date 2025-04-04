@@ -6,11 +6,19 @@
 // Session data storage
 let sessionDialog = null;
 
+// Cache for categories to improve performance
+let cachedCategories = null;
+
 /**
- * Initialize sessions page 
+ * Initialize sessions page with performance optimizations
  */
 function initializeSessions() {
-    // Use the UI framework to initialize the sessions page
+    console.log('[DEBUG Sessions] Initializing Sessions page...'); // Restore log
+    // Pre-cache categories
+    cachedCategories = window.getItems ? window.getItems('CATEGORIES') : 
+        JSON.parse(localStorage.getItem('practiceTrack_categories')) || [];
+
+    // Use the UI framework to initialize the sessions page - RESTORED
     window.UI.initRecordPage({
         pageId: 'sessions',
         recordType: 'SESSIONS',
@@ -18,91 +26,109 @@ function initializeSessions() {
         addButtonId: 'add-session-btn',
         searchInputSelector: '.search-input',
         categoryFilterSelector: '.category-filter',
-        dateInputsSelector: '.date-input', // Selects both date inputs
+        dateInputsSelector: '.date-input',
         emptyStateMessage: 'No practice sessions recorded yet.',
         emptyStateIcon: 'list',
         addEmptyStateButtonId: 'empty-add-session',
         addEmptyStateButtonText: 'Add Your First Session',
-        createRecordElementFn: createSessionElement,
-        showDialogFn: showSessionDialog
+        createRecordElementFn: createSessionElement, // Ensure this function exists and works
+        showDialogFn: showSessionDialog // Ensure this function exists and works
     });
     
-    // --- Add Date Preset Logic --- 
+    // Add Date Preset Logic with optimizations - RESTORED
     const pageElement = document.getElementById('sessions-page');
-    const presetFilter = pageElement ? pageElement.querySelector('.date-preset-filter') : null;
-    const startDateInput = pageElement ? pageElement.querySelector('#session-start-date') : null;
-    const endDateInput = pageElement ? pageElement.querySelector('#session-end-date') : null;
-    const dateRangeDiv = pageElement ? pageElement.querySelector('.date-range') : null;
-
-    if (presetFilter && startDateInput && endDateInput && dateRangeDiv) {
-        presetFilter.addEventListener('change', () => {
-            const selectedPreset = presetFilter.value;
-            const today = new Date();
-            let startDate = '';
-            let endDate = '';
-
-            // Hide/show custom inputs 
-            dateRangeDiv.style.display = (selectedPreset === 'custom') ? 'flex' : 'none';
-
-            switch (selectedPreset) {
-                case 'week':
-                    const firstDayOfWeek = new Date(today.setDate(today.getDate() - today.getDay()));
-                    startDate = firstDayOfWeek.toISOString().split('T')[0];
-                    endDate = new Date().toISOString().split('T')[0]; // Today
-                    break;
-                case 'month':
-                    startDate = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
-                    endDate = new Date().toISOString().split('T')[0]; // Today
-                    break;
-                 case 'year':
-                    startDate = new Date(today.getFullYear(), 0, 1).toISOString().split('T')[0];
-                    endDate = new Date(today.getFullYear(), 11, 31).toISOString().split('T')[0];
-                    break;
-                case 'ytd':
-                    startDate = new Date(today.getFullYear(), 0, 1).toISOString().split('T')[0];
-                    endDate = new Date().toISOString().split('T')[0]; // Today
-                    break;
-                case 'all':
-                    startDate = '';
-                    endDate = '';
-                    break;
-                case 'custom':
-                     startDate = startDateInput.value;
-                     endDate = endDateInput.value;
-                    break;
-            }
-            
-            // Update date inputs only if not custom 
-            if (selectedPreset !== 'custom') {
-                 startDateInput.value = startDate;
-                 endDateInput.value = endDate;
-             }
-             // Trigger reload regardless of preset (UI framework handles filtering based on input values)
-              window.UI.loadRecords('sessions');
-        });
-        
-        // Update preset dropdown if custom dates are changed
-         startDateInput.addEventListener('change', () => {
-             presetFilter.value = 'custom';
-             dateRangeDiv.style.display = 'flex';
-             // loadRecords is already attached by initRecordPage
-         });
-         endDateInput.addEventListener('change', () => {
-              presetFilter.value = 'custom';
-              dateRangeDiv.style.display = 'flex';
-             // loadRecords is already attached by initRecordPage
-         });
-
-        // Set initial state - Default to 'all' and hide custom range
-        presetFilter.value = 'all';
-        dateRangeDiv.style.display = 'none'; 
-        startDateInput.value = ''; // Ensure custom dates are cleared initially
-        endDateInput.value = '';
-
-        // Trigger initial load with default 'all' time filter
-        window.UI.loadRecords('sessions');
+    if (!pageElement) {
+         console.error('[DEBUG Sessions] Sessions page element not found in initializeSessions.');
+         return;
     }
-    // --- End Date Preset Logic ---
+
+    const elements = {
+        presetFilter: pageElement.querySelector('.date-preset-filter'),
+        startDateInput: pageElement.querySelector('#session-start-date'),
+        endDateInput: pageElement.querySelector('#session-end-date'),
+        dateRangeDiv: pageElement.querySelector('.date-range')
+    };
+
+    if (!elements.presetFilter || !elements.startDateInput || 
+        !elements.endDateInput || !elements.dateRangeDiv) {
+        console.error('[DEBUG Sessions] One or more date filter elements not found.');
+        return; // Avoid errors if elements are missing
+    }
+
+    // Optimize date preset change handler
+    const handlePresetChange = () => {
+        const selectedPreset = elements.presetFilter.value;
+        const today = new Date();
+        let startDate = '';
+        let endDate = '';
+
+        elements.dateRangeDiv.style.display = (selectedPreset === 'custom') ? 'flex' : 'none';
+
+        switch (selectedPreset) {
+            case 'week':
+                startDate = new Date(today.setDate(today.getDate() - today.getDay())).toISOString().split('T')[0];
+                endDate = new Date().toISOString().split('T')[0];
+                break;
+            case 'month':
+                startDate = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
+                endDate = new Date().toISOString().split('T')[0];
+                break;
+            case 'year':
+                startDate = new Date(today.getFullYear(), 0, 1).toISOString().split('T')[0];
+                endDate = new Date(today.getFullYear(), 11, 31).toISOString().split('T')[0];
+                break;
+            case 'ytd':
+                startDate = new Date(today.getFullYear(), 0, 1).toISOString().split('T')[0];
+                endDate = new Date().toISOString().split('T')[0];
+                break;
+            case 'custom':
+            default: // Treat 'all' or invalid as no date filter
+                startDate = elements.startDateInput.value;
+                endDate = elements.endDateInput.value;
+                break;
+        }
+        
+        // Set input values only if not custom, custom relies on existing input values
+        if (selectedPreset !== 'custom') {
+            elements.startDateInput.value = startDate;
+            elements.endDateInput.value = endDate;
+        }
+        
+        // Trigger UI framework to reload records with the new date context
+        console.log('[DEBUG Sessions] Date preset changed, calling UI.loadRecords...');
+        window.UI.loadRecords('sessions');
+    };
+
+    // Add event listeners only once during initialization
+    // Check if listeners were already added to prevent duplicates if init is called multiple times
+    if (!elements.presetFilter.dataset.listenerAdded) {
+        elements.presetFilter.addEventListener('change', handlePresetChange);
+        elements.startDateInput.addEventListener('change', () => {
+            elements.presetFilter.value = 'custom';
+            elements.dateRangeDiv.style.display = 'flex';
+            // No need to call handlePresetChange here, UI.loadRecords happens on input change via framework
+        });
+        elements.endDateInput.addEventListener('change', () => {
+            elements.presetFilter.value = 'custom';
+            elements.dateRangeDiv.style.display = 'flex';
+             // No need to call handlePresetChange here
+        });
+        elements.presetFilter.dataset.listenerAdded = 'true'; // Mark as added
+        console.log('[DEBUG Sessions] Date filter event listeners added.');
+    }
+
+    // Set initial state (run only once or ensure it doesn't reset user selection)
+    // Maybe check if values are already set?
+    // For now, assume init is called only when needed.
+    elements.presetFilter.value = 'all'; 
+    elements.dateRangeDiv.style.display = 'none';
+    elements.startDateInput.value = '';
+    elements.endDateInput.value = '';
+
+    // Explicitly trigger load after ensuring date filters are set (Mirroring old working code)
+    window.UI.loadRecords('sessions');
+
+    console.log('[DEBUG Sessions] Initialization complete.');
 }
 
 /**
@@ -111,66 +137,82 @@ function initializeSessions() {
  * @returns {HTMLElement} - The session element
  */
 function createSessionElement(session) {
+    // Create element
     const sessionElement = document.createElement('div');
     sessionElement.className = 'card session-item';
     sessionElement.dataset.id = session.id;
 
-    // Find category name
-    const categories = window.getItems ? window.getItems('CATEGORIES') : 
-        JSON.parse(localStorage.getItem('practiceTrack_categories')) || [];
-    const category = categories.find(c => c.id === session.categoryId) || { name: 'Unknown' };
-
-    // Format duration precisely
-    let durationStr = '';
+    // Format duration once
     const durationSeconds = (session.endTime && session.startTime) 
         ? Math.round((new Date(session.endTime).getTime() - new Date(session.startTime).getTime()) / 1000)
-        : session.duration || 0; // Fallback to stored duration if no end/start time
+        : session.duration || 0;
 
     const hours = Math.floor(durationSeconds / 3600);
     const minutes = Math.floor((durationSeconds % 3600) / 60);
     const seconds = durationSeconds % 60;
 
-    if (hours > 0) {
-        durationStr += `${hours}h `;
-    }
-    if (minutes > 0 || hours > 0) { // Show minutes if hours exist or minutes > 0
-        durationStr += `${minutes}m `;
-    }
-    durationStr += `${seconds}s`; // Always show seconds
+    // Build duration string efficiently
+    const durationParts = [];
+    if (hours > 0) durationParts.push(`${hours}h`);
+    if (minutes > 0 || hours > 0) durationParts.push(`${minutes}m`);
+    durationParts.push(`${seconds}s`);
+    const durationStr = durationParts.join(' ');
 
-    // Format date and time
+    // Format date and time once
     const startTime = new Date(session.startTime);
     const dateStr = startTime.toLocaleDateString();
     const timeStr = startTime.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
 
-    // --- Restored Original HTML --- 
+    // Get category name once
+    const categories = window.getItems ? window.getItems('CATEGORIES') : 
+        JSON.parse(localStorage.getItem('practiceTrack_categories')) || [];
+    const category = categories.find(c => c.id === session.categoryId) || { name: 'Unknown' };
+
+    // Build HTML efficiently using template literal
     sessionElement.innerHTML = `
         <div class="session-header">
-             <span class="session-category card-name-pill">${category.name}</span>
-             <span class="session-duration">${durationStr.trim()}</span>
+             <span class="session-category card-name-pill">${category.name || 'No Category'}</span>
+             <span class="session-duration">${durationStr}</span>
         </div>
         ${session.notes ? `<div class="session-notes">${session.notes}</div>` : ''}
         <div class="session-actions"> 
             <span class="session-date">${dateStr} at ${timeStr}</span> 
-            <div class="action-buttons"> <!-- Wrap buttons -->
+            <div class="action-buttons">
                 ${session.isLesson ? '<span class="lesson-badge">Lesson</span>' : ''}
-                <button class="icon-button delete-session" title="Delete Session">
+                <button class="icon-button delete-session app-button app-button--secondary" title="Delete Session">
                     <i data-lucide="trash"></i>
+                </button>
+                 <button class="icon-button edit-session app-button app-button--secondary" title="Edit Session">
+                    <i data-lucide="edit"></i>
                 </button>
             </div>
         </div>
     `;
-    // --- End Restored Original HTML ---
 
-    // Add event listeners
+    // Add event listener
     const deleteBtn = sessionElement.querySelector('.delete-session');
     if (deleteBtn) {
-        deleteBtn.addEventListener('click', () => deleteSession(session.id));
+        deleteBtn.addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevent event bubbling
+            deleteSession(session.id);
+        });
     }
     
-    // Initialize icons
-     if (window.lucide && typeof window.lucide.createIcons === 'function') {
-        window.lucide.createIcons({ context: sessionElement }); 
+    const editBtn = sessionElement.querySelector('.edit-session');
+    if (editBtn) {
+        editBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            showSessionDialog(session.id);
+        });
+    }
+    
+    // Initialize icons efficiently
+    if (window.lucide?.createIcons) {
+        window.lucide.createIcons({ 
+            icons: ['trash', 'edit'],
+            stroke: 'currentColor',
+            context: sessionElement 
+        });
     }
 
     return sessionElement;
@@ -190,14 +232,12 @@ function showSessionDialog(sessionId) {
                 .find(s => s.id === sessionId);
     }
     
-    // Get categories for dropdown
-    const categories = window.getItems ? window.getItems('CATEGORIES') : 
-        JSON.parse(localStorage.getItem('practiceTrack_categories')) || [];
-    
-    const categoryOptions = categories.map(cat => ({
-        value: cat.id,
-        text: cat.name
-    }));
+    // Ensure cachedCategories is up-to-date before creating options
+    if (!cachedCategories) {
+         cachedCategories = window.getItems ? window.getItems('CATEGORIES') : 
+            JSON.parse(localStorage.getItem('practiceTrack_categories')) || [];
+    }
+    const categoryOptions = (cachedCategories || []).map(cat => ({ value: cat.id, text: cat.name }));
     
     // Set default date to today if creating new session
     const today = new Date();
@@ -209,7 +249,6 @@ function showSessionDialog(sessionId) {
             type: 'select',
             id: 'session-category',
             label: 'Category',
-            required: true,
             options: categoryOptions,
             value: sessionData ? sessionData.categoryId : ''
         },
@@ -349,7 +388,7 @@ function handleSessionFormSubmit(dialog, e, sessionId) {
         
         // Prepare session data object
         const sessionData = {
-            categoryId,
+            categoryId: categoryId || '', // Ensure empty string if null/undefined
             startTime: startTimeISO, // Store as ISO string
             endTime: endTimeISO,   // Store as ISO string
             duration: durationSeconds, // Store duration in seconds
@@ -366,57 +405,12 @@ function handleSessionFormSubmit(dialog, e, sessionId) {
         // Save session using the data layer
         if (sessionId) {
              console.log('[DEBUG Sessions EDIT] Updating existing item with ID:', sessionId);
-        }
-        // <<< Reverted to use addItem/updateItem or fallback >>>
-        if (window.addItem && window.updateItem) { // Check if data layer functions exist
-             if (sessionId) {
-                 window.updateItem('SESSIONS', sessionId, sessionData);
-             } else {
-                 window.addItem('SESSIONS', sessionData);
-             }
+             window.updateItem('SESSIONS', sessionId, sessionData); // Assumes updateItem exists
         } else {
-            // Fallback to direct localStorage manipulation if data layer is not present
-            console.warn('[DEBUG Sessions] Data layer functions not found. Using localStorage fallback.');
-            let sessions = [];
-            try {
-                const stored = localStorage.getItem('practiceTrack_sessions');
-                if (stored) {
-                    sessions = JSON.parse(stored);
-                }
-            } catch (e) {
-                console.error('Error reading sessions from localStorage:', e);
-                sessions = []; // Start fresh if storage is corrupted
-            }
-            
-            if (sessionId) {
-                // Update existing session
-                const index = sessions.findIndex(s => s.id === sessionId);
-                if (index !== -1) {
-                    sessions[index] = { ...sessions[index], ...sessionData }; // Merge to preserve any fields not in sessionData
-                     console.log('[DEBUG Sessions LocalStorage] Updated session at index:', index);
-                } else {
-                     console.error('[DEBUG Sessions LocalStorage] Could not find session index for update:', sessionId);
-                     // Avoid adding as new if update fails
-                     throw new Error('Failed to find session to update in localStorage');
-                }
-            } else {
-                // Add new session
-                sessions.push(sessionData);
-                 console.log('[DEBUG Sessions LocalStorage] Added new session.');
-            }
-            
-            // Save back to localStorage
-            try {
-                localStorage.setItem('practiceTrack_sessions', JSON.stringify(sessions));
-                 console.log('[DEBUG Sessions LocalStorage] Saved sessions back to localStorage.');
-            } catch (e) {
-                 console.error('Error saving sessions to localStorage:', e);
-                 throw new Error('Failed to save session to localStorage');
-            }
+             window.addItem('SESSIONS', sessionData); // Assumes addItem exists
         }
-        // <<< End Reverted section >>>
         
-        console.log('[DEBUG Sessions] Session save/update call successful.'); // Updated log message
+        console.log('[DEBUG Sessions] Session save/update call potentially successful.'); 
         
         const saveButton = dialog.querySelector('button[type="submit"]');
         if (saveButton) {
@@ -424,9 +418,12 @@ function handleSessionFormSubmit(dialog, e, sessionId) {
             saveButton.classList.add('success');
             saveButton.disabled = true; // Briefly disable button
             setTimeout(() => {
-                saveButton.textContent = 'Save Session'; // Restore original text
-                saveButton.classList.remove('success');
-                saveButton.disabled = false; // Re-enable
+                // Check if dialog still exists before updating button
+                if (dialog && dialog.open) { 
+                    saveButton.textContent = 'Save Session';
+                    saveButton.classList.remove('success');
+                    saveButton.disabled = false;
+                }
             }, 1500); 
         }
         // Close dialog immediately
@@ -435,6 +432,7 @@ function handleSessionFormSubmit(dialog, e, sessionId) {
         console.log('[DEBUG Sessions] Dialog close() called.'); 
         
         // Reload sessions list
+        console.log('[DEBUG Sessions] Calling UI.loadRecords after save/update.');
         window.UI.loadRecords('sessions');
         
     } catch (error) {
@@ -476,7 +474,7 @@ async function deleteSession(sessionId) {
                 }
             } catch (e) {
                 console.error('Error reading sessions:', e);
-                return;
+                sessions = []; // Start fresh if storage is corrupted
             }
             
             // Filter out the deleted session
@@ -499,12 +497,12 @@ async function deleteSession(sessionId) {
 }
 
 // Initialize when page changes to sessions
-document.addEventListener('pageChanged', (e) => {
-    if (e.detail === 'sessions') {
-        initializeSessions();
-    }
-});
+// document.addEventListener('pageChanged', (e) => {
+//     if (e.detail === 'sessions') {
+//         console.log('[DEBUG Sessions] pageChanged detected, calling initializeSessions...'); // Restore log
+//         initializeSessions();
+//     }
+// });
 
 // Make function available globally
-window.initializeSessions = initializeSessions;
 window.initializeSessions = initializeSessions;

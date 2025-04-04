@@ -66,33 +66,40 @@ function getItemById(type, id) {
  * @param {Object} item - The item to add
  */
 function addItem(type, item) {
+    console.log(`[DEBUG Data] addItem called for type: ${type}`, item);
     if (!DATA_TYPES[type]) {
-        console.error(`Invalid data type: ${type}`);
+        console.error(`[DEBUG Data] Invalid data type: ${type}`);
         return;
     }
+
+    let items = getItems(type);
     
+    // Ensure uniqueness if necessary (e.g., for categories)
+    if (type === 'CATEGORIES') {
+        const exists = items.some(existingItem => existingItem.id === item.id || existingItem.name === item.name);
+        if (exists) {
+            console.warn(`[DEBUG Data] Category already exists:`, item);
+            return; 
+        }
+    }
+
+    // Add the new item
+    items.push(item);
+    
+    // Save back to localStorage
     try {
-        // Make sure item has required fields
-        if (!item.id) {
-            item.id = `${type.toLowerCase()}_${Date.now()}`;
-        }
+        const storageKey = DATA_TYPES[type]; // Use the actual key from DATA_TYPES
+        console.log(`[DEBUG Data] Attempting to save to ${storageKey}`);
+        localStorage.setItem(storageKey, JSON.stringify(items));
+        console.log(`[DEBUG Data] Successfully saved to ${storageKey}`);
         
-        if (!item.createdAt) {
-            item.createdAt = new Date().toISOString();
-        }
+        // Dispatch custom event to notify other parts of the app
+        console.log(`[DEBUG Data] Dispatching dataChanged event for type: ${type}`);
+        document.dispatchEvent(new CustomEvent('dataChanged', { detail: { type: type, data: items } }));
+        console.log(`[DEBUG Data] dataChanged event dispatched for type: ${type}`);
         
-        const items = getItems(type);
-        items.push(item);
-        
-        localStorage.setItem(DATA_TYPES[type], JSON.stringify(items));
-        
-        // Notify any listeners
-        document.dispatchEvent(new CustomEvent('dataChanged', {
-            detail: { type, action: 'add', item }
-        }));
     } catch (e) {
-        console.error(`Error adding ${type}:`, e);
-        throw e;
+        console.error(`[DEBUG Data] Error saving ${type} data:`, e);
     }
 }
 
@@ -206,4 +213,14 @@ window.addItem = addItem;
 window.updateItem = updateItem;
 window.deleteItem = deleteItem;
 window.clearItems = clearItems;
-window.DATA_TYPES = DATA_TYPES; 
+window.DATA_TYPES = DATA_TYPES;
+
+// Initial data load or setup if needed
+document.addEventListener('DOMContentLoaded', () => {
+    // Example: Ensure default categories exist if none are stored
+    if (getItems('CATEGORIES').length === 0 && typeof DEFAULT_CATEGORIES !== 'undefined') {
+        console.log('[DEBUG Data] No categories found, adding default categories.');
+        addItem('CATEGORIES', DEFAULT_CATEGORIES[0]);
+    }
+    // Similar checks for other data types if necessary
+}); 

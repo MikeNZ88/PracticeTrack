@@ -488,23 +488,23 @@ const updateLessonCountdown = (container) => {
         console.log('No lesson info available');
         cardHtml = `
             <div class="lesson-countdown-card">
-                <div class="card-header">
-                    <h3>Next Lesson</h3>
-                    <i data-lucide="calendar"></i>
-                </div>
-                <div class="card-content">
-                    <p>No lesson scheduled</p>
+            <div class="card-header">
+                <h3>Next Lesson</h3>
+                <i data-lucide="calendar"></i>
+            </div>
+            <div class="card-content">
+                <p>No lesson scheduled</p>
                 </div>
             </div>
         `;
     } else {
-        console.log('Creating countdown card with info:', lessonInfo);
+    console.log('Creating countdown card with info:', lessonInfo);
         cardHtml = `
             <div class="lesson-countdown-card card">
-                <div class="card-header">
-                    <h3>Next Lesson</h3>
-                    <i data-lucide="calendar"></i>
-                </div>
+        <div class="card-header">
+            <h3>Next Lesson</h3>
+            <i data-lucide="calendar"></i>
+        </div>
                 <div class="card-content countdown-content">
                     <div class="countdown-item">
                          <span class="countdown-value">${lessonInfo.days}</span>
@@ -516,8 +516,8 @@ const updateLessonCountdown = (container) => {
                         <span class="countdown-label">${lessonInfo.date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}</span>
                     </div>
                 </div>
-            </div>
-        `;
+        </div>
+    `;
     }
     
     // Insert the card HTML into the container

@@ -160,7 +160,7 @@ function createMediaElement(media) {
         <div class="media-footer">
             <span class="media-date">${dateStr} at ${timeStr}</span>
             <div class="media-actions">
-                <button class="icon-button delete-media" title="Delete Media">
+                <button class="icon-button delete-media app-button app-button--secondary" title="Delete Media">
                     <i data-lucide="trash-2"></i>
                 </button>
             </div>

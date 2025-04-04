@@ -603,9 +603,9 @@ select.date-preset-filter {
 /* Buttons - Completely Redesigned */
 .timer-controls {
     display: flex;
-    gap: var(--space-md);
     justify-content: center;
-    margin: var(--space-xl) 0;
+    gap: var(--space-md);
+    margin-bottom: var(--space-sm); /* Reduced margin */
 }
 
 .timer-controls .primary-button,
@@ -759,119 +759,190 @@ select.date-preset-filter {
 /* Timer Page - Completely Redesigned */
 .timer-container {
     max-width: 600px;
-    margin: var(--space-xl) auto;
-    padding: var(--space-xl);
-    background: var(--card-background);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-md);
-    position: relative;
-}
-
-.timer-container::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 6px;
-    background: linear-gradient(to right, var(--primary-blue), var(--secondary-orange));
-    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    margin: 0 auto;
+    padding: var(--space-lg);
 }
 
 .timer-display-container {
-    text-align: center;
-    margin: var(--space-xl) 0;
     position: relative;
+    margin: var(--space-lg) 0;
+    padding: var(--space-xl);
+    border-radius: var(--border-radius-lg);
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .timer-display {
-    font-family: var(--font-mono);
-    font-size: var(--font-5xl);
-    font-weight: 700;
-    line-height: 1;
-    color: var(--text-dark);
-    margin-bottom: var(--space-lg);
-    transition: all 0.3s ease;
-    background: linear-gradient(to right, var(--primary-blue), var(--primary-blue-dark));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    text-fill-color: transparent;
-}
-
-.timer-display.running {
-    background: linear-gradient(to right, var(--primary-blue), var(--primary-blue-light));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    text-fill-color: transparent;
-    animation: pulse 2s infinite, gradientShift 3s infinite alternate;
-}
-
-.timer-display.paused {
-    background: linear-gradient(to right, var(--warning), var(--warning-light));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    text-fill-color: transparent;
-}
-
-@keyframes pulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.02); }
-    100% { transform: scale(1); }
-}
-
-@keyframes gradientShift {
-    0% { background-position: 0% 50%; }
-    100% { background-position: 100% 50%; }
+    font-size: 3.5rem;
+    font-weight: bold;
+    color: var(--color-text-inverse);
+    text-align: center;
+    font-family: monospace;
 }
 
 .timer-progress-container {
-    height: 10px;
-    background: var(--background-light);
-    border-radius: var(--radius-full);
-    overflow: hidden;
-    margin: var(--space-md) auto;
-    max-width: 400px;
-    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 0 0 var(--border-radius-lg) var(--border-radius-lg);
 }
 
 .timer-progress {
     height: 100%;
-    background: linear-gradient(to right, var(--primary-blue), var(--primary-blue-light));
-    width: 0;
-    transition: width 1s linear;
-    border-radius: var(--radius-full);
-    position: relative;
-    overflow: hidden;
+    background: var(--color-text-inverse);
+    border-radius: 0 0 0 var(--border-radius-lg);
+    transition: width 0.1s linear;
 }
 
-.timer-progress::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(
-        90deg,
-        rgba(255, 255, 255, 0) 0%,
-        rgba(255, 255, 255, 0.3) 50%,
-        rgba(255, 255, 255, 0) 100%
-    );
-    animation: shimmer 2s infinite;
+.timer-controls {
+    display: flex;
+    justify-content: center;
+    gap: var(--space-md);
+    margin-bottom: var(--space-sm); /* Reduced margin */
 }
 
-@keyframes shimmer {
-    0% { transform: translateX(-100%); }
-    100% { transform: translateX(100%); }
+/* Metronome Styles */
+.metronome-container {
+    max-width: 600px;
+    margin: var(--space-xl) auto;
+    padding: var(--space-lg);
+    background: var(--color-background-light);
+    border-radius: var(--border-radius-lg);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.metronome-container h2 {
+    text-align: center;
+    margin-bottom: var(--space-lg);
+    color: var(--color-text);
+}
+
+.bpm-control {
+    text-align: center;
+    margin-bottom: var(--space-lg);
+}
+
+.bpm-display {
+    font-size: 2rem;
+    font-weight: bold;
+    margin-bottom: var(--space-sm);
+    color: var(--color-text);
+}
+
+.bpm-slider {
+    width: 100%;
+    margin-bottom: var(--space-sm);
+}
+
+.bpm-buttons {
+    display: flex;
+    gap: var(--space-sm);
+    justify-content: center;
+}
+
+.time-signature-controls {
+    margin-bottom: var(--space-lg);
+}
+
+.time-signature-controls h3 {
+    margin-bottom: var(--space-sm);
+    color: var(--color-text);
+}
+
+.time-signature-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-md);
+}
+
+.time-signature-btn {
+    padding: var(--space-sm) var(--space-md);
+    background: var(--color-background);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius);
+    color: var(--color-text);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.time-signature-btn:hover {
+    background: var(--color-background-hover);
+    border-color: var(--color-primary);
+}
+
+.time-signature-btn.active {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: var(--color-text-inverse);
+}
+
+.sound-controls {
+    margin-bottom: var(--space-lg);
+}
+
+.sound-controls h3 {
+    margin-bottom: var(--space-sm);
+    color: var(--color-text);
+}
+
+.sound-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+}
+
+.sound-btn {
+    padding: var(--space-sm) var(--space-md);
+    background: var(--color-background);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius);
+    color: var(--color-text);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.sound-btn:hover {
+    background: var(--color-background-hover);
+    border-color: var(--color-primary);
+}
+
+.sound-btn.active {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: var(--color-text-inverse);
+}
+
+.beat-visualization {
+    display: flex;
+    justify-content: center;
+    gap: var(--space-sm);
+    margin-top: var(--space-lg);
+}
+
+.beat-indicator {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    background: var(--color-background);
+    border: 2px solid var(--color-border);
+    transition: all 0.2s ease;
+}
+
+.beat-indicator.active {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    transform: scale(1.2);
 }
 
 .session-form {
-    margin-top: var(--space-xl);
-    padding-top: var(--space-xl);
-    border-top: 1px solid var(--border-color);
+    margin-top: 0; /* Remove top margin */
+    padding-top: 0;
+    border-top: none;
+    width: 100%;
 }
 
 .form-control {
@@ -1055,7 +1126,7 @@ textarea.form-control {
     font-style: italic; /* Add italic style */
 }
 
-.session-actions { 
+.session-actions {
     margin-top: auto; /* Push to bottom */
     display: flex;
     justify-content: space-between; /* <<< Key for alignment */
@@ -1526,7 +1597,7 @@ textarea.form-control {
 .theme-button {
     padding: var(--space-sm) var(--space-md);
     border: 1px solid var(--border-color);
-    border-radius: var(--radius-md); 
+    border-radius: var(--radius-md);
     background: none;
     cursor: pointer;
     transition: all var(--transition-normal);
@@ -1920,7 +1991,7 @@ textarea.form-control {
     display: inline-block;
     font-size: var(--font-xs); 
     font-weight: 500;
-    color: var(--text-medium); 
+    color: var(--text-medium);
     background-color: var(--background-light); 
     padding: var(--space-xs) var(--space-md); 
     border-radius: var(--radius-full); 
@@ -1935,9 +2006,9 @@ textarea.form-control {
     order: 2; /* Position Date/Time second */
 }
 
-.goal-actions { 
-    display: flex; 
-    gap: var(--space-sm); 
+.goal-actions {
+    display: flex;
+    gap: var(--space-sm);
     order: 3; /* Position Actions last */
 }
 
@@ -2577,7 +2648,7 @@ textarea:focus {
     color: var(--text-dark);
     transition: all var(--transition-fast);
     height: 48px;
-    line-height: 1.5; 
+    line-height: 1.5;
     appearance: none;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23555f6a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
     background-repeat: no-repeat;
@@ -3322,58 +3393,85 @@ textarea:focus {
 }
 
 .instrument-title {
-    color: var(--text-dark);
-    font-size: var(--font-lg);
-    margin-bottom: var(--space-md);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+    font-size: var(--text-lg);
+    font-weight: 600;
+    color: var(--text-color);
 }
 
-/* Categories List */
+.instrument-title svg {
+    width: 20px;
+    height: 20px;
+    color: var(--text-color);
+    flex-shrink: 0;
+}
+
+.instrument-title i {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    color: var(--text-color);
+}
+
+.instrument-section {
+    background: var(--card-background);
+    border-radius: var(--radius-lg);
+    padding: var(--space-lg);
+    margin-bottom: var(--space-lg);
+    border: 1px solid var(--border-color);
+}
+
 .categories-list {
     display: grid;
-    gap: var(--space-sm);
-    list-style: none;
-    padding: 0;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: var(--space-md);
     margin: 0;
+    padding: 0;
+    list-style: none;
 }
 
 .category-item {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    padding: var(--space-md);
-    background: var(--background-light);
+    justify-content: space-between;
+    padding: var(--space-sm);
     border-radius: var(--radius-md);
-    border: 1px solid var(--border-color);
-    transition: all var(--transition-normal);
+    background: var(--background-light);
+    transition: all var(--transition-fast);
 }
 
 .category-item:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
-    border-color: var(--primary-blue);
+    background: var(--card-background-hover);
 }
 
 .category-name {
+    font-size: var(--font-sm);
     color: var(--text-dark);
-    font-weight: 500;
 }
 
 .copy-button {
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    gap: var(--space-sm);
-    padding: var(--space-sm) var(--space-md);
-    border: none;
+    gap: var(--space-xs);
+    padding: var(--space-xs) var(--space-sm);
+    border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
-    background: var(--primary-blue);
-    color: white;
+    background: var(--card-background);
+    color: var(--text-dark);
+    font-size: var(--font-sm);
     cursor: pointer;
-    transition: all var(--transition-normal);
+    transition: all var(--transition-fast);
 }
 
 .copy-button:hover {
-    background: var(--primary-blue-dark);
-    transform: translateY(-1px);
+    background: var(--primary-blue);
+    color: white;
+    border-color: var(--primary-blue);
 }
 
 .copy-button i {
@@ -3381,30 +3479,22 @@ textarea:focus {
     height: 16px;
 }
 
-/* Instrument Family Colors */
-.brass .family-title,
-.brass .instrument-title {
-    color: var(--brass-color, #B8860B);
-}
+@media (max-width: 768px) {
+    .categories-list {
+        grid-template-columns: 1fr;
+    }
 
-.drums .family-title,
-.drums .instrument-title {
-    color: var(--drums-color, #8B4513);
-}
+    .instrument-title {
+        font-size: var(--font-md);
+    }
 
-.keyboard .family-title,
-.keyboard .instrument-title {
-    color: var(--keyboard-color, #4B0082);
-}
+    .category-item {
+        padding: var(--space-xs);
+    }
 
-.stringed .family-title,
-.stringed .instrument-title {
-    color: var(--stringed-color, #006400);
-}
-
-.woodwind .family-title,
-.woodwind .instrument-title {
-    color: var(--woodwind-color, #8B0000);
+    .copy-button {
+        padding: var(--space-xs);
+    }
 }
 
 /* Mobile Responsiveness */
@@ -4339,130 +4429,1126 @@ textarea:focus {
 /* Resources Page Styles */
 .resource-controls {
     display: flex;
-    flex-direction: column; /* Stack search and filters vertically */
+    flex-wrap: wrap; /* Allow wrapping on smaller screens */
     gap: var(--space-md);
     margin-bottom: var(--space-lg);
-    padding: var(--space-lg);
-    background-color: var(--card-background);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-sm);
-    max-width: 900px;
-    margin-left: auto;
-    margin-right: auto;
-    width: 100%;
-    box-sizing: border-box;
+    align-items: center;
 }
 
 .resource-controls .search-container {
-    display: flex;
-    align-items: center;
-    width: 100%;
-    position: relative;
+    flex-grow: 1; /* Allow search to take available space */
+    min-width: 200px; /* Ensure minimum width */
 }
 
-.resource-controls .search-container i {
-    position: absolute;
-    left: var(--space-md);
-    color: var(--text-medium);
-    pointer-events: none;
-}
-
-.resource-controls .search-container input {
-    width: 100%;
-    padding: var(--space-md) var(--space-md) var(--space-md) calc(var(--space-md) * 2.5);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-md);
-    background-color: var(--background-light);
-    color: var(--text-dark);
-    font-size: var(--font-md);
-}
-
-.resource-controls .search-container input:focus {
-    outline: none;
-    border-color: var(--primary-blue);
-    box-shadow: 0 0 0 3px rgba(59, 127, 245, 0.12);
-}
-
-.resource-controls .filters.resource-filters {
+.resource-filters {
     display: flex;
     flex-wrap: wrap;
     gap: var(--space-sm);
-    width: 100%;
 }
 
-.resource-controls .filter-btn {
-    padding: var(--space-sm) var(--space-md);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-md);
-    background-color: var(--background-light);
-    color: var(--text-dark);
-    font-size: var(--font-md);
-    font-weight: 500;
-    cursor: pointer;
-    transition: all var(--transition-fast);
-    flex: 0 1 auto; /* Don't grow, allow shrink, auto basis */
-    min-width: 120px; /* Set minimum width */
-    max-width: 120px; /* Set maximum width to ensure consistency */
+/* Style for the active resource filter button */
+.resource-filters .filter-btn.active,
+.resource-filters .app-button.active /* Target the app-button style when active */
+{
+    background-color: var(--primary-blue);
+    color: white;
+    border-color: var(--primary-blue-dark); /* Optional: darker border for active */
+}
+
+/* Optional: Ensure hover doesn't override active state too much */
+.resource-filters .filter-btn.active:hover,
+.resource-filters .app-button.active:hover {
+    background-color: var(--primary-blue-dark); /* Slightly darker on hover when active */
+    border-color: var(--primary-blue-dark);
+}
+
+
+.difficulty-filter-container {
+    /* Adjust alignment if needed */
+}
+
+/* ========================== */
+/* == Timer Page Styles == */
+/* ========================== */
+
+#timer-page {
+    background-color: #f8f9fa; /* Light background for the whole page */
+    padding-bottom: var(--space-xl);
+}
+
+/* Wrapper to constrain width */
+.timer-page-wrapper {
+    max-width: 900px; /* Match other page content width */
+    margin: 0 auto;
+    /* Padding can be added if needed, but content area has it */
+}
+
+/* Gradient Header */
+.timer-gradient-header {
+    background: linear-gradient(135deg, #3b7ff5 0%, #2861c7 100%);
+    color: white;
+    padding: 1rem var(--space-lg) 2rem; /* Further reduced vertical padding */
     text-align: center;
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0; /* Round top corners */
+    margin-bottom: -1.5rem; /* Slightly less overlap */
+    position: relative; /* Ensure z-index works */
+    z-index: 5; /* Below the main card */
+}
+
+/* Remove header border-radius from previous version */
+/* .timer-gradient-header { border-radius: 0 0 var(--radius-lg) var(--radius-lg); } <= REMOVED */
+
+.timer-gradient-header::before, .timer-gradient-header::after {
+    content: '';
+    position: absolute;
+    border-radius: 50%;
+    opacity: 0.1;
+    z-index: -1; /* Behind header text */
+}
+
+.timer-gradient-header::before {
+    width: 150px;
+    height: 150px;
+    background: white;
+    top: -50px;
+    left: -50px;
+}
+
+.timer-gradient-header::after {
+    width: 100px;
+    height: 100px;
+    background: #ff7a43;
+    bottom: -40px;
+    right: -30px;
+    opacity: 0.15;
+}
+
+.timer-gradient-header h1 {
+    font-size: 1.5rem; /* Slightly smaller */
+    margin-bottom: 0.25rem;
+    font-weight: 700;
+}
+
+.timer-gradient-header p {
+    font-size: 0.85rem;
+    opacity: 0.9;
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+/* Main Content Area (holds card and tip) */
+.timer-content-area {
+    max-width: 500px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 10;
+    padding: 0 var(--space-sm);
+    margin-top: -1.5rem; /* Apply overlap here */
+}
+
+/* Timer Card */
+.timer-card {
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fc 100%);
+    border-radius: var(--radius-xl);
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+    padding: var(--space-md);
+    margin-bottom: var(--space-md);
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; /* Restore alignment for centering */
+}
+
+/* Category Selection */
+.timer-card .form-group {
+    margin-bottom: var(--space-md);
+    width: 100%; /* Takes full width */
+}
+
+.timer-card select.form-control {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: var(--radius-lg);
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+    /* Restore custom appearance */
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%236c757d' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 1em;
+    padding-right: 2.5rem; /* Restore padding for arrow */
+    cursor: pointer;
+    pointer-events: auto;
+}
+
+.timer-card select.form-control:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb), 0.1);
+}
+
+/* Timer SVG Display */
+.timer-display-container {
+    position: relative;
+    width: 224px;
+    height: 224px;
+    margin-top: 1.5rem; 
+    margin-bottom: 1.5rem;
+    /* Horizontal centering handled by parent's align-items */
+}
+
+.timer-svg {
+    width: 100%;
+    height: 100%;
+}
+
+.timer-circle-bg {
+    fill: none;
+    stroke: #e9ecef; /* Lighter grey background */
+}
+
+.outer-circle {
+    stroke-width: 6; /* Slightly thicker */
+}
+
+.inner-circle {
+    stroke-width: 5; /* Slightly thicker */
+}
+
+.timer-circle-progress {
+    fill: none;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 0.3s linear, stroke 0.3s ease;
+}
+
+.outer-progress {
+    stroke: #a5b4fc; /* Softer blue from image */
+    stroke-opacity: 1; /* Fully opaque */
+    stroke-width: 6;
+    stroke-dasharray: 314.159;
+    stroke-dashoffset: 314.159;
+}
+
+.inner-progress {
+    stroke: #c7d2fe; /* Lighter softer blue */
+    stroke-opacity: 1;
+    stroke-width: 5;
+    stroke-dasharray: 219.911;
+    stroke-dashoffset: 219.911;
+}
+
+/* Paused state colors for progress */
+.timer-display-container.paused .outer-progress {
+    stroke: #fbbf24; /* Yellowish-orange */
+}
+
+.timer-display-container.paused .inner-progress {
+    stroke: #fcd34d; /* Lighter yellowish-orange */
+}
+
+/* Time digits and status inside SVG */
+.timer-time {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.timer-digits {
+    font-size: 2.5rem;
+    font-weight: 700;
+    font-family: monospace;
+    color: #4f46e5; /* Indigo color like image */
+    margin-bottom: 0.25rem;
+    transition: color 0.3s ease;
+}
+
+.timer-display-container.paused .timer-digits {
+    color: #f59e0b; /* Amber/Yellow color */
+}
+
+.timer-status {
+    font-size: 0.75rem;
+    color: #6b7280; /* gray-500 */
+    margin-top: 0.25rem;
+}
+
+/* Timer Buttons */
+.timer-controls {
+    display: flex;
+    justify-content: center; /* Center buttons within the container */
+    gap: var(--space-md);
+    margin-top: 1.5rem; /* Add margin above controls */
+    margin-bottom: var(--space-sm);
+    width: 100%; /* Take full width */
+}
+
+.timer-btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: var(--space-sm);
-    white-space: nowrap; /* Prevent text wrapping */
-    overflow: hidden; /* Hide overflow */
-    text-overflow: ellipsis; /* Show ellipsis for overflow text */
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--radius-full); /* Fully rounded */
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+    outline: none;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    min-width: 128px;
 }
 
-.resource-controls .filter-btn:hover {
-    background-color: var(--background-hover);
-    border-color: var(--primary-blue);
-    color: var(--primary-blue);
+.timer-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
 }
 
-.resource-controls .filter-btn.active {
-    background-color: var(--primary-blue);
+.timer-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.timer-btn svg {
+    width: 20px;
+    height: 20px;
+}
+
+.primary-action {
+    background: linear-gradient(to right, #4f46e5, #6366f1); /* Indigo gradient */
     color: white;
-    border-color: var(--primary-blue);
 }
 
-@media (max-width: 768px) {
-    .resource-controls {
-        padding: var(--space-md);
-    }
-
-    .resource-controls .filter-btn {
-        flex: 1 1 calc(50% - var(--space-sm));
-        min-width: 120px;
-    }
+.primary-action.pause-state {
+     background: linear-gradient(to right, #f59e0b, #fbbf24); /* Amber gradient */
 }
 
-/* Family sections styling */
-.family-section {
-    margin-bottom: var(--space-2xl);
-    opacity: 1;
-    transition: opacity 0.3s ease, height 0.3s ease;
+.secondary-action {
+    background: #e5e7eb; /* gray-200 */
+    color: #374151; /* gray-700 */
 }
 
-.family-section.hidden-family {
-    opacity: 0;
-    height: 0;
-    overflow: hidden;
-    margin: 0;
-    padding: 0;
+.secondary-action:hover {
+    background: #d1d5db; /* gray-300 */
 }
 
-.family-title {
+.save-button-container {
+    display: flex;
+    justify-content: center; /* Center button within the container */
+    width: 100%; /* Take full width */
+}
+.save-button-container:not(:has(> .hidden)) {
+    margin-bottom: var(--space-sm); 
+}
+
+.save-action {
+    background: linear-gradient(to right, #10b981, #34d399); /* Emerald gradient */
+    color: white;
+    border-radius: var(--radius-full); /* Fully rounded */
+}
+
+.save-action:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Session Notes */
+.session-form {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: none;
+    width: 100%; /* Takes full width */
+}
+
+.session-form textarea {
+    width: 100%;
+    min-height: 150px; /* Increased height */
+    padding: 0.75rem;
+    border: 1px solid #ced4da;
+    border-radius: var(--radius-lg);
+    background: #f8f9fa;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+}
+
+.session-form textarea:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb), 0.1);
+}
+
+/* Quick Tip Card */
+.quick-tip-card {
+    background: white;
+    border-radius: var(--radius-lg); /* Rounded */
+    padding: var(--space-md);
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-md);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    border-left: 4px solid #4f46e5; /* Indigo border */
+    margin-top: var(--space-md); /* Reduced margin */
+}
+
+.tip-icon {
+    background-color: #e0e7ff; /* Indigo-100 */
+    color: #4f46e5; /* Indigo */
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
     display: flex;
     align-items: center;
-    gap: var(--space-sm);
-    margin-bottom: var(--space-lg);
-    color: var(--text-dark);
-    font-size: var(--font-xl);
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.tip-icon svg {
+    width: 20px;
+    height: 20px;
+}
+
+.tip-content h3 {
+    font-size: 0.875rem;
+    font-weight: 600; /* Slightly bolder */
+    margin-bottom: 0.25rem;
+    color: #1f2937; /* gray-800 */
+}
+
+.tip-content p {
+    font-size: 0.875rem;
+    color: #4b5563; /* gray-600 */
+    line-height: 1.4;
+    margin: 0;
+}
+
+/* Hidden class */
+.hidden {
+    display: none !important;
+}
+
+
+/* ========================== */
+/* == Metronome Styles == */
+/* ========================== */
+
+.metronome-card {
+    background: white;
+    border-radius: var(--radius-xl); /* More rounded */
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+    margin-top: 1.5rem; /* Reduced margin */
+    overflow: hidden;
+}
+
+.metronome-content {
+    padding: var(--space-md); /* Reduced padding */
+}
+
+/* Metronome BPM Controls */
+.bpm-control {
+    text-align: center;
+    margin-bottom: var(--space-md); /* Reduced margin */
+}
+
+.bpm-display {
+    font-size: 1.75rem;
+    font-weight: bold;
+    color: #1f2937;
+    margin-bottom: var(--space-sm);
+}
+
+.bpm-slider {
+    width: 100%;
+    height: 8px;
+    background: #e5e7eb;
+    border-radius: 4px;
+    appearance: none;
+    outline: none;
+    margin: var(--space-md) 0 var(--space-sm);
+}
+
+.bpm-slider::-webkit-slider-thumb {
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    background: #4f46e5; /* Indigo */
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.bpm-slider::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    background: #4f46e5;
+    border-radius: 50%;
+    cursor: pointer;
+    border: none;
+}
+
+.bpm-slider:hover::-webkit-slider-thumb {
+    background: #4338ca; /* Darker Indigo */
+}
+.bpm-slider:hover::-moz-range-thumb {
+    background: #4338ca;
+}
+
+.bpm-range-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin-bottom: var(--space-md);
+    padding: 0 5px;
+}
+
+.bpm-buttons {
+    display: flex;
+    justify-content: center;
+    gap: var(--space-md);
+}
+
+.bpm-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #e0e7ff; /* Indigo-100 */
+    color: #4f46e5; /* Indigo */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s ease;
+}
+
+.bpm-btn:hover {
+    background: #c7d2fe; /* Indigo-200 */
+    transform: translateY(-2px);
+}
+
+.bpm-btn i {
+    width: 20px;
+    height: 20px;
+}
+
+/* Metronome Start/Stop Button */
+.metronome-start-btn {
+    display: block;
+    width: 100%;
+    padding: 0.8rem;
+    background: #4f46e5; /* Indigo */
+    color: white;
+    border: none;
+    border-radius: var(--radius-full); /* Fully rounded */
+    font-size: 1rem;
     font-weight: 600;
+    cursor: pointer;
+    margin: 0 auto var(--space-md); /* Reduced margin */
+    transition: all 0.2s ease;
+    max-width: 200px;
 }
 
-.family-title i {
-    color: var(--primary-blue);
+.metronome-start-btn:hover {
+    background: #4338ca; /* Darker Indigo */
 }
 
-/* ... existing code ... */
+.metronome-start-btn.active {
+    background: #f59e0b; /* Amber for Stop state */
+}
+
+.metronome-start-btn.active:hover {
+    background: #d97706; /* Darker Amber */
+}
+
+/* Beat Visualization */
+.beat-visualization {
+    display: flex;
+    justify-content: center;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-md); /* Reduced margin */
+    min-height: 36px; /* Slightly reduced min-height */
+}
+
+.beat-indicator {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #e5e7eb; /* gray-200 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: #6b7280; /* gray-500 */
+    border: 2px solid transparent;
+    transition: all 0.1s ease-out;
+}
+
+.beat-indicator.accent {
+    border-color: #9ca3af; /* gray-400 */
+}
+
+.beat-indicator.active {
+    background: #f59e0b; /* Amber */
+    color: white;
+    transform: scale(1.1);
+    border-color: #f59e0b;
+}
+
+/* Metronome Settings Sections */
+.metronome-settings {
+    border-top: 1px solid #e5e7eb;
+    padding-top: var(--space-md); /* Reduced padding */
+}
+
+.time-signature-section, .sound-section {
+    margin-bottom: var(--space-sm); /* Reduced margin */
+}
+
+.time-signature-section h3, .sound-section h3 {
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    color: #374151;
+}
+
+.time-signature-buttons, .sound-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+}
+
+.time-signature-btn, .sound-btn {
+    padding: 0.4rem 0.8rem;
+    background: #e5e7eb; /* gray-200 */
+    border: none;
+    border-radius: var(--radius-full); /* Fully rounded */
+    font-size: 0.8rem;
+    color: #374151; /* gray-700 */
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.time-signature-btn:hover, .sound-btn:hover {
+    background: #d1d5db; /* gray-300 */
+}
+
+.time-signature-btn.active, .sound-btn.active {
+    background: #4f46e5; /* Indigo */
+    color: white;
+}
+
+
+/* == Remove or clean up conflicting styles == */
+.timer-container, 
+.metronome-container, 
+.timer-display, 
+.timer-progress-container, 
+.timer-progress, 
+.metronome-controls,
+.bpm-buttons > button /* Maybe old style */
+{ 
+    /* These selectors likely conflict, reset specific properties */
+    background: none;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+    margin: 0;
+    /* Add others as needed */
+}
+
+/* ========================== */
+/* == Global Page Styles == */
+/* ========================== */
+
+/* Wrapper for consistent page width */
+.page-wrapper, .timer-page-wrapper {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 var(--space-sm); /* Side padding for smaller screens */
+}
+
+/* Standard Gradient Header for Pages */
+.page-gradient-header {
+    background: linear-gradient(135deg, #3b7ff5 0%, #2861c7 100%);
+    color: white;
+    padding: 1.5rem var(--space-lg) 2.5rem; /* Adjusted padding */
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    margin-bottom: var(--space-lg); /* Space below header */
+}
+
+/* Reuse decorative elements if desired */
+.page-gradient-header::before, .page-gradient-header::after {
+    content: '';
+    position: absolute;
+    border-radius: 50%;
+    opacity: 0.1;
+    z-index: 0;
+}
+.page-gradient-header::before {
+    width: 150px; height: 150px; background: white; top: -50px; left: -50px;
+}
+.page-gradient-header::after {
+    width: 100px; height: 100px; background: #ff7a43; bottom: -40px; right: -30px; opacity: 0.15;
+}
+
+.page-gradient-header h1 {
+    font-size: 1.6rem;
+    margin-bottom: 0.25rem;
+    font-weight: 700;
+    position: relative;
+    z-index: 1;
+}
+
+.page-gradient-header p {
+    font-size: 0.9rem; /* Style for taglines */
+    opacity: 0.9;
+    max-width: 500px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+    color: #e0e7ff; /* Light color for contrast */
+    font-weight: 400;
+}
+
+/* Ensure Timer page header matches */
+.timer-gradient-header {
+    background: linear-gradient(135deg, #3b7ff5 0%, #2861c7 100%);
+    color: white;
+    padding: 1.5rem var(--space-lg) 3rem; /* Timer header overlap */
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    margin-bottom: -2.5rem; /* Overlap for timer card */
+    z-index: 5;
+}
+.timer-gradient-header h1 { font-size: 1.6rem; margin-bottom: 0.25rem; font-weight: 700; position: relative; z-index: 1; }
+.timer-gradient-header p { font-size: 0.9rem; opacity: 0.9; max-width: 500px; margin: 0 auto; position: relative; z-index: 1; color: #e0e7ff; font-weight: 400; }
+.timer-gradient-header::before, .timer-gradient-header::after {
+    content: ''; position: absolute; border-radius: 50%; opacity: 0.1; z-index: 0;
+}
+.timer-gradient-header::before { width: 150px; height: 150px; background: white; top: -50px; left: -50px; }
+.timer-gradient-header::after { width: 100px; height: 100px; background: #ff7a43; bottom: -40px; right: -30px; opacity: 0.15; }
+
+/* ========================== */
+/* == Standard App Buttons == */
+/* ========================== */
+
+.app-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--radius-full); /* Fully rounded */
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+    outline: none;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.app-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+.app-button:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.app-button i { /* Target Lucide icons */
+    width: 18px;
+    height: 18px;
+}
+
+/* Primary Button Style (Indigo Gradient) */
+.app-button--primary {
+    background: linear-gradient(to right, #4f46e5, #6366f1);
+    color: white;
+}
+
+/* Secondary Button Style (Gray) */
+.app-button--secondary {
+    background: #e5e7eb; /* gray-200 */
+    color: #374151; /* gray-700 */
+}
+
+.app-button--secondary:hover {
+    background: #d1d5db; /* gray-300 */
+}
+
+/* Ensure Timer buttons also align (might need minor adjustments) */
+/* Base timer button styles (repeated for clarity if needed) */
+.timer-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    gap: 0.5rem; padding: 0.75rem 1.5rem; border-radius: var(--radius-full);
+    font-weight: 600; cursor: pointer; transition: all 0.2s ease;
+    border: none; outline: none; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    min-width: 128px;
+}
+.timer-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15); }
+.timer-btn:active { transform: translateY(0); box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); }
+.timer-btn svg, .timer-btn i { width: 20px; height: 20px; }
+
+/* Apply specific timer button looks */
+.timer-btn.primary-action { background: linear-gradient(to right, #4f46e5, #6366f1); color: white; }
+.timer-btn.primary-action.pause-state { background: linear-gradient(to right, #f59e0b, #fbbf24); }
+.timer-btn.secondary-action { background: #e5e7eb; color: #374151; }
+.timer-btn.secondary-action:hover { background: #d1d5db; }
+.timer-btn.save-action { background: linear-gradient(to right, #10b981, #34d399); color: white; }
+.timer-btn.save-action:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); }
+
+/* ======================= */
+/* == Media Player == */
+/* ======================= */
+
+/* ... existing media player styles ... */
+
+.media-controls {
+    /* ... existing styles ... */
+    gap: var(--space-sm); /* Ensure gap for buttons */
+}
+
+.media-controls button {
+    /* Base App Button Styles */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem; /* Space between icon and text */
+    padding: 0.6rem 1.2rem; /* Slightly smaller padding for controls */
+    border-radius: var(--radius-full);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+    outline: none;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    text-decoration: none;
+    white-space: nowrap;
+
+    /* Secondary Button Appearance */
+    background: #e5e7eb; /* gray-200 */
+    color: #374151; /* gray-700 */
+
+    min-width: auto; /* Override any previous min-width */
+    height: auto; /* Override any previous height */
+    flex-shrink: 0; /* Prevent shrinking */
+}
+
+.media-controls button:hover {
+    background: #d1d5db; /* gray-300 */
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+.media-controls button:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    background: #d1d5db; /* Keep hover color on active */
+}
+
+.media-controls button i {
+    width: 18px; /* Match app-button icon size */
+    height: 18px;
+    margin: 0; /* Remove specific margins if any */
+}
+
+
+/* ... rest of media player styles ... */
+
+
+/* ======================= */
+/* == Resources Page == */
+/* ======================= */
+
+#resources-page .resources-controls {
+    display: flex;
+    flex-wrap: wrap; /* Allow wrapping on small screens */
+    gap: var(--space-md);
+    margin-bottom: var(--space-lg);
+    align-items: center;
+}
+
+#resources-page .search-container {
+    flex-grow: 1;
+    position: relative;
+}
+
+#resources-page #search-resources {
+    width: 100%;
+    padding: 0.75rem 1rem 0.75rem 2.5rem; /* Add padding for icon */
+    border: 1px solid #ced4da;
+    border-radius: var(--radius-md);
+    font-size: 0.9rem;
+}
+#resources-page .search-container i {
+    position: absolute;
+    left: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6c757d; /* gray-500 */
+    pointer-events: none;
+}
+
+
+#resources-page .filter-controls {
+    display: flex;
+    justify-content: center; /* <<< Add this to center the buttons */
+    flex-wrap: nowrap; /* Keep filters on one line */
+    gap: var(--space-sm);
+    overflow-x: auto; /* Allow scrolling if needed */
+    padding-bottom: 5px; /* Space for scrollbar if it appears */
+}
+
+#resources-page .filter-controls button {
+    /* Base App Button Styles */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1.2rem; /* Slightly smaller padding */
+    border-radius: var(--radius-full);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none; /* Remove default borders */
+    outline: none;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    text-decoration: none;
+    white-space: nowrap;
+
+    /* Secondary Button Appearance */
+    background: #e5e7eb; /* gray-200 */
+    color: #374151; /* gray-700 */
+
+    flex-shrink: 0; /* Prevent shrinking */
+    opacity: 0.8; /* Slightly dim inactive filters */
+}
+
+#resources-page .filter-controls button:hover {
+    background: #d1d5db; /* gray-300 */
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    opacity: 1;
+}
+
+#resources-page .filter-controls button:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    background: #d1d5db; /* Keep hover color on active */
+}
+
+#resources-page .filter-controls button.active {
+    /* Active Filter Button Style - Use Primary Look */
+    background: linear-gradient(to right, #4f46e5, #6366f1);
+    color: white;
+    opacity: 1;
+    box-shadow: 0 3px 8px rgba(79, 70, 229, 0.3); /* Enhanced shadow for active */
+}
+
+#resources-page .filter-controls button i {
+    width: 16px; /* Slightly smaller icon for filters */
+    height: 16px;
+    margin-right: 0.25rem; /* Small gap from text if needed */
+}
+
+/* ... rest of resources styles ... */
+
+#resources-how-to-use-btn {
+    /* Center the button horizontally */
+    display: block; /* Treat as a block to allow margin auto */
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: var(--space-md); /* Add some space above */
+    margin-bottom: var(--space-md); /* Add some space below */
+    width: fit-content; /* Ensure button width shrinks to content */
+
+    /* Inherit standard app button styles if applied via class */
+    /* If not using class, re-apply necessary styles here */
+}
+
+.metronome-card h2 {
+    font-size: 1.1rem; /* Slightly smaller than page titles */
+    font-weight: 600;
+    color: var(--text-dark);
+    text-align: center;
+    margin-bottom: var(--space-md); /* Space below heading */
+    padding-bottom: var(--space-sm); /* Space for border */
+    border-bottom: 1px solid var(--border-color);
+}
+
+/* ======================= */
+/* == Resources Page Enhancements == */
+/* ======================= */
+
+#resources-page .instrument-section {
+    background-color: var(--card-bg);
+    border-radius: var(--radius-lg);
+    padding: var(--space-md);
+    margin-bottom: var(--space-lg);
+    box-shadow: var(--shadow-sm);
+}
+
+#resources-page .instrument-section h3 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--text-dark);
+    margin-bottom: var(--space-md);
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: var(--space-sm);
+}
+
+#resources-page .category-item {
+    margin-bottom: var(--space-md);
+    border-left: 3px solid var(--primary-light);
+    padding-left: var(--space-md);
+}
+
+#resources-page .category-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    margin-bottom: var(--space-sm);
+    padding: var(--space-xs) 0;
+}
+
+#resources-page .category-header h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--primary);
+    margin: 0;
+}
+
+#resources-page .difficulty-tag {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: white;
+    padding: 0.2rem 0.6rem;
+    border-radius: var(--radius-full);
+    margin-left: var(--space-sm);
+    white-space: nowrap;
+}
+
+#resources-page .expand-btn {
+    background: none;
+    border: none;
+    color: var(--text-light);
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+}
+#resources-page .expand-btn:hover {
+    color: var(--primary);
+}
+#resources-page .expand-btn i {
+    width: 18px;
+    height: 18px;
+}
+
+
+#resources-page .topics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: var(--space-sm);
+    padding-top: var(--space-sm);
+    border-top: 1px dashed var(--border-color-light);
+}
+
+#resources-page .topics-grid.hidden {
+    display: none;
+}
+
+#resources-page .topic-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: var(--background-alt);
+    padding: var(--space-sm);
+    border-radius: var(--radius-md);
+    font-size: 0.85rem;
+    color: var(--text-main);
+}
+
+#resources-page .add-topic-btn {
+    background: none;
+    border: none;
+    color: var(--primary);
+    cursor: pointer;
+    padding: 0 0 0 var(--space-xs);
+    line-height: 1;
+    margin-left: var(--space-sm);
+    flex-shrink: 0; /* Prevent shrinking */
+}
+#resources-page .add-topic-btn:hover {
+    color: var(--primary-dark);
+}
+#resources-page .add-topic-btn i {
+    width: 18px;
+    height: 18px;
+}
+
+/* Styling for the difficulty filter dropdown container */
+#resources-page .difficulty-filter-container {
+    margin-left: var(--space-md); /* Space it from family buttons */
+    /* Add centering styles within the flex context */
+    display: flex; /* Needed for justify-content */
+    justify-content: center; /* Center the dropdown within its container */
+    flex-grow: 1; /* Allow container to grow if needed */
+}
+
+#resources-page .difficulty-filter {
+    /* Inherit .filter-select styles or define similar ones */
+    padding: 0.6rem 1.2rem;
+    border-radius: var(--radius-full);
+    border: 1px solid var(--border-color);
+    background-color: var(--card-bg);
+    color: var(--text-main);
+    font-weight: 500;
+    cursor: pointer;
+    min-width: 180px; /* Give it some default width */
+}
+#resources-page .difficulty-filter:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px var(--primary-focus-ring);
+}
+
+.resource-filters .app-button {
+    border-radius: var(--radius-full); /* Make filter buttons pill-shaped */
+}
+
+/* Style for the active resource filter button */
+.resource-filters .filter-btn.active,
+.resource-filters .app-button.active /* Target the app-button style when active */
+{
+    background-color: var(--primary-blue);
+    color: white;
+    border-color: var(--primary-blue-dark); /* Optional: darker border for active */
+}
+
+/* Optional: Ensure hover doesn't override active state too much */
+.resource-filters .filter-btn.active:hover,
+.resource-filters .app-button.active:hover {
+    background-color: var(--primary-blue-dark); /* Slightly darker on hover when active */
+    border-color: var(--primary-blue-dark);
+}
