@@ -72,8 +72,13 @@ function initializeSessions() {
         elements.dateRangeDiv.style.display = (selectedPreset === 'custom') ? 'flex' : 'none';
 
         switch (selectedPreset) {
+            case 'today':
+                startDate = today.toISOString().split('T')[0];
+                endDate = startDate;
+                break;
             case 'week':
-                startDate = new Date(today.setDate(today.getDate() - today.getDay())).toISOString().split('T')[0];
+                const firstDayOfWeek = new Date(today.setDate(today.getDate() - today.getDay()));
+                startDate = firstDayOfWeek.toISOString().split('T')[0];
                 endDate = new Date().toISOString().split('T')[0];
                 break;
             case 'month':
@@ -89,13 +94,16 @@ function initializeSessions() {
                 endDate = new Date().toISOString().split('T')[0];
                 break;
             case 'custom':
-            default: // Treat 'all' or invalid as no date filter
                 startDate = elements.startDateInput.value;
                 endDate = elements.endDateInput.value;
                 break;
+            case 'all':
+            default:
+                startDate = '';
+                endDate = '';
+                break;
         }
         
-        // Set input values only if not custom, custom relies on existing input values
         if (selectedPreset !== 'custom') {
             elements.startDateInput.value = startDate;
             elements.endDateInput.value = endDate;
@@ -124,8 +132,8 @@ function initializeSessions() {
         console.log('[DEBUG Sessions] Date filter event listeners added.');
     }
 
-    // Set initial state to "This Week"
-    elements.presetFilter.value = 'week'; 
+    // Set initial state to "today"
+    elements.presetFilter.value = 'today'; 
     // elements.dateRangeDiv.style.display = 'none'; // handlePresetChange will hide/show this
     // elements.startDateInput.value = ''; // handlePresetChange will set these
     // elements.endDateInput.value = ''; // handlePresetChange will set these
