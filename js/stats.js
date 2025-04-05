@@ -1195,7 +1195,6 @@ function displayPracticeScaleGuide() {
     }
 
     // --- Guide Content (Your Markdown converted to HTML) ---
-    // (Ensure the full HTML content provided previously is included here)
     const guideContentHTML = ` 
         <h2>PracticeTrack: Evidence-Based Practice Scale</h2>
         <p>Understanding Your Practice Score...</p> 
@@ -1203,44 +1202,50 @@ function displayPracticeScaleGuide() {
         <p>PracticeTrack uses a research-backed scale to help you gauge your practice commitment and provide appropriate guidance. The system categorizes practice time into four levels - Low, Medium, High, and Very High - based on extensive research in music education and performance psychology.</p>
         <h2>Recommended Daily Practice Structure</h2>
         <p>The table below shows the recommended time allocation for an effective practice session at each level:</p>
-        <table class="guide-table">
-            <thead>
-                <tr><th>Practice Component</th><th>Low Level</th><th>Medium Level</th><th>High Level</th><th>Very High Level</th></tr>
-            </thead>
-            <tbody>
-                <tr><td>Warm-up</td><td>5 min</td><td>10 min</td><td>15 min</td><td>20 min</td></tr>
-                <tr><td>Technical work</td><td>10 min</td><td>20 min</td><td>40 min</td><td>1 hour</td></tr>
-                <tr><td>Repertoire work</td><td>15 min</td><td>40 min</td><td>1 hour 20 min</td><td>2 hours</td></tr>
-                <tr><td>Cool-down</td><td>5 min</td><td>5 min</td><td>10 min</td><td>15 min</td></tr>
-                <tr class="total-row"><td><strong>Total per day</strong></td><td><strong>35 min</strong></td><td><strong>1 hour 15 min</strong></td><td><strong>2 hours 25 min</strong></td><td><strong>3 hours 35 min</strong></td></tr>
-            </tbody>
-        </table>
+        <div class="table-container">
+            <table class="guide-table">
+                <thead>
+                    <tr><th>Practice Component</th><th>Low Level</th><th>Medium Level</th><th>High Level</th><th>Very High Level</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>Warm-up</td><td>5 min</td><td>10 min</td><td>15 min</td><td>20 min</td></tr>
+                    <tr><td>Technical work</td><td>10 min</td><td>20 min</td><td>40 min</td><td>1 hour</td></tr>
+                    <tr><td>Repertoire work</td><td>15 min</td><td>40 min</td><td>1 hour 20 min</td><td>2 hours</td></tr>
+                    <tr><td>Cool-down</td><td>5 min</td><td>5 min</td><td>10 min</td><td>15 min</td></tr>
+                    <tr class="total-row"><td><strong>Total per day</strong></td><td><strong>35 min</strong></td><td><strong>1 hour 15 min</strong></td><td><strong>2 hours 25 min</strong></td><td><strong>3 hours 35 min</strong></td></tr>
+                </tbody>
+            </table>
+        </div>
         <h2>Weekly Practice Expectations</h2>
         <p>Your weekly practice commitment determines your PracticeTrack level:</p>
-        <table class="guide-table">
-            <thead>
-                <tr><th>Level</th><th>Daily Practice</th><th>Days Per Week</th><th>Weekly Total</th></tr>
-            </thead>
-            <tbody>
-                <tr><td><strong>Low</strong></td><td>35 min</td><td>3-4 days</td><td>~2 hours</td></tr>
-                <tr><td><strong>Medium</strong></td><td>1 hour 15 min</td><td>6 days</td><td>~7.5 hours</td></tr>
-                <tr><td><strong>High</strong></td><td>2 hours 25 min</td><td>7 days</td><td>~17 hours</td></tr>
-                <tr><td><strong>Very High</strong></td><td>3 hours 35 min</td><td>7 days</td><td>~25 hours</td></tr>
-            </tbody>
-        </table>
+        <div class="table-container">
+            <table class="guide-table">
+                <thead>
+                    <tr><th>Level</th><th>Daily Practice</th><th>Days Per Week</th><th>Weekly Total</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><strong>Low</strong></td><td>35 min</td><td>3-4 days</td><td>~2 hours</td></tr>
+                    <tr><td><strong>Medium</strong></td><td>1 hour 15 min</td><td>6 days</td><td>~7.5 hours</td></tr>
+                    <tr><td><strong>High</strong></td><td>2 hours 25 min</td><td>7 days</td><td>~17 hours</td></tr>
+                    <tr><td><strong>Very High</strong></td><td>3 hours 35 min</td><td>7 days</td><td>~25 hours</td></tr>
+                </tbody>
+            </table>
+        </div>
         <h2>PracticeTrack Scale Benchmarks</h2>
         <p>These benchmarks help you understand your practice commitment over different time periods:</p>
-        <table class="guide-table">
-            <thead>
-                <tr><th>Level</th><th>Weekly Hours</th><th>Monthly Hours</th><th>Annual Hours</th></tr>
-            </thead>
-            <tbody>
-                <tr><td><strong>Low</strong></td><td>~2 hours</td><td>~8 hours</td><td>~100 hours</td></tr>
-                <tr><td><strong>Medium</strong></td><td>~7.5 hours</td><td>~30 hours</td><td>~360 hours</td></tr>
-                <tr><td><strong>High</strong></td><td>~17 hours</td><td>~68 hours</td><td>~816 hours</td></tr>
-                <tr><td><strong>Very High</strong></td><td>~25 hours</td><td>~100 hours</td><td>~1200 hours</td></tr>
-            </tbody>
-        </table>
+        <div class="table-container">
+            <table class="guide-table">
+                <thead>
+                    <tr><th>Level</th><th>Weekly Hours</th><th>Monthly Hours</th><th>Annual Hours</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><strong>Low</strong></td><td>~2 hours</td><td>~8 hours</td><td>~100 hours</td></tr>
+                    <tr><td><strong>Medium</strong></td><td>~7.5 hours</td><td>~30 hours</td><td>~360 hours</td></tr>
+                    <tr><td><strong>High</strong></td><td>~17 hours</td><td>~68 hours</td><td>~816 hours</td></tr>
+                    <tr><td><strong>Very High</strong></td><td>~25 hours</td><td>~100 hours</td><td>~1200 hours</td></tr>
+                </tbody>
+            </table>
+        </div>
         <h2>The Science Behind the Scale</h2>
         <p>The PracticeTrack scale is grounded in multiple peer-reviewed studies on music practice. Here's what the research shows about practice time and achievement:</p>
         <h3>Deliberate Practice Research</h3>
