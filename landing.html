@@ -89,9 +89,9 @@
         .app-tabs-showcase {
             display: flex;
             justify-content: center;
-            gap: var(--space-lg);
-            margin-top: var(--space-lg);
-            margin-bottom: var(--space-md);
+            max-width: 820px;
+            margin: var(--space-lg) auto var(--space-md);
+            gap: var(--space-xs);
         }
 
         .app-tab {
@@ -107,8 +107,8 @@
         }
 
         .tab-icon {
-            width: 50px;
-            height: 50px;
+            width: 45px;
+            height: 45px;
             border-radius: 50%;
             background-color: var(--primary-blue);
             display: flex;
@@ -296,14 +296,38 @@
         }
 
         /* Footer */
-        .footer {
+        footer {
             background: var(--primary-blue-dark);
             color: white;
             padding: var(--space-lg);
             text-align: center;
         }
 
-        .footer p {
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 var(--space-md);
+        }
+
+        .footer-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: var(--space-sm);
+        }
+
+        .footer-logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: var(--space-sm);
+        }
+
+        .footer-logo span {
+            color: var(--secondary-orange);
+        }
+
+        .copyright {
+            font-size: 0.9rem;
             opacity: 0.9;
         }
 
@@ -324,7 +348,8 @@
             }
             
             .app-tabs-showcase {
-                gap: var(--space-md);
+                flex-wrap: wrap;
+                gap: var(--space-sm);
             }
             
             .tab-icon {
@@ -356,6 +381,12 @@
             }
             
             .tab-label {
+                font-size: 0.65rem;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .app-tab .tab-label {
                 font-size: 0.7rem;
             }
         }
@@ -375,57 +406,49 @@
         <div class="app-tabs-showcase">
             <div class="app-tab active" data-tab="timer">
                 <div class="tab-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="10"></circle>
-                        <polyline points="12 6 12 12 16 14"></polyline>
-                    </svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
                 </div>
-                <div class="tab-label">Timer</div>
+                <span class="tab-label">Timer</span>
             </div>
             <div class="app-tab" data-tab="sessions">
                 <div class="tab-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                        <line x1="16" y1="2" x2="16" y2="6"></line>
-                        <line x1="8" y1="2" x2="8" y2="6"></line>
-                        <line x1="3" y1="10" x2="21" y2="10"></line>
-                    </svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect></svg>
                 </div>
-                <div class="tab-label">Sessions</div>
+                <span class="tab-label">Sessions</span>
             </div>
             <div class="app-tab" data-tab="stats">
                 <div class="tab-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="18" y1="20" x2="18" y2="10"></line>
-                        <line x1="12" y1="20" x2="12" y2="4"></line>
-                        <line x1="6" y1="20" x2="6" y2="14"></line>
-                    </svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
                 </div>
-                <div class="tab-label">Stats</div>
+                <span class="tab-label">Stats</span>
             </div>
             <div class="app-tab" data-tab="media">
                 <div class="tab-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                        <circle cx="8.5" cy="8.5" r="1.5"></circle>
-                        <polyline points="21 15 16 10 5 21"></polyline>
-                    </svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect></svg>
                 </div>
-                <div class="tab-label">Media</div>
+                <span class="tab-label">Media</span>
             </div>
             <div class="app-tab" data-tab="metronome">
                 <div class="tab-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M12 18.5a.5.5 0 1 1-.5.5.5.5 0 0 1 .5-.5z"></path>
-                        <path d="M12 2v7"></path>
-                        <path d="M12 22v-3"></path>
-                        <path d="M2 12h3"></path>
-                        <path d="M19 12h3"></path>
-                        <path d="M12 10a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"></path>
-                        <path d="M12 10v8"></path>
-                    </svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
                 </div>
-                <div class="tab-label">Metronome</div>
+                <span class="tab-label">Metronome</span>
+            </div>
+            
+            <!-- Goals Tab (new) -->
+            <div class="app-tab" data-tab="goals">
+                <div class="tab-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg>
+                </div>
+                <span class="tab-label">Goals</span>
+            </div>
+            
+            <!-- Resources tab -->
+            <div class="app-tab" data-tab="resources">
+                <div class="tab-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                </div>
+                <span class="tab-label">Resources</span>
             </div>
         </div>
     </header>
@@ -435,6 +458,7 @@
         <section class="hero-section">
             <h1 class="hero-title">Track, Analyze, and Improve Your Practice</h1>
             <p class="hero-subtitle">PracticeTrack helps musicians of all levels organize their practice sessions, set goals, and track progress with powerful tools designed for musical growth.</p>
+            <a href="index.html" class="cta-button">Launch App</a>
         </section>
 
         <!-- App Mockup Section -->
@@ -507,16 +531,16 @@
                     <p>Save photos, videos, and notes of your playing to review later. Capture important moments from your practice sessions.</p>
                 </div>
                 
-                <!-- Feature: Practice Reminders -->
+                <!-- Feature: Practice Resources -->
                 <div class="feature-card">
                     <div class="feature-title">
                         <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-                            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
                         </svg>
-                        Practice Reminders
+                        Practice Resources
                     </div>
-                    <p>Schedule practice reminders to maintain a consistent routine. Never miss a planned practice session again.</p>
+                    <p>Access research-based practice materials for different instrument categories. Improve your technique with structured resources designed for effective skill development.</p>
                 </div>
             </div>
         </section>
@@ -532,14 +556,21 @@
 
         <!-- CTA Section -->
         <section class="cta-section">
-            <h2 class="cta-title">Ready to Improve Your Practice?</h2>
-            <a href="/app/" class="cta-button">Launch App</a>
+            <div class="container">
+                <h2>Ready to enhance your practice routine?</h2>
+                <p>Start tracking your progress and see real results in your musical journey.</p>
+            </div>
         </section>
     </div>
 
     <!-- Footer -->
-    <footer class="footer">
-        <p>© 2023 PracticeTrack. Your musical journey companion.</p>
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">Practice<span>Track</span></div>
+                <div class="copyright">© 2025 PracticeTrack. All rights reserved.</div>
+            </div>
+        </div>
     </footer>
 
     <!-- JavaScript for Tab Switching -->

@@ -21,33 +21,39 @@
       <text x="220" y="17" font-family="Inter, Arial, sans-serif" font-size="10" fill="#222831" text-anchor="middle">100%</text>
     </g>
     
-    <!-- Bottom Navigation -->
-    <g id="bottom-nav">
-      <rect x="5" y="475" width="250" height="40" rx="0 0 20 20" fill="#ffffff" stroke="#e6ebf5" stroke-width="1" />
+    <!-- Bottom Navigation with Resources tab -->
+    <g id="bottom-nav-with-resources">
+      <rect x="5" y="475" width="250" height="35" rx="0 0 20 20" fill="#ffffff" stroke="#e6ebf5" stroke-width="1" />
       
       <!-- Timer Icon -->
-      <g id="nav-timer" transform="translate(40, 495)">
+      <g transform="translate(30, 492)">
         <circle cx="0" cy="0" r="12" fill="none" stroke="#8a95a5" stroke-width="1.5" />
         <path d="M0,-5 L0,0 L4,4" stroke="#8a95a5" stroke-width="1.5" fill="none" />
-        <text x="0" y="20" font-family="Inter, Arial, sans-serif" font-size="8" fill="#8a95a5" text-anchor="middle">Timer</text>
+        <text x="0" y="20" font-family="Inter, Arial, sans-serif" font-size="7" fill="#8a95a5" text-anchor="middle">Timer</text>
       </g>
       
       <!-- Sessions Icon -->
-      <g id="nav-sessions" transform="translate(100, 495)">
+      <g transform="translate(80, 492)">
         <rect x="-8" y="-8" width="16" height="16" rx="2" fill="none" stroke="#8a95a5" stroke-width="1.5" />
-        <text x="0" y="20" font-family="Inter, Arial, sans-serif" font-size="8" fill="#8a95a5" text-anchor="middle">Sessions</text>
+        <text x="0" y="20" font-family="Inter, Arial, sans-serif" font-size="7" fill="#8a95a5" text-anchor="middle">Sessions</text>
       </g>
       
       <!-- Stats Icon -->
-      <g id="nav-stats" transform="translate(160, 495)">
+      <g transform="translate(130, 492)">
         <path d="M-6,-6 L-6,6 M0,-6 L0,6 M6,-6 L6,6" stroke="#8a95a5" stroke-width="1.5" />
-        <text x="0" y="20" font-family="Inter, Arial, sans-serif" font-size="8" fill="#8a95a5" text-anchor="middle">Stats</text>
+        <text x="0" y="20" font-family="Inter, Arial, sans-serif" font-size="7" fill="#8a95a5" text-anchor="middle">Stats</text>
       </g>
       
       <!-- Media Icon -->
-      <g id="nav-media" transform="translate(220, 495)">
+      <g transform="translate(180, 492)">
         <rect x="-6" y="-6" width="12" height="12" fill="none" stroke="#8a95a5" stroke-width="1.5" />
-        <text x="0" y="20" font-family="Inter, Arial, sans-serif" font-size="8" fill="#8a95a5" text-anchor="middle">Media</text>
+        <text x="0" y="20" font-family="Inter, Arial, sans-serif" font-size="7" fill="#8a95a5" text-anchor="middle">Media</text>
+      </g>
+      
+      <!-- Resources Icon and Goals Icon -->
+      <g transform="translate(230, 492)">
+        <path d="M-6,-6 L6,-6 L6,6 L-6,6 Z M-6,-2 L6,-2 M-3,-6 L-3,6" stroke="#8a95a5" stroke-width="1.5" fill="none" />
+        <text x="0" y="20" font-family="Inter, Arial, sans-serif" font-size="7" fill="#8a95a5" text-anchor="middle">Resources</text>
       </g>
     </g>
     
@@ -90,7 +96,7 @@
   <!-- Timer Screen -->
   <g transform="translate(80, 50)">
     <use href="#phone-frame" />
-    <use href="#bottom-nav" />
+    <use href="#bottom-nav-with-resources" />
     
     <!-- Active Timer Icon -->
     <g transform="translate(40, 495)">
@@ -109,8 +115,8 @@
       <path d="M190,20 L195,25 L190,30" stroke="#8a95a5" stroke-width="1.5" fill="none" />
     </g>
     
-    <!-- Timer Circle -->
-    <g transform="translate(130, 150)">
+    <!-- Timer Circle - Move down to prevent cutting off dropdown -->
+    <g transform="translate(130, 170)">
       <circle cx="0" cy="0" r="70" fill="#f8f9fc" stroke="#e9f0fd" stroke-width="8" />
       <circle cx="0" cy="0" r="60" fill="none" stroke="#e9f0fd" stroke-width="1" />
       <circle cx="0" cy="0" r="40" fill="none" stroke="#e9f0fd" stroke-width="1" />
@@ -124,59 +130,177 @@
     </g>
     
     <!-- Resume Button -->
-    <g transform="translate(130, 260)">
+    <g transform="translate(130, 280)">
       <rect x="-55" y="-25" width="110" height="50" rx="25" fill="#3b7ff5" />
       <text x="0" y="7" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="600" fill="#ffffff" text-anchor="middle">Resume</text>
     </g>
   </g>
   
-  <!-- Sessions Screen -->
+  <!-- Sessions Screen - Move edit and delete buttons to bottom right -->
   <g transform="translate(350, 50)">
     <use href="#phone-frame" />
-    <use href="#bottom-nav" />
+    <use href="#bottom-nav-with-resources" />
     
     <!-- Active Sessions Icon -->
-    <g transform="translate(100, 495)">
+    <g transform="translate(100, 492)">
       <rect x="-8" y="-8" width="16" height="16" rx="2" fill="none" stroke="#3b7ff5" stroke-width="1.5" />
       <text x="0" y="20" font-family="Inter, Arial, sans-serif" font-size="8" fill="#3b7ff5" text-anchor="middle">Sessions</text>
     </g>
     
-    <!-- Update the screen title - centered with brand blue color -->
+    <!-- Screen Title - Centered -->
     <text x="130" y="30" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="bold" fill="#3b7ff5" text-anchor="middle">Practice Sessions</text>
     
-    <!-- Date filter -->
-    <g transform="translate(25, 40)">
-      <text x="0" y="0" font-family="Inter, Arial, sans-serif" font-size="14" fill="#8a95a5">Last 7 days</text>
-      <path d="M75,0 L80,-5 L85,0" stroke="#8a95a5" stroke-width="1" />
+    <!-- Search Bar - New Addition -->
+    <g transform="translate(25, 50)">
+      <rect width="210" height="35" rx="17.5" fill="#f8f9fc" stroke="#e6ebf5" stroke-width="1" />
+      <g transform="translate(15, 17.5)">
+        <circle cx="0" cy="0" r="7" fill="none" stroke="#8a95a5" stroke-width="1.5" />
+        <line x1="5" y1="5" x2="9" y2="9" stroke="#8a95a5" stroke-width="1.5" />
+      </g>
+      <text x="30" y="22" font-family="Inter, Arial, sans-serif" font-size="12" fill="#8a95a5">Search sessions...</text>
     </g>
     
-    <!-- Session cards -->
-    <!-- Session 1 -->
-    <g transform="translate(25, 80)">
-      <rect width="210" height="80" rx="12" fill="#ffffff" stroke="#e6ebf5" stroke-width="1" />
-      <text x="15" y="30" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="bold" fill="#222831">Today</text>
-      <text x="15" y="55" font-family="Inter, Arial, sans-serif" font-size="12" fill="#8a95a5">2 sessions • 45 minutes</text>
+    <!-- Category Filter - Remove text label and adjust position -->
+    <g transform="translate(25, 95)">
+      <!-- REMOVED: <text x="0" y="0" font-family="Inter, Arial, sans-serif" font-size="12" font-weight="bold" fill="#222831">Category:</text> -->
+      
+      <g transform="translate(0, -5)">
+        <rect width="100" height="25" rx="12.5" fill="#f8f9fc" stroke="#e6ebf5" stroke-width="1" />
+        <text x="40" y="17" font-family="Inter, Arial, sans-serif" font-size="12" fill="#8a95a5" text-anchor="middle">All</text>
+        <path d="M85,12.5 L90,17.5 L85,22.5" stroke="#8a95a5" stroke-width="1" />
+      </g>
     </g>
     
-    <!-- Session 2 -->
-    <g transform="translate(25, 170)">
-      <rect width="210" height="80" rx="12" fill="#ffffff" stroke="#e6ebf5" stroke-width="1" />
-      <text x="15" y="30" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="bold" fill="#222831">Yesterday</text>
-      <text x="15" y="55" font-family="Inter, Arial, sans-serif" font-size="12" fill="#8a95a5">1 session • 30 minutes</text>
+    <!-- Date Filter - Remove text label and adjust position -->
+    <g transform="translate(135, 95)">
+      <!-- REMOVED: <text x="0" y="0" font-family="Inter, Arial, sans-serif" font-size="12" font-weight="bold" fill="#222831">Date:</text> -->
+      
+      <g transform="translate(0, -5)">
+        <rect width="100" height="25" rx="12.5" fill="#f8f9fc" stroke="#e6ebf5" stroke-width="1" />
+        <text x="50" y="17" font-family="Inter, Arial, sans-serif" font-size="12" fill="#8a95a5" text-anchor="middle">Last 7 days</text>
+        <path d="M85,12.5 L90,17.5 L85,22.5" stroke="#8a95a5" stroke-width="1" />
+      </g>
     </g>
     
-    <!-- Session 3 -->
-    <g transform="translate(25, 260)">
-      <rect width="210" height="80" rx="12" fill="#ffffff" stroke="#e6ebf5" stroke-width="1" />
-      <text x="15" y="30" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="bold" fill="#222831">June 12</text>
-      <text x="15" y="55" font-family="Inter, Arial, sans-serif" font-size="12" fill="#8a95a5">3 sessions • 1h 15 minutes</text>
+    <!-- Session 1 - Updated to match actual site -->
+    <g transform="translate(25, 130)">
+      <rect width="210" height="70" rx="12" fill="#ffffff" stroke="#e6ebf5" stroke-width="1" />
+      <rect x="0" y="0" width="6" height="70" rx="3" fill="#3b7ff5" />
+      
+      <!-- Category title (was "Piano Practice", now "Technique") -->
+      <text x="15" y="25" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="bold" fill="#222831">Technique</text>
+      
+      <!-- Duration on top right (new) -->
+      <text x="195" y="25" font-family="Inter, Arial, sans-serif" font-size="14" fill="#3b7ff5" text-anchor="end">30m</text>
+      
+      <!-- Notes below title (was Category, now Notes) -->
+      <text x="15" y="45" font-family="Inter, Arial, sans-serif" font-size="12" fill="#8a95a5">
+        <tspan x="15" dy="0">Various scales at 110bpm</tspan>
+      </text>
+      
+      <!-- Date at bottom, keep as is -->
+      <text x="15" y="60" font-family="Inter, Arial, sans-serif" font-size="10" fill="#8a95a5">Today</text>
+      
+      <!-- Edit and delete buttons - keep in place -->
+      <g transform="translate(165, 55)">
+        <circle cx="0" cy="0" r="12" fill="#f5f7fa" />
+        <path d="M-4,-4 L2,-6 L4,-4 L6,2 L4,4 L-4,4 Z" stroke="#8a95a5" stroke-width="1" fill="none" />
+        <line x1="2" y1="-4" x2="2" y2="2" stroke="#8a95a5" stroke-width="1" />
+      </g>
+      
+      <g transform="translate(195, 55)">
+        <circle cx="0" cy="0" r="12" fill="#f5f7fa" />
+        <rect x="-4" y="-5" width="8" height="10" stroke="#8a95a5" stroke-width="1" fill="none" />
+        <path d="M-6,-5 L6,-5" stroke="#8a95a5" stroke-width="1" />
+        <path d="M-2,-8 L2,-8" stroke="#8a95a5" stroke-width="1" />
+        <path d="M-2,-4 L-2,3" stroke="#8a95a5" stroke-width="1" />
+        <path d="M2,-4 L2,3" stroke="#8a95a5" stroke-width="1" />
+      </g>
+    </g>
+    
+    <!-- Session 2 - Updated to match actual site -->
+    <g transform="translate(25, 210)">
+      <rect width="210" height="70" rx="12" fill="#ffffff" stroke="#e6ebf5" stroke-width="1" />
+      <rect x="0" y="0" width="6" height="70" rx="3" fill="#ff7a43" />
+      
+      <!-- Category title (was "Theory Study", now "Theory") -->
+      <text x="15" y="25" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="bold" fill="#222831">Theory</text>
+      
+      <!-- Duration on top right (new) -->
+      <text x="195" y="25" font-family="Inter, Arial, sans-serif" font-size="14" fill="#3b7ff5" text-anchor="end">45m</text>
+      
+      <!-- Update notes text -->
+      <text x="15" y="45" font-family="Inter, Arial, sans-serif" font-size="12" fill="#8a95a5">
+        <tspan x="15" dy="0">7th chords in G Major</tspan>
+      </text>
+      
+      <!-- Date at bottom, keep as is -->
+      <text x="15" y="60" font-family="Inter, Arial, sans-serif" font-size="10" fill="#8a95a5">Yesterday</text>
+      
+      <!-- Edit and delete buttons - keep in place -->
+      <g transform="translate(165, 55)">
+        <circle cx="0" cy="0" r="12" fill="#f5f7fa" />
+        <path d="M-4,-4 L2,-6 L4,-4 L6,2 L4,4 L-4,4 Z" stroke="#8a95a5" stroke-width="1" fill="none" />
+        <line x1="2" y1="-4" x2="2" y2="2" stroke="#8a95a5" stroke-width="1" />
+      </g>
+      
+      <g transform="translate(195, 55)">
+        <circle cx="0" cy="0" r="12" fill="#f5f7fa" />
+        <rect x="-4" y="-5" width="8" height="10" stroke="#8a95a5" stroke-width="1" fill="none" />
+        <path d="M-6,-5 L6,-5" stroke="#8a95a5" stroke-width="1" />
+        <path d="M-2,-8 L2,-8" stroke="#8a95a5" stroke-width="1" />
+        <path d="M-2,-4 L-2,3" stroke="#8a95a5" stroke-width="1" />
+        <path d="M2,-4 L2,3" stroke="#8a95a5" stroke-width="1" />
+      </g>
+    </g>
+    
+    <!-- Session 3 - Updated to match actual site -->
+    <g transform="translate(25, 290)">
+      <rect width="210" height="70" rx="12" fill="#ffffff" stroke="#e6ebf5" stroke-width="1" />
+      <rect x="0" y="0" width="6" height="70" rx="3" fill="#56ccf2" />
+      
+      <!-- Category title (was "Sight Reading", now "Repertoire") -->
+      <text x="15" y="25" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="bold" fill="#222831">Repertoire</text>
+      
+      <!-- Duration on top right (new) -->
+      <text x="195" y="25" font-family="Inter, Arial, sans-serif" font-size="14" fill="#3b7ff5" text-anchor="end">60m</text>
+      
+      <!-- Update notes text - remove "first two pages" part -->
+      <text x="15" y="45" font-family="Inter, Arial, sans-serif" font-size="12" fill="#8a95a5">
+        <tspan x="15" dy="0">Bach prelude in C</tspan>
+      </text>
+      
+      <!-- Date at bottom, keep as is -->
+      <text x="15" y="60" font-family="Inter, Arial, sans-serif" font-size="10" fill="#8a95a5">2 days ago</text>
+      
+      <!-- Edit and delete buttons - keep in place -->
+      <g transform="translate(165, 55)">
+        <circle cx="0" cy="0" r="12" fill="#f5f7fa" />
+        <path d="M-4,-4 L2,-6 L4,-4 L6,2 L4,4 L-4,4 Z" stroke="#8a95a5" stroke-width="1" fill="none" />
+        <line x1="2" y1="-4" x2="2" y2="2" stroke="#8a95a5" stroke-width="1" />
+      </g>
+      
+      <g transform="translate(195, 55)">
+        <circle cx="0" cy="0" r="12" fill="#f5f7fa" />
+        <rect x="-4" y="-5" width="8" height="10" stroke="#8a95a5" stroke-width="1" fill="none" />
+        <path d="M-6,-5 L6,-5" stroke="#8a95a5" stroke-width="1" />
+        <path d="M-2,-8 L2,-8" stroke="#8a95a5" stroke-width="1" />
+        <path d="M-2,-4 L-2,3" stroke="#8a95a5" stroke-width="1" />
+        <path d="M2,-4 L2,3" stroke="#8a95a5" stroke-width="1" />
+      </g>
+    </g>
+    
+    <!-- Add Session Button - Adjust position -->
+    <g transform="translate(130, 380)">
+      <circle cx="0" cy="0" r="25" fill="#3b7ff5" />
+      <text x="0" y="6" font-family="Inter, Arial, sans-serif" font-size="25" font-weight="bold" fill="#ffffff" text-anchor="middle">+</text>
     </g>
   </g>
   
   <!-- Stats Screen -->
   <g transform="translate(620, 50)">
     <use href="#phone-frame" />
-    <use href="#bottom-nav" />
+    <use href="#bottom-nav-with-resources" />
     
     <!-- Active Stats Icon -->
     <g transform="translate(160, 495)">
@@ -212,7 +336,7 @@
       </g>
     </g>
     
-    <!-- Practice Distribution Pie Chart -->
+    <!-- Practice Distribution Pie Chart - Remove the hole -->
     <g transform="translate(25, 140)">
       <rect width="210" height="185" rx="12" fill="#ffffff" stroke="#e6ebf5" stroke-width="1" />
       <text x="105" y="30" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="bold" fill="#222831" text-anchor="middle">Practice By Category</text>
@@ -224,17 +348,14 @@
         <path d="M0,0 L52,30 A60,60 0 0,1 -30,52 Z" fill="#ff7a43" />
         <path d="M0,0 L-30,52 A60,60 0 0,1 -52,-30 Z" fill="#38b77c" />
         <path d="M0,0 L-52,-30 A60,60 0 0,1 0,-60 Z" fill="#f25767" />
-        
-        <!-- Center white circle for donut effect -->
-        <circle cx="0" cy="0" r="30" fill="#ffffff" />
       </g>
     </g>
   </g>
 
-  <!-- Media Screen -->
+  <!-- Media Screen - Move buttons to bottom right -->
   <g transform="translate(890, 50)">
     <use href="#phone-frame" />
-    <use href="#bottom-nav" />
+    <use href="#bottom-nav-with-resources" />
     
     <!-- Active Media Icon -->
     <g transform="translate(220, 495)">
@@ -264,40 +385,76 @@
       <path d="M155,0 L160,-5 L165,0" stroke="#8a95a5" stroke-width="1" />
     </g>
     
-    <!-- Media Action Buttons -->
-    <g transform="translate(25, 130)">
-      <rect width="60" height="30" rx="15" fill="#3b7ff5" />
-      <text x="30" y="19" font-family="Inter, Arial, sans-serif" font-size="12" font-weight="bold" fill="#ffffff" text-anchor="middle">Add Photo</text>
-      
-      <rect x="70" y="0" width="60" height="30" rx="15" fill="#3b7ff5" />
-      <text x="100" y="19" font-family="Inter, Arial, sans-serif" font-size="12" font-weight="bold" fill="#ffffff" text-anchor="middle">Add Video</text>
-      
-      <rect x="140" y="0" width="60" height="30" rx="15" fill="#3b7ff5" />
-      <text x="170" y="19" font-family="Inter, Arial, sans-serif" font-size="12" font-weight="bold" fill="#ffffff" text-anchor="middle">Add Note</text>
-    </g>
-    
-    <!-- Media Card - Video -->
+    <!-- Media Card - Video - Move buttons to bottom right -->
     <g transform="translate(25, 190)">
       <rect width="210" height="140" rx="12" fill="#ffffff" stroke="#e6ebf5" stroke-width="1" />
       <text x="15" y="30" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="bold" fill="#222831">Pentatonic lick in Em</text>
       <text x="15" y="50" font-family="Inter, Arial, sans-serif" font-size="12" fill="#8a95a5">No description</text>
       <text x="15" y="75" font-family="Inter, Arial, sans-serif" font-size="12" fill="#8a95a5">Type: Video</text>
       <text x="15" y="95" font-family="Inter, Arial, sans-serif" font-size="12" fill="#8a95a5">Added: 05/04/2023</text>
+      
+      <!-- View button (eye icon) - moved to bottom right -->
+      <g transform="translate(135, 120)">
+        <circle cx="0" cy="0" r="12" fill="#f5f7fa" />
+        <circle cx="0" cy="0" r="4" stroke="#8a95a5" stroke-width="1" fill="none" />
+        <ellipse cx="0" cy="0" rx="8" ry="6" stroke="#8a95a5" stroke-width="1" fill="none" />
+      </g>
+      
+      <!-- Edit button (pencil icon) - moved to bottom right -->
+      <g transform="translate(165, 120)">
+        <circle cx="0" cy="0" r="12" fill="#f5f7fa" />
+        <path d="M-4,-4 L2,-6 L4,-4 L6,2 L4,4 L-4,4 Z" stroke="#8a95a5" stroke-width="1" fill="none" />
+        <line x1="2" y1="-4" x2="2" y2="2" stroke="#8a95a5" stroke-width="1" />
+      </g>
+      
+      <!-- Delete button (trash icon) - moved to bottom right -->
+      <g transform="translate(195, 120)">
+        <circle cx="0" cy="0" r="12" fill="#f5f7fa" />
+        <rect x="-4" y="-5" width="8" height="10" stroke="#8a95a5" stroke-width="1" fill="none" />
+        <path d="M-6,-5 L6,-5" stroke="#8a95a5" stroke-width="1" />
+        <path d="M-2,-8 L2,-8" stroke="#8a95a5" stroke-width="1" />
+        <path d="M-2,-4 L-2,3" stroke="#8a95a5" stroke-width="1" />
+        <path d="M2,-4 L2,3" stroke="#8a95a5" stroke-width="1" />
+      </g>
     </g>
     
-    <!-- Additional Media Card -->
+    <!-- Additional Media Card - Move buttons to bottom right -->
     <g transform="translate(25, 350)">
       <rect width="210" height="100" rx="12" fill="#ffffff" stroke="#e6ebf5" stroke-width="1" />
       <text x="15" y="30" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="bold" fill="#222831">Scale Practice Audio</text>
       <text x="15" y="50" font-family="Inter, Arial, sans-serif" font-size="12" fill="#8a95a5">Type: Audio</text>
       <text x="15" y="70" font-family="Inter, Arial, sans-serif" font-size="12" fill="#8a95a5">Added: 05/03/2023</text>
+      
+      <!-- View button (eye icon) - moved to bottom right -->
+      <g transform="translate(135, 80)">
+        <circle cx="0" cy="0" r="12" fill="#f5f7fa" />
+        <circle cx="0" cy="0" r="4" stroke="#8a95a5" stroke-width="1" fill="none" />
+        <ellipse cx="0" cy="0" rx="8" ry="6" stroke="#8a95a5" stroke-width="1" fill="none" />
+      </g>
+      
+      <!-- Edit button (pencil icon) - moved to bottom right -->
+      <g transform="translate(165, 80)">
+        <circle cx="0" cy="0" r="12" fill="#f5f7fa" />
+        <path d="M-4,-4 L2,-6 L4,-4 L6,2 L4,4 L-4,4 Z" stroke="#8a95a5" stroke-width="1" fill="none" />
+        <line x1="2" y1="-4" x2="2" y2="2" stroke="#8a95a5" stroke-width="1" />
+      </g>
+      
+      <!-- Add Delete button to Audio card for consistency -->
+      <g transform="translate(195, 80)">
+        <circle cx="0" cy="0" r="12" fill="#f5f7fa" />
+        <rect x="-4" y="-5" width="8" height="10" stroke="#8a95a5" stroke-width="1" fill="none" />
+        <path d="M-6,-5 L6,-5" stroke="#8a95a5" stroke-width="1" />
+        <path d="M-2,-8 L2,-8" stroke="#8a95a5" stroke-width="1" />
+        <path d="M-2,-4 L-2,3" stroke="#8a95a5" stroke-width="1" />
+        <path d="M2,-4 L2,3" stroke="#8a95a5" stroke-width="1" />
+      </g>
     </g>
   </g>
   
   <!-- Metronome Screen -->
   <g transform="translate(1160, 50)">
     <use href="#phone-frame" />
-    <use href="#bottom-nav" />
+    <use href="#bottom-nav-with-resources" />
     
     <!-- Metronome Icon (extra) -->
     <g transform="translate(280, 495)">
@@ -318,9 +475,9 @@
     <!-- Tempo Slider -->
     <g transform="translate(40, 170)">
       <rect width="180" height="4" rx="2" fill="#e6ebf5" />
-      <circle cx="90" cy="2" r="10" fill="#3b7ff5" />
-      <text x="0" y="30" font-family="Inter, Arial, sans-serif" font-size="12" fill="#8a95a5">60</text>
-      <text x="180" y="30" font-family="Inter, Arial, sans-serif" font-size="12" fill="#8a95a5" text-anchor="end">208</text>
+      <circle cx="60" cy="2" r="10" fill="#3b7ff5" />
+      <text x="0" y="30" font-family="Inter, Arial, sans-serif" font-size="12" fill="#8a95a5">30</text>
+      <text x="180" y="30" font-family="Inter, Arial, sans-serif" font-size="12" fill="#8a95a5" text-anchor="end">300</text>
     </g>
     
     <!-- BPM Controls -->
