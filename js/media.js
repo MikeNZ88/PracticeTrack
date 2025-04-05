@@ -946,6 +946,15 @@ async function viewMediaFile(media) {
         const closeButton = dialog.querySelector('button[data-close]');
         closeButton.addEventListener('click', () => dialog.close());
 
+        // ADDED: Close dialog on backdrop click
+        dialog.addEventListener('click', (event) => {
+            // Check if the click was directly on the dialog element (the backdrop)
+            if (event.target === dialog) {
+                dialog.close();
+            }
+        });
+        // END ADDED
+
         dialog.showModal();
 
         // Clean up the temporary blob URL when the dialog is closed

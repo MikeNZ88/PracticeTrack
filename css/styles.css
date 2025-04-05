@@ -6225,3 +6225,17 @@ textarea:focus {
     }
     /* ... rest of mobile styles ... */
 }
+
+.media-view-dialog {
+    max-width: 90vw;
+    max-height: 90vh;
+    width: auto;
+    height: auto;
+    padding: var(--space-lg);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-color);
+    background-color: var(--card-background);
+    box-shadow: var(--shadow-xl);
+    /* position: relative; /* REMOVED - Let browser center modal */
+    overflow: hidden;
+}

@@ -67,20 +67,43 @@ function saveMediaFile(key, file) {
             const currentDb = await openDB(); // Ensure DB is open
             const transaction = currentDb.transaction([STORE_NAME], 'readwrite');
             const store = transaction.objectStore(STORE_NAME);
+            
+            // Log file details before saving
+            console.log(`Attempting to save file to IndexedDB. Key: ${key}, Name: ${file.name}, Size: ${file.size}, Type: ${file.type}`);
+            
             const request = store.put(file, key); // Use key as the explicit key
 
             request.onsuccess = () => {
-                console.log(`File saved to IndexedDB with key: ${key}`);
+                console.log(`File saved successfully to IndexedDB with key: ${key}`);
                 resolve();
             };
 
             request.onerror = (event) => {
-                console.error('Error saving file to IndexedDB:', event.target.error);
-                reject(event.target.error);
+                const error = event.target.error;
+                console.error('IndexedDB save request error:', error);
+                // Log specific properties if they exist
+                console.error(`Error Name: ${error?.name}, Message: ${error?.message}`); 
+                // Try to get more details from the event or error object
+                console.error('Complete error object:', JSON.stringify(error, Object.getOwnPropertyNames(error)));
+                reject(error); // Reject with the specific error
             };
+            
+            transaction.onerror = (event) => { // Add transaction error handler
+                 const error = event.target.error;
+                 console.error('IndexedDB save transaction error:', error);
+                 console.error(`Transaction Error Name: ${error?.name}, Message: ${error?.message}`);
+                 console.error('Complete transaction error object:', JSON.stringify(error, Object.getOwnPropertyNames(error)));
+                 // Don't reject here again if request.onerror already did
+            };
+            
+             transaction.onabort = (event) => { // Add transaction abort handler
+                 console.error('IndexedDB save transaction aborted:', event.target.error); // Error might be null
+                 console.error('Abort Event:', event);
+                 // Maybe reject here if not already rejected?
+             };
 
         } catch (error) {
-            console.error('Failed to open DB for saving:', error);
+            console.error('Failed to open DB or initiate transaction for saving:', error);
             reject(error);
         }
     });
