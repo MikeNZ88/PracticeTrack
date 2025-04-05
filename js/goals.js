@@ -24,7 +24,22 @@ function initializeGoals() {
         addEmptyStateButtonId: 'empty-add-goal',
         addEmptyStateButtonText: 'Set Your First Goal',
         createRecordElementFn: createGoalElement,
-        showDialogFn: showGoalDialog
+        showDialogFn: showGoalDialog,
+        filterFn: (item, filters) => {
+            const searchTerm = filters.search ? filters.search.toLowerCase() : '';
+            const categoryFilter = filters.category || 'all';
+            const statusFilter = filters.status || 'all';
+
+            const nameMatch = !searchTerm || (item.title && item.title.toLowerCase().includes(searchTerm));
+            const descriptionMatch = !searchTerm || (item.description && item.description.toLowerCase().includes(searchTerm));
+            const categoryMatch = categoryFilter === 'all' || item.categoryId === categoryFilter;
+            
+            let statusMatch = true;
+            if (statusFilter === 'active') statusMatch = !item.completed;
+            if (statusFilter === 'completed') statusMatch = item.completed;
+
+            return (nameMatch || descriptionMatch) && categoryMatch && statusMatch;
+        }
     });
 }
 

@@ -86,10 +86,25 @@ const initializeSettings = () => {
         // Initialize default categories if none exist
         initializeDefaultCategories();
         
+        // --- Call Lucide Icons ONCE after everything is loaded --- 
+        if (window.lucide) {
+            try {
+                // Use document.body or a specific container if appropriate
+                window.lucide.createIcons(); // Call generally or specify context
+                console.log('Lucide icons initialized globally/for settings page.');
+            } catch (e) {
+                console.error("Error initializing Lucide icons in initializeSettings:", e);
+            }
+        } else {
+            console.warn('Lucide library not available during initializeSettings.');
+        }
+        // --- End Call Lucide Icons ---
+
         console.log('Settings page initialized successfully');
     } catch (error) {
         console.error('Error initializing settings:', error);
-        alert('Error initializing settings. Please refresh the page.');
+        // Display more specific error to user
+        showMessage(`Initialization error: ${error.message}`, 'error'); 
     }
 };
 
@@ -206,23 +221,44 @@ const loadSettings = () => {
         const settingsStr = localStorage.getItem('practiceTrack_settings');
         console.log('Raw settings from storage:', settingsStr);
         
-        let settings = settingsStr ? JSON.parse(settingsStr) : [{
-            id: 's-1',
-            lessonDay: '',
-            lessonTime: '',
-            theme: 'light',
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-        }];
+        let settings = []; // Default to empty array
+        try {
+            settings = settingsStr ? JSON.parse(settingsStr) : [];
+        } catch (parseError) {
+            console.error("Error parsing settings JSON:", parseError, "Raw:", settingsStr);
+            // Optionally provide default settings here if parsing fails
+            settings = [{
+                id: 's-1',
+                lessonDay: '',
+                lessonTime: '',
+                theme: 'light',
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            }];
+        }
         
-        console.log('Parsed settings:', settings[0]);
-        
+        // Ensure settings is an array and has at least one element
+        if (!Array.isArray(settings) || settings.length === 0) {
+            console.warn("Settings array is invalid or empty after parsing/defaulting. Using default.");
+            settings = [{
+                id: 's-1',
+                lessonDay: '',
+                lessonTime: '',
+                theme: 'light',
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            }];
+        }
+
+        const currentSetting = settings[0]; // Use the first settings object
+        console.log('Using settings object:', currentSetting);
+
         // Populate lesson day selector
         const daySelector = document.getElementById('lesson-day-selector');
         const hiddenLessonDayInput = document.getElementById('lesson-day'); // The hidden input
-        if (daySelector && hiddenLessonDayInput && settings[0].lessonDay !== undefined) {
-            const currentDay = settings[0].lessonDay;
-            hiddenLessonDayInput.value = currentDay; // Set hidden input value
+        if (daySelector && hiddenLessonDayInput && currentSetting.lessonDay !== undefined) { // Check existence and property
+            const currentDay = currentSetting.lessonDay;
+            hiddenLessonDayInput.value = currentDay; 
             const dayButtons = daySelector.querySelectorAll('.day-button');
             dayButtons.forEach(button => {
                 if (button.dataset.day === currentDay) {
@@ -233,7 +269,7 @@ const loadSettings = () => {
             });
             console.log('Set active lesson day button for:', currentDay);
         } else {
-             console.warn('Lesson day selector or hidden input not found, or lessonDay missing in settings');
+             console.warn('Lesson day selector/input not found, or lessonDay missing in currentSetting');
              // Ensure no button is active if value is empty or element missing
              if (daySelector) {
                  daySelector.querySelectorAll('.day-button').forEach(btn => btn.classList.remove('active'));
@@ -242,32 +278,60 @@ const loadSettings = () => {
         }
         
         // Populate lesson time
-        if (lessonTimeInput && settings[0].lessonTime) {
-            console.log('Setting lesson time to:', settings[0].lessonTime);
-            lessonTimeInput.value = settings[0].lessonTime;
+        if (lessonTimeInput && currentSetting.lessonTime) { // Check existence and property
+            console.log('Setting lesson time to:', currentSetting.lessonTime);
+            lessonTimeInput.value = currentSetting.lessonTime;
         }
         
         // Populate theme toggle
-        if (themeToggle && settings[0].theme) {
-            console.log('Setting theme to:', settings[0].theme);
-            themeToggle.value = settings[0].theme;
+        if (themeToggle && currentSetting.theme) { // Check existence and property
+            console.log('Setting theme to:', currentSetting.theme);
+            themeToggle.value = currentSetting.theme;
             // Apply theme immediately
-            document.body.classList.toggle('theme-dark', settings[0].theme === 'dark');
+            document.body.classList.remove('theme-light', 'theme-dark'); // Remove existing themes first
+            document.body.classList.add(`theme-${currentSetting.theme}`); // Add the correct theme class
+            console.log(`Applied theme class: theme-${currentSetting.theme}`);
+        } else {
+             console.warn("Theme toggle element or theme property missing.");
         }
         
-        // Load primary instrument (assuming it exists in settings or another storage)
+        // Load primary instrument 
         const primaryInstrument = localStorage.getItem('practiceTrack_primaryInstrument');
         if (instrumentSelect && primaryInstrument) {
-             // Logic to populate and select the primary instrument dropdown
-             // This might involve fetching available instruments first
              console.log('Primary instrument found:', primaryInstrument);
-             // Example: instrumentSelect.value = primaryInstrument;
+             // Example: instrumentSelect.value = primaryInstrument; 
         }
         
-        console.log('Settings loaded into UI');
+        // --- Display Last Import Timestamp --- 
+        const lastImportInfoElement = document.getElementById('last-import-info');
+        if (lastImportInfoElement) {
+            const lastImportTimestamp = localStorage.getItem('practiceTrack_lastImportTimestamp');
+            const sessionsStr = localStorage.getItem('practiceTrack_sessions');
+            const sessionsExist = sessionsStr && sessionsStr !== '[]'; 
+
+            if (sessionsExist && lastImportTimestamp) { 
+                try {
+                    const formattedDate = new Date(lastImportTimestamp).toLocaleString();
+                    lastImportInfoElement.textContent = `Last successful import: ${formattedDate}`;
+                    lastImportInfoElement.style.display = ''; 
+                } catch (e) {
+                    console.error("Error formatting last import timestamp:", e);
+                    lastImportInfoElement.textContent = 'Last successful import: Invalid date stored.';
+                    lastImportInfoElement.style.display = ''; 
+                }
+            } else {
+                lastImportInfoElement.style.display = 'none'; 
+            }
+        } else {
+             console.warn("last-import-info element not found.");
+        }
+        // --- End Display Last Import Timestamp ---
+
+        console.log('Settings loaded into UI successfully');
     } catch (error) {
-        console.error('Error loading settings:', error);
-        showMessage('Error loading settings', 'error');
+        console.error('Error loading settings:', error); // Log the specific error
+        // Display more specific error to user
+        showMessage(`Error loading settings: ${error.message}`, 'error'); 
     }
 };
 
@@ -461,9 +525,29 @@ function loadCategories() {
             return;
         }
         
-        // Group categories
-        const customCategories = categories.filter(cat => cat.custom);
-        const defaultCategories = categories.filter(cat => !cat.custom);
+        // Function to create a category item element
+        const createCategoryElement = (category) => {
+            const item = document.createElement('div');
+            item.className = 'category-item';
+            item.innerHTML = `
+                <span class="category-name" title="${category.name}">${category.name}</span>
+                <span class="category-actions">
+                    <button class="icon-button delete-btn" data-id="${category.id}" aria-label="Delete category">
+                        <i data-lucide="trash-2"></i>
+                    </button>
+                </span>
+            `;
+            // Add delete handler
+            const deleteBtn = item.querySelector('.delete-btn');
+            if (deleteBtn) {
+                deleteBtn.addEventListener('click', () => handleDeleteCategory(category.id));
+            }
+            return item;
+        };
+
+        // Group categories (assuming custom property exists)
+        const customCategories = categories.filter(cat => cat.custom === true); // Explicit check
+        const defaultCategories = categories.filter(cat => cat.custom === false || cat.custom === undefined); // Handle old/new
         
         // Add default categories section if any exist
         if (defaultCategories.length > 0) {
@@ -471,23 +555,8 @@ function loadCategories() {
             header.textContent = 'Default Categories';
             header.className = 'category-group-header';
             categoriesList.appendChild(header);
-            
             defaultCategories.forEach(category => {
-                const item = document.createElement('div');
-                item.className = 'category-item';
-                item.innerHTML = `
-                    <span class="category-name">${category.name}</span>
-                    <span class="category-actions">
-                        <button class="delete-btn" data-id="${category.id}">Delete</button>
-                    </span>
-                `;
-                categoriesList.appendChild(item);
-                
-                // Add delete handler
-                const deleteBtn = item.querySelector('.delete-btn');
-                if (deleteBtn) {
-                    deleteBtn.addEventListener('click', () => handleDeleteCategory(category.id));
-                }
+                categoriesList.appendChild(createCategoryElement(category));
             });
         }
         
@@ -497,25 +566,15 @@ function loadCategories() {
             header.textContent = 'Custom Categories';
             header.className = 'category-group-header';
             categoriesList.appendChild(header);
-            
             customCategories.forEach(category => {
-                const item = document.createElement('div');
-                item.className = 'category-item';
-                item.innerHTML = `
-                    <span class="category-name">${category.name}</span>
-                    <span class="category-actions">
-                        <button class="delete-btn" data-id="${category.id}">Delete</button>
-                    </span>
-                `;
-                categoriesList.appendChild(item);
-                
-                // Add delete handler
-                const deleteBtn = item.querySelector('.delete-btn');
-                if (deleteBtn) {
-                    deleteBtn.addEventListener('click', () => handleDeleteCategory(category.id));
-                }
+                 categoriesList.appendChild(createCategoryElement(category));
             });
         }
+
+        // --- REMOVE Lucide Icons Call from here --- 
+        // if (window.lucide) { ... removed ... }
+        // --- End REMOVE Lucide Icons ---
+
     } catch (error) {
         console.error('Error loading categories:', error);
         categoriesList.innerHTML = '<p class="error">Error loading categories</p>';
@@ -671,21 +730,25 @@ const handleImportData = () => {
                     throw new Error('Invalid backup file format');
                 }
                 
-                // Import data
-                window.saveItems('SETTINGS', data.settings);
-                window.saveItems('CATEGORIES', data.categories);
-                if (data.sessions) window.saveItems('SESSIONS', data.sessions);
-                if (data.goals) window.saveItems('GOALS', data.goals);
-                if (data.media) window.saveItems('MEDIA', data.media);
+                // Import data using localStorage.setItem
+                localStorage.setItem('practiceTrack_settings', JSON.stringify(data.settings));
+                localStorage.setItem('practiceTrack_categories', JSON.stringify(data.categories));
+                if (data.sessions) localStorage.setItem('practiceTrack_sessions', JSON.stringify(data.sessions));
+                if (data.goals) localStorage.setItem('practiceTrack_goals', JSON.stringify(data.goals));
+                if (data.media) localStorage.setItem('practiceTrack_media', JSON.stringify(data.media));
                 
-                // Reload settings
+                // Reload settings and categories to reflect imported data
                 loadSettings();
                 loadCategories();
                 
-                alert('Data imported successfully');
+                // --- Save Timestamp --- 
+                localStorage.setItem('practiceTrack_lastImportTimestamp', new Date().toISOString());
+                // --- End Save Timestamp ---
+
+                showMessage('Data imported successfully', 'success');
             } catch (error) {
                 console.error('Error importing data:', error);
-                alert('Error importing data. Please check the file format.');
+                showMessage('Error importing data: ' + error.message, 'error');
             }
         };
         reader.readAsText(file);
@@ -720,6 +783,7 @@ const handleClearAllData = () => {
             localStorage.removeItem('practiceTrack_media');
             localStorage.removeItem('practiceTrack_timerState');
             localStorage.removeItem('practiceTrack_primaryInstrument'); // If you store this
+            localStorage.removeItem('practiceTrack_lastImportTimestamp');
 
             console.log('All PracticeTrack data cleared from localStorage.');
 
@@ -809,39 +873,52 @@ const addStyles = () => {
             align-items: center;
             padding: 0.75rem 1rem;
             margin-bottom: 0.5rem;
-            background: #f5f5f5;
-            border-radius: 4px;
-            font-size: 0.95rem;
+            background: var(--card-background); /* Use theme variable */
+            border-radius: var(--radius-md); /* Use theme variable */
+            border: 1px solid var(--border-color); /* Use theme variable */
+            font-size: var(--font-sm); /* Use theme variable */
+            min-height: 44px; /* Ensure consistent height */
+        }
+        
+        .category-name {
+            flex-grow: 1; /* Allow name to take available space */
+            margin-right: var(--space-sm); /* Space before actions */
+            /* Ellipsis styles */
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            min-width: 0; /* Important for flex items to allow shrinking */
+            color: var(--text-dark); /* Use theme variable */
         }
         
         .category-actions {
             display: flex;
             gap: 0.5rem;
+            flex-shrink: 0; /* Prevent actions from shrinking */
         }
-        
-        .edit-category,
-        .delete-category {
-            background: none;
+
+        /* Style for the new icon button */
+        .category-actions .delete-btn {
+            background-color: transparent;
             border: none;
+            color: var(--text-medium); /* Use theme variable */
             cursor: pointer;
-            font-size: 1rem;
-            display: flex;
+            padding: var(--space-xs); /* Adjust padding for icon */
+            border-radius: var(--radius-full);
+            display: flex; /* Align icon nicely */
             align-items: center;
             justify-content: center;
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            transition: background 0.2s;
+            transition: background-color 0.2s, color 0.2s;
         }
-        
-        .edit-category:hover {
-            background: #e3f2fd;
-            color: #1976d2;
+
+        .category-actions .delete-btn:hover {
+            background-color: var(--color-danger-background); /* Use theme variable */
+            color: var(--color-danger-text); /* Use theme variable */
         }
-        
-        .delete-category:hover {
-            background: #ffebee;
-            color: #d32f2f;
+
+        .category-actions .delete-btn i {
+            width: var(--icon-size-sm); /* Adjust icon size */
+            height: var(--icon-size-sm);
         }
         
         .add-category-form {

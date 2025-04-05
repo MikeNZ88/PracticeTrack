@@ -5572,8 +5572,8 @@ textarea:focus {
     background: none;
     border: none;
     color: var(--text-light);
+    padding: var(--space-xs);
     cursor: pointer;
-    padding: 0;
     line-height: 1;
     flex-shrink: 0;
 }
@@ -5588,43 +5588,48 @@ textarea:focus {
 
 #resources-page .topics-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: var(--space-sm);
-    padding-top: var(--space-sm);
-    border-top: 1px dashed var(--border-color-light);
+    margin-top: var(--space-sm);
+    padding-left: var(--space-sm); /* Slight indent */
+    border-left: 2px solid var(--primary-blue-light);
+    max-height: 500px; /* Prevent excessive height */
+    overflow-y: auto; /* Allow scrolling if needed */
+    transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
 }
 
 #resources-page .topics-grid.hidden {
-    display: none;
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    margin-top: 0;
+    padding-left: 0;
+    border-left: none;
 }
 
-#resources-page .topic-item {
+.topic-item {
+    background-color: var(--background-light);
+    padding: var(--space-sm) var(--space-md);
+    border-radius: var(--radius-md);
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background-color: var(--background-alt);
-    padding: var(--space-sm);
-    border-radius: var(--radius-md);
-    font-size: 0.85rem;
-    color: var(--text-main);
+    gap: var(--space-sm);
+    font-size: var(--font-sm);
 }
 
-#resources-page .add-topic-btn {
+.topic-item .add-topic-btn {
     background: none;
     border: none;
-    color: var(--primary);
+    color: var(--primary-blue);
     cursor: pointer;
-    padding: 0 0 0 var(--space-xs);
-    line-height: 1;
-    margin-left: var(--space-sm);
-    flex-shrink: 0; /* Prevent shrinking */
+    padding: 0;
+    line-height: 0;
+    flex-shrink: 0; /* Prevent button shrinking */
 }
-#resources-page .add-topic-btn:hover {
-    color: var(--primary-dark);
-}
-#resources-page .add-topic-btn i {
-    width: 18px;
-    height: 18px;
+
+.topic-item .add-topic-btn:hover {
+    color: var(--primary-blue-dark);
 }
 
 /* Styling for the difficulty filter dropdown container */
@@ -6227,27 +6232,86 @@ textarea:focus {
 }
 
 .media-view-dialog {
+    /* Centering and Max Size */
     max-width: 90vw;
     max-height: 90vh;
-    width: auto;
-    height: auto;
-    padding: var(--space-lg);
+    width: 700px; /* Set a preferred max width */
+    margin: auto; /* Helps with centering */
+
+    /* Appearance */
+    background-color: var(--card-background);
     border-radius: var(--radius-lg);
     border: 1px solid var(--border-color);
-    background-color: var(--card-background);
     box-shadow: var(--shadow-xl);
-    /* position: relative; /* REMOVED - Let browser center modal */
-    overflow: hidden;
+    
+    /* Layout */
+    display: flex;
+    flex-direction: column; /* Stack main content and actions */
+    padding: 0; /* Remove padding from dialog itself */
+    overflow: hidden; /* Prevent content spilling out */
+    
+    /* Transitions (Optional) */
+    opacity: 0;
+    transform: scale(0.95);
+    transition: opacity 0.2s ease-out, transform 0.2s ease-out;
 }
 
-@media (max-width: 768px) {
-    /* ... existing mobile styles ... */
+.media-view-dialog[open] { /* Styles when dialog is open */
+    opacity: 1;
+    transform: scale(1);
+}
 
-    /* Hide calendar icon in countdown card header on mobile */
-    /* Corrected selector to target SVG element */
-    .lesson-countdown-card .card-header svg.lucide-calendar {
-        display: none !important; /* Added !important for emphasis */
-    }
+.media-view-dialog::backdrop {
+    background-color: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+}
 
-    /* ... rest of mobile styles ... */
+/* Main scrollable content area */
+.media-view-main {
+    padding: var(--space-xl); /* Add padding here instead of dialog */
+    overflow-y: auto; /* Allow this area to scroll if content overflows */
+    flex-grow: 1; /* Allow it to take available vertical space */
+}
+
+.media-view-content {
+    /* No specific styles needed here now */
+}
+
+.media-view-dialog h2 {
+    margin: 0 0 var(--space-md) 0; /* Increased bottom margin */
+    font-size: var(--font-xl);
+    color: var(--text-dark);
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: var(--space-md);
+}
+
+.media-view-dialog p {
+    margin: 0 0 var(--space-lg) 0; /* Increased bottom margin */
+    color: var(--text-medium);
+    font-size: var(--font-size-base);
+    line-height: 1.6;
+}
+
+.media-view-dialog video,
+.media-view-dialog img {
+    display: block;
+    margin: 0 auto var(--space-lg); /* Increased bottom margin */
+    max-width: 100%;
+    max-height: 60vh; /* Adjusted max-height */
+    object-fit: contain;
+    border-radius: var(--radius-md);
+}
+
+/* Footer / Actions Area */
+.media-view-dialog .dialog-actions {
+    padding: var(--space-lg) var(--space-xl); /* Padding for actions area */
+    border-top: 1px solid var(--border-color); /* Separator */
+    background-color: var(--background-light); /* Subtle background */
+    flex-shrink: 0; /* Prevent actions area from shrinking */
+    /* .centered class handles button alignment */
+}
+
+.media-view-dialog .app-button--secondary {
+    /* Ensure standard secondary button styles apply */
+    padding: var(--space-sm) var(--space-lg);
 }

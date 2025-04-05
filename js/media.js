@@ -46,20 +46,25 @@ function initializeMedia() {
         const handleMediaPresetChange = () => {
             const selectedPreset = presetFilter.value;
             const today = new Date();
+            const todayString = today.toISOString().split('T')[0];
             let startDate = '';
             let endDate = '';
 
             dateRangeDiv.style.display = (selectedPreset === 'custom') ? 'flex' : 'none';
 
             switch (selectedPreset) {
+                case 'today':
+                    startDate = todayString;
+                    endDate = todayString;
+                    break;
                 case 'week':
                     const firstDayOfWeek = new Date(today.setDate(today.getDate() - today.getDay()));
                     startDate = firstDayOfWeek.toISOString().split('T')[0];
-                    endDate = new Date().toISOString().split('T')[0];
+                    endDate = todayString;
                     break;
                 case 'month':
                     startDate = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
-                    endDate = new Date().toISOString().split('T')[0];
+                    endDate = todayString;
                     break;
                 case 'year':
                     startDate = new Date(today.getFullYear(), 0, 1).toISOString().split('T')[0];
@@ -67,25 +72,34 @@ function initializeMedia() {
                     break;
                 case 'ytd':
                     startDate = new Date(today.getFullYear(), 0, 1).toISOString().split('T')[0];
-                    endDate = new Date().toISOString().split('T')[0];
+                    endDate = todayString;
                     break;
-                case 'custom': // Keep custom values if selected
-                     startDate = startDateInput.value;
-                     endDate = endDateInput.value;
-                     break;
-                 case 'all': // Default case for 'all'
-                 default:
-                    startDate = '';
-                    endDate = '';
+                case 'custom':
+                     startDate = startDateInput.value || '';
+                     endDate = endDateInput.value || '';
+                     // Ensure custom inputs are shown
+                     dateRangeDiv.style.display = 'flex';
+                    break;
+                case 'all': // Explicit 'all' case
+                default:
+                     startDate = ''; // Explicitly clear for filtering
+                     endDate = '';   // Explicitly clear for filtering
+                     // Also clear the input fields themselves
+                     if (startDateInput) startDateInput.value = '';
+                     if (endDateInput) endDateInput.value = '';
+                     dateRangeDiv.style.display = 'none'; // Hide custom inputs
                     break;
             }
-            
-            if (selectedPreset !== 'custom') {
-                 startDateInput.value = startDate;
-                 endDateInput.value = endDate;
-             }
-             // Trigger UI framework load
-             window.UI.loadRecords('media');
+
+            // Set input values only if NOT custom and NOT all (already handled for all)
+            if (startDateInput && endDateInput && selectedPreset !== 'custom' && selectedPreset !== 'all') {
+                startDateInput.value = startDate;
+                endDateInput.value = endDate;
+            }
+
+            // Trigger UI framework to reload records
+            console.log(`[DEBUG Media] Date preset changed to ${selectedPreset}. Filtering with Start: ${startDate || 'none'}, End: ${endDate || 'none'}`);
+            window.UI.loadRecords('media');
         };
         
         // Attach the handler to the change event
@@ -103,8 +117,8 @@ function initializeMedia() {
              // loadRecords is already attached by initRecordPage
          });
 
-        // Set initial state to 'week'
-        presetFilter.value = 'week';
+        // Set initial state to "Today"
+        presetFilter.value = 'today';
         // dateRangeDiv.style.display = 'none'; // Handler will set this
         // startDateInput.value = ''; // Handler will set this
         // endDateInput.value = ''; // Handler will set this
@@ -960,10 +974,12 @@ async function viewMediaFile(media) {
         }
 
         dialog.innerHTML = `
-            <div class="media-view-content">
-                <h2>${media.name || 'Media'}</h2>
-                <p>${media.description || 'No description.'}</p>
-                ${mediaElementHTML}
+            <div class="media-view-main">
+                <div class="media-view-content">
+                    <h2>${media.name || 'Media'}</h2>
+                    <p>${media.description || 'No description.'}</p>
+                    ${mediaElementHTML}
+                </div>
             </div>
             <div class="dialog-actions centered">
                  <button data-close class="app-button app-button--secondary">Close</button>

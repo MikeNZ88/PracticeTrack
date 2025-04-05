@@ -249,6 +249,7 @@
                             </select>
                             <!-- Date Preset Dropdown -->
                             <select class="date-preset-filter filter-select" title="Select Date Range Preset">
+                                <option value="today">Today</option>
                                 <option value="all">All Time</option>
                                 <option value="week">This Week</option>
                                 <option value="month">This Month</option>
@@ -296,6 +297,21 @@
                             <option value="active" selected>Active Goals</option>
                             <option value="completed">Completed Goals</option>
                         </select>
+                        <!-- Date Preset Dropdown -->
+                        <select class="date-preset-filter filter-select" title="Select Date Range Preset">
+                            <option value="all">All Time</option>
+                            <option value="week">This Week</option>
+                            <option value="month">This Month</option>
+                            <option value="year">This Year</option>
+                            <option value="ytd">Year to Date</option>
+                            <option value="custom">Custom Range</option>
+                        </select>
+                        <div class="date-range">
+                            <label for="goal-start-date">Start:</label>
+                            <input type="date" id="goal-start-date" class="date-input" placeholder="Start Date">
+                            <label for="goal-end-date">End:</label>
+                            <input type="date" id="goal-end-date" class="date-input" placeholder="End Date">
+                        </div>
                     </div>
                         <div class="page-actions centered">
                         <button id="add-goal-btn" class="app-button app-button--primary">
@@ -382,6 +398,7 @@
                         </select>
                             <!-- Date Preset Dropdown -->
                             <select class="date-preset-filter filter-select" title="Select Date Range Preset">
+                                <option value="today">Today</option>
                                 <option value="all">All Time</option>
                                 <option value="week">This Week</option>
                                 <option value="month">This Month</option>
@@ -536,6 +553,7 @@
                                 Import Data
                             </button>
                         </div>
+                        <p id="last-import-info" class="setting-info">Last successful import: Loading...</p>
                         <div class="clear-data-section">
                             <h4>Clear All Data</h4>
                             <p>Warning: This action cannot be undone.</p>

@@ -409,22 +409,9 @@ function displayStats(sessions, container, previousPeriodStats, practiceLevel) {
     if (chartContainer) chartContainer.innerHTML = '';
 
     if (sessions.length === 0) {
+        console.log('[displayStats] No sessions to display, showing empty state.');
         displayEmptyState(container);
-        if (practiceLevel) {
-            const levelCardHTML = `
-                <div class="stat-card">
-                     <h3><i data-lucide="gauge"></i> Practice Level</h3>
-                     <div class="stat-value">${practiceLevel.name}</div>
-                     <p class="stat-description">Based on avg. daily practice in period</p>
-                 </div>
-            `;
-            container.insertAdjacentHTML('beforeend', levelCardHTML);
-        }
-        if (window.lucide) {
-            window.lucide.createIcons({ context: container });
-        }
-        // No chart to render if no sessions
-        return;
+        return; // Exit after showing empty state
     }
 
     // --- Calculations (Keep all existing like Streaks, Base Stats, Goals, Most Practiced/Frequent) ---

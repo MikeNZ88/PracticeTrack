@@ -66,19 +66,24 @@ function initializeSessions() {
     const handlePresetChange = () => {
         const selectedPreset = elements.presetFilter.value;
         const today = new Date();
+        const todayString = today.toISOString().split('T')[0]; // Get YYYY-MM-DD for today
         let startDate = '';
         let endDate = '';
 
         elements.dateRangeDiv.style.display = (selectedPreset === 'custom') ? 'flex' : 'none';
 
         switch (selectedPreset) {
+            case 'today':
+                startDate = todayString;
+                endDate = todayString;
+                break;
             case 'week':
                 startDate = new Date(today.setDate(today.getDate() - today.getDay())).toISOString().split('T')[0];
-                endDate = new Date().toISOString().split('T')[0];
+                endDate = todayString; // Use todayString
                 break;
             case 'month':
                 startDate = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
-                endDate = new Date().toISOString().split('T')[0];
+                endDate = todayString; // Use todayString
                 break;
             case 'year':
                 startDate = new Date(today.getFullYear(), 0, 1).toISOString().split('T')[0];
@@ -86,23 +91,33 @@ function initializeSessions() {
                 break;
             case 'ytd':
                 startDate = new Date(today.getFullYear(), 0, 1).toISOString().split('T')[0];
-                endDate = new Date().toISOString().split('T')[0];
+                endDate = todayString; // Use todayString
                 break;
             case 'custom':
-            default: // Treat 'all' or invalid as no date filter
-                startDate = elements.startDateInput.value;
-                endDate = elements.endDateInput.value;
+                 startDate = elements.startDateInput.value;
+                 endDate = elements.endDateInput.value;
+                 // Ensure custom inputs are shown
+                 elements.dateRangeDiv.style.display = 'flex'; 
+                break;
+            case 'all': // Explicit 'all' case
+            default: 
+                 startDate = ''; // Explicitly clear for filtering
+                 endDate = '';   // Explicitly clear for filtering
+                 // Also clear the input fields themselves
+                 elements.startDateInput.value = ''; 
+                 elements.endDateInput.value = '';
+                 elements.dateRangeDiv.style.display = 'none'; // Hide custom inputs
                 break;
         }
         
-        // Set input values only if not custom, custom relies on existing input values
-        if (selectedPreset !== 'custom') {
+        // Set input values only if NOT custom and NOT all (already handled for all)
+        if (selectedPreset !== 'custom' && selectedPreset !== 'all') {
             elements.startDateInput.value = startDate;
             elements.endDateInput.value = endDate;
         }
         
         // Trigger UI framework to reload records with the new date context
-        console.log('[DEBUG Sessions] Date preset changed, calling UI.loadRecords...');
+        console.log(`[DEBUG Sessions] Date preset changed to ${selectedPreset}. Filtering with Start: ${startDate || 'none'}, End: ${endDate || 'none'}`);
         window.UI.loadRecords('sessions');
     };
 
@@ -124,8 +139,8 @@ function initializeSessions() {
         console.log('[DEBUG Sessions] Date filter event listeners added.');
     }
 
-    // Set initial state to "This Week"
-    elements.presetFilter.value = 'week'; 
+    // Set initial state to "Today"
+    elements.presetFilter.value = 'today'; 
     // elements.dateRangeDiv.style.display = 'none'; // handlePresetChange will hide/show this
     // elements.startDateInput.value = ''; // handlePresetChange will set these
     // elements.endDateInput.value = ''; // handlePresetChange will set these
@@ -453,9 +468,14 @@ function handleSessionFormSubmit(dialog, e, sessionId) {
         let validationError = null;
         const totalDurationSeconds = durationHMS ? parseDurationHMS(durationHMS) : 0;
 
+        // REMOVED Category Check: Category is now optional
+        /* 
         if (!categoryId) {
             validationError = 'Category not selected.';
-        } else if (!dateValue) {
+        } else */ 
+        
+        // Check Date and Duration
+        if (!dateValue) {
             validationError = 'Date not selected.';
         } else if (totalDurationSeconds <= 0) { // Check total duration is positive and parsing was successful
              validationError = 'Duration must be a valid time (e.g., H:MM:SS, MM:SS, or seconds) and greater than 0.';

@@ -1203,10 +1203,12 @@ function displayPracticeCategories() {
 
             categoryElement.innerHTML = `
                 <div class="category-header" data-category-id="${categoryId}">
-                    <h4>${item.category}</h4>
-                    <span class="difficulty-tag" style="background-color: ${difficultyColor};">
-                        ${difficultyText}
-                    </span>
+                    <div class="category-info">
+                        <h4>${item.category}</h4>
+                        <span class="difficulty-tag" style="background-color: ${difficultyColor};">
+                            ${difficultyText}
+                        </span>
+                    </div>
                     <button class="expand-btn">
                         <i data-lucide="${isExpanded ? 'chevron-up' : 'chevron-down'}"></i>
                     </button>
