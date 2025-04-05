@@ -144,7 +144,7 @@ function displayStreakCard(streakData, container) {
 
 // --- Add Practice Level Calculation Logic Directly ---
 const PRACTICE_LEVELS = [
-  { name: "Foundation", minDailyMinutes: 0, recommendedDays: 0 },
+  { name: "Low", minDailyMinutes: 0, recommendedDays: 0 },
   { name: "Low", minDailyMinutes: 35, recommendedDays: 3.5 },
   { name: "Medium", minDailyMinutes: 75, recommendedDays: 6 },
   { name: "High", minDailyMinutes: 145, recommendedDays: 7 },
@@ -544,7 +544,7 @@ function displayStats(sessions, container, previousPeriodStats, practiceLevel) {
          <div class="stat-card"> <!-- Practice Level Card -->
             <h3><i data-lucide="gauge"></i> Practice Level</h3>
             <div class="stat-value">${practiceLevel ? practiceLevel.name : 'N/A'}</div>
-            <p class="stat-description">Based on avg. daily practice in period</p>
+            <p class="stat-description">Based on avg. daily practice</p>
          </div>
         <div class="stat-card">
             <h3><i data-lucide="target"></i> Completed Goals</h3>

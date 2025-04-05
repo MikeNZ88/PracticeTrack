@@ -354,8 +354,10 @@ function setupPhotoCapture() {
         input.capture = 'environment'; // Prioritize rear camera
 
         input.onchange = function(e) {
+            console.log("[Photo Capture] onchange event fired.", e.target.files); // <-- Log 1: Event fired
             if (e.target.files && e.target.files[0]) {
                 const file = e.target.files[0];
+                console.log("[Photo Capture] File object found:", file); // <-- Log 2: File found
 
                 // Use UI Framework to create the dialog
                 const dialog = window.UI.createStandardDialog({
