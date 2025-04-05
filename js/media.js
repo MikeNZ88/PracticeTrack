@@ -386,16 +386,46 @@ function setupPhotoCapture() {
                             updatedAt: new Date().toISOString()
                         };
 
-                        try {
-                            // Save the actual file to IndexedDB
-                            await window.practiceTrackDB.saveMediaFile(newMediaId, file);
+                        if (!name) {
+                            alert('Please enter a name for the photo');
+                            return;
+                        }
+                        
+                        // Get the actual file object again (it was available in the outer scope)
+                        const photoFile = file; 
 
-                            // Save the metadata to localStorage
+                        try {
+                            // 1. Save the actual file to IndexedDB
+                            await window.practiceTrackDB.saveMediaFile(newMediaId, photoFile);
+
+                            // 2. Save the metadata to localStorage
                             if (window.addItem) {
                                 window.addItem('MEDIA', newMediaMetadata);
                             }
+                            
+                            // --- ADDED: Trigger Download --- 
+                            try {
+                                const tempUrl = URL.createObjectURL(photoFile);
+                                const downloadLink = document.createElement('a');
+                                downloadLink.href = tempUrl;
+                                // Use the user-provided name for the download, fallback to a default
+                                const safeFilename = name.replace(/[^a-z0-9_.-]/gi, '_'); // Basic sanitization
+                                const fileExtension = photoFile.name.split('.').pop() || 'jpg';
+                                downloadLink.download = `${safeFilename}.${fileExtension}`; 
+                                downloadLink.style.display = 'none';
+                                document.body.appendChild(downloadLink);
+                                downloadLink.click(); // Trigger the download
+                                document.body.removeChild(downloadLink);
+                                // Revoke the temporary URL after a short delay 
+                                setTimeout(() => URL.revokeObjectURL(tempUrl), 100);
+                                console.log('Photo download triggered.');
+                            } catch (downloadError) {
+                                console.error('Could not trigger photo download:', downloadError);
+                                // Don't stop the process if download fails, just log it.
+                            }
+                            // --- END ADDED --- 
 
-                            // Reload the media list UI
+                            // 3. Reload the media list UI
                             window.UI.loadRecords('media', {
                                 recordType: 'MEDIA',
                                 createRecordElementFn: createMediaElement,

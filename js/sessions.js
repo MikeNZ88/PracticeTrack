@@ -318,7 +318,7 @@ function showSessionDialog(sessionId) {
             placeholder: 'e.g., 1:25:30 or 45:00 or 90',
             pattern: "^\\d*[:]?\\d{0,2}[:]?\\d{0,2}$",
             title: "Enter duration as H:MM:SS, MM:SS, or just seconds",
-            value: (sessionData && typeof sessionData.duration === 'number') ? formatSecondsAsHMS(sessionData.duration) : ''
+            value: (sessionData && typeof sessionData.duration === 'number') ? formatSecondsAsHMS(sessionData.duration) : '0:00:00'
         },
         {
             type: 'textarea',

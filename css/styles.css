@@ -6239,3 +6239,15 @@ textarea:focus {
     /* position: relative; /* REMOVED - Let browser center modal */
     overflow: hidden;
 }
+
+@media (max-width: 768px) {
+    /* ... existing mobile styles ... */
+
+    /* Hide calendar icon in countdown card header on mobile */
+    /* Corrected selector to target SVG element */
+    .lesson-countdown-card .card-header svg.lucide-calendar {
+        display: none !important; /* Added !important for emphasis */
+    }
+
+    /* ... rest of mobile styles ... */
+}
