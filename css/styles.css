@@ -6138,6 +6138,7 @@ textarea:focus {
     /* Adjust padding for stats card containing calendar/icons if needed */
     /* Example selector - replace with actual if different */
     .stats-overview-card, /* Adjust this selector if needed */
+    .stat-card,          /* ADDED: Target specific stat cards too */
     #stats-page .card { /* General card adjustment on stats page for icons */
         padding: var(--space-md); /* Reduce padding slightly */
     }
