@@ -95,6 +95,16 @@ const setupNavigation = () => {
             navigateToPage('settings');
         });
     }
+
+    // Event Listeners for Header Buttons
+    const updateButton = document.getElementById('header-update-button');
+    if (updateButton) {
+        updateButton.addEventListener('click', () => {
+            console.log('Update button clicked. Performing hard refresh...');
+            // Force reload, bypassing the cache
+            window.location.reload(true);
+        });
+    }
 };
 
 // Navigation function
@@ -210,6 +220,7 @@ window.updateCategoryDropdowns = function() {
 
 // Simple notification function
 window.showNotification = function(title, message) {
+    /* // Comment out the entire function body
     // Create notification element
     const notification = document.createElement('div');
     notification.className = 'notification';
@@ -246,6 +257,8 @@ window.showNotification = function(title, message) {
             }
         }, 500);
     }, 3000);
+    */
+    console.log(`Notification suppressed: [${title}] ${message}`); // Optional: Log suppressed notifications
 };
 
 // Setup Back to Top Button functionality
@@ -280,4 +293,17 @@ const setupBackToTopButton = () => {
 
 // Make functions available globally
 window.initializeApp = initializeApp;
-window.navigateToPage = navigateToPage; 
+window.navigateToPage = navigateToPage;
+
+// PWA Service Worker Registration
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./service-worker.js')
+      .then(registration => {
+        console.log('Service Worker registered successfully:', registration.scope);
+      })
+      .catch(error => {
+        console.error('Service Worker registration failed:', error);
+      });
+  });
+} 

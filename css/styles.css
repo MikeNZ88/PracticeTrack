@@ -168,15 +168,36 @@ body {
     }
 }
 
-.header-settings-button {
+/* Header Action Buttons */
+.header-actions {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    gap: var(--space-sm);
+    width: 100%;
+    justify-content: space-between;
+}
+
+.refresh-button {
+    position: absolute;
+    left: var(--space-lg);
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.gear-button {
     position: absolute;
     right: var(--space-lg);
     top: 50%;
     transform: translateY(-50%);
+}
+
+.header-button {
     background: transparent;
     border: none;
     padding: var(--space-sm);
-    border-radius: var(--radius-sm);
+    border-radius: var(--radius-md);
     cursor: pointer;
     color: white;
     transition: all 0.2s ease;
@@ -185,11 +206,11 @@ body {
     justify-content: center;
 }
 
-.header-settings-button:hover {
+.header-button:hover {
     background-color: rgba(255, 255, 255, 0.1);
 }
 
-.header-settings-button i {
+.header-button i {
     width: 24px;
     height: 24px;
 }
@@ -1883,41 +1904,12 @@ textarea.form-control {
 
 /* Success Message - Enhanced Animation */
 .success-message {
-    position: fixed;
-    bottom: var(--space-xl);
-    left: 50%;
-    transform: translateX(-50%);
-    background: linear-gradient(to right, var(--success), var(--success-light));
+    display: none; /* Hide success messages */
+}
+
+.button-saved {
+    background-color: var(--success); /* Change button color on save */
     color: white;
-    padding: var(--space-md) var(--space-xl);
-    border-radius: var(--radius-md);
-    font-weight: 500;
-    box-shadow: var(--shadow-lg);
-    animation: slideUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    z-index: 1000;
-    display: flex;
-    align-items: center;
-    gap: var(--space-sm);
-}
-
-.success-message::before {
-    content: '';
-    display: block;
-    width: 20px;
-    height: 20px;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M22 11.08V12a10 10 0 1 1-5.93-9.14'/%3E%3Cpolyline points='22 4 12 14.01 9 11.01'/%3E%3C/svg%3E");
-    background-size: contain;
-}
-
-@keyframes slideUp {
-    from {
-        transform: translate(-50%, 100%);
-        opacity: 0;
-    }
-    to {
-        transform: translate(-50%, 0);
-        opacity: 1;
-    }
 }
 
 /* Dialog Styles - Consistent */
@@ -6332,4 +6324,18 @@ textarea:focus {
         overflow-x: auto; /* Allow horizontal scrolling if needed */
         justify-content: flex-start; /* Align items to the start */
     }
+}
+
+.update-button {
+    position: absolute;
+    left: var(--space-lg);
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.settings-button {
+    position: absolute;
+    right: var(--space-lg);
+    top: 50%;
+    transform: translateY(-50%);
 }

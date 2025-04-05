@@ -448,8 +448,19 @@ function handleAddCategory() {
         });
         document.dispatchEvent(event);
         
-        // Show success message
-        showMessage('Category added successfully');
+        // --- Button Feedback --- 
+        if (addCategoryBtn) {
+            const originalText = addCategoryBtn.textContent;
+            addCategoryBtn.textContent = 'Added!';
+            addCategoryBtn.classList.add('button-saved');
+            addCategoryBtn.disabled = true;
+            setTimeout(() => {
+                addCategoryBtn.textContent = originalText;
+                addCategoryBtn.classList.remove('button-saved');
+                addCategoryBtn.disabled = false;
+            }, 1500); // Revert after 1.5 seconds
+        }
+        // --- End Button Feedback ---
         
         console.log('Category added successfully:', newCategory);
     } catch (error) {
@@ -760,22 +771,7 @@ const handleSettingsSubmit = () => {
 
 // Show message notification
 const showMessage = (message, type = 'success') => {
-    const messageElement = document.createElement('div');
-    messageElement.className = `message message-${type}`;
-    messageElement.textContent = message;
-    
-    // Remove any existing messages
-    const existingMessages = document.querySelectorAll('.message');
-    existingMessages.forEach(msg => msg.remove());
-    
-    // Add new message
-    document.body.appendChild(messageElement);
-    
-    // Remove after 3 seconds
-    setTimeout(() => {
-        messageElement.classList.add('message-hide');
-        setTimeout(() => messageElement.remove(), 300);
-    }, 3000);
+    console.log(`Message suppressed: [${type}] ${message}`); // Optional: Log suppressed messages instead
 };
 
 // Handle data export
@@ -1047,43 +1043,9 @@ const addStyles = () => {
         }
     `;
     
-    // --- Add Styles for Notification Messages --- 
-    const messageStyles = `
-        .message {
-            position: fixed;
-            top: var(--space-lg, 20px); 
-            left: 50%; 
-            transform: translateX(-50%); 
-            padding: 8px var(--space-lg); /* Use fixed 8px vertical padding */
-            border-radius: var(--radius-md);
-            z-index: 1000; 
-            font-size: var(--font-sm);
-            box-shadow: var(--shadow-lg);
-            opacity: 1;
-            transition: opacity 0.3s ease-out, top 0.3s ease-out;
-            min-width: 250px; 
-            text-align: center;
-        }
-        .message-success {
-            background-color: var(--color-success-background, #e8f5e9);
-            color: var(--color-success-text, #2e7d32);
-            border: 1px solid var(--color-success-border, #a5d6a7);
-        }
-        .message-error {
-            background-color: var(--color-danger-background, #ffebee);
-            color: var(--color-danger-text, #c62828);
-            border: 1px solid var(--color-danger-border, #ef9a9a);
-        }
-        .message-hide {
-            opacity: 0;
-            top: 0; /* Move up slightly on hide */
-        }
-    `;
-    // --- End Notification Message Styles ---
-
     // Add styles to document
     const styleSheet = document.createElement('style');
-    styleSheet.textContent = styles + messageStyles; // Append message styles
+    styleSheet.textContent = styles; // Use only base styles
     document.head.appendChild(styleSheet);
 };
 
