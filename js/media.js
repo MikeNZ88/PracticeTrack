@@ -6,6 +6,9 @@
 // Media data storage
 let mediaDialog = null;
 
+// Reference to the media list container
+const mediaListContainer = document.getElementById('media-list');
+
 /**
  * Initialize media page
  */
@@ -125,83 +128,96 @@ const isMobileDevice = () => {
  */
 function createMediaElement(media) {
     const mediaElement = document.createElement('div');
-    mediaElement.className = 'card media-card';
+    mediaElement.className = `media-card ${media.type}-card`; // Add type class
     mediaElement.dataset.id = media.id;
     
-    // Format content based on media type
-    let contentHtml = '';
-    switch (media.type) {
-        case 'photo':
-            contentHtml = `<div class="media-image">
-                <div class="image-placeholder">
-                    <i data-lucide="image"></i>
-                    <p>Photo saved to your device</p>
-                </div>
-            </div>`;
-            break;
-        case 'video':
-            contentHtml = `<div class="media-video">
-                <div class="video-placeholder">
-                    <i data-lucide="video"></i>
-                    <p>Video saved to your device</p>
-                </div>
-            </div>`;
-            break;
-        case 'note':
-            contentHtml = `<div class="note-content">${media.content || ''}</div>`;
-            break;
-    }
-    
-    // Format date and time
-    const createdAt = new Date(media.createdAt);
-    const dateStr = createdAt.toLocaleDateString();
-    const timeStr = createdAt.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+    // Determine icon based on media type
+    let iconName = 'file-text'; // Default for note
+    if (media.type === 'photo') iconName = 'image';
+    if (media.type === 'video') iconName = 'video';
 
-    // Construct the card HTML with the new order
+    // Format date for display
+    const formattedDate = media.createdAt ? new Date(media.createdAt).toLocaleDateString() : 'N/A';
+
     mediaElement.innerHTML = `
-        ${media.name ? `<h3 class="media-name card-name-pill">${media.name}</h3>` : '<h3 class="media-name card-name-pill">Untitled Media</h3>'} 
-        
-        <div class="media-content">
-            ${contentHtml} 
+        <div class="media-icon">
+            <i data-lucide="${iconName}"></i>
         </div>
-
-        ${media.description ? `<p class="media-description">${media.description}</p>` : ''}
-
-        <div class="media-footer">
-            <span class="media-date">${dateStr} at ${timeStr}</span>
-            <div class="media-actions">
-                <button class="icon-button edit-media app-button app-button--secondary" title="Edit Media">
-                    <i data-lucide="edit"></i>
-                </button>
-                <button class="icon-button delete-media app-button app-button--secondary" title="Delete Media">
-                    <i data-lucide="trash-2"></i>
-                </button>
+        <div class="media-content">
+            <h4 class="media-name">${media.name || 'Untitled'}</h4>
+            <p class="media-description">${media.description || 'No description'}</p>
+            <div class="media-meta">
+                <span>Type: ${media.type}</span>
+                <span>Added: ${formattedDate}</span>
             </div>
         </div>
+        <div class="media-actions">
+            ${media.type === 'photo' || media.type === 'video' ? `
+                <button class="icon-button view-media app-button app-button--secondary" title="View ${media.type}">
+                    <i data-lucide="eye"></i>
+                </button>
+            ` : ''} 
+            <button class="icon-button edit-media app-button app-button--secondary" title="Edit Media">
+                <i data-lucide="edit"></i>
+            </button>
+            <button class="icon-button delete-media app-button app-button--secondary" title="Delete Media">
+                <i data-lucide="trash-2"></i>
+            </button>
+        </div>
     `;
-    
-    // Add event listener for delete
-    const deleteButton = mediaElement.querySelector('.delete-media');
-    if (deleteButton) {
-        deleteButton.addEventListener('click', (e) => {
-             e.stopPropagation(); // Prevent card click or other actions
-             deleteMedia(media.id)
+
+    // Add event listener for the View button
+    const viewBtn = mediaElement.querySelector('.view-media');
+    if (viewBtn) {
+        viewBtn.addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevent card click or other events
+            viewMediaFile(media); // Call the new view function
         });
     }
 
-    // Add event listener for edit
-    const editButton = mediaElement.querySelector('.edit-media');
-    if (editButton) {
-        editButton.addEventListener('click', (e) => {
-            e.stopPropagation(); // Prevent card click or other actions
-            showMediaDialog(media.id); // Call function to show edit dialog
+    // Add event listener for the Edit button (Implement Edit Logic)
+    const editBtn = mediaElement.querySelector('.edit-media');
+    if (editBtn) {
+        editBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            openEditMediaDialog(media); // Call the new edit dialog function
         });
     }
-    
-    // Initialize Lucide icons
-    if (window.lucide && typeof window.lucide.createIcons === 'function') {
-        // Make sure to include the 'edit' icon
-        window.lucide.createIcons({ icons: ['trash-2', 'edit', 'image', 'video'], context: mediaElement });
+
+    // Add event listener for the Delete button (Modified to delete from IndexedDB)
+    const deleteBtn = mediaElement.querySelector('.delete-media');
+    if (deleteBtn) {
+        deleteBtn.addEventListener('click', async (e) => { // Make listener async
+            e.stopPropagation();
+            if (confirm(`Are you sure you want to delete "${media.name || 'this media item'}"?`)) {
+                try {
+                    // Delete metadata from localStorage
+                    if (window.deleteItem) {
+                        window.deleteItem('MEDIA', media.id);
+                    }
+                    
+                    // Delete the actual file from IndexedDB if it's a photo/video
+                    if (media.type === 'photo' || media.type === 'video') {
+                         await window.practiceTrackDB.deleteMediaFile(media.id);
+                    }
+
+                    // Remove the element from the UI
+                    mediaElement.remove(); 
+                    
+                    // Optional: Show a success message
+                    // window.UI.showToast('Media deleted successfully');
+
+                } catch (error) {
+                    console.error('Error deleting media:', error);
+                    alert('Failed to delete media. Please check console.');
+                }
+            }
+        });
+    }
+
+    // Initialize Lucide icons within the created element
+    if (window.lucide) {
+        window.lucide.createIcons({ context: mediaElement });
     }
     
     return mediaElement;
@@ -318,72 +334,91 @@ function setupPhotoCapture() {
     if (!photoBtn) return;
     
     photoBtn.addEventListener('click', () => {
-        // Show file naming dialog first
-        showMediaNameDialog('photo', (name, description) => {
-            // Create a hidden input element with capture attribute
-            const input = document.createElement('input');
-            input.type = 'file';
-            input.accept = 'image/*';
-            input.capture = 'environment'; // Use the environment-facing camera (usually back camera)
-            
-            // Handle file selection
-            input.onchange = function(e) {
-                if (e.target.files && e.target.files[0]) {
-                    const file = e.target.files[0];
-                    
-                    // Create a URL to the file
-                    const fileUrl = URL.createObjectURL(file);
-                    
-                    // Create a download link to save the file
-                    const downloadLink = document.createElement('a');
-                    downloadLink.href = fileUrl;
-                    downloadLink.download = name || file.name;
-                    downloadLink.style.display = 'none';
-                    document.body.appendChild(downloadLink);
-                    
-                    // Trigger the download
-                    downloadLink.click();
-                    
-                    // Clean up
-                    setTimeout(() => {
-                        URL.revokeObjectURL(fileUrl);
-                        document.body.removeChild(downloadLink);
-                    }, 100);
-                    
-                    // Create media reference object
-                    const newMedia = {
-                        id: `media_${Date.now()}`,
-                        type: 'photo',
-                        name: name || file.name,
-                        description: description || '',
-                        fileType: file.type,
-                        createdAt: new Date().toISOString(),
-                        updatedAt: new Date().toISOString()
-                    };
-                    
-                    // Save media reference to localStorage
-                    if (window.addItem) {
-                        window.addItem('MEDIA', newMedia);
-                    } else {
-                        saveMedia(newMedia);
-                    }
-                    
-                    // Reload media list
-                    window.UI.loadRecords('media', {
-                        recordType: 'MEDIA',
-                        createRecordElementFn: createMediaElement
-                    });
-                    
-                    // Show success message
-                    if (window.showNotification) {
-                        window.showNotification('Photo Captured', 'Your photo has been saved to your device.');
-                    }
-                }
-            };
-            
-            // Trigger the file input click
-            input.click();
-        });
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+        input.capture = 'environment'; // Prioritize rear camera
+
+        input.onchange = function(e) {
+            if (e.target.files && e.target.files[0]) {
+                const file = e.target.files[0];
+
+                // Use UI Framework to create the dialog
+                const dialog = window.UI.createStandardDialog({
+                    title: 'Name Your Photo',
+                    fields: [
+                        {
+                            type: 'text',
+                            id: 'photo-name',
+                            label: 'Photo Name',
+                            value: `Photo ${new Date().toLocaleDateString()}`,
+                            required: true
+                        },
+                        {
+                            type: 'textarea',
+                            id: 'photo-description',
+                            label: 'Description (Optional)',
+                            rows: 3
+                        }
+                    ],
+                    onSubmit: async (dialog, event) => { // Make onSubmit async
+                        const form = event.target;
+                        const nameInput = form.querySelector('#photo-name');
+                        const descriptionInput = form.querySelector('#photo-description');
+
+                        const name = nameInput.value.trim();
+                        const description = descriptionInput.value.trim();
+
+                        if (!name) {
+                            alert('Please enter a name for the photo');
+                            return;
+                        }
+
+                        const newMediaId = `media_${Date.now()}`;
+                        const newMediaMetadata = {
+                            id: newMediaId,
+                            type: 'photo',
+                            name: name,
+                            description: description,
+                            fileType: file.type,
+                            // No devicePath needed in localStorage metadata anymore
+                            createdAt: new Date().toISOString(),
+                            updatedAt: new Date().toISOString()
+                        };
+
+                        try {
+                            // Save the actual file to IndexedDB
+                            await window.practiceTrackDB.saveMediaFile(newMediaId, file);
+
+                            // Save the metadata to localStorage
+                            if (window.addItem) {
+                                window.addItem('MEDIA', newMediaMetadata);
+                            }
+
+                            // Reload the media list UI
+                            window.UI.loadRecords('media', {
+                                recordType: 'MEDIA',
+                                createRecordElementFn: createMediaElement,
+                                container: mediaListContainer,
+                                storageKey: 'practiceTrack_MEDIA' // Specify storage key
+                            });
+
+                            dialog.close();
+                        } catch (error) {
+                            console.error('Error saving photo:', error);
+                            alert('Failed to save photo. Please check console for details.');
+                        }
+                    },
+                    onCancel: (dialog) => dialog.close(),
+                    submitButtonText: 'Add Photo',
+                    cancelButtonText: 'Cancel'
+                });
+
+                dialog.showModal();
+            }
+        };
+
+        input.click(); // Trigger the file input
     });
 }
 
@@ -395,76 +430,89 @@ function setupVideoCapture() {
     if (!videoBtn) return;
     
     videoBtn.addEventListener('click', () => {
-        // Show file naming dialog first
-        showMediaNameDialog('video', (name, description) => {
-            // Create a hidden input element with capture attribute
-            const input = document.createElement('input');
-            input.type = 'file';
-            input.accept = 'video/*';
-            input.capture = 'environment'; // Use the environment-facing camera (usually back camera)
-            
-            // Handle file selection
-            input.onchange = function(e) {
-                if (e.target.files && e.target.files[0]) {
-                    const file = e.target.files[0];
-                    
-                    // Create a URL to the file
-                    const fileUrl = URL.createObjectURL(file);
-                    
-                    // Create a download link to save the file
-                    const downloadLink = document.createElement('a');
-                    downloadLink.href = fileUrl;
-                    downloadLink.download = name || file.name;
-                    downloadLink.style.display = 'none';
-                    document.body.appendChild(downloadLink);
-                    
-                    // Trigger the download
-                    downloadLink.click();
-                    
-                    // Clean up
-                    setTimeout(() => {
-                        URL.revokeObjectURL(fileUrl);
-                        document.body.removeChild(downloadLink);
-                    }, 100);
-                    
-                    // Create media reference object
-                    const newMedia = {
-                        id: `media_${Date.now()}`,
-                        type: 'video',
-                        name: name || file.name,
-                        description: description || '',
-                        fileType: file.type,
-                        createdAt: new Date().toISOString(),
-                        updatedAt: new Date().toISOString()
-                    };
-                    console.log('[DEBUG Video Save] Created newMedia object:', JSON.stringify(newMedia)); // Log the object
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'video/*';
+        input.capture = 'environment'; // Prioritize rear camera
 
-                    // Save media reference to localStorage
-                    if (window.addItem) {
-                        console.log('[DEBUG Video Save] Attempting save via window.addItem...'); // Log path
-                        window.addItem('MEDIA', newMedia);
-                    } else {
-                        console.log('[DEBUG Video Save] Attempting save via saveMedia...'); // Log path
-                        saveMedia(newMedia);
-                    }
-                    console.log('[DEBUG Video Save] Save function called. Reloading list...'); // Log after call
+        input.onchange = function(e) {
+            if (e.target.files && e.target.files[0]) {
+                const file = e.target.files[0];
 
-                    // Reload media list
-                    window.UI.loadRecords('media', {
-                        recordType: 'MEDIA',
-                        createRecordElementFn: createMediaElement
-                    });
-                    
-                    // Show success message
-                    if (window.showNotification) {
-                        window.showNotification('Video Recorded', 'Your video has been saved to your device.');
-                    }
-                }
-            };
-            
-            // Trigger the file input click
-            input.click();
-        });
+                const dialog = window.UI.createStandardDialog({
+                    title: 'Name Your Video',
+                    fields: [
+                        {
+                            type: 'text',
+                            id: 'video-name',
+                            label: 'Video Name',
+                            value: `Video ${new Date().toLocaleDateString()}`,
+                            required: true
+                        },
+                        {
+                            type: 'textarea',
+                            id: 'video-description',
+                            label: 'Description (Optional)',
+                            rows: 3
+                        }
+                    ],
+                    onSubmit: async (dialog, event) => { // Make onSubmit async
+                        const form = event.target;
+                        const nameInput = form.querySelector('#video-name');
+                        const descriptionInput = form.querySelector('#video-description');
+
+                        const name = nameInput.value.trim();
+                        const description = descriptionInput.value.trim();
+
+                        if (!name) {
+                            alert('Please enter a name for the video');
+                            return;
+                        }
+
+                        const newMediaId = `media_${Date.now()}`;
+                        const newMediaMetadata = {
+                            id: newMediaId,
+                            type: 'video',
+                            name: name,
+                            description: description,
+                            fileType: file.type,
+                            createdAt: new Date().toISOString(),
+                            updatedAt: new Date().toISOString()
+                        };
+
+                        try {
+                            // Save the actual file to IndexedDB
+                            await window.practiceTrackDB.saveMediaFile(newMediaId, file);
+
+                            // Save the metadata to localStorage
+                            if (window.addItem) {
+                                window.addItem('MEDIA', newMediaMetadata);
+                            }
+
+                            // Reload the media list UI
+                            window.UI.loadRecords('media', {
+                                recordType: 'MEDIA',
+                                createRecordElementFn: createMediaElement,
+                                container: mediaListContainer,
+                                storageKey: 'practiceTrack_MEDIA' // Specify storage key
+                            });
+
+                            dialog.close();
+                        } catch (error) {
+                            console.error('Error saving video:', error);
+                            alert('Failed to save video. Please check console for details.');
+                        }
+                    },
+                    onCancel: (dialog) => dialog.close(),
+                    submitButtonText: 'Add Video',
+                    cancelButtonText: 'Cancel'
+                });
+
+                dialog.showModal();
+            }
+        };
+
+        input.click();
     });
 }
 
@@ -853,3 +901,209 @@ function addMediaStyles() {
 
 // Make function available globally
 window.initializeMedia = initializeMedia;
+
+// --- New Function to View Media from IndexedDB ---
+
+async function viewMediaFile(media) {
+    if (media.type !== 'photo' && media.type !== 'video') return;
+
+    try {
+        // Retrieve the file Blob/File from IndexedDB using the media ID
+        const fileData = await window.practiceTrackDB.getMediaFile(media.id);
+
+        if (!fileData) {
+            alert('Media file not found in local database. It might have been cleared or failed to save.');
+            return;
+        }
+
+        // Create a temporary blob URL for display *only when viewing*
+        const tempUrl = URL.createObjectURL(fileData);
+
+        const dialog = document.createElement('dialog');
+        dialog.className = 'media-view-dialog'; // Use class for styling
+
+        let mediaElementHTML;
+        if (media.type === 'photo') {
+            mediaElementHTML = `<img src="${tempUrl}" alt="${media.name}" style="max-width: 100%; max-height: 70vh; object-fit: contain;">`;
+        } else { // video
+            mediaElementHTML = `<video src="${tempUrl}" controls style="max-width: 100%; max-height: 70vh; object-fit: contain;"></video>`;
+        }
+
+        dialog.innerHTML = `
+            <div class="media-view-content">
+                <h2>${media.name || 'Media'}</h2>
+                <p>${media.description || 'No description.'}</p>
+                ${mediaElementHTML}
+            </div>
+            <div class="dialog-actions centered">
+                 <button data-close class="app-button app-button--secondary">Close</button>
+            </div>
+        `;
+
+        document.body.appendChild(dialog);
+        
+        // Add close functionality
+        const closeButton = dialog.querySelector('button[data-close]');
+        closeButton.addEventListener('click', () => dialog.close());
+
+        dialog.showModal();
+
+        // Clean up the temporary blob URL when the dialog is closed
+        dialog.addEventListener('close', () => {
+            URL.revokeObjectURL(tempUrl);
+            document.body.removeChild(dialog);
+            console.log('Blob URL revoked');
+        });
+
+    } catch (error) {
+        console.error('Error viewing media file:', error);
+        alert('Could not load media file for viewing.');
+    }
+}
+
+// --- New Function to Open Edit Dialog ---
+
+function openEditMediaDialog(media) {
+    console.log('Opening edit dialog for:', media);
+    if (!media) {
+        console.error('Cannot edit null media item.');
+        return;
+    }
+
+    // Define fields based on media type
+    let fields = [
+        {
+            type: 'text',
+            id: 'edit-media-name',
+            label: 'Name',
+            value: media.name || '',
+            required: true
+        },
+        {
+            type: 'textarea',
+            id: 'edit-media-description',
+            label: 'Description',
+            rows: 4,
+            value: media.description || ''
+        },
+        {
+            type: 'static', // Display type, but don't allow editing
+            label: 'Type',
+            value: media.type.charAt(0).toUpperCase() + media.type.slice(1)
+        }
+    ];
+
+    // If it's a note, replace description with a content textarea
+    if (media.type === 'note') {
+        fields = [
+            {
+                type: 'text',
+                id: 'edit-media-name',
+                label: 'Title', // Use Title for notes
+                value: media.name || '',
+                required: true
+            },
+            {
+                type: 'textarea',
+                id: 'edit-media-content', // Use content ID for notes
+                label: 'Note Content',
+                rows: 8,
+                required: true,
+                value: media.description || '' // Assume note content is stored in description
+            },
+             {
+                type: 'static',
+                label: 'Type',
+                value: 'Note'
+            }
+        ];
+    }
+
+    // Create dialog using UI framework
+    const editDialog = window.UI.createStandardDialog({
+        title: 'Edit Media Details',
+        fields: fields,
+        onSubmit: (dialog, e) => {
+            const form = e.target;
+            const nameInput = form.querySelector('#edit-media-name');
+            let descriptionOrContent = '';
+
+            if (media.type === 'note') {
+                const contentInput = form.querySelector('#edit-media-content');
+                descriptionOrContent = contentInput ? contentInput.value.trim() : '';
+            } else {
+                const descriptionInput = form.querySelector('#edit-media-description');
+                descriptionOrContent = descriptionInput ? descriptionInput.value.trim() : '';
+            }
+            
+            const name = nameInput ? nameInput.value.trim() : '';
+
+            // Basic validation
+            if (!name || (media.type === 'note' && !descriptionOrContent)) {
+                 alert(media.type === 'note' ? 'Please enter a Title and Note Content.' : 'Please enter a Name.');
+                 return;
+            }
+
+            // Get existing data to preserve fields we don't explicitly edit (like ID, createdAt)
+            // Assuming window.getItemById exists or similar functionality
+            const existingData = window.getItemById ? window.getItemById('MEDIA', media.id) : media; // Fallback to passed media
+             if (!existingData) {
+                 console.error(`Failed to retrieve existing media data for ID: ${media.id}`);
+                 alert('Error saving changes. Could not find original media item.');
+                 return;
+             }
+
+            // Create updated media metadata object
+            const updatedMediaMetadata = {
+                ...existingData, // Copy existing fields (ID, type, createdAt, fileType etc.)
+                name: name,
+                description: descriptionOrContent, // Store note content in description field
+                updatedAt: new Date().toISOString() // Update timestamp
+            };
+
+            // Save updated media data using the data layer
+            if (window.updateItem) {
+                try {
+                    window.updateItem('MEDIA', media.id, updatedMediaMetadata);
+                    console.log('Media item updated:', updatedMediaMetadata);
+                    
+                    // Reload the media list UI to show changes
+                    window.UI.loadRecords('media', {
+                        recordType: 'MEDIA',
+                        createRecordElementFn: createMediaElement,
+                        container: mediaListContainer,
+                        storageKey: 'practiceTrack_MEDIA' 
+                    });
+                    
+                    dialog.close(); // Close the dialog on success
+
+                } catch (error) {
+                    console.error('Error updating media item:', error);
+                     alert('An error occurred while saving media details. Please try again.');
+                     // Keep dialog open on error
+                }
+
+            } else {
+                console.error('window.updateItem function not found. Cannot save media updates.');
+                alert('Error: Could not save media updates. Update function missing.');
+                // Keep dialog open if update function is missing
+            }
+        },
+        onCancel: (dialog) => dialog.close(),
+        submitButtonText: 'Save Changes',
+        cancelButtonText: 'Cancel'
+    });
+    
+    // Show dialog
+    editDialog.showModal();
+}
+
+// Ensure this runs after the DOM is loaded and other scripts are ready
+// Typically called from app.js or when the media page becomes active
+document.addEventListener('DOMContentLoaded', () => {
+    // If media page is loaded initially, initialize it
+    // Otherwise, app.js navigation logic should call initMediaPage
+    if (document.getElementById('media-page') && document.getElementById('media-page').classList.contains('active')) {
+         initMediaPage();
+    }
+});
