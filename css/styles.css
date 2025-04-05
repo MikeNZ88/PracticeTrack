@@ -99,6 +99,7 @@ body {
     transition: all var(--transition-normal);
     border: 1px solid var(--border-color);
     /* margin-bottom: var(--space-lg); <= Removed, use gap in lists */
+    justify-content: center;
 }
 
 .card:hover {
@@ -801,7 +802,7 @@ select.date-preset-filter {
     display: flex;
     justify-content: center;
     gap: var(--space-md);
-    margin-bottom: var(--space-sm); /* Reduced margin */
+    margin-bottom: var(--space-md); /* Reduced margin */
 }
 
 /* Metronome Styles */
@@ -1045,7 +1046,7 @@ textarea.form-control {
     grid-template-columns: 1fr auto; /* Column 1 takes available space, Column 2 fits content */
     align-items: center;
     gap: var(--space-md);
-    margin-bottom: var(--space-sm); /* Add space below header */
+    margin-bottom: var(--space-md); /* Add space below header */
 }
 
 .session-category { 
@@ -4096,7 +4097,7 @@ textarea:focus {
 }
 
 #timer-page .session-form {
-    margin-top: var(--space-lg); /* Reduced top margin */
+    margin-top: var(--space-md); /* Reduced top margin */
     padding-top: var(--space-lg); /* Reduced top padding */
 }
 
@@ -5534,7 +5535,7 @@ textarea:focus {
 #resources-page .category-header {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-start;
     cursor: pointer;
     margin-bottom: var(--space-sm);
     padding: var(--space-xs) 0;
@@ -5545,6 +5546,9 @@ textarea:focus {
     font-weight: 600;
     color: var(--primary);
     margin: 0;
+    flex-grow: 1;
+    min-width: 0;
+    white-space: normal;
 }
 
 #resources-page .difficulty-tag {
@@ -5555,6 +5559,7 @@ textarea:focus {
     border-radius: var(--radius-full);
     margin-left: var(--space-sm);
     white-space: nowrap;
+    flex-shrink: 0;
 }
 
 #resources-page .expand-btn {
@@ -5564,6 +5569,7 @@ textarea:focus {
     cursor: pointer;
     padding: 0;
     line-height: 1;
+    flex-shrink: 0;
 }
 #resources-page .expand-btn:hover {
     color: var(--primary);
@@ -5942,9 +5948,7 @@ textarea:focus {
     background-color: var(--primary-blue); /* Use original blue for hover */
 }
 
-    justify-content: center;
-    box-shadow: var(--shadow-sm);
-}
+
 
 #resources-how-to-use-btn:hover {
     background: linear-gradient(to bottom, var(--primary-blue), var(--primary-blue-dark)); /* Darker gradient on hover */
@@ -6067,4 +6071,105 @@ textarea:focus {
     font-size: var(--font-md);
     font-weight: 500;
     line-height: 1.2; /* Adjust line-height */
+}
+
+#resources-how-to-use-btn:hover {
+    background: linear-gradient(to bottom, var(--primary-blue), var(--primary-blue-dark)); /* Darker gradient on hover */
+}
+
+/* --- Resources Page Specific Styles --- */
+/* ... existing code ... */
+.resource-category-card p {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    margin-bottom: 0;
+    overflow-wrap: break-word; /* Add this to prevent text overflow */
+}
+
+/* ... existing code ... */
+
+/* --- Media Library Specific Styles --- */
+/* ... existing code ... */
+.media-item-card .delete-button {
+    position: absolute;
+    top: var(--space-xxs); /* Adjusted from sm */
+    right: var(--space-xxs); /* Adjusted from sm */
+    background-color: rgba(255, 0, 0, 0.7);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    font-size: var(--font-size-sm);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    transition: background-color var(--transition-fast);
+    opacity: 0; /* Hidden by default */
+}
+
+/* ... existing code ... */
+
+/* --- Stats Page Specific Styles --- */
+/* ... existing code ... */
+
+/* Make table scrollable on mobile */
+.table-container {
+    overflow-x: auto;
+    width: 100%;
+    margin-bottom: var(--space-lg); /* Add some space below the scrollable table */
+}
+
+/* --- Responsive Design --- */
+
+@media (max-width: 768px) {
+    /* ... existing mobile styles ... */
+
+    .media-item-card .delete-button {
+        top: var(--space-xxs); /* Fine-tune position for mobile */
+        right: var(--space-xxs);
+        width: 20px; /* Slightly smaller button */
+        height: 20px;
+        font-size: var(--font-size-xs);
+    }
+
+    /* Adjust padding for stats card containing calendar/icons if needed */
+    /* Example selector - replace with actual if different */
+    .stats-overview-card, /* Adjust this selector if needed */
+    #stats-page .card { /* General card adjustment on stats page for icons */
+        padding: var(--space-md); /* Reduce padding slightly */
+    }
+
+    /* Ensure text elements within cards have break-word */
+    .card p, .card .description { /* Apply to common text elements */
+       overflow-wrap: break-word;
+       word-break: break-word; /* Stronger break if needed */
+    }
+
+    /* Explicitly handle the scales table container */
+    #scales-tab .table-container {
+        /* Styles already applied via .table-container, ensure specificity if needed */
+    }
+
+    #scales-tab table {
+        min-width: 600px; /* Force table to be wide, container will scroll */
+        /* Optional: Reduce font size for mobile table */
+        font-size: var(--font-size-xs);
+    }
+
+    #scales-tab th,
+    #scales-tab td {
+        padding: var(--space-xs); /* Reduce padding in cells */
+        white-space: nowrap; /* Prevent text wrapping inside cells */
+    }
+
+    /* ... rest of mobile styles ... */
+}
+
+#resources-how-to-use-btn:hover {
+    background: linear-gradient(to bottom, var(--primary-blue), var(--primary-blue-dark)); /* Darker gradient on hover */
+    box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
 }
