@@ -6155,15 +6155,19 @@ textarea:focus {
     }
 
     #scales-tab table {
-        min-width: 600px; /* Force table to be wide, container will scroll */
-        /* Optional: Reduce font size for mobile table */
-        font-size: var(--font-size-xs);
+        /* min-width: 600px; /* REMOVED - Let table try to fit */
+        font-size: var(--font-size-xs); 
+        width: 100%; /* ADDED - Encourage table to use full container width */
+        table-layout: auto; /* ADDED - Allow column widths to adjust based on content */
     }
 
     #scales-tab th,
     #scales-tab td {
-        padding: var(--space-xs); /* Reduce padding in cells */
-        white-space: nowrap; /* Prevent text wrapping inside cells */
+        padding: var(--space-xs);
+        /* white-space: nowrap; /* REMOVED - Allow text wrapping */
+        /* ADDED - Ensure text can break */
+        word-break: break-word; 
+        hyphens: auto; /* Optional: Helps break long words */
     }
 
     /* ... rest of mobile styles ... */
