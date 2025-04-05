@@ -266,6 +266,17 @@ function initStats() {
     // Setup date input listeners
     setupDateInputListeners();
     
+    // Add listener for settings changes affecting the countdown
+    document.addEventListener('settingsUpdated', (event) => {
+        console.log('[Stats] Settings updated event received. Refreshing countdown.');
+        const currentCountdownContainer = document.getElementById('lesson-countdown-container');
+        if (currentCountdownContainer) {
+            updateLessonCountdown(currentCountdownContainer);
+        } else {
+             console.warn('Could not find countdown container to update after settings change.');
+        }
+    });
+
     // --- Add Date Preset Logic --- 
     const pageElement = document.getElementById('stats-page');
     const presetFilter = pageElement ? pageElement.querySelector('.date-preset-filter') : null;
@@ -893,15 +904,23 @@ document.addEventListener('categoriesChanged', () => {
 const calculateDaysUntilLesson = () => {
     try {
         // Get settings
-        const settings = JSON.parse(localStorage.getItem('practiceTrack_settings')) || [];
+        const settingsStr = localStorage.getItem('practiceTrack_settings'); // Read the raw string
+        const settings = settingsStr ? JSON.parse(settingsStr) : []; // Parse it
+        
         if (!Array.isArray(settings) || settings.length === 0) {
-            console.log('No settings found');
+            console.log('[calculateDaysUntilLesson] No settings array found or empty.');
             return null;
         }
         
         const { lessonDay, lessonTime } = settings[0];
+        // --- Log read values --- 
+        console.log('[calculateDaysUntilLesson] Read from settings:', { lessonDay, lessonTime }); 
+        // --- End Log ---
+
         if (!lessonDay || !lessonTime) {
-            console.log('No lesson day or time set');
+            // --- Log condition failure --- 
+            console.log('[calculateDaysUntilLesson] Condition (!lessonDay || !lessonTime) is TRUE. Returning null.');
+            // --- End Log ---
             return null;
         }
         

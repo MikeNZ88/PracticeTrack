@@ -10,6 +10,7 @@ let lessonTimeInput;
 let instrumentSelect;
 let themeToggle;
 let clearDataBtn;
+let lastKnownLessonTime = ''; // Variable to store the time value
 
 // Cleanup any corrupted data
 const cleanupStorage = () => {
@@ -129,7 +130,9 @@ const setupEventListeners = () => {
             
             // Add click listener
             addCategoryBtn.addEventListener('click', (e) => {
-                e.preventDefault();
+                e.preventDefault(); // Prevent default form submission/navigation
+                e.stopPropagation(); // Prevent event from bubbling up
+                console.log('[Settings Add Category Listener] Clicked!'); // Log specific listener trigger
                 handleAddCategory();
             });
         }
@@ -172,14 +175,34 @@ const setupEventListeners = () => {
             newBtn.addEventListener('click', handleClearAllData);
         }
         
+        // --- Add Listener for Time Input BLUR --- 
+        const timeInput = document.getElementById('lesson-time');
+        if (timeInput) {
+            console.log('[setupEventListeners] Found #lesson-time element. Attaching BLUR listener.'); 
+            // Remove previous input/change listeners if they were added dynamically (safer) 
+            // timeInput.removeEventListener('input', ...); // Ideally, store function reference to remove
+            // timeInput.removeEventListener('change', ...);
+
+            timeInput.addEventListener('blur', (event) => { // Listen for BLUR
+                lastKnownLessonTime = event.target.value;
+                console.log('[Time Input Listener] BLUR event fired! New value:', lastKnownLessonTime);
+            });
+        } else {
+            console.error('[setupEventListeners] #lesson-time element NOT FOUND!'); 
+        }
+        // --- End Time Input Listener ---
+        
         // Save lesson settings button
         const saveLessonSettingsBtn = document.getElementById('save-lesson-settings');
         if (saveLessonSettingsBtn) {
             console.log('Setting up save lesson settings button listener');
-            // Clone and replace to remove old listeners if necessary
             const newSaveBtn = saveLessonSettingsBtn.cloneNode(true);
             saveLessonSettingsBtn.parentNode.replaceChild(newSaveBtn, saveLessonSettingsBtn);
-            newSaveBtn.addEventListener('click', handleSettingsSubmit);
+            newSaveBtn.addEventListener('click', (event) => { 
+                event.preventDefault(); 
+                console.log('[Save Button Listener] Clicked! Event target:', event.target);
+                handleSettingsSubmit(); 
+            });
         }
         
         // Lesson Day Selector Buttons
@@ -281,6 +304,12 @@ const loadSettings = () => {
         if (lessonTimeInput && currentSetting.lessonTime) { // Check existence and property
             console.log('Setting lesson time to:', currentSetting.lessonTime);
             lessonTimeInput.value = currentSetting.lessonTime;
+            lastKnownLessonTime = currentSetting.lessonTime; // Initialize lastKnownLessonTime with saved value
+        } else if (lessonTimeInput) {
+            // If no time saved, set a default PM time (e.g., 1:00 PM)
+            console.log('No lesson time saved, setting default to 13:00 (1 PM)');
+            lessonTimeInput.value = "13:00";
+            lastKnownLessonTime = "13:00"; // Update lastKnownLessonTime with the default
         }
         
         // Populate theme toggle
@@ -352,21 +381,41 @@ function handleAddCategory() {
     try {
         console.log('Handling add category');
         
-        if (!newCategoryInput || !newCategoryInput.value.trim()) {
-            console.log('No category name provided');
+        // --- Get fresh reference to input --- 
+        const categoryNameInput = document.getElementById('new-category-name');
+        if (!categoryNameInput || !categoryNameInput.value.trim()) { // Check using the fresh reference
+            console.log('No category name provided or element not found.');
             showMessage('Please enter a category name', 'error');
             return;
         }
         
-        const categoryName = newCategoryInput.value.trim();
+        const categoryName = categoryNameInput.value.trim();
+        
+        // --- Debug Logs (using fresh reference) --- 
+        console.log('[handleAddCategory] categoryNameInput element:', categoryNameInput);
+        console.log('[handleAddCategory] Value read from input element:', categoryNameInput.value);
+        console.log('[handleAddCategory] categoryName after trim():', categoryName);
+        // --- End Debug Logs ---
+
         console.log('Adding category:', categoryName);
         
         // Get existing categories
         const categoriesStr = localStorage.getItem('practiceTrack_categories');
         let categories = categoriesStr ? JSON.parse(categoriesStr) : [];
         
-        // Check if category already exists
-        if (categories.some(cat => cat.name.toLowerCase() === categoryName.toLowerCase())) {
+        // Check if category already exists (more robust check)
+        const lowerCaseCategoryName = categoryName.toLowerCase(); // Convert the NEW name once
+        const exists = categories.some(cat => {
+            // Check 1: Does the category and its name property exist and is it a string?
+            if (!cat || typeof cat.name !== 'string') {
+                console.warn('[handleAddCategory] Found invalid category object in storage:', cat); 
+                return false; // Skip this invalid category
+            }
+            // Check 2: If name is valid, compare it (case-insensitive)
+            return cat.name.toLowerCase() === lowerCaseCategoryName;
+        });
+
+        if (exists) {
             console.log('Category already exists');
             showMessage('This category already exists', 'error');
             return;
@@ -376,6 +425,7 @@ function handleAddCategory() {
         const newCategory = {
             id: `c-${Date.now()}`,
             name: categoryName,
+            custom: true,
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString()
         };
@@ -383,8 +433,8 @@ function handleAddCategory() {
         categories.push(newCategory);
         localStorage.setItem('practiceTrack_categories', JSON.stringify(categories));
         
-        // Clear input
-        newCategoryInput.value = '';
+        // Clear input (using fresh reference)
+        categoryNameInput.value = '';
         
         // Reload categories and notify app
         loadCategories();
@@ -505,17 +555,26 @@ function handleDeleteCategory(categoryId) {
 
 // Load categories
 function loadCategories() {
-    console.log('Loading categories in settings');
+    console.log('[loadCategories] Loading categories...');
     
     if (!categoriesList) {
-        console.error('Category list container not found');
+        console.error('[loadCategories] Category list container not found');
         return;
     }
     
     try {
         // Get categories from localStorage
-        const categories = JSON.parse(localStorage.getItem('practiceTrack_categories')) || [];
-        console.log('Retrieved categories:', categories);
+        const categoriesStr = localStorage.getItem('practiceTrack_categories');
+        console.log('[loadCategories] Raw categories string from storage:', categoriesStr); // <-- Log 1
+        
+        let categories = [];
+        try {
+            categories = categoriesStr ? JSON.parse(categoriesStr) : [];
+        } catch (parseError) {
+            console.error("[loadCategories] Error parsing categories JSON:", parseError);
+            categories = []; // Default to empty on error
+        }
+        console.log('[loadCategories] Parsed categories array BEFORE filtering:', JSON.parse(JSON.stringify(categories))); // <-- Log 2 (deep copy for logging)
         
         // Clear list
         categoriesList.innerHTML = '';
@@ -546,8 +605,11 @@ function loadCategories() {
         };
 
         // Group categories (assuming custom property exists)
-        const customCategories = categories.filter(cat => cat.custom === true); // Explicit check
-        const defaultCategories = categories.filter(cat => cat.custom === false || cat.custom === undefined); // Handle old/new
+        const customCategories = categories.filter(cat => cat.custom === true); 
+        const defaultCategories = categories.filter(cat => cat.custom === false || cat.custom === undefined); 
+
+        console.log('[loadCategories] Filtered custom categories:', JSON.parse(JSON.stringify(customCategories))); // <-- Log 3
+        console.log('[loadCategories] Filtered default categories:', JSON.parse(JSON.stringify(defaultCategories)));
         
         // Add default categories section if any exist
         if (defaultCategories.length > 0) {
@@ -556,6 +618,7 @@ function loadCategories() {
             header.className = 'category-group-header';
             categoriesList.appendChild(header);
             defaultCategories.forEach(category => {
+                console.log('[loadCategories] Appending default category:', category.name); // <-- Log 4a
                 categoriesList.appendChild(createCategoryElement(category));
             });
         }
@@ -567,6 +630,7 @@ function loadCategories() {
             header.className = 'category-group-header';
             categoriesList.appendChild(header);
             customCategories.forEach(category => {
+                console.log('[loadCategories] Appending custom category:', category.name); // <-- Log 4b
                  categoriesList.appendChild(createCategoryElement(category));
             });
         }
@@ -576,7 +640,7 @@ function loadCategories() {
         // --- End REMOVE Lucide Icons ---
 
     } catch (error) {
-        console.error('Error loading categories:', error);
+        console.error('[loadCategories] Error during loading categories:', error);
         categoriesList.innerHTML = '<p class="error">Error loading categories</p>';
     }
 }
@@ -625,47 +689,72 @@ const handleSettingsSubmit = () => {
         const settingsStr = localStorage.getItem('practiceTrack_settings');
         console.log('Current settings from storage:', settingsStr);
         
-        let settings = settingsStr ? JSON.parse(settingsStr) : [{
-            id: 's-1',
-            lessonDay: '',
-            lessonTime: '',
-            theme: 'light',
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-        }];
+        let settings = []; // Default to empty
+        try {
+            settings = settingsStr ? JSON.parse(settingsStr) : [];
+        } catch (parseError) {
+            console.error("Error parsing settings JSON during save:", parseError, "Raw:", settingsStr);
+            settings = []; // Ensure it's an empty array on parse error
+        }
+
+        // --- Ensure settings structure exists --- 
+        if (!Array.isArray(settings) || settings.length === 0) {
+            console.warn('Settings array was empty or invalid during save. Initializing.');
+            settings = [{
+                id: 's-1', // Default ID
+                lessonDay: '',
+                lessonTime: '',
+                theme: 'light', // Keep theme even if unused for now
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            }];
+        }
+        // --- End Ensure structure ---
         
-        // Get new values
-        const newLessonDay = lessonDaySelect.value;
-        const newLessonTime = lessonTimeInput.value;
-        
+        // Get fresh reference for DAY input only
+        const currentLessonDayInput = document.getElementById('lesson-day'); 
+        const newLessonDay = currentLessonDayInput ? currentLessonDayInput.value : '';
+
+        // Use the stored time value
+        const newLessonTime = lastKnownLessonTime; // Use value captured by input listener
+
+        // --- Log the values being read/used --- 
+        console.log('[handleSettingsSubmit] Value used for time input:', newLessonTime);
+        console.log('[handleSettingsSubmit] Value read from day input:', newLessonDay);
+        // --- End Log ---
+
         console.log('New values to save:', { newLessonDay, newLessonTime });
-        
-        // Update settings
+
+        // Update settings object
         settings[0].lessonDay = newLessonDay;
         settings[0].lessonTime = newLessonTime;
         settings[0].updatedAt = new Date().toISOString();
-        
+
+        console.log('[handleSettingsSubmit] Settings object BEFORE saving:', settings);
+
         // Save to localStorage
         localStorage.setItem('practiceTrack_settings', JSON.stringify(settings));
-        
+
         // Verify save
         const savedSettings = JSON.parse(localStorage.getItem('practiceTrack_settings'));
         console.log('Verified saved settings:', savedSettings[0]);
-        
-        if (savedSettings[0].lessonDay === newLessonDay && savedSettings[0].lessonTime === newLessonTime) {
-            // Dispatch event
+
+        if (savedSettings && savedSettings[0] && savedSettings[0].lessonDay === newLessonDay && savedSettings[0].lessonTime === newLessonTime) {
             const event = new CustomEvent('settingsUpdated', {
                 detail: { settings: settings[0] }
             });
             document.dispatchEvent(event);
-            
             showMessage('Settings saved successfully', 'success');
         } else {
-            throw new Error('Settings verification failed');
+            console.error('Settings verification failed!', { 
+                expected: { day: newLessonDay, time: newLessonTime }, 
+                saved: savedSettings ? savedSettings[0] : 'null' 
+            });
+            throw new Error('Settings verification failed after save.');
         }
     } catch (error) {
         console.error('Error saving settings:', error);
-        showMessage('Error saving settings: ' + error.message, 'error');
+        showMessage(`Error saving settings: ${error.message}`, 'error');
     }
 };
 
@@ -958,9 +1047,43 @@ const addStyles = () => {
         }
     `;
     
+    // --- Add Styles for Notification Messages --- 
+    const messageStyles = `
+        .message {
+            position: fixed;
+            top: var(--space-lg, 20px); 
+            left: 50%; 
+            transform: translateX(-50%); 
+            padding: 8px var(--space-lg); /* Use fixed 8px vertical padding */
+            border-radius: var(--radius-md);
+            z-index: 1000; 
+            font-size: var(--font-sm);
+            box-shadow: var(--shadow-lg);
+            opacity: 1;
+            transition: opacity 0.3s ease-out, top 0.3s ease-out;
+            min-width: 250px; 
+            text-align: center;
+        }
+        .message-success {
+            background-color: var(--color-success-background, #e8f5e9);
+            color: var(--color-success-text, #2e7d32);
+            border: 1px solid var(--color-success-border, #a5d6a7);
+        }
+        .message-error {
+            background-color: var(--color-danger-background, #ffebee);
+            color: var(--color-danger-text, #c62828);
+            border: 1px solid var(--color-danger-border, #ef9a9a);
+        }
+        .message-hide {
+            opacity: 0;
+            top: 0; /* Move up slightly on hide */
+        }
+    `;
+    // --- End Notification Message Styles ---
+
     // Add styles to document
     const styleSheet = document.createElement('style');
-    styleSheet.textContent = styles;
+    styleSheet.textContent = styles + messageStyles; // Append message styles
     document.head.appendChild(styleSheet);
 };
 

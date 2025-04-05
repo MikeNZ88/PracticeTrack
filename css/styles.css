@@ -4052,7 +4052,16 @@ textarea:focus {
 
 /* Specific adjustments for Goals filter bar */
 #goals-page .filters {
-    flex-wrap: nowrap; /* Try to keep on one line */
+    flex-wrap: wrap; /* Allow wrapping to prevent overflow */
+    justify-content: space-between; /* Distribute items evenly */
+}
+
+/* Media query to allow wrapping on smaller screens for goals */
+@media (max-width: 768px) {
+    #goals-page .filters {
+        flex-direction: column; /* Stack items vertically on small screens */
+        align-items: stretch; /* Stretch items to fill container width */
+    }
 }
 
 /* Allow goal search to shrink slightly */
@@ -6314,4 +6323,13 @@ textarea:focus {
 .media-view-dialog .app-button--secondary {
     /* Ensure standard secondary button styles apply */
     padding: var(--space-sm) var(--space-lg);
+}
+
+@media (max-width: 768px) {
+    .resource-filters {
+        flex-direction: row; /* Ensure horizontal layout */
+        flex-wrap: nowrap; /* Prevent wrapping */
+        overflow-x: auto; /* Allow horizontal scrolling if needed */
+        justify-content: flex-start; /* Align items to the start */
+    }
 }

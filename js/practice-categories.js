@@ -1264,18 +1264,25 @@ function addDynamicEventListeners(container) {
         button.addEventListener('click', (e) => {
             e.stopPropagation();
             const topic = button.dataset.topic;
-            handleAddCategory(topic); // Call the handler function
+            handleAddCategoryFromResource(topic); // Call the renamed handler function
         });
     });
 }
 
 /**
- * Placeholder function to handle adding a topic to the user's categories
- * Replace with actual implementation.
+ * Handles adding a topic from the resources page to the user's categories
  * @param {string} topic - The topic string to add
  */
-function handleAddCategory(topic) {
-  console.log('[DEBUG Resources] Add category called for:', topic);
+function handleAddCategoryFromResource(topic) { // Renamed function
+  console.log('[Resources] handleAddCategoryFromResource called for:', topic); // Updated log prefix
+
+  // --- Add check for undefined topic --- 
+  if (topic === undefined || topic === null) {
+      console.error('[Resources] handleAddCategoryFromResource called with invalid topic:', topic);
+      alert('Error: Could not determine topic to add.');
+      return; // Prevent adding undefined
+  }
+  // --- End check ---
 
   // Create a basic category object
   const newCategory = {
