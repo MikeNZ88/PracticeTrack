@@ -6859,3 +6859,83 @@ textarea:focus {
         grid-template-columns: 1fr; /* Stack cards */
     }
 }
+
+/* Media Card Footer and Actions */
+.media-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: var(--space-sm); /* Add padding top */
+    border-top: 1px solid var(--border-color); /* Add border */
+    margin-top: var(--space-sm); /* Add margin top */
+}
+
+.media-actions {
+    display: flex;
+    gap: var(--space-xs); /* Default gap */
+    align-items: center;
+}
+
+/* Ensure icon buttons in media actions have consistent padding */
+.media-actions .icon-button {
+    padding: var(--space-xs); /* Default padding is good */
+    /* Ensure secondary button styles apply */
+}
+
+/* Mobile Adjustments for Media Card Actions */
+@media (max-width: 480px) {
+    .media-card .media-footer {
+         /* Allow wrapping if needed, though maybe not ideal */
+         /* flex-wrap: wrap; */
+         gap: var(--space-xs); /* Add gap if wrapping */
+         padding-top: var(--space-xs);
+         margin-top: var(--space-xs);
+    }
+    .media-card .media-actions {
+        gap: 2px; /* Significantly reduce gap between buttons */
+    }
+    .media-card .media-actions .icon-button {
+        padding: 4px; /* Reduce padding */
+    }
+    /* Optional: Make icons slightly smaller if still tight */
+    .media-card .media-actions .icon-button i {
+        width: 16px;
+        height: 16px;
+    }
+    .media-card .media-date {
+        font-size: var(--font-xs); /* Make date text smaller */
+    }
+
+    /* Mobile Adjustments for Session Card Actions */
+    .session-card .session-actions .action-buttons {
+        gap: 2px; /* Reduce gap */
+    }
+    .session-card .session-actions .icon-button {
+        padding: 4px; /* Reduce padding */
+    }
+    .session-card .session-actions .icon-button i {
+        width: 16px; /* Optional: Smaller icons */
+        height: 16px;
+    }
+    .session-card .session-date {
+        font-size: var(--font-xs); /* Smaller date */
+    }
+
+    /* Mobile Adjustments for Goal Card Actions */
+    .goal-card .goal-actions {
+        gap: 2px; /* Reduce gap */
+    }
+    .goal-card .goal-actions .icon-button {
+        padding: 4px; /* Reduce padding */
+    }
+    .goal-card .goal-actions .icon-button i {
+        width: 16px; /* Optional: Smaller icons */
+        height: 16px;
+    }
+    .goal-card .goal-category,
+    .goal-card .goal-date-time {
+        font-size: var(--font-xs); /* Smaller footer text */
+    }
+}
+
+/* Resources Page Specific Styles */
