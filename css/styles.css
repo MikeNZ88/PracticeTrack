@@ -140,7 +140,6 @@ body {
 .logo {
     display: flex;
     align-items: center;
-    gap: 4px;
     font-size: 24px;
     font-weight: 600;
     text-decoration: none;

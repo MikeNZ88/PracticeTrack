@@ -429,7 +429,8 @@ window.UserGuide = (function() {
     // Expose public functions
     return {
         initialize,
-        showUserGuide
+        showUserGuide,
+        showHowToPracticeGuide
     };
 })();
 

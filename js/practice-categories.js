@@ -1105,9 +1105,14 @@ function initializeResources() {
     const familyFilterButtons = document.querySelectorAll('.resource-filters .filter-btn');
     const difficultyFilter = document.getElementById('difficulty-filter');
     const categoriesContainer = document.getElementById('practice-categories-container');
+    // Get the action buttons
+    const howToUseBtn = document.getElementById('resources-how-to-use-btn');
+    const howToPracticeBtn = document.getElementById('how-to-practice-btn');
+    const exploreResourcesBtn = document.getElementById('explore-resources-btn');
 
-    if (!searchInput || !familyFilterButtons.length || !difficultyFilter || !categoriesContainer) {
-        console.error('[DEBUG Resources] One or more essential elements not found for Resources page.');
+    // Check for all essential elements, including the buttons
+    if (!searchInput || !familyFilterButtons.length || !difficultyFilter || !categoriesContainer || !howToUseBtn || !howToPracticeBtn || !exploreResourcesBtn) {
+        console.error('[DEBUG Resources] One or more essential elements not found for Resources page initialization (including action buttons).');
         return;
     }
 
@@ -1125,6 +1130,30 @@ function initializeResources() {
             displayPracticeCategories();
         });
     });
+
+    // --- Add Listeners for the Action Buttons --- 
+    howToUseBtn.addEventListener('click', () => {
+        if (window.UserGuide && typeof window.UserGuide.showUserGuide === 'function') {
+             window.UserGuide.showUserGuide();
+        } else {
+             console.error('UserGuide.showUserGuide function not found.');
+             alert('Could not open User Guide.');
+        }
+    });
+    
+    howToPracticeBtn.addEventListener('click', () => {
+        if (window.UserGuide && typeof window.UserGuide.showHowToPracticeGuide === 'function') {
+            window.UserGuide.showHowToPracticeGuide();
+        } else {
+            console.error('UserGuide.showHowToPracticeGuide function not found.');
+            alert('Could not open How to Practice guide.');
+        }
+    });
+
+    exploreResourcesBtn.addEventListener('click', () => {
+        alert('Explore More Resources feature coming soon!'); // Placeholder action
+    });
+    // --- End Action Button Listeners --- 
 
     console.log('[DEBUG Resources] Resources initialized.');
 }
