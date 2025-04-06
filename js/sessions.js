@@ -170,14 +170,26 @@ function createSessionElement(session) {
 
     // Get category name
     const category = getCategoryName(session.categoryId);
+    
+    // Determine category color class
+    const categoryColorClass = getCategoryColorClass(category);
 
-    // Build HTML using template literal
+    // Build HTML using template literal with modern design
     sessionElement.innerHTML = `
+        <!-- Accent Bar at top -->
+        <div class="accent-bar ${categoryColorClass}"></div>
+        
         <div class="session-header">
              <span class="session-category card-name-pill">${category}</span>
              <span class="session-duration">${durationStr}</span>
         </div>
-        ${session.notes ? `<div class="session-notes">${session.notes}</div>` : ''}
+        
+        <!-- Session Title added -->
+        <h3 class="session-title">${session.title || category + ' Practice'}</h3>
+        
+        <!-- Notes with background styling -->
+        ${session.notes ? `<div class="session-notes-container"><div class="session-notes">${session.notes}</div></div>` : ''}
+        
         <div class="session-actions"> 
             <span class="session-date">${dateStr} at ${timeStr}</span> 
             <div class="action-buttons">
@@ -197,8 +209,22 @@ function createSessionElement(session) {
 
     // Initialize icons
     initializeIcons(sessionElement);
-
+    
     return sessionElement;
+}
+
+/**
+ * Get color class based on category name
+ * @param {string} category - The category name
+ * @returns {string} - CSS class for the category color
+ */
+function getCategoryColorClass(category) {
+    category = category.toLowerCase();
+    if (category.includes('technique')) return 'accent-blue';
+    if (category.includes('theory')) return 'accent-orange';
+    if (category.includes('repertoire')) return 'accent-teal';
+    if (category.includes('reading')) return 'accent-purple';
+    return 'accent-gray'; // Default
 }
 
 /**

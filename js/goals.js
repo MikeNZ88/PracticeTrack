@@ -65,27 +65,67 @@ function createGoalElement(goal) {
     
     // Format target date (keep for display if exists)
     const targetDate = goal.targetDate ? new Date(goal.targetDate) : null;
-    const targetDateStr = targetDate ? ` / Due: ${targetDate.toLocaleDateString()}` : '';
+    const targetDateStr = targetDate ? targetDate.toLocaleDateString() : '';
     
     // Determine status class and icon
     const statusClass = goal.completed ? 'completed' : 'active';
-    const statusIcon = goal.completed ? 'check-circle' : 'circle';
+    const statusIcon = goal.completed ? 'check' : '';
+    
+    // Determine category color class
+    const categoryColorClass = getCategoryColorClass(category.name);
+    
+    // Calculate progress if available
+    const hasProgress = goal.progress !== undefined;
+    const progressPercentage = hasProgress ? Math.min(100, Math.max(0, goal.progress)) : 0;
 
-    // Create goal content - Updated Footer Structure
+    // Create goal content with enhanced design
     goalElement.innerHTML = `
+        <!-- Accent Bar at top -->
+        <div class="accent-bar ${categoryColorClass}"></div>
+        
         <div class="goal-main-content">
             <div class="goal-header">
-                <button class="goal-status-toggle ${statusClass}" title="Toggle Goal Status">
-                    <i data-lucide="${statusIcon}"></i>
-                </button>
-                <h3 class="goal-title card-title">${goal.title}</h3>
+                <div class="goal-checkbox ${statusClass}" title="Toggle Goal Status">
+                    ${statusIcon ? `<i data-lucide="${statusIcon}"></i>` : ''}
+                </div>
+                <h3 class="goal-title card-title ${statusClass}">${goal.title}</h3>
             </div>
-            ${goal.description ? `<div class="goal-description">${goal.description}</div>` : ''}
+            
+            <!-- Apply session-notes styling to description/details -->
+            ${goal.description || goal.targetMetric ? `
+                <div class="session-notes-container">
+                    <div class="session-notes">
+                        ${goal.description ? `<div class="goal-description ${statusClass}">${goal.description}</div>` : ''}
+                        ${goal.targetMetric ? `
+                            <div class="goal-target">
+                                <strong>Target:</strong> ${goal.targetMetric}
+                            </div>
+                        ` : ''}
+                        ${hasProgress ? `
+                            <div class="goal-progress">
+                                <div class="progress-header">
+                                    <span>Progress</span>
+                                    <span>${Math.round(progressPercentage)}%</span>
+                                </div>
+                                <div class="progress-bar-bg">
+                                    <div class="progress-bar-fill" style="width: ${progressPercentage}%"></div>
+                                </div>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            ` : ''}
         </div>
         
         <div class="goal-footer">
              <span class="goal-category card-name-pill">${category.name}</span>
-             <span class="goal-date-time">${dateStr} at ${timeStr}${targetDateStr}</span> 
+             
+             <span class="goal-date-time">
+                ${goal.completed 
+                    ? `Completed: ${dateStr}` 
+                    : targetDateStr ? `Due: ${targetDateStr}` : `Created: ${dateStr}`}
+             </span> 
+             
              <div class="goal-actions">
                 <button class="icon-button edit-goal app-button app-button--secondary" title="Edit Goal">
                     <i data-lucide="edit"></i>
@@ -97,19 +137,19 @@ function createGoalElement(goal) {
         </div>
     `;
     
-    // Initialize icons
+    // Initialize icons - include check icon for completed goals
     if (window.lucide) {
         window.lucide.createIcons({ 
-             icons: ['check-circle', 'circle', 'edit', 'trash-2'],
+             icons: ['check', 'edit', 'trash-2'],
              context: goalElement 
         }); 
     }
     
     // Add event listeners
-    // Listener for the status toggle area
-    const statusToggle = goalElement.querySelector('.goal-status-toggle');
-    if (statusToggle) {
-        statusToggle.addEventListener('click', () => {
+    // Listener for the checkbox
+    const checkbox = goalElement.querySelector('.goal-checkbox');
+    if (checkbox) {
+        checkbox.addEventListener('click', () => {
             toggleGoal(goal.id);
         });
     }
@@ -130,6 +170,20 @@ function createGoalElement(goal) {
     }
     
     return goalElement;
+}
+
+/**
+ * Get color class based on category name
+ * @param {string} category - The category name
+ * @returns {string} - CSS class for the category color
+ */
+function getCategoryColorClass(category) {
+    category = category.toLowerCase();
+    if (category.includes('technique')) return 'accent-blue';
+    if (category.includes('theory')) return 'accent-orange';
+    if (category.includes('repertoire')) return 'accent-teal';
+    if (category.includes('reading')) return 'accent-purple';
+    return 'accent-gray'; // Default
 }
 
 /**

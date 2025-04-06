@@ -369,12 +369,17 @@ window.UI = (function() {
                 const startDate = new Date(filters.startDate);
                 if (!isNaN(startDate.getTime())) { 
                     startDate.setHours(0, 0, 0, 0); 
+                    // >>> ADD LOGGING FOR TODAY FILTER <<<
+                    const isTodayFilter = filters.startDate === filters.endDate && filters.startDate === new Date().toISOString().split('T')[0];
                     filtered = filtered.filter(record => {
                         if (!record) return false;
                         const dateField = record.startTime || record.date || record.createdAt;
                         if (!dateField) return false;
                         const recordDate = new Date(dateField);
-                        // Removed log for Start Date Check
+                        // Log comparison details specifically for the "Today" filter
+                        if (isTodayFilter) {
+                            console.log(`[DEBUG ${caller} Filter - Today Check] Record ID: ${record.id}, Record Date: ${recordDate.toISOString()}, Start Date: ${startDate.toISOString()}`);
+                        }
                         return !isNaN(recordDate.getTime()) && recordDate >= startDate;
                     });
                 }
@@ -387,12 +392,17 @@ window.UI = (function() {
                 const endDate = new Date(filters.endDate);
                 if (!isNaN(endDate.getTime())) { 
                     endDate.setHours(23, 59, 59, 999); 
+                    // >>> ADD LOGGING FOR TODAY FILTER <<<
+                    const isTodayFilter = filters.startDate === filters.endDate && filters.endDate === new Date().toISOString().split('T')[0];
                     filtered = filtered.filter(record => {
                         if (!record) return false;
                         const dateField = record.startTime || record.date || record.createdAt;
                         if (!dateField) return false;
                         const recordDate = new Date(dateField);
-                        // Removed log for End Date Check
+                        // Log comparison details specifically for the "Today" filter
+                        if (isTodayFilter) {
+                            console.log(`[DEBUG ${caller} Filter - Today Check] Record ID: ${record.id}, Record Date: ${recordDate.toISOString()}, End Date: ${endDate.toISOString()}`);
+                        }
                         return !isNaN(recordDate.getTime()) && recordDate <= endDate;
                     });
                 }

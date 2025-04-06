@@ -142,43 +142,108 @@ const isMobileDevice = () => {
  */
 function createMediaElement(media) {
     const mediaElement = document.createElement('div');
-    mediaElement.className = `media-card ${media.type}-card`; // Add type class
+    mediaElement.className = `card media-card ${media.type}-card`; // Add type class
     mediaElement.dataset.id = media.id;
     
     // Determine icon based on media type
     let iconName = 'file-text'; // Default for note
     if (media.type === 'photo') iconName = 'image';
     if (media.type === 'video') iconName = 'video';
+    if (media.type === 'audio') iconName = 'music';
 
     // Format date for display
     const formattedDate = media.createdAt ? new Date(media.createdAt).toLocaleDateString() : 'N/A';
+    
+    // Determine category color class based on media type
+    let categoryColorClass = 'accent-blue'; // Default for note
+    if (media.type === 'photo') categoryColorClass = 'accent-orange';
+    if (media.type === 'video') categoryColorClass = 'accent-purple';
+    if (media.type === 'audio') categoryColorClass = 'accent-teal';
 
-    mediaElement.innerHTML = `
-        <div class="media-icon">
-            <i data-lucide="${iconName}"></i>
-        </div>
-        <div class="media-content">
-            <h4 class="media-name">${media.name || 'Untitled'}</h4>
-            <p class="media-description">${media.description || 'No description'}</p>
-            <div class="media-meta">
-                <span>Type: ${media.type}</span>
-                <span>Added: ${formattedDate}</span>
+    // Different templates for visual (photo/video) vs non-visual (note/audio) media
+    if (media.type === 'photo' || media.type === 'video') {
+        mediaElement.innerHTML = `
+            <!-- Visual media (photo/video) layout -->
+            <div class="media-preview">
+                <div class="media-type-badge ${media.type}">
+                    ${media.type.charAt(0).toUpperCase() + media.type.slice(1)}
+                </div>
+                
+                <!-- Preview icon placeholder -->
+                <div class="media-preview-placeholder">
+                    <i data-lucide="${iconName}"></i>
+                </div>
+                
+                <!-- Title overlay at bottom -->
+                <div class="media-overlay">
+                    <h4 class="media-name">${media.name || 'Untitled'}</h4>
+                </div>
             </div>
-        </div>
-        <div class="media-actions">
-            ${media.type === 'photo' || media.type === 'video' ? `
-                <button class="icon-button view-media app-button app-button--secondary" title="View ${media.type}">
-                    <i data-lucide="eye"></i>
-                </button>
-            ` : ''} 
-            <button class="icon-button edit-media app-button app-button--secondary" title="Edit Media">
-                <i data-lucide="edit"></i>
-            </button>
-            <button class="icon-button delete-media app-button app-button--secondary" title="Delete Media">
-                <i data-lucide="trash-2"></i>
-            </button>
-        </div>
-    `;
+            
+            <div class="media-content">
+                ${media.description ? `<p class="media-description">${media.description}</p>` : ''}
+                
+                <div class="media-footer">
+                    <span class="media-date">Added ${formattedDate}</span>
+                    <div class="media-actions">
+                        <button class="icon-button view-media app-button app-button--secondary" title="View ${media.type}">
+                            <i data-lucide="eye"></i>
+                        </button>
+                        <button class="icon-button edit-media app-button app-button--secondary" title="Edit Media">
+                            <i data-lucide="edit"></i>
+                        </button>
+                        <button class="icon-button delete-media app-button app-button--secondary" title="Delete Media">
+                            <i data-lucide="trash-2"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+    } else {
+        // Note or audio type
+        mediaElement.innerHTML = `
+            <!-- Non-visual media (note/audio) layout -->
+            <div class="accent-bar ${categoryColorClass}"></div>
+            
+            <div class="media-header">
+                <h3 class="media-name">${media.name || 'Untitled'}</h3>
+                <span class="media-type-badge ${media.type}">
+                    ${media.type.charAt(0).toUpperCase() + media.type.slice(1)}
+                </span>
+            </div>
+            
+            <!-- Apply session-notes styling to content/description -->
+            ${media.content || media.description ? `
+                <div class="session-notes-container">
+                    <div class="session-notes">
+                        ${media.type === 'note' && media.content ? `
+                            <div class="media-note-content">
+                                ${media.content}
+                            </div>
+                        ` : ''}
+                        ${media.description ? `<p class="media-description">${media.description}</p>` : ''}
+                    </div>
+                </div>
+            ` : ''}
+            
+            <div class="media-footer">
+                <span class="media-date">Added ${formattedDate}</span>
+                <div class="media-actions">
+                    ${media.type === 'audio' ? `
+                        <button class="icon-button view-media app-button app-button--secondary" title="Play Audio">
+                            <i data-lucide="play"></i>
+                        </button>
+                    ` : ''}
+                    <button class="icon-button edit-media app-button app-button--secondary" title="Edit Media">
+                        <i data-lucide="edit"></i>
+                    </button>
+                    <button class="icon-button delete-media app-button app-button--secondary" title="Delete Media">
+                        <i data-lucide="trash-2"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+    }
 
     // Add event listener for the View button
     const viewBtn = mediaElement.querySelector('.view-media');
