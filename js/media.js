@@ -694,12 +694,12 @@ function setupVideoCapture() {
                                 window.addItem('MEDIA', newMediaMetadata);
                             }
 
-                            // --- Download Trigger for VIDEO --- 
+                            // --- REMOVED: Manual Trigger Download for VIDEO ---
+                            /* 
                             try {
                                 const tempUrl = URL.createObjectURL(file); // Use the file object from outer scope
                                 const downloadLink = document.createElement('a');
                                 downloadLink.href = tempUrl;
-                                // Use the user-provided name for the download, fallback to a default
                                 const safeFilename = name.replace(/[^a-z0-9_.-]/gi, '_'); // Basic sanitization
                                 const fileExtension = file.name.split('.').pop() || 'mp4'; // Default extension
                                 downloadLink.download = `${safeFilename}.${fileExtension}`; 
@@ -707,13 +707,13 @@ function setupVideoCapture() {
                                 document.body.appendChild(downloadLink);
                                 downloadLink.click(); // Trigger the download
                                 document.body.removeChild(downloadLink);
-                                // Revoke the temporary URL after a short delay 
                                 setTimeout(() => URL.revokeObjectURL(tempUrl), 100);
                                 console.log('Video download triggered.');
                             } catch (downloadError) {
                                 console.error('Could not trigger video download:', downloadError);
                             }
-                            // --- END Download Trigger ---
+                            */
+                            // --- END REMOVED ---
 
                             // Reload the media list UI
                             window.UI.loadRecords('media', {
