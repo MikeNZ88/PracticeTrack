@@ -6954,3 +6954,42 @@ textarea:focus {
 }
 
 /* Resources Page Specific Styles */
+
+/* Specific rules for individual instrument families or categories */
+
+/* Small Button Variant */
+.app-button--small {
+    padding: var(--space-xs) var(--space-md); /* Reduced padding */
+    font-size: var(--font-sm); /* Smaller font */
+    gap: var(--space-xs); /* Smaller gap */
+}
+
+.app-button--small i {
+    width: 16px; /* Smaller icon */
+    height: 16px;
+}
+
+/* Style for the new button container on the timer page */
+.timer-page-actions {
+    display: flex;
+    justify-content: center; /* Changed from flex-end to center */
+    margin-bottom: var(--space-sm); /* Reduced from --space-md */
+    /* The timer-page-wrapper should handle overall width/padding */
+}
+
+/* Container for the main resource buttons on Resources Page */
+.resource-button-container {
+    display: flex;
+    flex-direction: column; /* Stack buttons vertically */
+    align-items: center; /* Center buttons horizontally */
+    gap: var(--space-md); /* Space between buttons */
+    width: 100%;
+    max-width: 400px; /* Limit width of button container */
+    margin: 0 auto var(--space-xl); /* Center container and add bottom margin */
+}
+
+#resources-page .resource-button-container .app-button {
+    width: 100%; /* Make buttons take full width of container */
+    justify-content: center; /* Center button text/icon */
+    text-align: center; /* Ensure text is centered if it wraps */
+}

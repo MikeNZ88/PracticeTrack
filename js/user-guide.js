@@ -397,19 +397,33 @@ window.UserGuide = (function() {
 
     // Function to initialize the guide button
     function initialize() {
-        const howToUseButton = document.getElementById('resources-how-to-use-btn');
-        const howToPracticeButton = document.getElementById('how-to-practice-btn'); // Get the new button
+        console.log("Initializing User Guide Module...");
+        const userGuideButton = document.getElementById('show-user-guide');
+        const howToPracticeButton = document.getElementById('show-how-to-practice');
+        const timerHowToUseButton = document.getElementById('timer-how-to-use-button'); // Get the new button
 
-        if (howToUseButton) {
-            howToUseButton.addEventListener('click', showUserGuide);
-        } else {
-            console.warn('How to use button not found in resources page.');
+        if (userGuideButton) {
+            userGuideButton.addEventListener('click', (event) => {
+                event.preventDefault(); 
+                showUserGuide();
+            });
         }
-        
-        // Add listener for the new button
+
+        // Add listener for the new Timer page button
+        if (timerHowToUseButton) {
+             timerHowToUseButton.addEventListener('click', (event) => {
+                event.preventDefault(); 
+                showUserGuide(); // Open the same guide
+            });
+        } 
+
         if (howToPracticeButton) {
-            howToPracticeButton.addEventListener('click', showHowToPracticeGuide);
+            howToPracticeButton.addEventListener('click', (event) => {
+                event.preventDefault(); 
+                showHowToPracticeGuide();
+            });
         }
+        console.log("User Guide Module initialized.");
     }
 
     // Expose public functions
