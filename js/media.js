@@ -509,10 +509,12 @@ function setupPhotoCapture() {
                 const file = e.target.files[0];
                 console.log("[Photo Capture] File object found:", file);
 
-                // Ensure input is removed before dialog
+                // --- REVERTED: Don't remove input explicitly --- 
+                /*
                 if (input.parentNode) {
                     input.parentNode.removeChild(input);
                 }
+                */
 
                 // Use UI Framework to create the dialog
                 const dialog = window.UI.createStandardDialog({
@@ -556,11 +558,6 @@ function setupPhotoCapture() {
                             createdAt: new Date().toISOString(),
                             updatedAt: new Date().toISOString()
                         };
-
-                        if (!name) {
-                            alert('Please enter a name for the photo');
-                            return;
-                        }
                         
                         // Get the actual file object again (it was available in the outer scope)
                         const photoFile = file; 
@@ -574,12 +571,12 @@ function setupPhotoCapture() {
                                 window.addItem('MEDIA', newMediaMetadata);
                             }
                             
-                            // --- Download Trigger --- 
+                            // --- REMOVED: Manual Download Trigger for PHOTO ---
+                            /*
                             try {
                                 const tempUrl = URL.createObjectURL(photoFile);
                                 const downloadLink = document.createElement('a');
                                 downloadLink.href = tempUrl;
-                                // Use the user-provided name for the download, fallback to a default
                                 const safeFilename = name.replace(/[^a-z0-9_.-]/gi, '_'); // Basic sanitization
                                 const fileExtension = photoFile.name.split('.').pop() || 'jpg';
                                 downloadLink.download = `${safeFilename}.${fileExtension}`; 
@@ -587,13 +584,13 @@ function setupPhotoCapture() {
                                 document.body.appendChild(downloadLink);
                                 downloadLink.click(); // Trigger the download
                                 document.body.removeChild(downloadLink);
-                                // Revoke the temporary URL after a short delay 
                                 setTimeout(() => URL.revokeObjectURL(tempUrl), 100);
                                 console.log('Photo download triggered.');
                             } catch (downloadError) {
                                 console.error('Could not trigger photo download:', downloadError);
                             }
-                            // --- END Download Trigger --- 
+                            */
+                            // --- END REMOVED ---
 
                             // 3. Reload the media list UI
                             window.UI.loadRecords('media', {
@@ -614,7 +611,10 @@ function setupPhotoCapture() {
                     cancelButtonText: 'Cancel'
                 });
 
-                dialog.showModal();
+                // Delay showing dialog slightly to allow camera context to close
+                setTimeout(() => {
+                    dialog.showModal();
+                }, 50); 
             }
         };
 
@@ -639,10 +639,12 @@ function setupVideoCapture() {
             if (e.target.files && e.target.files[0]) {
                 const file = e.target.files[0];
 
-                // >>> ADDED: Remove the input element BEFORE showing the dialog <<< 
+                // --- REVERTED: Don't remove input explicitly --- 
+                /*
                 if (input.parentNode) {
                     input.parentNode.removeChild(input);
                 }
+                */
 
                 const dialog = window.UI.createStandardDialog({
                     title: 'Name Your Video',
@@ -734,7 +736,10 @@ function setupVideoCapture() {
                     cancelButtonText: 'Cancel'
                 });
 
-                dialog.showModal();
+                // Delay showing dialog slightly to allow camera context to close
+                setTimeout(() => {
+                    dialog.showModal();
+                }, 50);
             }
         };
 
