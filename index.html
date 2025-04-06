@@ -384,7 +384,7 @@
                     <!-- Gradient Header -->
                     <div class="page-gradient-header">
                         <h1>Media Library</h1>
-                         <p>Upload and manage your sheet music and audio files.</p>
+                         <p>Create notes and record videos and photos to your device.</p>
                     </div>
                     <div class="page-content-container">
                     <div class="filters">
@@ -413,17 +413,21 @@
                             </div>
                         </div>
                         <div class="media-controls">
-                            <button class="primary-button" id="add-photo">
+                            <button class="app-button app-button--primary" id="add-photo">
                                 <i data-lucide="camera"></i>
-                                Add Photo
+                                <span>Add Photo</span>
                             </button>
-                            <button class="primary-button" id="add-video">
+                            <button class="app-button app-button--primary" id="add-video">
                                 <i data-lucide="video"></i>
-                                Add Video
+                                <span>Add Video</span>
                             </button>
-                            <button class="primary-button" id="add-note">
+                            <button class="app-button app-button--primary" id="add-note">
                                 <i data-lucide="file-text"></i>
-                                Add Note
+                                <span>Add Note</span>
+                            </button>
+                            <button class="app-button app-button--secondary" id="upload-media-btn">
+                                <i data-lucide="upload"></i>
+                                <span>Upload</span>
                             </button>
                         </div>
                         <div class="media-container">
@@ -473,10 +477,14 @@
                               </select>
                          </div>
 
-                         <div style="text-align: center; margin: 20px 0;">
-                             <button id="resources-how-to-use-btn" class="app-button app-button--secondary" style="margin: 0 auto;">
+                         <div style="text-align: center; margin: 20px 0; display: flex; justify-content: center; gap: var(--space-md);">
+                             <button id="resources-how-to-use-btn" class="app-button app-button--secondary">
                                   <i data-lucide="help-circle"></i>
                                   <span>How to use PracticeTrack</span>
+                              </button>
+                             <button id="how-to-practice-btn" class="app-button app-button--secondary">
+                                  <i data-lucide="book-open"></i>
+                                  <span>How to Practice</span>
                               </button>
                          </div>
                          

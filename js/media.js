@@ -33,6 +33,12 @@ function initializeMedia() {
     
     // Add media-specific styles
     addMediaStyles();
+
+    // Add listener for the new Upload button
+    const uploadButton = document.getElementById('upload-media-btn');
+    if (uploadButton) {
+        uploadButton.addEventListener('click', handleMediaUpload);
+    }
     
     // --- Add Date Preset Logic --- 
     const pageElement = document.getElementById('media-page');
@@ -300,6 +306,83 @@ function createMediaElement(media) {
     }
     
     return mediaElement;
+}
+
+/**
+ * Handle click on Upload Media button.
+ * Opens a file input dialog.
+ */
+async function handleMediaUpload() {
+    console.log('Upload Media button clicked');
+    
+    // Create a hidden file input element
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = 'image/*,video/*'; // Accept images and videos
+    fileInput.style.display = 'none';
+
+    // Trigger click on file input when the button is clicked
+    fileInput.click();
+
+    // Handle file selection
+    fileInput.onchange = async (event) => {
+        const file = event.target.files[0];
+        if (!file) {
+            console.log('No file selected for upload.');
+            return;
+        }
+
+        console.log(`File selected: ${file.name}, Type: ${file.type}, Size: ${file.size}`);
+
+        // Determine media type based on file MIME type
+        let mediaType;
+        if (file.type.startsWith('image/')) {
+            mediaType = 'photo';
+        } else if (file.type.startsWith('video/')) {
+            mediaType = 'video';
+        } else {
+            alert('Unsupported file type. Please select an image or video.');
+            return;
+        }
+
+        try {
+            // --- Create metadata object FIRST ---
+            const mediaData = {
+                id: `media_${Date.now()}`,
+                name: file.name,
+                type: mediaType,
+                description: `Uploaded ${mediaType}`,
+                createdAt: new Date().toISOString(),
+            };
+            
+            // --- THEN save the file content using the ID from mediaData ---
+            await window.practiceTrackDB.saveMediaFile(mediaData.id, file);
+            console.log(`[Upload] File content saved to IndexedDB for key: ${mediaData.id}`);
+
+            // --- Now save the metadata ---
+            if (window.addItem) {
+                window.addItem('MEDIA', mediaData);
+            }
+
+            console.log('Media metadata saved for uploaded file:', mediaData);
+
+            // Refresh the media list
+            window.UI.loadRecords('media');
+            
+            // Optional: Show success message
+            // window.UI.showToast(`Successfully uploaded ${mediaType}: ${file.name}`);
+
+        } catch (error) {
+            console.error('Error handling media upload:', error);
+            alert('Failed to process uploaded media. See console for details.');
+        }
+        
+        // Clean up the temporary file input
+        document.body.removeChild(fileInput);
+    };
+    
+    // Append to body temporarily to handle the change event
+    document.body.appendChild(fileInput);
 }
 
 /**
@@ -1224,8 +1307,8 @@ function openEditMediaDialog(media) {
 // Typically called from app.js or when the media page becomes active
 document.addEventListener('DOMContentLoaded', () => {
     // If media page is loaded initially, initialize it
-    // Otherwise, app.js navigation logic should call initMediaPage
+    // Otherwise, app.js navigation logic should call initializeMedia
     if (document.getElementById('media-page') && document.getElementById('media-page').classList.contains('active')) {
-         initMediaPage();
+         initializeMedia();
     }
 });

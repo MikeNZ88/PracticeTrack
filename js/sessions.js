@@ -78,8 +78,17 @@ function initializeSessions() {
                 endDate = todayString;
                 break;
             case 'week':
-                startDate = new Date(today.setDate(today.getDate() - today.getDay())).toISOString().split('T')[0];
-                endDate = todayString; // Use todayString
+                const currentDay = today.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+                const daysSinceMonday = (currentDay === 0) ? 6 : currentDay - 1; // Calculate days passed since Monday
+                const mondayDate = new Date(today);
+                mondayDate.setDate(today.getDate() - daysSinceMonday);
+                startDate = mondayDate.toISOString().split('T')[0];
+                
+                // Calculate upcoming Sunday
+                const daysUntilSunday = (currentDay === 0) ? 0 : 7 - currentDay;
+                const sundayDate = new Date(today);
+                sundayDate.setDate(today.getDate() + daysUntilSunday);
+                endDate = sundayDate.toISOString().split('T')[0];
                 break;
             case 'month':
                 startDate = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];

@@ -6687,3 +6687,175 @@ textarea:focus {
     background-color: var(--card-background-dark);
     border-left-color: var(--primary-blue-dark);
 }
+
+/* Styles for Stats Page Explanation */
+.stats-explanation {
+    display: block; /* Ensure it's a block element */
+    max-width: 600px; /* Limit width */
+    margin-left: auto;  /* Explicit auto margin */
+    margin-right: auto; /* Explicit auto margin */
+    margin-top: var(--space-xl); /* Slightly more top margin */
+    margin-bottom: var(--space-lg);
+    padding: var(--space-md);
+    background-color: var(--background-light);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+    text-align: center;
+    font-size: var(--font-sm);
+    color: var(--text-medium);
+}
+
+.stats-explanation p {
+    margin: 0;
+}
+
+.stats-explanation strong {
+    color: var(--text-dark);
+}
+
+/* Style the inline examples within the explanation */
+.stats-explanation .stat-comparison {
+    display: inline-flex; /* Align icon and text */
+    align-items: center;
+    gap: var(--space-xs);
+    font-weight: 500;
+    white-space: nowrap; /* Prevent wrapping */
+}
+
+.stats-explanation .stat-comparison i {
+    width: 14px; /* Smaller icon */
+    height: 14px;
+    stroke-width: 2;
+}
+
+/* User Guide & How to Practice Dialog Styles */
+.user-guide-dialog, 
+.how-to-practice-dialog { /* Apply same styles to new dialog */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    overflow: hidden;
+    backdrop-filter: blur(3px);
+}
+
+.user-guide-dialog .dialog-content, 
+.how-to-practice-dialog .dialog-content { /* Apply same styles to new dialog */
+    background-color: var(--card-background);
+    padding: var(--space-xl);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-xl);
+    max-width: 90%;
+    width: 700px;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* Prevent content overflow from breaking layout */
+}
+
+.user-guide-dialog .dialog-header, 
+.how-to-practice-dialog .dialog-header { /* Apply same styles to new dialog */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-lg);
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: var(--space-md);
+}
+
+.user-guide-dialog h2, 
+.how-to-practice-dialog h2 { /* Apply same styles to new dialog */
+    margin: 0;
+    font-size: var(--font-xl);
+    color: var(--text-dark);
+}
+
+.user-guide-dialog .close-button, 
+.how-to-practice-dialog .close-button { /* Apply same styles to new dialog */
+    background: none;
+    border: none;
+    padding: var(--space-xs);
+    cursor: pointer;
+    color: var(--text-medium);
+    transition: color var(--transition-fast);
+}
+
+.user-guide-dialog .close-button:hover, 
+.how-to-practice-dialog .close-button:hover { /* Apply same styles to new dialog */
+    color: var(--text-dark);
+}
+
+.user-guide-dialog .dialog-body, 
+.how-to-practice-dialog .dialog-body { /* Apply same styles to new dialog */
+    flex-grow: 1;
+    overflow-y: auto; /* Allow content to scroll */
+    padding-right: var(--space-sm); /* Space for scrollbar */
+    margin-right: -var(--space-sm); /* Offset scrollbar padding */
+}
+
+/* How to Practice specific content styles */
+.how-to-practice-dialog .dialog-body h3 {
+    font-size: var(--font-lg);
+    margin-top: var(--space-lg);
+    margin-bottom: var(--space-sm);
+    color: var(--primary-blue);
+}
+
+.how-to-practice-dialog .dialog-body ul, 
+.how-to-practice-dialog .dialog-body ol {
+    padding-left: var(--space-lg);
+    margin-bottom: var(--space-md);
+}
+
+.how-to-practice-dialog .dialog-body li {
+    margin-bottom: var(--space-xs);
+}
+
+/* Media Page Specific Styles */
+.media-controls {
+    display: flex;
+    justify-content: center; /* Center buttons */
+    gap: var(--space-md);
+    margin-bottom: var(--space-xl);
+    flex-wrap: wrap; /* Allow wrapping on smaller screens */
+}
+
+/* Ensure media control buttons have consistent style */
+.media-controls .app-button {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-sm);
+}
+
+.media-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: var(--space-lg);
+}
+
+/* Adjust media list for smaller screens */
+@media (max-width: 768px) {
+    .media-list {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); /* Smaller min width */
+    }
+}
+
+@media (max-width: 480px) {
+    .media-controls {
+        gap: var(--space-sm);
+    }
+    .media-controls .app-button {
+        /* Optionally make buttons take more width on very small screens */
+        flex-grow: 1;
+        justify-content: center;
+    }
+    .media-list {
+        grid-template-columns: 1fr; /* Stack cards */
+    }
+}

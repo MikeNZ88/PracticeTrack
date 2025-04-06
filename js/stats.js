@@ -587,10 +587,25 @@ function displayStats(sessions, container, previousPeriodStats, practiceLevel) {
     `;
     // --- End Stats Grid HTML ---
 
-    container.innerHTML = statsGridHTML;
+    // --- Add Explanation Text ---
+    const explanationHTML = `
+        <div class="stats-explanation">
+            <p>
+                <strong>Comparison Indicators:</strong> 
+                <span class="stat-comparison increase"><i data-lucide="trending-up"></i> +%</span> / 
+                <span class="stat-comparison decrease"><i data-lucide="trending-down"></i> -%</span> = Change vs. previous period. 
+                <span class="stat-comparison increase"><i data-lucide="trending-up"></i> New</span> = Value recorded, previous period was 0. 
+                <span class="stat-comparison no-change">No Change / --</span> = No difference, or no comparison data.
+            </p>
+        </div>
+    `;
+    // --- End Explanation Text ---
+
+    container.innerHTML = statsGridHTML + explanationHTML; // Append explanation
 
     if (window.lucide) {
-        window.lucide.createIcons({ context: container });
+        // Make sure to include icons used in explanation
+        window.lucide.createIcons({ context: container, icons: ['trending-up', 'trending-down'] });
     }
 
     // --- Render Category Time Chart ---

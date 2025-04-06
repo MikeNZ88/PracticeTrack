@@ -296,13 +296,119 @@ window.UserGuide = (function() {
         }, { once: true }); // Option ensures listener is removed after first escape
     }
 
+    // Create and show the "How to Practice" dialog
+    function showHowToPracticeGuide() {
+        // Remove any existing dialog
+        const existingDialog = document.querySelector('.how-to-practice-dialog');
+        if (existingDialog) {
+            existingDialog.remove();
+        }
+
+        // Create dialog container
+        const dialog = document.createElement('div');
+        dialog.className = 'dialog how-to-practice-dialog'; // Use a specific class
+        
+        // >>> CONTENT WILL GO HERE <<<
+        const guideContentHTML = `
+            <h3>General Practice Principles</h3>
+            <ul>
+                <li>
+                    <strong>Have clear objectives:</strong> 
+                    Know what you want to improve in each session, even if it's broad (e.g., smoother transitions, better tone, learn section A). This focuses your effort.
+                </li>
+                <li>
+                    <strong>Warm up properly:</strong> 
+                    Prepare your body and instrument. Gentle exercises, scales, or light technical work prevent injury and improve focus.
+                </li>
+                <li>
+                    <strong>Focus on challenges & practice slowly:</strong> 
+                    Isolate difficult passages. Slow down drastically, focusing on accuracy and clean execution before gradually increasing tempo. Accuracy first, speed later.
+                </li>
+                 <li>
+                    <strong>Use "Chunking":</strong> 
+                    Break down complex pieces or exercises into smaller, manageable sections (chunks). Master each chunk before connecting them.
+                </li>
+                <li>
+                    <strong>Use a metronome:</strong> 
+                    Develop solid timing and rhythm. Use it consistently for scales, exercises, and challenging sections of pieces.
+                </li>
+                <li>
+                    <strong>Record and listen/watch back:</strong> 
+                    Use the Media tab to record yourself. Objective feedback helps identify issues you might not notice while playing. Reviewing past recordings over time can also clearly show your progress.
+                </li>
+                <li>
+                    <strong>Practice consistently:</strong> 
+                    Regular, focused sessions (even shorter ones) are more effective than infrequent marathon sessions. Build a routine.
+                </li>
+            </ul>
+            <h3>Structuring a Session (Example Percentages)</h3>
+            <p>This is just a sample structure. Adapt it to your needs:</p>
+            <ol>
+                <li><strong>Warm-up (~10-15%):</strong> Physical preparation, simple scales, long tones.</li>
+                <li><strong>Technique (~25-30%):</strong> Focused exercises (scales, arpeggios, specific techniques) targeting areas for improvement.</li>
+                <li><strong>Repertoire (~35-45%):</strong> Work on pieces. Apply technical skills, focus on musicality, use chunking for difficult parts.</li>
+                <li><strong>Sight-Reading/Improvisation/Theory (~10-15%):</strong> Develop related musical skills. Choose one area per session or rotate.</li>
+                <li><strong>Cool-down/Review (~5-10%):</strong> Play something enjoyable, review what you worked on, make notes for next session.</li>
+            </ol>
+            <p><em>Remember: Quality of focus is more important than just logging hours. Use PracticeTrack to guide mindful, effective practice!</em></p>
+        `;
+
+        dialog.innerHTML = `
+            <div class="dialog-content">
+                <div class="dialog-header">
+                    <h2>How to Practice Effectively</h2>
+                    <button class="close-button">
+                        <i data-lucide="x"></i>
+                    </button>
+                </div>
+                <div class="dialog-body">
+                    ${guideContentHTML} 
+                </div>
+            </div>
+        `;
+
+        // Append to body and show
+        document.body.appendChild(dialog);
+        dialog.style.display = 'flex'; // Show the dialog
+
+        // Add close functionality
+        dialog.querySelector('.close-button').addEventListener('click', () => {
+            dialog.remove();
+        });
+        dialog.addEventListener('click', (e) => {
+            if (e.target === dialog) { // Close if backdrop is clicked
+                dialog.remove();
+            }
+        });
+        
+        // Add Escape key listener
+        document.addEventListener('keydown', function closeOnEscape(e) {
+            if (e.key === 'Escape') {
+                dialog.remove();
+                document.removeEventListener('keydown', closeOnEscape);
+            }
+        });
+
+        // Initialize icons
+        if (window.lucide) {
+            window.lucide.createIcons({ context: dialog });
+        }
+    }
+
     // Function to initialize the guide button
     function initialize() {
         const howToUseButton = document.getElementById('resources-how-to-use-btn');
+        const howToPracticeButton = document.getElementById('how-to-practice-btn'); // Get the new button
+
         if (howToUseButton) {
             howToUseButton.addEventListener('click', showUserGuide);
         } else {
             console.warn('How to use button not found in resources page.');
+        }
+        
+        // Add listener for the new button
+        if (howToPracticeButton) {
+            howToPracticeButton.addEventListener('click', showHowToPracticeGuide);
         }
     }
 
