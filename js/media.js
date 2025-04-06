@@ -502,10 +502,15 @@ function setupPhotoCapture() {
         input.capture = 'environment'; // Prioritize rear camera
 
         input.onchange = function(e) {
-            console.log("[Photo Capture] onchange event fired.", e.target.files); // <-- Log 1: Event fired
+            console.log("[Photo Capture] onchange event fired.", e.target.files);
             if (e.target.files && e.target.files[0]) {
                 const file = e.target.files[0];
-                console.log("[Photo Capture] File object found:", file); // <-- Log 2: File found
+                console.log("[Photo Capture] File object found:", file);
+
+                // >>> Remove the input element BEFORE showing the dialog <<< 
+                if (input.parentNode) {
+                    input.parentNode.removeChild(input);
+                }
 
                 // Use UI Framework to create the dialog
                 const dialog = window.UI.createStandardDialog({
@@ -682,6 +687,28 @@ function setupVideoCapture() {
                             if (window.addItem) {
                                 window.addItem('MEDIA', newMediaMetadata);
                             }
+
+                            // --- ADDED: Trigger Download for VIDEO --- 
+                            try {
+                                const tempUrl = URL.createObjectURL(file); // Use the file object from outer scope
+                                const downloadLink = document.createElement('a');
+                                downloadLink.href = tempUrl;
+                                // Use the user-provided name for the download, fallback to a default
+                                const safeFilename = name.replace(/[^a-z0-9_.-]/gi, '_'); // Basic sanitization
+                                const fileExtension = file.name.split('.').pop() || 'mp4'; // Default extension
+                                downloadLink.download = `${safeFilename}.${fileExtension}`; 
+                                downloadLink.style.display = 'none';
+                                document.body.appendChild(downloadLink);
+                                downloadLink.click(); // Trigger the download
+                                document.body.removeChild(downloadLink);
+                                // Revoke the temporary URL after a short delay 
+                                setTimeout(() => URL.revokeObjectURL(tempUrl), 100);
+                                console.log('Video download triggered.');
+                            } catch (downloadError) {
+                                console.error('Could not trigger video download:', downloadError);
+                                // Don't stop the process if download fails, just log it.
+                            }
+                            // --- END ADDED ---
 
                             // Reload the media list UI
                             window.UI.loadRecords('media', {
