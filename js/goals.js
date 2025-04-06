@@ -53,26 +53,20 @@ function createGoalElement(goal) {
     goalElement.className = 'card goal-item';
     goalElement.dataset.id = goal.id;
     
-    // Get category
-    const categories = window.getItems ? window.getItems('CATEGORIES') : 
-        JSON.parse(localStorage.getItem('practiceTrack_categories')) || [];
-    const category = categories.find(c => c.id === goal.categoryId) || { name: 'Unknown' };
+    // Format dates using Intl.DateTimeFormat
+    const formatOptions = { day: 'numeric', month: 'long', year: 'numeric' };
+    const dateFormatter = new Intl.DateTimeFormat('en-US', formatOptions);
     
-    // Format created date and time
-    const createdAt = new Date(goal.createdAt);
-    const dateStr = createdAt.toLocaleDateString();
-    const timeStr = createdAt.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }); 
-    
-    // Format target date (keep for display if exists)
-    const targetDate = goal.targetDate ? new Date(goal.targetDate) : null;
-    const targetDateStr = targetDate ? targetDate.toLocaleDateString() : '';
+    const dateStr = dateFormatter.format(new Date(goal.createdAt));
+    const targetDateStr = goal.targetDate ? dateFormatter.format(new Date(goal.targetDate)) : null;
+
+    // Get category name and color
+    const category = window.getCategoryById ? window.getCategoryById(goal.categoryId) : { name: 'Unknown', color: 'gray' }; // Default if category not found
+    const categoryColorClass = getCategoryColorClass(category.name);
     
     // Determine status class and icon
     const statusClass = goal.completed ? 'completed' : 'active';
     const statusIcon = goal.completed ? 'check' : '';
-    
-    // Determine category color class
-    const categoryColorClass = getCategoryColorClass(category.name);
     
     // Calculate progress if available
     const hasProgress = goal.progress !== undefined;

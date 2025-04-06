@@ -265,7 +265,7 @@ function formatDuration(session) {
 function formatDateTime(startTime) {
     const start = new Date(startTime);
     return {
-        dateStr: start.toLocaleDateString(),
+        dateStr: new Intl.DateTimeFormat('en-US', { day: 'numeric', month: 'long', year: 'numeric' }).format(start),
         timeStr: start.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
     };
 }

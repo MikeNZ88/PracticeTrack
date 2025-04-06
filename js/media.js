@@ -157,8 +157,10 @@ function createMediaElement(media) {
     if (media.type === 'video') iconName = 'video';
     if (media.type === 'audio') iconName = 'music';
 
-    // Format date for display
-    const formattedDate = media.createdAt ? new Date(media.createdAt).toLocaleDateString() : 'N/A';
+    // Format date for display using Intl.DateTimeFormat
+    const formattedDate = media.createdAt 
+        ? new Intl.DateTimeFormat('en-US', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(media.createdAt)) 
+        : 'N/A';
     
     // Determine category color class based on media type
     let categoryColorClass = 'accent-blue'; // Default for note
@@ -507,7 +509,7 @@ function setupPhotoCapture() {
                 const file = e.target.files[0];
                 console.log("[Photo Capture] File object found:", file);
 
-                // >>> Remove the input element BEFORE showing the dialog <<< 
+                // Ensure input is removed before dialog
                 if (input.parentNode) {
                     input.parentNode.removeChild(input);
                 }
@@ -530,7 +532,7 @@ function setupPhotoCapture() {
                             rows: 3
                         }
                     ],
-                    onSubmit: async (dialog, event) => { // Make onSubmit async
+                    onSubmit: async (dialog, event) => { 
                         const form = event.target;
                         const nameInput = form.querySelector('#photo-name');
                         const descriptionInput = form.querySelector('#photo-description');
@@ -572,7 +574,7 @@ function setupPhotoCapture() {
                                 window.addItem('MEDIA', newMediaMetadata);
                             }
                             
-                            // --- ADDED: Trigger Download --- 
+                            // --- Download Trigger --- 
                             try {
                                 const tempUrl = URL.createObjectURL(photoFile);
                                 const downloadLink = document.createElement('a');
@@ -590,9 +592,8 @@ function setupPhotoCapture() {
                                 console.log('Photo download triggered.');
                             } catch (downloadError) {
                                 console.error('Could not trigger photo download:', downloadError);
-                                // Don't stop the process if download fails, just log it.
                             }
-                            // --- END ADDED --- 
+                            // --- END Download Trigger --- 
 
                             // 3. Reload the media list UI
                             window.UI.loadRecords('media', {
@@ -638,6 +639,11 @@ function setupVideoCapture() {
             if (e.target.files && e.target.files[0]) {
                 const file = e.target.files[0];
 
+                // >>> ADDED: Remove the input element BEFORE showing the dialog <<< 
+                if (input.parentNode) {
+                    input.parentNode.removeChild(input);
+                }
+
                 const dialog = window.UI.createStandardDialog({
                     title: 'Name Your Video',
                     fields: [
@@ -655,7 +661,7 @@ function setupVideoCapture() {
                             rows: 3
                         }
                     ],
-                    onSubmit: async (dialog, event) => { // Make onSubmit async
+                    onSubmit: async (dialog, event) => {
                         const form = event.target;
                         const nameInput = form.querySelector('#video-name');
                         const descriptionInput = form.querySelector('#video-description');
@@ -688,7 +694,7 @@ function setupVideoCapture() {
                                 window.addItem('MEDIA', newMediaMetadata);
                             }
 
-                            // --- ADDED: Trigger Download for VIDEO --- 
+                            // --- Download Trigger for VIDEO --- 
                             try {
                                 const tempUrl = URL.createObjectURL(file); // Use the file object from outer scope
                                 const downloadLink = document.createElement('a');
@@ -706,9 +712,8 @@ function setupVideoCapture() {
                                 console.log('Video download triggered.');
                             } catch (downloadError) {
                                 console.error('Could not trigger video download:', downloadError);
-                                // Don't stop the process if download fails, just log it.
                             }
-                            // --- END ADDED ---
+                            // --- END Download Trigger ---
 
                             // Reload the media list UI
                             window.UI.loadRecords('media', {

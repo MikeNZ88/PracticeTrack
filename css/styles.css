@@ -6936,6 +6936,21 @@ textarea:focus {
     .goal-card .goal-date-time {
         font-size: var(--font-xs); /* Smaller footer text */
     }
+
+    /* Mobile Adjustments for Resource Buttons/Links */
+    /* Assuming buttons are within a container like .resources-content or similar */
+    .resources-content .app-button, /* Target general buttons */
+    .resource-links a.app-button, /* Target specific links styled as buttons */
+    .resource-link-button /* Target a potential specific class */
+    {
+        white-space: normal; /* Allow text wrapping */
+        text-align: center; /* Center text if it wraps */
+        padding-left: var(--space-sm); /* Slightly reduce padding if needed */
+        padding-right: var(--space-sm);
+        /* width: 100%; /* Uncomment if they should stack and take full width */
+        /* margin-bottom: var(--space-sm); /* Add space if stacking */
+    }
+
 }
 
 /* Resources Page Specific Styles */
