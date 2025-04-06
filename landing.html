@@ -166,6 +166,34 @@
             max-width: 700px;
         }
 
+        .hero-free-info {
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: var(--text-medium);
+            margin-bottom: var(--space-xl);
+            padding: var(--space-xs) var(--space-sm);
+            background-color: rgba(59, 127, 245, 0.08);
+            border: 1px solid rgba(59, 127, 245, 0.15);
+            border-radius: var(--radius-md);
+            display: inline-block; /* Keep it contained */
+        }
+
+        .install-note {
+            font-size: 0.9rem;
+            color: var(--text-light);
+            margin-top: var(--space-sm);
+        }
+
+        .install-link {
+            color: var(--primary-blue);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .install-link:hover {
+            text-decoration: underline;
+        }
+
         /* App mockup section */
         .app-mockup-section {
             display: flex;
@@ -390,6 +418,58 @@
                 font-size: 0.7rem;
             }
         }
+
+        /* Installation Instructions Section Styles */
+        .install-section {
+            padding: var(--space-2xl) 0;
+            background-color: var(--card-background);
+            border-top: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: var(--space-2xl);
+        }
+
+        .install-section .section-subtitle {
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+            margin-bottom: var(--space-xl);
+            color: var(--text-medium);
+            text-align: center;
+        }
+
+        .install-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--space-xl);
+        }
+
+        .install-card {
+            background-color: var(--background-light);
+            padding: var(--space-lg);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-color);
+        }
+
+        .install-card h3 {
+            color: var(--primary-blue);
+            margin-bottom: var(--space-md);
+            font-size: 1.1rem;
+        }
+
+        .install-card ol {
+            padding-left: var(--space-lg);
+            list-style: decimal;
+            color: var(--text-medium);
+        }
+
+        .install-card li {
+            margin-bottom: var(--space-sm);
+            line-height: 1.5;
+        }
+        
+        .install-card li:last-child {
+            margin-bottom: 0;
+        }
     </style>
 </head>
 <body>
@@ -458,7 +538,9 @@
         <section class="hero-section">
             <h1 class="hero-title">Track, Analyze, and Improve Your Practice</h1>
             <p class="hero-subtitle">PracticeTrack helps musicians of all levels organize their practice sessions, set goals, and track progress with powerful tools designed for musical growth.</p>
+            <p class="hero-free-info">PracticeTrack is free. No subscription or account required. No paywalls.</p>
             <a href="index.html" class="cta-button">Launch App</a>
+            <p class="install-note">Opens in browser. To add the app to your phone's home screen for quick access, see the <a href="#install-instructions" class="install-link">installation instructions</a> below.</p>
         </section>
 
         <!-- App Mockup Section -->
@@ -492,7 +574,7 @@
                         </svg>
                         Progress Tracking
                     </div>
-                    <p>Visualize your practice history with detailed statistics and charts. Monitor improvements over time and identify trends.</p>
+                    <p>Visualize your practice history in the Stats tab with detailed statistics like total time, session frequency, consistency streaks, and category breakdowns. Monitor improvements, identify trends, and discover your calculated Practice Level (based on total practice time) with explanations on how it's determined.</p>
                 </div>
                 
                 <!-- Feature: Goal Setting -->
@@ -503,7 +585,7 @@
                         </svg>
                         Goal Setting
                     </div>
-                    <p>Set daily, weekly, and monthly practice goals to stay motivated. Track your progress towards achieving milestones.</p>
+                    <p>Set daily, weekly, and monthly practice goals to stay motivated. Track your progress towards achieving milestones and see your overall goal completion rate.</p>
                 </div>
                 
                 <!-- Feature: Built-in Metronome -->
@@ -515,7 +597,7 @@
                         </svg>
                         Built-in Metronome
                     </div>
-                    <p>Practice with precision using our customizable metronome. Adjust tempo, time signatures, and accent patterns to suit your needs.</p>
+                    <p>Practice with precision using our customizable metronome. Adjust tempo and time signatures to suit your needs.</p>
                 </div>
                 
                 <!-- Feature: Media Library -->
@@ -528,7 +610,7 @@
                         </svg>
                         Media Library
                     </div>
-                    <p>Save photos, videos, and notes of your playing to review later. Capture important moments from your practice sessions.</p>
+                    <p>Save photos, videos, and notes of your playing to review later. Capture important moments from your practice sessions or record teacher demonstrations during lessons.</p>
                 </div>
                 
                 <!-- Feature: Practice Resources -->
@@ -540,25 +622,58 @@
                         </svg>
                         Practice Resources
                     </div>
-                    <p>Access research-based practice materials for different instrument categories. Improve your technique with structured resources designed for effective skill development.</p>
+                    <p>Access practice categories for your instrument and guidance material on how to practice effectively, available in the Resources tab.</p>
                 </div>
             </div>
         </section>
 
         <!-- Research Section -->
         <section class="research-section">
-            <h2 class="research-title">Based on Music Education Research</h2>
+            <h2 class="research-title">Informed by Music Education Research</h2>
             <p class="research-text">
-                PracticeTrack's design is informed by research in deliberate practice, skill acquisition, and music education principles. 
-                By providing structured tools for tracking and analysis, we help musicians practice more effectively and efficiently.
+                PracticeTrack's design incorporates established music education research. Guidance materials on how to practice effectively and the app's category-based approach to structuring sessions are informed by these principles, helping you practice more efficiently.
             </p>
         </section>
 
         <!-- CTA Section -->
         <section class="cta-section">
             <div class="container">
-                <h2>Ready to enhance your practice routine?</h2>
+                <h2 class="cta-title">Ready to enhance your practice routine?</h2> 
                 <p>Start tracking your progress and see real results in your musical journey.</p>
+                 <a href="index.html" class="cta-button">Launch App Now</a>
+                 <p class="install-note" style="margin-top: var(--space-md);">Opens in browser. Add to your home screen using the instructions below.</p>
+            </div>
+        </section>
+
+        <!-- Installation Instructions Section -->
+        <section id="install-instructions" class="install-section">
+            <div class="container">
+                <h2 class="section-title">Install PracticeTrack on Your Device</h2>
+                <p class="section-subtitle">PracticeTrack is a Progressive Web App (PWA). Add it to your home screen for an app-like experience without visiting an app store.</p>
+                <p class="section-subtitle" style="font-size: 0.95rem; font-weight: 400;">
+                    While PracticeTrack works in any modern browser on desktop or mobile, <strong>it's optimized and recommended for use on your primary mobile device.</strong> Note that on desktop versions, direct camera capture for photos/videos is unavailable, but you can still upload existing media files. Since data is stored locally per device (no accounts), <strong>you can use the export feature within the app on your phone to transfer your data</strong> if you wish to use PracticeTrack on desktop or another device.
+                </p>
+                <div class="install-grid">
+                    <div class="install-card">
+                        <h3>Android (Chrome)</h3>
+                        <ol>
+                            <li>Launch PracticeTrack in Chrome using a button above.</li>
+                            <li>Tap the three-dot menu icon (⋮).</li>
+                            <li>Click "Install app".</li>
+                            <li>Follow prompts to add the icon.</li>
+                        </ol>
+                    </div>
+                    <div class="install-card">
+                        <h3>iOS (Safari)</h3>
+                        <ol>
+                            <li>Launch PracticeTrack in Safari using a button above.</li>
+                            <li>Tap the Share icon ( <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23555f6a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='3' width='18' height='18' rx='2' ry='2'/%3E%3Cpath d='M12 16v-8m-4 4h8'/%3E%3C/svg%3E" alt="iOS Share Icon" style="display:inline; vertical-align: middle;"/> ).</li>
+                            <li>Scroll down and tap "Add to Home Screen".</li>
+                            <li>Confirm name ("PracticeTrack") and tap "Add".</li>
+                            <li>The icon will appear on your home screen.</li>
+                        </ol>
+                    </div>
+                </div>
             </div>
         </section>
     </div>
