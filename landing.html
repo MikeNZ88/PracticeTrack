@@ -4,7 +4,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="PracticeTrack - Your musical journey companion. Track your practice sessions, set goals, and improve your musical skills.">
+    
+    <!-- Primary Meta Tags -->
     <title>PracticeTrack - Your Musical Journey Companion</title>
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://mikenz88.github.io/landing.html">
+    <meta property="og:title" content="PracticeTrack - Your Musical Journey Companion">
+    <meta property="og:description" content="Track your practice sessions, set goals, and improve your musical skills. Free, no account required.">
+    <meta property="og:image" content="https://mikenz88.github.io/icon-512x512.png">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://mikenz88.github.io/landing.html">
+    <meta property="twitter:title" content="PracticeTrack - Your Musical Journey Companion">
+    <meta property="twitter:description" content="Track your practice sessions, set goals, and improve your musical skills. Free, no account required.">
+    <meta property="twitter:image" content="https://mikenz88.github.io/icon-512x512.png">
+
+    <!-- Include Lucide Icons Script -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
     <style>
         :root {
             --primary-blue: #3b7ff5;
@@ -145,7 +164,7 @@
             flex-direction: column;
             align-items: center;
             text-align: center;
-            margin-bottom: var(--space-2xl);
+            margin-bottom: var(--space-xl);
             position: relative;
         }
 
@@ -169,13 +188,21 @@
         .hero-free-info {
             font-size: 0.95rem;
             font-weight: 500;
-            color: var(--text-medium);
+            color: var(--primary-blue);
             margin-bottom: var(--space-xl);
             padding: var(--space-xs) var(--space-sm);
             background-color: rgba(59, 127, 245, 0.08);
             border: 1px solid rgba(59, 127, 245, 0.15);
             border-radius: var(--radius-md);
-            display: inline-block; /* Keep it contained */
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-xs);
+        }
+
+        .hero-free-info .lucide {
+            width: 1em;
+            height: 1em;
+            flex-shrink: 0;
         }
 
         .install-note {
@@ -217,7 +244,7 @@
 
         /* Features section */
         .features-section {
-            margin-bottom: var(--space-2xl);
+            margin-bottom: var(--space-xl);
         }
 
         .section-title {
@@ -275,7 +302,7 @@
             color: white;
             padding: var(--space-2xl) var(--space-xl);
             border-radius: var(--radius-lg);
-            margin-bottom: var(--space-2xl);
+            margin-bottom: var(--space-xl);
             text-align: center;
         }
 
@@ -295,7 +322,7 @@
         /* CTA section */
         .cta-section {
             text-align: center;
-            margin-bottom: var(--space-2xl);
+            margin-bottom: var(--space-xl);
         }
 
         .cta-title {
@@ -303,6 +330,11 @@
             font-weight: 700;
             margin-bottom: var(--space-lg);
             color: var(--primary-blue);
+        }
+
+        /* Add margin-top to the button within the CTA section */
+        .cta-section .cta-button {
+            margin-top: var(--space-lg); /* Add space above the button */
         }
 
         .cta-button {
@@ -323,6 +355,248 @@
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
         }
 
+        /* Footer */
+        footer {
+            background: var(--primary-blue-dark);
+            color: white;
+            padding: var(--space-lg);
+            text-align: center;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 var(--space-md);
+        }
+
+        .footer-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: var(--space-sm);
+        }
+
+        .footer-logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: var(--space-sm);
+        }
+
+        .footer-logo span {
+            color: var(--secondary-orange);
+        }
+
+        .copyright {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        /* Responsive */
+        @media (max-width: 992px) {
+            .feature-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .journey-grid {
+                grid-template-columns: repeat(2, 1fr); /* 2 columns on medium screens */
+            }
+        }
+
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 2rem;
+            }
+            
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .app-tabs-showcase {
+                flex-wrap: wrap;
+                gap: var(--space-sm);
+            }
+            
+            .tab-icon {
+                width: 40px;
+                height: 40px;
+            }
+            
+            .tab-label {
+                font-size: 0.8rem;
+            }
+
+            .journey-grid {
+                grid-template-columns: 1fr; /* Stack journey cards */
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero-title {
+                font-size: 1.8rem;
+            }
+            
+            .hero-subtitle {
+                font-size: 1rem;
+            }
+            
+            .app-tabs-showcase {
+                gap: var(--space-sm);
+            }
+            
+            .tab-icon {
+                width: 35px;
+                height: 35px;
+            }
+            
+            .tab-label {
+                font-size: 0.65rem;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .app-tab .tab-label {
+                font-size: 0.7rem;
+            }
+        }
+
+        /* Installation Instructions Section Styles */
+        .install-section {
+            padding: var(--space-xl) 0;
+            background-color: var(--card-background);
+            border-top: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: var(--space-xl);
+        }
+
+        .install-section .section-subtitle {
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+            margin-bottom: var(--space-xl);
+            color: var(--text-medium);
+            text-align: center;
+        }
+
+        .install-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--space-xl);
+        }
+
+        .install-card {
+            background-color: var(--background-light);
+            padding: var(--space-lg);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-color);
+        }
+
+        .install-card h3 {
+            color: var(--primary-blue);
+            margin-bottom: var(--space-md);
+            font-size: 1.1rem;
+        }
+
+        .install-card ol {
+            padding-left: var(--space-lg);
+            list-style: decimal;
+            color: var(--text-medium);
+        }
+
+        .install-card li {
+            margin-bottom: var(--space-sm);
+            line-height: 1.5;
+        }
+        
+        .install-card li:last-child {
+            margin-bottom: 0;
+        }
+
+        /* User Journey Section Styles */
+        .user-journey-section {
+            margin-bottom: var(--space-xl);
+            /* background-color: var(--background-light); */ /* Optional different background */
+        }
+
+        .user-journey-section .section-subtitle {
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+            margin-bottom: var(--space-xl);
+            color: var(--text-medium);
+            text-align: center;
+        }
+        
+        .journey-intro { /* Added style for intro text */
+            max-width: 700px;
+            margin: var(--space-md) auto var(--space-lg);
+            color: var(--text-dark);
+            text-align: center;
+            font-size: 1.05rem;
+            line-height: 1.7;
+        }
+        
+        .journey-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr); /* 3 columns */
+            gap: var(--space-xl);
+            margin-top: var(--space-xl);
+        }
+        
+        .journey-card {
+            background: var(--card-background);
+            border-radius: var(--radius-lg);
+            padding: var(--space-lg);
+            box-shadow: var(--shadow-sm);
+            border-top: 4px solid var(--primary-blue-light);
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .journey-card:hover {
+             transform: translateY(-5px);
+             box-shadow: var(--shadow-md);
+        }
+
+        .journey-card .lucide {
+            color: var(--primary-blue);
+            width: 32px;
+            height: 32px;
+            margin-bottom: var(--space-md);
+        }
+
+        .journey-card h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: var(--space-sm);
+        }
+
+        .journey-card p {
+            font-size: 0.95rem;
+            color: var(--text-medium);
+            line-height: 1.5;
+        }
+        
+        .journey-conclusion { /* Style for concluding sentence */
+            text-align: center;
+            margin-top: var(--space-xl);
+            color: var(--text-medium);
+            font-style: italic;
+            font-size: 0.95rem;
+            max-width: 600px; /* Constrain width */
+            margin-left: auto; /* Center block */
+            margin-right: auto; /* Center block */
+        }
+        
+        .journey-stats-summary { /* Style for final stats summary */
+            text-align: center;
+            margin-top: var(--space-md); /* Less space than conclusion */
+            color: var(--text-medium);
+            font-size: 0.95rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
         /* Footer */
         footer {
             background: var(--primary-blue-dark);
@@ -419,56 +693,13 @@
             }
         }
 
-        /* Installation Instructions Section Styles */
-        .install-section {
-            padding: var(--space-2xl) 0;
-            background-color: var(--card-background);
-            border-top: 1px solid var(--border-color);
-            border-bottom: 1px solid var(--border-color);
-            margin-bottom: var(--space-2xl);
-        }
-
-        .install-section .section-subtitle {
-            max-width: 700px;
-            margin-left: auto;
-            margin-right: auto;
-            margin-bottom: var(--space-xl);
-            color: var(--text-medium);
-            text-align: center;
-        }
-
         .install-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: var(--space-xl);
+            grid-template-columns: 1fr;
+            gap: var(--space-lg);
         }
 
-        .install-card {
-            background-color: var(--background-light);
-            padding: var(--space-lg);
-            border-radius: var(--radius-lg);
-            border: 1px solid var(--border-color);
-        }
-
-        .install-card h3 {
-            color: var(--primary-blue);
-            margin-bottom: var(--space-md);
-            font-size: 1.1rem;
-        }
-
-        .install-card ol {
-            padding-left: var(--space-lg);
-            list-style: decimal;
-            color: var(--text-medium);
-        }
-
-        .install-card li {
-            margin-bottom: var(--space-sm);
-            line-height: 1.5;
-        }
-        
-        .install-card li:last-child {
-            margin-bottom: 0;
+        .journey-grid {
+            grid-template-columns: 1fr; /* Stack journey cards on small screens */
         }
     </style>
 </head>
@@ -538,9 +769,15 @@
         <section class="hero-section">
             <h1 class="hero-title">Track, Analyze, and Improve Your Practice</h1>
             <p class="hero-subtitle">PracticeTrack helps musicians of all levels organize their practice sessions, set goals, and track progress with powerful tools designed for musical growth.</p>
-            <p class="hero-free-info">PracticeTrack is free. No subscription or account required. No paywalls.</p>
-            <a href="index.html" class="cta-button">Launch App</a>
-            <p class="install-note">Opens in browser. To add the app to your phone's home screen for quick access, see the <a href="#install-instructions" class="install-link">installation instructions</a> below.</p>
+            <p class="hero-free-info">
+                <i data-lucide="badge-check" class="lucide"></i>
+                PracticeTrack is free. No subscription or account required. No paywalls.
+            </p>
+            <a href="index.html" class="cta-button">
+                Launch&nbsp;<span style="color: white;">Practice</span><span style="color: var(--secondary-orange);">Track</span>
+            </a>
+            <p class="install-note">Opens in browser. Add the app to your home screen (iOS/Mac) or install it (Android/Chrome)<br>
+                for quick access and an experience <strong>just like a native app!</strong> See the <a href="#install-instructions" class="install-link">installation instructions</a> below for details.</p>
         </section>
 
         <!-- App Mockup Section -->
@@ -640,8 +877,6 @@
             <div class="container">
                 <h2 class="cta-title">Ready to enhance your practice routine?</h2> 
                 <p>Start tracking your progress and see real results in your musical journey.</p>
-                 <a href="index.html" class="cta-button">Launch App Now</a>
-                 <p class="install-note" style="margin-top: var(--space-md);">Opens in browser. Add to your home screen using the instructions below.</p>
             </div>
         </section>
 
@@ -676,6 +911,68 @@
                 </div>
             </div>
         </section>
+
+        <!-- User Journey Section -->
+        <section class="user-journey-section">
+            <div class="container">
+                <h2 class="section-title">A Journey with PracticeTrack</h2>
+                <p class="journey-intro"> 
+                    Mike, a guitarist, usually practices 5 or 6 days a week for about 30-60 minutes per day. He fits sessions in when he can, sometimes having more than one per day, and wants to practice effectively. His teacher recommends PracticeTrack, and they spend part of a lesson setting up relevant practice categories like <span style="color: var(--primary-blue); font-weight: 500;">E String Root Barre Chords</span>, <span style="color: var(--primary-blue); font-weight: 500;">Alternate Picking Technique</span>, <span style="color: var(--primary-blue); font-weight: 500;">Intervals of the Major Scale</span>, "Mike's Metal Song" <em>(song mike is writing)</em>, <span style="color: var(--primary-blue); font-weight: 500;">Chromatic Scale Exercises</span>, <span style="color: var(--primary-blue); font-weight: 500;">Em Pentatonic Position 1</span>.
+                </p>
+                <p class="section-subtitle">See how PracticeTrack can integrate into a practice routine.</p>
+                <div class="journey-grid">
+                    <!-- Week 1 -->
+                    <div class="journey-card">
+                        <i data-lucide="flag" class="lucide"></i>
+                        <h3>Week 1: Goals & Setup</h3>
+                        <p>Set Goals: <span style="color: var(--primary-blue); font-weight: 500;">'Master E String Root Barre Chords'</span> & <span style="color: var(--primary-blue); font-weight: 500;">'Spend 2 hrs this week on Barre Chords'</span>. Took a photo in his lesson of the correct hand position for reference. Logged 8 sessions across 6 days (total 2 hrs 15 min) using <span style="color: var(--primary-blue); font-weight: 500;">Timer</span>, focusing on 'Barre Chords' drills and ticked off the <span style="color: var(--primary-blue); font-weight: 500;">'Spend 2 hrs this week on Barre Chords'</span> goal as complete in the <span style="color: var(--primary-blue); font-weight: 500;">Goals tab</span>.</p>
+                    </div>
+                    <!-- Week 2 -->
+                    <div class="journey-card">
+                        <i data-lucide="calendar-clock" class="lucide"></i>
+                        <h3>Week 2: Building Routine</h3>
+                        <p>Logged 7 sessions (total 2 hrs 30 min). Checked <span style="color: var(--primary-blue); font-weight: 500;">Stats</span> and confirmed he met the 2-hour goal for 'Barre Chords'! Also introduced <span style="color: var(--primary-blue); font-weight: 500;">'Em Pentatonic position 1'</span> and saved the <span style="color: var(--primary-blue); font-weight: 500;">YouTube video link & notes</span> in the <span style="color: var(--primary-blue); font-weight: 500;">Media tab</span>.</p>
+                    </div>
+                    <!-- Week 3 -->
+                    <div class="journey-card">
+                         <i data-lucide="trending-up" class="lucide"></i>
+                         <h3>Week 3: First Insights</h3>
+                         <p>Logged 8 sessions (total 2 hrs 45 min). Focused heavily on alternate picking; set new Goal: <span style="color: var(--primary-blue); font-weight: 500;">'Clean Alternate Picking at 100bpm'</span>. Marked <span style="color: var(--primary-blue); font-weight: 500;">'Master E String Root Barre Chords'</span> skill goal complete after dedicated practice. Recorded video of clean chord changes.</p>
+                    </div>
+                    <!-- Week 4 -->
+                    <div class="journey-card">
+                         <i data-lucide="check-check" class="lucide"></i>
+                         <h3>Week 4: Goal Achieved!</h3>
+                         <p>Logged 9 sessions (total 3 hrs 30 min). Reviewed completed 'Barre Chords' skill goal. <span style="color: var(--primary-blue); font-weight: 500;">PracticeTrack</span> made it easy to tell his teacher exactly what he practiced and for how long.</p>
+                    </div>
+                    <!-- Week 5 -->
+                    <div class="journey-card">
+                         <i data-lucide="book-open" class="lucide"></i>
+                         <h3>Week 5: New Focus</h3>
+                         <p>Logged 10 sessions (total 4 hrs). Set new Goal: <span style="color: var(--primary-blue); font-weight: 500;">'Understand Intervals'</span>. Took a photo of a <span style="color: var(--primary-blue); font-weight: 500;">whiteboard illustration</span> from his lesson for study. Maintained higher practice duration; <span style="color: var(--primary-blue); font-weight: 500;">Stats tab</span> shows his Practice Level is now <span style="color: var(--primary-blue); font-weight: 500;">'Medium'</span>.</p>
+                    </div>
+                    <!-- Week 6 -->
+                    <div class="journey-card">
+                         <i data-lucide="bar-chart-3" class="lucide"></i> <!-- Changed icon -->
+                         <h3>Week 6: Analyzing Trends</h3>
+                         <p>Logged 9 sessions (total 3 hrs 45 min). Reviewed <span style="color: var(--primary-blue); font-weight: 500;">Stats</span> and saw less time on <span style="color: var(--primary-blue); font-weight: 500;">'Intervals of the Major Scale'</span> than planned. Marked <span style="color: var(--primary-blue); font-weight: 500;">'Clean Alternate Picking at 100bpm'</span> goal complete! Adjusted focus for the following week to ensure better balance with <span style="color: var(--primary-blue); font-weight: 500;">theory</span> and <span style="color: var(--primary-blue); font-weight: 500;">chromatic scale exercises</span>.</p>
+                    </div>
+                </div>
+                <p class="journey-conclusion">
+                    And how much time did Mike spend <em>using</em> PracticeTrack each day? Typically just a minute or two to start the timer, log notes, or check stats – the focus stays on the music!
+                </p>
+                <p class="journey-stats-summary">
+                    Over these 6 weeks, Mike logged <span style="color: var(--primary-blue); font-weight: 500;">51 sessions</span> totaling nearly <span style="color: var(--primary-blue); font-weight: 500;">19 hours</span>. He completed <span style="color: var(--primary-blue); font-weight: 500;">3 out of 4</span> goals set during this period. The <span style="color: var(--primary-blue); font-weight: 500;">Stats tab</span> helped him visualize all this, track goal completion rates, and understand his time distribution across different <span style="color: var(--primary-blue); font-weight: 500;">practice categories</span>, making lesson planning easier for his teacher.
+                </p>
+            </div>
+        </section>
+    </div>
+
+    <!-- Final CTA Button (Moved here) -->
+    <div style="text-align: center; margin-bottom: var(--space-xl); padding: 0 var(--space-md);">
+        <a href="index.html" class="cta-button">
+            Launch&nbsp;<span style="color: white;">Practice</span><span style="color: var(--secondary-orange);">Track</span>
+        </a>
     </div>
 
     <!-- Footer -->
@@ -703,6 +1000,14 @@
                 });
             });
         });
+    </script>
+
+    <!-- Script to initialize Lucide icons -->
+    <script>
+        lucide.createIcons();
+        
+        // Optional: Update footer year dynamically
+        document.getElementById('current-year').textContent = new Date().getFullYear();
     </script>
 </body>
 </html>
