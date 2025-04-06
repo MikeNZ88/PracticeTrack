@@ -1151,7 +1151,12 @@ function initializeResources() {
     });
 
     exploreResourcesBtn.addEventListener('click', () => {
-        alert('Explore More Resources feature coming soon!'); // Placeholder action
+        if (window.PracticeResourceFinder && typeof window.PracticeResourceFinder.show === 'function') {
+            window.PracticeResourceFinder.show();
+        } else {
+            console.error('PracticeResourceFinder.show function not found.');
+            alert('Could not open Resource Finder.');
+        }
     });
     // --- End Action Button Listeners --- 
 

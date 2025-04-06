@@ -6729,37 +6729,42 @@ textarea:focus {
 
 /* User Guide & How to Practice Dialog Styles */
 .user-guide-dialog, 
-.how-to-practice-dialog { /* Apply same styles to new dialog */
+.how-to-practice-dialog,
+.resource-finder-dialog { /* ADDED resource finder here */
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
     background-color: rgba(0, 0, 0, 0.6);
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: flex; /* << Center Vertically & Horizontally */
+    align-items: center; /* << Center Vertically */
+    justify-content: center; /* << Center Horizontally */
     z-index: 1000;
     overflow: hidden;
     backdrop-filter: blur(3px);
 }
 
+/* Apply shared content styles */
 .user-guide-dialog .dialog-content, 
-.how-to-practice-dialog .dialog-content { /* Apply same styles to new dialog */
+.how-to-practice-dialog .dialog-content,
+.resource-finder-dialog .dialog-content { 
     background-color: var(--card-background);
     padding: var(--space-xl);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-xl);
     max-width: 90%;
-    width: 700px;
+    /* width: 700px; /* Remove fixed width, use max-width */
     max-height: 90vh;
     display: flex;
     flex-direction: column;
-    overflow: hidden; /* Prevent content overflow from breaking layout */
+    overflow: hidden; 
 }
 
+/* Apply shared header styles */
 .user-guide-dialog .dialog-header, 
-.how-to-practice-dialog .dialog-header { /* Apply same styles to new dialog */
+.how-to-practice-dialog .dialog-header,
+.resource-finder-dialog .dialog-header { 
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -6768,15 +6773,19 @@ textarea:focus {
     padding-bottom: var(--space-md);
 }
 
+/* Apply shared h2 styles */
 .user-guide-dialog h2, 
-.how-to-practice-dialog h2 { /* Apply same styles to new dialog */
+.how-to-practice-dialog h2,
+.resource-finder-dialog h2 { 
     margin: 0;
     font-size: var(--font-xl);
     color: var(--text-dark);
 }
 
+/* Apply shared close button styles */
 .user-guide-dialog .close-button, 
-.how-to-practice-dialog .close-button { /* Apply same styles to new dialog */
+.how-to-practice-dialog .close-button,
+.resource-finder-dialog .close-button { 
     background: none;
     border: none;
     padding: var(--space-xs);
@@ -6786,12 +6795,14 @@ textarea:focus {
 }
 
 .user-guide-dialog .close-button:hover, 
-.how-to-practice-dialog .close-button:hover { /* Apply same styles to new dialog */
+.how-to-practice-dialog .close-button:hover,
+.resource-finder-dialog .close-button:hover { /* Apply same styles to new dialog */
     color: var(--text-dark);
 }
 
 .user-guide-dialog .dialog-body, 
-.how-to-practice-dialog .dialog-body { /* Apply same styles to new dialog */
+.how-to-practice-dialog .dialog-body,
+.resource-finder-dialog .dialog-body { /* Apply same styles to new dialog */
     flex-grow: 1;
     overflow-y: auto; /* Allow content to scroll */
     padding-right: var(--space-sm); /* Space for scrollbar */
@@ -6799,7 +6810,8 @@ textarea:focus {
 }
 
 /* How to Practice specific content styles */
-.how-to-practice-dialog .dialog-body h3 {
+.how-to-practice-dialog .dialog-body h3,
+.resource-finder-dialog .dialog-body h3 { /* Apply same styles to new dialog */
     font-size: var(--font-lg);
     margin-top: var(--space-lg);
     margin-bottom: var(--space-sm);
@@ -6807,12 +6819,15 @@ textarea:focus {
 }
 
 .how-to-practice-dialog .dialog-body ul, 
-.how-to-practice-dialog .dialog-body ol {
+.how-to-practice-dialog .dialog-body ol,
+.resource-finder-dialog .dialog-body ul,
+.resource-finder-dialog .dialog-body ol { /* Apply same styles to new dialog */
     padding-left: var(--space-lg);
     margin-bottom: var(--space-md);
 }
 
-.how-to-practice-dialog .dialog-body li {
+.how-to-practice-dialog .dialog-body li,
+.resource-finder-dialog .dialog-body li { /* Apply same styles to new dialog */
     margin-bottom: var(--space-xs);
 }
 
@@ -6991,4 +7006,199 @@ textarea:focus {
     width: 100%; /* Make buttons take full width of container */
     justify-content: center; /* Center button text/icon */
     text-align: center; /* Ensure text is centered if it wraps */
+}
+
+/* Specific styles for How To Practice and Explore buttons */
+#how-to-practice-btn,
+#explore-resources-btn {
+    background-color: var(--secondary-orange);
+    color: var(--white); /* Ensure text is readable on orange */
+    border-color: var(--secondary-orange); /* Match border color */
+}
+
+#how-to-practice-btn:hover,
+#explore-resources-btn:hover {
+    background-color: var(--secondary-orange-dark); /* Darker shade on hover */
+    border-color: var(--secondary-orange-dark);
+}
+
+/* --- Resource Finder Dialog Styles --- */
+.resource-finder-dialog .dialog-content {
+    max-width: 800px; /* Allow wider dialog for results */
+    width: 90%;
+}
+
+.resource-finder-body {
+    /* Allow body to scroll if content overflows */
+    max-height: 70vh;
+    overflow-y: auto;
+    padding: var(--space-md); /* Add padding to the body */
+}
+
+.resource-finder-filters {
+    display: flex; /* Changed from grid to flex */
+    flex-wrap: wrap; /* Allow wrapping */
+    gap: var(--space-md);
+    margin-bottom: var(--space-xl); /* Increased bottom margin */
+    padding: var(--space-lg); /* Increased padding */
+    background-color: var(--background-light);
+    border-radius: var(--radius-lg); /* Larger radius */
+    border: 1px solid var(--border-color);
+}
+
+.resource-finder-filters .form-group {
+    margin-bottom: 0; /* Remove default margin, rely on flex gap */
+    flex: 1 1 180px; /* Allow flex-grow, flex-shrink, set basis */
+    min-width: 150px; /* Ensure minimum width */
+}
+
+.resource-finder-filters .form-group label {
+    font-size: var(--font-sm);
+    font-weight: 500; /* Slightly bolder label */
+    color: var(--text-medium);
+    margin-bottom: var(--space-xs);
+    display: block;
+}
+
+.resource-finder-filters select,
+.resource-finder-filters input[type="search"] {
+    width: 100%;
+    padding: var(--space-sm) var(--space-md);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md); /* Consistent radius */
+    font-size: var(--font-base); /* Standard font size */
+    height: auto; /* Remove fixed height, rely on padding */
+    line-height: 1.5;
+    background-color: var(--card-background);
+    transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.resource-finder-filters select:focus,
+.resource-finder-filters input[type="search"]:focus {
+    outline: none;
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 3px rgba(59, 127, 245, 0.2);
+}
+
+.resource-finder-filters .search-group {
+    /* grid-column: span 2; */ /* Removed grid property */
+    flex-basis: 100%; /* Allow search to take full width if needed */
+}
+
+.resource-finder-results h3 {
+    font-size: var(--font-lg);
+    font-weight: 600; /* Bolder heading */
+    margin-top: var(--space-xl); /* Increased top margin */
+    margin-bottom: var(--space-md);
+    color: var(--primary-blue);
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: var(--space-sm);
+}
+
+.resource-finder-results ul {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 var(--space-lg) 0; /* Add bottom margin */
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md); /* Increased gap */
+}
+
+.search-term-list li,
+.channel-list .channel-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: var(--background-light); /* Use light background */
+    padding: var(--space-md); /* Consistent padding */
+    border-radius: var(--radius-md); /* Consistent radius */
+    border: 1px solid var(--border-color);
+    gap: var(--space-md);
+}
+
+.search-term-list li:hover,
+.channel-list .channel-item:hover {
+    background-color: var(--card-background-hover);
+}
+
+.search-term-list span {
+    flex-grow: 1; /* Allow text to take available space */
+    font-size: var(--font-sm);
+    color: var(--text-dark);
+}
+
+.search-term-list .copy-button {
+    background: none;
+    border: none;
+    color: var(--primary-blue);
+    cursor: pointer;
+    padding: var(--space-xs); /* Added padding */
+    line-height: 0;
+    flex-shrink: 0;
+    margin-left: var(--space-sm);
+    border-radius: var(--radius-sm);
+    transition: background-color var(--transition-fast);
+}
+
+.search-term-list .copy-button:hover {
+    color: var(--primary-blue-dark);
+    background-color: rgba(59, 127, 245, 0.1); /* Subtle background on hover */
+}
+
+.search-term-list .copy-button i {
+    width: 16px; /* Smaller icon */
+    height: 16px;
+}
+
+.channel-list .channel-item {
+    align-items: flex-start; /* Align items to top */
+}
+
+.channel-list .channel-info {
+     flex-grow: 1;
+}
+
+.channel-list .channel-info strong {
+    display: block;
+    font-weight: 600;
+    margin-bottom: var(--space-xs);
+    color: var(--text-dark);
+}
+
+.channel-list .channel-info p {
+    font-size: var(--font-sm);
+    color: var(--text-medium);
+    margin: 0;
+    line-height: 1.4;
+}
+
+.channel-list .external-link-button {
+    color: var(--primary-blue);
+    background-color: rgba(59, 127, 245, 0.05); /* Light background */
+    padding: var(--space-sm); /* Increased padding */
+    line-height: 0;
+    flex-shrink: 0;
+    align-self: center; /* Center button vertically */
+    border-radius: var(--radius-md);
+    transition: background-color var(--transition-fast), color var(--transition-fast);
+}
+
+.channel-list .external-link-button:hover {
+    color: var(--white);
+    background-color: var(--primary-blue);
+}
+
+.channel-list .external-link-button i {
+    width: 20px;
+    height: 20px;
+}
+
+.results-placeholder {
+    text-align: center;
+    color: var(--text-light);
+    padding: var(--space-xl) 0; /* Increased padding */
+    font-style: italic;
+    background-color: var(--background-light);
+    border-radius: var(--radius-md);
+    border: 1px dashed var(--border-color);
 }
