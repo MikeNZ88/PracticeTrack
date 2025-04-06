@@ -3979,19 +3979,17 @@ textarea:focus {
 }
 
 .lesson-countdown-container {
-    max-width: 900px; /* Match other content width */
-    margin-left: auto;
-    margin-right: auto;
-    margin-bottom: var(--space-lg);
-    text-align: center; /* Center the content inside */
+    display: block; /* Make it a block element */
+    max-width: 400px; /* Set a max-width (adjust as needed) */
+    margin: 0 auto var(--space-xl); /* Center with margin, add bottom margin */
+    /* Remove text-align: center; */
 }
 
-/* Style the card itself */
 .lesson-countdown-card {
-     /* Inherits from .card */
-     display: inline-block; /* Allow text-align: center on parent to work */
-     min-width: 300px; /* Give it a minimum width */
-     text-align: left; /* Reset text align for card content */
+    /* Remove display: inline-block; */
+    width: 100%; /* Take full width of the container */
+    min-width: auto; /* Remove min-width */
+    /* Keep text-align: left; */
 }
 
 /* Styles for Lesson Countdown Card */
