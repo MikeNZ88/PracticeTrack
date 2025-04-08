@@ -426,6 +426,8 @@ window.UserGuide = (function() {
         console.log("User Guide Module initialized.");
     }
 
+    console.log("[DEBUG UserGuide] UserGuide module fully defined, attaching to window.");
+
     // Expose public functions
     return {
         initialize,

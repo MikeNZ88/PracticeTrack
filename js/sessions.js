@@ -170,7 +170,8 @@ function createSessionElement(session) {
     console.log(`[DEBUG Sessions CreateElement] Creating element for session ID: ${session?.id}`); // Log entry
     try {
         const sessionElement = document.createElement('div');
-        sessionElement.className = 'card session-item';
+        // Use .session-item class for targeting
+        sessionElement.className = 'session-item'; 
         sessionElement.dataset.id = session.id;
 
         // Format duration
@@ -178,41 +179,52 @@ function createSessionElement(session) {
 
         // Format date and time
         const { dateStr, timeStr } = formatDateTime(session.startTime);
+        const formattedDate = dateStr; // Use just date part for card-date
 
-        // Get category name
-        const category = getCategoryName(session.categoryId); // Potential failure point
-        console.log(`[DEBUG Sessions CreateElement] Session ID: ${session?.id}, Category ID: ${session?.categoryId}, Found Category Name: ${category}`); // Log category info
-        
-        // Determine category color class
-        const categoryColorClass = getCategoryColorClass(category);
+        // --- Determine Category Name and Color ---
+        let displayCategoryId = session.categoryId; 
+        let category = null;
 
-        // Build HTML using template literal with modern design
+        if (session.goalId) {
+            try {
+                const goal = window.getItemById ? window.getItemById('GOALS', session.goalId) : null;
+                if (goal && goal.categoryId) {
+                    console.log(`[DEBUG Sessions CreateElement] Session ${session.id} linked to Goal ${session.goalId}. Using Goal's Category ID: ${goal.categoryId}`);
+                    displayCategoryId = goal.categoryId; 
+                } else if (goal) {
+                    console.log(`[DEBUG Sessions CreateElement] Session ${session.id} linked to Goal ${session.goalId}, but Goal has no categoryId. Using session categoryId: ${session.categoryId}`);
+                } else {
+                    console.log(`[DEBUG Sessions CreateElement] Session ${session.id} linked to Goal ${session.goalId}, but Goal not found. Using session categoryId: ${session.categoryId}`);
+                }
+            } catch (err) {
+                console.error(`[DEBUG Sessions CreateElement] Error fetching goal ${session.goalId} for session ${session.id}:`, err);
+            }
+        }
+        category = getCategoryName(displayCategoryId); 
+        // --- End Determine Category --- 
+
+        // Determine Session Title (Use category name if no specific title)
+        const sessionTitle = session.title || (category !== 'No Category' ? category + ' Practice' : 'Practice Session');
+        const notes = session.notes || '';
+
+        // Build HTML using new structure and classes
         sessionElement.innerHTML = `
-            <!-- Accent Bar at top -->
-            <div class="accent-bar ${categoryColorClass}"></div>
+            ${category !== 'No Category' ? `<div class="card-category-pill">${escapeHTML(category)}</div>` : ''} 
+            <h3 class="card-title">${escapeHTML(sessionTitle)}</h3>
+            ${notes ? `<p class="card-description">${escapeHTML(notes)}</p>` : '<p class="card-description">&nbsp;</p>' /* Add placeholder if no notes */} 
+            <p class="card-date">${formattedDate} (${durationStr})</p> 
             
-            <div class="session-header">
-                <span class="session-category card-name-pill">${category || 'Unknown'}</span> <!-- Added fallback -->
-                <span class="session-duration">${durationStr}</span>
-            </div>
-            
-            <!-- Session Title added -->
-            <h3 class="session-title">${session.title || (category ? category + ' Practice' : 'Practice Session')}</h3> <!-- Added fallback -->
-            
-            <!-- Notes with background styling -->
-            ${session.notes ? `<div class="session-notes-container"><div class="session-notes">${escapeHTML(session.notes)}</div></div>` : ''} <!-- Added escaping -->
-            
-            <div class="session-actions"> 
-                <span class="session-date">${dateStr || '??'} at ${timeStr || '??'}</span> <!-- Added fallback -->
-                <div class="action-buttons">
-                    ${session.isLesson ? '<span class="lesson-badge">Lesson</span>' : ''}
-                    <button class="icon-button edit-session app-button app-button--secondary" title="Edit Session">
-                        <i data-lucide="edit"></i>
-                    </button>
-                    <button class="icon-button delete-session app-button app-button--secondary" title="Delete Session">
-                        <i data-lucide="trash-2"></i>
-                    </button>
-                </div>
+            <div class="card-actions">
+                ${session.isLesson ? '<span class="lesson-badge">Lesson</span>' : ''} 
+                <span class="action-spacer"></span> <!-- Optional spacer -->
+                <button class="action-button edit-button edit-session" title="Edit Session">
+                    <i data-lucide="edit" width="12" height="12"></i>
+                    <span>Edit</span>
+                </button>
+                <button class="action-button delete-button delete-session" title="Delete Session">
+                    <i data-lucide="trash-2" width="12" height="12"></i>
+                    <span>Delete</span>
+                </button>
             </div>
         `;
 
@@ -220,9 +232,9 @@ function createSessionElement(session) {
         addSessionEventListeners(sessionElement, session.id);
 
         // Initialize icons
-        initializeIcons(sessionElement); // Ensure this function exists and handles errors
+        initializeIcons(sessionElement);
         
-        console.log(`[DEBUG Sessions CreateElement] Successfully created element for session ID: ${session?.id}`); // Log success
+        console.log(`[DEBUG Sessions CreateElement] Successfully created element for session ID: ${session?.id}`);
         return sessionElement;
 
     } catch (error) {
@@ -291,8 +303,10 @@ function formatDateTime(startTime) {
 function getCategoryName(categoryId) {
     const categories = window.getItems ? window.getItems('CATEGORIES') : 
         JSON.parse(localStorage.getItem('practiceTrack_categories')) || [];
-    const category = categories.find(c => c.id === categoryId) || { name: 'Unknown' };
-    return category.name || 'No Category';
+    const category = categories.find(c => c.id === categoryId);
+    // If categoryId is empty or not found, return 'No Category'
+    // Otherwise, return the found category's name.
+    return category ? category.name : 'No Category';
 }
 
 /**
@@ -323,12 +337,12 @@ function addSessionEventListeners(sessionElement, sessionId) {
  * @param {HTMLElement} sessionElement - The session element
  */
 function initializeIcons(sessionElement) {
-    if (window.lucide?.createIcons) {
-        window.lucide.createIcons({ 
-            icons: ['trash-2', 'edit'],
-            stroke: 'currentColor',
-            context: sessionElement 
-        });
+    if (window.lucide && sessionElement) {
+        try {
+            lucide.createIcons({ context: sessionElement });
+        } catch (e) {
+            console.error("Lucide icon initialization error:", e, "on element:", sessionElement);
+        }
     }
 }
 
@@ -350,8 +364,34 @@ function showSessionDialog(sessionId) {
     if (!cachedCategories) {
          cachedCategories = window.getItems ? window.getItems('CATEGORIES') : 
             JSON.parse(localStorage.getItem('practiceTrack_categories')) || [];
+         // Log what categories were fetched
+         console.log('[DEBUG Sessions] Fetched/Refreshed cachedCategories:', JSON.stringify(cachedCategories));
     }
-    const categoryOptions = (cachedCategories || []).map(cat => ({ value: cat.id, text: cat.name }));
+    // Create options with a default "optional" entry first
+    const categoryOptions = [
+        { value: '', text: 'Select Category (Optional)' }, // Add default option
+        ...(cachedCategories || []).map(cat => ({ value: cat.id, text: cat.name }))
+    ];
+    // Log the final options array being passed to the dialog
+    console.log('[DEBUG Sessions] Final categoryOptions for dialog:', JSON.stringify(categoryOptions));
+
+    // --- Fetch Goals for Dropdown ---
+    let goals = [];
+    try {
+        goals = window.getItems ? window.getItems('GOALS') : 
+            JSON.parse(localStorage.getItem('practiceTrack_goals')) || [];
+    } catch (e) {
+        console.error('[DEBUG Sessions] Error fetching goals for dialog:', e);
+    }
+    const goalOptions = [
+        { value: '', text: 'Select Goal (Optional)' }, // Default option
+        ...goals
+            .filter(goal => goal && !goal.completed) // Only show active goals
+            .sort((a, b) => a.title.localeCompare(b.title)) // Sort alphabetically
+            .map(goal => ({ value: goal.id, text: goal.title }))
+    ];
+    console.log('[DEBUG Sessions] Final goalOptions for dialog:', JSON.stringify(goalOptions));
+    // --- End Fetch Goals ---
     
     // Set default date to today if creating new session
     const today = new Date();
@@ -365,6 +405,13 @@ function showSessionDialog(sessionId) {
             label: 'Category',
             options: categoryOptions,
             value: sessionData ? sessionData.categoryId : ''
+        },
+        {
+            type: 'select',
+            id: 'session-goal',
+            label: 'Goal (Optional)',
+            options: goalOptions,
+            value: sessionData ? sessionData.goalId || '' : ''
         },
         {
             type: 'date',
@@ -508,6 +555,7 @@ function handleSessionFormSubmit(dialog, e, sessionId) {
         // Get form data and parse, defaulting empty/invalid to 0
         const formData = new FormData(dialog.querySelector('form'));
         const categoryId = formData.get('session-category');
+        const goalId = formData.get('session-goal');
         const dateValue = formData.get('session-date'); // YYYY-MM-DD
         const durationHMS = formData.get('session-duration-hms');
         const notes = formData.get('dialog-session-notes');
@@ -570,6 +618,7 @@ function handleSessionFormSubmit(dialog, e, sessionId) {
             endTime: endTimeISO,   // Store as ISO string
             duration: totalDurationSeconds, // Store calculated total duration in seconds
             notes: notes || '',
+            goalId: goalId || null, // <<< Add Goal ID (null if none selected)
             isLesson: false, // Assuming manual entries are not lessons by default
             updatedAt: new Date().toISOString(),
             createdAt: sessionId ? originalCreatedAt : new Date().toISOString(),
@@ -762,3 +811,44 @@ function escapeHTML(str) {
     }[s];
   });
 }
+
+// Add a specific CSS rule for the session category pill
+function addSessionSpecificStyles() {
+     let styleEl = document.getElementById('session-styles');
+     if (!styleEl) {
+         styleEl = document.createElement('style');
+         styleEl.id = 'session-styles';
+         document.head.appendChild(styleEl);
+     }
+     styleEl.textContent += `
+        /* Updated Category Pill Styles - Now Defaulting to Blue */
+        .card-category-pill {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            padding: 3px 10px; 
+            border-radius: 12px;
+            font-size: 12px; 
+            font-weight: 500;
+            line-height: 1.5; 
+            /* Apply Blue theme directly */
+            background-color: #DBEAFE; /* blue-100 */
+            color: #1D4ED8; /* blue-700 */
+            border: 1px solid #93C5FD; /* blue-300 */
+        }
+        /* Specific accent classes are removed or ignored, as the base style is now blue. */
+        /* Styles for lesson badge remain unchanged */
+        .lesson-badge {
+            font-size: 11px; 
+            padding: 3px 8px; 
+            background-color: #eef2ff; 
+            color: #4f46e5; 
+            border-radius: 12px; 
+            margin-right: auto; /* Pushes edit/delete buttons right */
+        }
+        .action-spacer { flex-grow: 1; } /* Pushes buttons to the right */
+     `;
+}
+
+// Ensure this runs when the sessions are initialized
+document.addEventListener('DOMContentLoaded', addSessionSpecificStyles); // Or call from initializeSessions

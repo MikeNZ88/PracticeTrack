@@ -61,115 +61,107 @@ function initializeGoals() {
  */
 function createGoalElement(goal) {
     const goalElement = document.createElement('div');
-    goalElement.className = 'card goal-item';
+    // Apply base class .goal-item
+    goalElement.className = 'goal-item'; 
     goalElement.dataset.id = goal.id;
     
-    // Format dates using Intl.DateTimeFormat
     const formatOptions = { day: 'numeric', month: 'long', year: 'numeric' };
     const dateFormatter = new Intl.DateTimeFormat('en-US', formatOptions);
     
     const dateStr = dateFormatter.format(new Date(goal.createdAt));
     const targetDateStr = goal.targetDate ? dateFormatter.format(new Date(goal.targetDate)) : null;
 
-    // Get category name and color using the correct data layer function
-    const category = window.getItemById ? window.getItemById('CATEGORIES', goal.categoryId) : { name: 'Unknown', color: 'gray' }; // Default if category not found
-    const categoryColorClass = getCategoryColorClass(category?.name || 'Unknown'); // Use optional chaining and fallback for color
+    // Get category name
+    const category = window.getItemById ? window.getItemById('CATEGORIES', goal.categoryId) : { name: 'Unknown' };
+    const categoryName = category?.name || 'Unknown';
+    // Note: We don't need categoryColorClass here anymore for the pill itself
     
-    // Determine status class and icon
-    const statusClass = goal.completed ? 'completed' : 'active';
-    const statusIcon = goal.completed ? 'check' : '';
-    
-    // Calculate progress if available
+    const isCompleted = goal.completed;
+    const statusClass = isCompleted ? 'completed' : 'active';
     const hasProgress = goal.progress !== undefined;
     const progressPercentage = hasProgress ? Math.min(100, Math.max(0, goal.progress)) : 0;
 
-    // Create goal content with enhanced design
-    // Construct the display string for the main content
-    let goalContentDetail = '';
-    if (goal.title) { // Start with the title
-        goalContentDetail = goal.title;
+    let goalDetail = goal.description || '';
+    if (goal.measureHelper) {
+        goalDetail = (goalDetail ? goalDetail + ' ' : '') + `(Measured By: ${goal.measureHelper})`;
     }
-    if (goal.measureHelper) { // Append the measure helper if it exists
-        goalContentDetail += ` (Measured By: ${goal.measureHelper})`;
-    }
-    // If title and measureHelper are missing, fall back to description or empty
-    if (!goalContentDetail && goal.description) {
-        goalContentDetail = goal.description;
-    } 
 
+    // Build HTML using new structure
     goalElement.innerHTML = `
-        <!-- Accent Bar at top -->
-        <div class="accent-bar ${categoryColorClass}"></div>
+        ${categoryName !== 'Unknown' ? `<div class="card-category-pill">${escapeHTML(categoryName)}</div>` : ''}
+        <h3 class="card-title ${statusClass}">${escapeHTML(goal.title)}</h3>
         
-        <div class="goal-main-content">
-            <div class="goal-header">
-                <div class="goal-checkbox ${statusClass}" title="Toggle Goal Status">
-                    ${statusIcon ? `<i data-lucide="${statusIcon}"></i>` : ''}
-                </div>
-                <h3 class="goal-title card-title ${statusClass}">${goal.title}</h3>
-            </div>
-            
-            <!-- Display the constructed goal detail string -->
-            ${goalContentDetail ? `
-                <div class="session-notes-container">
-                    <div class="session-notes goal-details-display">
-                       ${goalContentDetail} 
-                    </div>
-                </div>
-            ` : ''}
-        </div>
+        ${goalDetail ? `<p class="card-description">${escapeHTML(goalDetail)}</p>` : '<p class="card-description">&nbsp;</p>'}
         
-        <div class="goal-footer">
-             <span class="goal-category card-name-pill">${category?.name || 'Unknown'}</span>
-             
-             <span class="goal-date-time">
-                ${goal.completed 
-                    ? `Completed: ${dateStr}` 
-                    : targetDateStr ? `Due: ${targetDateStr}` : `Created: ${dateStr}`}
-             </span> 
-             
-             <div class="goal-actions">
-                <button class="icon-button edit-goal app-button app-button--secondary" title="Edit Goal">
-                    <i data-lucide="edit"></i>
-                </button>
-                <button class="icon-button delete-goal app-button app-button--secondary" title="Delete Goal">
-                    <i data-lucide="trash-2"></i>
-                </button>
+        ${hasProgress ? `
+            <div class="goal-progress">
+                <div class="progress-bar-bg">
+                    <div class="progress-bar-fill ${statusClass}" style="width: ${progressPercentage}%;"></div>
+                </div>
+                <span>${progressPercentage}%</span>
             </div>
+        ` : ''}
+
+        <p class="card-date">
+             ${isCompleted 
+                 ? `Completed: ${dateStr}` 
+                 : targetDateStr ? `Target: ${targetDateStr}` : `Created: ${dateStr}`}
+        </p> 
+             
+        <div class="card-actions">
+             <button class="goal-checkbox action-button ${statusClass}" title="Toggle Goal Status">
+                 <i data-lucide="${isCompleted ? 'check-square' : 'square'}" width="12" height="12"></i> 
+                 <span>${isCompleted ? 'Completed' : 'Mark Complete'}</span>
+             </button>
+             <span class="action-spacer"></span> <!-- Spacer -->
+             <button class="action-button edit-button edit-goal" title="Edit Goal">
+                 <i data-lucide="edit" width="12" height="12"></i>
+                 <span>Edit</span>
+             </button>
+             <button class="action-button delete-button delete-goal" title="Delete Goal">
+                 <i data-lucide="trash-2" width="12" height="12"></i>
+                 <span>Delete</span>
+             </button>
         </div>
     `;
     
-    // Initialize icons - include check icon for completed goals
+    // Initialize icons
     if (window.lucide) {
-        window.lucide.createIcons({ 
-             icons: ['check', 'edit', 'trash-2'],
-             context: goalElement 
-        }); 
+        lucide.createIcons({ context: goalElement }); 
     }
     
     // Add event listeners
-    // Listener for the checkbox
     const checkbox = goalElement.querySelector('.goal-checkbox');
     if (checkbox) {
-        checkbox.addEventListener('click', () => {
+        checkbox.addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevent card click
             toggleGoal(goal.id);
         });
     }
     
-    // Edit and Delete listeners (target buttons within footer)
     const editBtn = goalElement.querySelector('.edit-goal');
     if (editBtn) {
-        editBtn.addEventListener('click', () => {
+        editBtn.addEventListener('click', (e) => {
+            e.stopPropagation(); 
             showGoalDialog(goal.id);
         });
     }
     
     const deleteBtn = goalElement.querySelector('.delete-goal');
     if (deleteBtn) {
-        deleteBtn.addEventListener('click', () => {
+        deleteBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
             deleteGoal(goal.id);
         });
     }
+    
+    // Add click listener to the whole card to open edit dialog (if not clicking a button)
+    goalElement.addEventListener('click', (e) => {
+        // Check if the click target was one of the buttons or their children
+        if (!e.target.closest('button')) {
+            showGoalDialog(goal.id);
+        }
+    });
     
     return goalElement;
 }
@@ -702,4 +694,67 @@ document.addEventListener('pageChanged', (e) => {
 });
 
 // Make function available globally
-window.initializeGoals = initializeGoals; 
+window.initializeGoals = initializeGoals;
+
+// Add CSS for goal-specific elements (progress bar, checkbox)
+function addGoalSpecificStyles() {
+     let styleEl = document.getElementById('goal-styles');
+     if (!styleEl) {
+         styleEl = document.createElement('style');
+         styleEl.id = 'goal-styles';
+         document.head.appendChild(styleEl);
+     }
+     styleEl.textContent += `
+        .goal-progress {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        .progress-bar-bg {
+            flex-grow: 1;
+            height: 8px;
+            background-color: #e5e7eb; /* gray-200 */
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            background-color: #3b82f6; /* blue-500 */
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+        .progress-bar-fill.completed { 
+            background-color: #22c55e; /* green-500 */
+        }
+        .goal-progress span {
+            font-size: 12px;
+            color: #6b7280; /* gray-500 */
+        }
+        .goal-checkbox {
+            /* Base styles like padding, border-radius, font-size, display, align-items, gap 
+               are inherited from .action-button (defined in styles.css) */
+            
+            /* Specific styles for the default (active) state */
+            background-color: rgba(107, 114, 128, 0.1); /* gray-100 equivalent */
+            color: #4b5563; /* gray-600 */ 
+            cursor: pointer; 
+        }
+        .goal-checkbox:hover {
+            background-color: rgba(107, 114, 128, 0.2); /* Slightly darker gray on hover */
+        }
+        /* Icon size is set in HTML */
+
+        .goal-checkbox.completed {
+            /* Specific styles for the completed state */
+            background-color: rgba(34, 197, 94, 0.1); /* green-100 equivalent */
+            color: #15803d; /* green-700 */
+        }
+        .goal-checkbox.completed:hover {
+            background-color: rgba(34, 197, 94, 0.2); /* Slightly darker green on hover */
+        }
+        .action-spacer { flex-grow: 1; } /* Pushes buttons right */
+     `;
+}
+
+document.addEventListener('DOMContentLoaded', addGoalSpecificStyles); // Or call from initializeGoals 

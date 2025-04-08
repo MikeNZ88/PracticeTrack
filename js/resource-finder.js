@@ -1,3 +1,4 @@
+
 window.PracticeResourceFinder = (function() {
     // Database will be loaded from js/resource-database.js
     // Ensure resource-database.js is included before this file in your HTML.

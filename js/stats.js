@@ -1,6 +1,117 @@
 // Simple and robust stats functionality
 // Eliminates complex initialization chains and redundant code
 
+// --- Color Palette and Helpers ---
+
+// Predefined visually distinct color palette (tailwind css colors)
+const VISUALLY_DISTINCT_COLORS = [
+    '#3b82f6', // blue-500
+    '#f97316', // orange-500
+    '#22c55e', // green-500
+    '#a855f7', // purple-500
+    '#ef4444', // red-500
+    '#06b6d4', // cyan-500
+    '#eab308', // yellow-500
+    '#d946ef', // fuchsia-500
+    '#14b8a6', // teal-500
+    '#ec4899', // pink-500
+    '#6366f1', // indigo-500
+    '#84cc16', // lime-500
+    '#6b7280'  // gray-500 (keep last for unassigned/fallback)
+];
+
+// Simple hash function to get a somewhat consistent index from a string ID
+function simpleHash(str) {
+  if (!str) return 0;
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash |= 0; // Convert to 32bit integer
+  }
+  return Math.abs(hash);
+}
+
+// --- Consistent Color Assignment Functions ---
+let categoryColorMap = {}; // Cache assigned colors
+let nextCategoryColorIndex = 0;
+const MAX_DISTINCT_COLORS = VISUALLY_DISTINCT_COLORS.length - 1; // Exclude gray
+
+function getConsistentCategoryColor(categoryId) {
+    if (!categoryId || categoryId === 'uncategorized') return VISUALLY_DISTINCT_COLORS[MAX_DISTINCT_COLORS]; // Gray for null/undefined/uncategorized ID
+
+    if (categoryColorMap[categoryId]) {
+        return categoryColorMap[categoryId];
+    }
+    // Use predefined defaults for known base categories
+    const defaultMapping = {
+        'cat_technique': VISUALLY_DISTINCT_COLORS[0], // Blue
+        'cat_repertoire': VISUALLY_DISTINCT_COLORS[2], // Green
+        'cat_theory': VISUALLY_DISTINCT_COLORS[1], // Orange
+        'cat_sightreading': VISUALLY_DISTINCT_COLORS[3], // Purple
+        'cat_warmup': VISUALLY_DISTINCT_COLORS[5], // Cyan
+    };
+    if (defaultMapping[categoryId]) {
+        categoryColorMap[categoryId] = defaultMapping[categoryId];
+        return defaultMapping[categoryId];
+    }
+
+    // Assign next available color for unknown categories using hash
+    let hashBasedIndex = simpleHash(categoryId) % MAX_DISTINCT_COLORS;
+    let assignedColor = null;
+    let attempts = 0;
+    while(attempts < MAX_DISTINCT_COLORS) {
+        const potentialColor = VISUALLY_DISTINCT_COLORS[hashBasedIndex];
+        const isUsed = Object.values(categoryColorMap).includes(potentialColor);
+        const isDefaultColor = Object.values(defaultMapping).includes(potentialColor);
+        if (!isUsed || isDefaultColor) {
+             assignedColor = potentialColor;
+             break;
+        }
+        hashBasedIndex = (hashBasedIndex + 1) % MAX_DISTINCT_COLORS;
+        attempts++;
+    }
+    if (!assignedColor) { // Fallback if all else fails
+        assignedColor = VISUALLY_DISTINCT_COLORS[nextCategoryColorIndex % MAX_DISTINCT_COLORS];
+        nextCategoryColorIndex++;
+    }
+    categoryColorMap[categoryId] = assignedColor;
+    return assignedColor;
+}
+
+let goalColorMap = {}; // Cache assigned goal colors
+function getConsistentGoalColor(goalId) {
+    if (goalId === 'unassigned') {
+        return VISUALLY_DISTINCT_COLORS[MAX_DISTINCT_COLORS]; // Use Gray for unassigned
+    }
+    if (!goalId) {
+        return VISUALLY_DISTINCT_COLORS[MAX_DISTINCT_COLORS]; 
+    }
+    if (goalColorMap[goalId]) {
+        return goalColorMap[goalId];
+    }
+    const colorIndex = simpleHash(goalId) % MAX_DISTINCT_COLORS;
+    const color = VISUALLY_DISTINCT_COLORS[colorIndex];
+    goalColorMap[goalId] = color;
+    return color;
+}
+
+// Helper to generate a slightly darker hover color
+function getHoverColor(hexColor) {
+    if (!hexColor || hexColor.length !== 7 || hexColor[0] !== '#') return hexColor;
+    let r = parseInt(hexColor.substring(1, 3), 16);
+    let g = parseInt(hexColor.substring(3, 5), 16);
+    let b = parseInt(hexColor.substring(5, 7), 16);
+    r = Math.max(0, r - 30);
+    g = Math.max(0, g - 30);
+    b = Math.max(0, b - 30);
+    const rr = r.toString(16).padStart(2, '0');
+    const gg = g.toString(16).padStart(2, '0');
+    const bb = b.toString(16).padStart(2, '0');
+    return `#${rr}${gg}${bb}`;
+}
+// --- End Color Palette and Helpers ---
+
 // DOM Elements
 const statsContainer = document.querySelector('.stats-container');
 const categoryFilter = document.querySelector('.stats-category-filter');
@@ -587,25 +698,12 @@ function displayStats(sessions, container, previousPeriodStats, practiceLevel) {
     `;
     // --- End Stats Grid HTML ---
 
-    // --- Add Explanation Text ---
-    const explanationHTML = `
-        <div class="stats-explanation">
-            <p>
-                <strong>Comparison Indicators:</strong> 
-                <span class="stat-comparison increase"><i data-lucide="trending-up"></i> +%</span> / 
-                <span class="stat-comparison decrease"><i data-lucide="trending-down"></i> -%</span> = Change vs. previous period. 
-                <span class="stat-comparison increase"><i data-lucide="trending-up"></i> New</span> = Value recorded, previous period was 0. 
-                <span class="stat-comparison no-change">No Change / --</span> = No difference, or no comparison data.
-            </p>
-        </div>
-    `;
-    // --- End Explanation Text ---
-
-    container.innerHTML = statsGridHTML + explanationHTML; // Append explanation
-
+    // Assign only the grid HTML
+    container.innerHTML = statsGridHTML;
+ 
     if (window.lucide) {
         // Make sure to include icons used in explanation
-        window.lucide.createIcons({ context: container, icons: ['trending-up', 'trending-down'] });
+        window.lucide.createIcons({ context: container }); 
     }
 
     // --- Render Category Time Chart ---
@@ -615,94 +713,71 @@ function displayStats(sessions, container, previousPeriodStats, practiceLevel) {
         console.warn("Chart.js not found. Skipping chart rendering.");
         if (chartContainer) chartContainer.innerHTML = '<p>Error: Chart library not loaded.</p>';
     }
+
+    // --- Render Goal Time Chart ---
+    if (typeof Chart !== 'undefined') {
+        renderGoalTimeChart(sessions); // Call the new function
+    } else {
+        console.warn("Chart.js not found. Skipping goal chart rendering.");
+        const goalChartContainer = document.getElementById('goal-time-chart-container');
+        if (goalChartContainer) goalChartContainer.innerHTML = '<p>Error: Chart library not loaded.</p>';
+    }
 }
 
-// --- ADD Chart Rendering Function --- ADD THIS BACK ---
+// --- Category Chart Rendering Function ---
 let categoryTimeChartInstance = null;
 
 function renderCategoryTimeChart(labels, data) {
+    // Map labels back to category IDs for consistent coloring
+    const allCategories = window.getItems ? window.getItems('CATEGORIES') : 
+        JSON.parse(localStorage.getItem('practiceTrack_categories')) || [];
+    const categoryNameToIdMap = allCategories.reduce((map, cat) => {
+        if (cat && cat.name) { // Ensure cat and name exist
+           map[cat.name] = cat.id; 
+        }
+        return map;
+    }, {});
+    categoryNameToIdMap['Uncategorized'] = 'uncategorized'; 
+
     const ctxContainer = document.getElementById('category-time-chart-container');
     if (!ctxContainer) {
         console.error("Chart container 'category-time-chart-container' not found.");
-        return;
+        return; // Exit if container not found
     }
-    ctxContainer.innerHTML = '<canvas id="categoryTimeChart"></canvas>';
+    ctxContainer.innerHTML = '<canvas id="categoryTimeChart"></canvas>'; // Prepare canvas
     const ctx = document.getElementById('categoryTimeChart').getContext('2d');
 
     if (categoryTimeChartInstance) {
         categoryTimeChartInstance.destroy();
     }
 
-    const categoryFilter = document.getElementById('category-filter');
-    const selectedCategoryId = categoryFilter ? categoryFilter.value : '';
-    let chartTitle = 'Practice Time by Category';
-
-    if (selectedCategoryId && labels.length === 1) {
-        chartTitle = `Practice Time for ${labels[0]}`;
-    } else if (labels.length === 0) {
-        ctxContainer.innerHTML = '<p class="empty-state">No practice time recorded for selected category/period.</p>';
+    if (!labels || labels.length === 0) {
+        console.log("[renderCategoryTimeChart] No data to render.");
+        ctxContainer.innerHTML = '<p class="empty-state">No category data for this period.</p>';
         return;
     }
-
-    // --- Generate Colors with Brand Priority (Lighter Blue First) ---
-    const brandColors = [
-        '#73a6ff', // --primary-blue-light (NOW FIRST)
-        '#ff7a43', // --secondary-orange
-        '#3b7ff5', // --primary-blue (Original)
-        '#ffa484', // --secondary-orange-light
-        '#2861c7'  // --primary-blue-dark
-        // Add more brand variations if desired
-    ];
-
-    // Combine labels and data to sort by data value (descending)
-    const combined = labels.map((label, index) => ({ label, value: data[index] }));
-    combined.sort((a, b) => b.value - a.value); // Sort descending by value
-
-    // Re-extract sorted labels and data
-    const sortedLabels = combined.map(item => item.label);
-    const sortedData = combined.map(item => item.value);
-
+    
+    // Generate Colors based on Category ID (Consistent)
     const backgroundColors = [];
     const hoverBackgroundColors = [];
-    const goldenAngle = 137.5;
-    const saturation = 70;
-    const lightness = 60;
-    let fallbackHue = Math.random() * 360;
 
-    for (let i = 0; i < sortedLabels.length; i++) {
-        let color;
-        let hoverColor;
-        if (i < brandColors.length) {
-            color = brandColors[i];
-            // Simple darken effect for hover (Needs proper HSL conversion for accuracy)
-            // For simplicity, we just pick the next darker shade if available or darken hex
-            let darkerShade = brandColors[i+2] || brandColors[i+1] || brandColors[0]; // Simple fallback
-            if (color === '#73a6ff') darkerShade = '#3b7ff5'; // Explicit hover for light blue
-            else if (color === '#ff7a43') darkerShade = '#e35f2a'; // Explicit hover for orange
-            else if (color === '#3b7ff5') darkerShade = '#2861c7'; // Explicit hover for blue
-            else if (color === '#ffa484') darkerShade = '#ff7a43'; // Explicit hover for light orange
-            else if (color === '#2861c7') darkerShade = '#1e4a99'; // Approximate darker blue
+    for (let i = 0; i < labels.length; i++) {
+        const label = labels[i];
+        const categoryId = categoryNameToIdMap[label] || 'uncategorized'; 
+        const color = getConsistentCategoryColor(categoryId); 
+        const hoverColor = getHoverColor(color); 
 
-            hoverColor = darkerShade;
-
-        } else {
-            // Use golden angle for remaining slices
-            const hue = (fallbackHue + (i - brandColors.length) * goldenAngle) % 360;
-            color = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
-            hoverColor = `hsl(${hue}, ${saturation}%, ${lightness - 10}%)`;
-        }
         backgroundColors.push(color);
         hoverBackgroundColors.push(hoverColor);
     }
-    // --- End Color Generation ---
 
     categoryTimeChartInstance = new Chart(ctx, {
         type: 'pie',
         data: {
-            labels: sortedLabels,
+            labels: labels,
             datasets: [{
                 label: 'Practice Time (seconds)',
-                data: sortedData,
+                data: data,
                 backgroundColor: backgroundColors,
                 hoverBackgroundColor: hoverBackgroundColors,
                 borderColor: '#ffffff',
@@ -715,7 +790,7 @@ function renderCategoryTimeChart(labels, data) {
             plugins: {
                 title: {
                     display: true,
-                    text: chartTitle,
+                    text: 'Practice Time by Category',
                     font: { size: 16 },
                     padding: { top: 10, bottom: 20 }
                 },
@@ -726,18 +801,20 @@ function renderCategoryTimeChart(labels, data) {
                         boxWidth: 10,
                         padding: 15,
                         generateLabels: function(chart) {
-                            const data = chart.data;
-                            if (data.labels.length && data.datasets.length) {
-                                return data.labels.map((label, i) => {
+                            const chartData = chart.data; // Use different variable name
+                            if (chartData.labels.length && chartData.datasets.length) {
+                                return chartData.labels.map((label, i) => {
                                     const meta = chart.getDatasetMeta(0);
-                                    const style = meta.controller.getStyle(i) || { backgroundColor: '#ccc', borderColor: '#ccc', borderWidth: 1 }; // Fallback style
-                                    const value = data.datasets[0].data[i];
+                                    const style = meta.controller.getStyle(i) || { backgroundColor: '#ccc', borderColor: '#ccc', borderWidth: 1 }; 
+                                    const value = chartData.datasets[0].data[i];
+                                    // Ensure formatTime is accessible or provide fallback
+                                    const timeString = typeof formatTime === 'function' ? formatTime(value) : `${value}s`;
                                     return {
-                                        text: `${label} (${formatTime(value)})`,
+                                        text: `${label} (${timeString})`,
                                         fillStyle: style.backgroundColor,
                                         strokeStyle: style.borderColor,
                                         lineWidth: style.borderWidth,
-                                        hidden: isNaN(value) || meta.data[i]?.hidden, // Optional chaining for safety
+                                        hidden: isNaN(value) || meta.data[i]?.hidden, 
                                         index: i
                                     };
                                 });
@@ -751,7 +828,9 @@ function renderCategoryTimeChart(labels, data) {
                         label: function(context) {
                             const label = context.label || '';
                             const value = context.parsed;
-                            return `${label}: ${formatTime(value)}`;
+                            // Ensure formatTime is accessible or provide fallback
+                            const timeString = typeof formatTime === 'function' ? formatTime(value) : `${value}s`;
+                            return `${label}: ${timeString}`;
                         }
                     }
                 }
@@ -760,6 +839,151 @@ function renderCategoryTimeChart(labels, data) {
     });
 }
 // --- End Chart Rendering Function ---
+
+// --- Goal Chart Rendering Function ---
+let goalTimeChartInstance = null;
+
+function renderGoalTimeChart(sessions) {
+    const ctxContainer = document.getElementById('goal-time-chart-container');
+    if (!ctxContainer) {
+        console.error("Goal chart container 'goal-time-chart-container' not found.");
+        return;
+    }
+    ctxContainer.innerHTML = '<canvas id="goalTimeChart"></canvas>'; 
+    const ctx = document.getElementById('goalTimeChart').getContext('2d');
+
+    if (goalTimeChartInstance) {
+        goalTimeChartInstance.destroy();
+    }
+
+    // Fetch all goals to map IDs to titles
+    let allGoals = [];
+    try {
+        allGoals = window.getItems ? window.getItems('GOALS') :
+            JSON.parse(localStorage.getItem('practiceTrack_goals')) || [];
+    } catch (e) {
+        console.error("Error fetching goals for goal chart:", e);
+    }
+    const goalMap = allGoals.reduce((map, goal) => {
+        if (goal && goal.id) { 
+            map[goal.id] = goal.title || 'Untitled Goal'; 
+        }
+        return map;
+    }, {});
+
+    // Aggregate time by goal ID
+    const timeByGoal = sessions.reduce((acc, session) => {
+        const duration = session.duration || 0;
+        if (duration <= 0) return acc; 
+
+        const goalId = session.goalId;
+        const key = goalId && goalMap.hasOwnProperty(goalId) ? goalId : 'unassigned'; 
+
+        if (!acc[key]) {
+            acc[key] = {
+                time: 0,
+                label: key === 'unassigned' ? 'Not Assigned to Goal' : goalMap[key]
+            };
+        }
+        acc[key].time += duration;
+        return acc;
+    }, {});
+
+    // Prepare chart data
+    const chartData = Object.values(timeByGoal)
+        .filter(item => item.time > 0);
+
+    const keys = chartData.map(item => {
+        return Object.keys(timeByGoal).find(key => timeByGoal[key] === item) || 'unassigned';
+    });
+
+    const labels = chartData.map(item => item.label);
+    const data = chartData.map(item => item.time);
+
+    if (labels.length === 0) {
+        ctxContainer.innerHTML = '<p class="empty-state">No practice time assigned to goals for this period.</p>';
+        return;
+    }
+
+    // Generate Colors based on Goal ID (Consistent)
+    const backgroundColors = [];
+    const hoverBackgroundColors = [];
+
+    for (const key of keys) { 
+        const color = getConsistentGoalColor(key); 
+        const hoverColor = getHoverColor(color);   
+
+        backgroundColors.push(color);
+        hoverBackgroundColors.push(hoverColor);
+    }
+
+    // Render the Pie Chart
+    goalTimeChartInstance = new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Practice Time',
+                data: data,
+                backgroundColor: backgroundColors,
+                hoverBackgroundColor: hoverBackgroundColors,
+                borderColor: '#ffffff',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Practice Time by Goal',
+                    font: { size: 16 },
+                    padding: { top: 10, bottom: 20 }
+                },
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        usePointStyle: true,
+                        boxWidth: 10,
+                        padding: 15,
+                        generateLabels: function(chart) {
+                            const chartData = chart.data;
+                            if (chartData.labels.length && chartData.datasets.length) {
+                                return chartData.labels.map((label, i) => {
+                                    const meta = chart.getDatasetMeta(0);
+                                    const style = meta.controller.getStyle(i) || { backgroundColor: '#ccc', borderColor: '#ccc', borderWidth: 1 };
+                                    const value = chartData.datasets[0].data[i];
+                                    const timeString = typeof formatTime === 'function' ? formatTime(value) : `${value}s`;
+                                    return {
+                                        text: `${label} (${timeString})`,
+                                        fillStyle: style.backgroundColor,
+                                        strokeStyle: style.borderColor,
+                                        lineWidth: style.borderWidth,
+                                        hidden: isNaN(value) || meta.data[i]?.hidden,
+                                        index: i
+                                    };
+                                });
+                            }
+                            return [];
+                        }
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.label || '';
+                            const value = context.parsed;
+                            const timeString = typeof formatTime === 'function' ? formatTime(value) : `${value}s`;
+                            return `${label}: ${timeString}`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+// --- End Goal Chart Rendering Function ---
 
 function displayEmptyState(container) {
     console.log('Displaying empty state in:', container);

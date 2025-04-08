@@ -154,85 +154,79 @@ function createMediaElement(media) {
     console.log(`[Media CreateElement] Creating element for ID: ${media.id}, Name: ${media.name}, Type: ${media.type}`);
 
     const element = document.createElement('div');
-    element.className = 'card media-item';
+    // Add base media-card class and type-specific class for cursor
+    element.className = `media-card ${media.type}`; 
     element.dataset.id = media.id;
 
     const { dateStr, timeStr } = formatDateTime(media.date || media.createdAt);
+    const formattedDate = dateStr; // Use just the date part for display
+    
+    // Get category name and color (no change here)
     const categoryName = media.categoryId ? getCategoryName(media.categoryId) : 'Uncategorized';
-    const categoryColorClass = getCategoryColorClass(categoryName); // Assuming this handles 'Uncategorized'
+    const categoryColorClass = getCategoryColorClass(categoryName);
 
-    let contentHTML = '';
     let iconType = 'file-text'; // Default icon
+    let description = media.description || '';
 
-    if (media.type === 'note') {
-        iconType = 'sticky-note';
-        // **** Log the note content before creating HTML ****
-        console.log(`[Media CreateElement - NOTE] ID: ${media.id}, Name: ${media.name}, Content:`, media.content);
-        contentHTML = `
-            <div class="media-content media-note-content">
-                <p>${escapeHTML(media.content || '(empty note)')}</p>
-            </div>
-        `;
-        // **** Log the generated contentHTML ****
-        console.log(`[Media CreateElement - NOTE] Generated contentHTML:`, contentHTML);
-    } else if (media.type === 'photo') {
+    if (media.type === 'photo') {
         iconType = 'image';
-        contentHTML = `
-            <div class="media-content media-file-info">
-                 <p><strong>Filename:</strong> ${escapeHTML(media.name || 'N/A')}</p>
-                 ${media.description ? `<p><strong>Description:</strong> ${escapeHTML(media.description)}</p>` : ''}
-                 <p class="help-text">Please locate this photo on your device.</p>
-            </div>
-        `;
+        // Description for photo comes from media.description
     } else if (media.type === 'video') {
         iconType = 'video';
-         contentHTML = `
-            <div class="media-content media-file-info">
-                 <p><strong>Filename:</strong> ${escapeHTML(media.name || 'N/A')}</p>
-                 ${media.description ? `<p><strong>Description:</strong> ${escapeHTML(media.description)}</p>` : ''}
-                 <p class="help-text">Please locate this video on your device.</p>
-            </div>
-        `;
+        // Description for video comes from media.description
+    } else if (media.type === 'note') {
+        iconType = 'sticky-note';
+        // For notes, the main text is stored in media.content
+        description = media.content || ''; 
     }
 
+    // Build new HTML structure based on React component
     element.innerHTML = `
-        <div class="accent-bar ${categoryColorClass}"></div>
-        <div class="media-body">
-            <div class="media-header">
-                 <span class="media-type-icon"><i data-lucide="${iconType}"></i> ${media.type.charAt(0).toUpperCase() + media.type.slice(1)}</span>
-                 <span class="media-category card-name-pill">${escapeHTML(categoryName)}</span>
-            </div>
-            <h3 class="media-title">${escapeHTML(media.name || media.description || 'Media Item')}</h3>
-            ${contentHTML}
+        <div class="type-indicator ${media.type}">
+            <i data-lucide="${iconType}" width="16" height="16"></i>
         </div>
-        <div class="media-footer">
-            <span class="media-date">Added: ${dateStr} at ${timeStr}</span>
-            <div class="action-buttons">
-                 <button class="icon-button edit-media app-button app-button--secondary" title="Edit Details">
-                    <i data-lucide="edit"></i>
-                 </button>
-                 <button class="icon-button delete-media app-button app-button--secondary" title="Delete Record">
-                     <i data-lucide="trash-2"></i>
-                 </button>
-            </div>
+        <h3 class="card-title">${escapeHTML(media.name || 'Media Item')}</h3>
+        ${description ? `<p class="card-description">${escapeHTML(description)}</p>` : ''}
+        <p class="card-date">${formattedDate}</p>
+        
+        <div class="card-actions">
+            <button class="action-button edit-button edit-media" title="Edit Details">
+                <i data-lucide="edit" width="12" height="12"></i>
+                <span>Edit</span>
+            </button>
+            <button class="action-button delete-button delete-media" title="Delete Record">
+                <i data-lucide="trash-2" width="12" height="12"></i>
+                <span>Delete</span>
+            </button>
         </div>
     `;
 
-    // Add event listeners for edit/delete
+    // Add event listeners (no change to logic, but query selectors might need update if classes changed)
     const editBtn = element.querySelector('.edit-media');
     const deleteBtn = element.querySelector('.delete-media');
 
     if (editBtn) {
         editBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
+            e.stopPropagation(); // Prevent card click if needed
             showMediaDialog(media.id);
         });
     }
     if (deleteBtn) {
         deleteBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
+            e.stopPropagation(); // Prevent card click if needed
             deleteMedia(media.id);
         });
+    }
+    
+    // Add click listener to the whole card for viewing (if applicable)
+    if (media.type === 'photo' || media.type === 'video') {
+        element.addEventListener('click', () => {
+            viewMediaFile(media);
+        });
+    } else if (media.type === 'note') {
+         element.addEventListener('click', () => {
+             showMediaDialog(media.id); // Open edit dialog directly for notes
+         });
     }
 
     // Initialize icons for this element

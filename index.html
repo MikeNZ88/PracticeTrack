@@ -55,8 +55,8 @@
     <script src="js/goals.js" defer></script>
     <script src="js/db.js" defer></script>
     <script src="js/media.js" defer></script>
-    <script src="js/practice-categories.js" defer></script>
     <script src="js/user-guide.js" defer></script>
+    <script src="js/categories.js" defer></script>
     <script src="js/metronome.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.0/papaparse.min.js"></script>
@@ -410,6 +410,11 @@
                             <!-- Canvas will be injected here by JS -->
                         </div>
 
+                        <!-- Container for the Goal Time Chart -->
+                        <div id="goal-time-chart-container" style="height: 400px; margin-top: 30px;">
+                            <!-- Goal chart canvas will be injected here by JS -->
+                        </div>
+
                         <!-- Container for Practice Scale Guide -->
                         <div id="practice-guide-content" class="practice-guide-section" style="margin-top: var(--space-xl);"> 
                             <!-- Guide Content Loaded by JS -->
@@ -471,13 +476,18 @@
                                 <span>Upload</span>
                             </button>
                         </div>
-                        <div class="media-container">
-                        <div id="media-list" class="media-list">
-                            <!-- Media items will be populated here -->
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                        <div class="media-info-text">
+                             <p>
+                                It can be hard to find things in your device's gallery! Use this section to keep track of lesson recordings, practice snippets, performance videos, or helpful photos. If you record media outside the app, you can upload the file reference here. You can also create lesson or practice notes.
+                             </p>
+                         </div>
+                         <div class="media-container">
+                         <div id="media-list" class="media-list">
+                             <!-- Media items will be populated here -->
+                             </div>
+                         </div>
+                     </div>
+                 </div>
             </section>
 
             <!-- Resources Page -->
@@ -487,37 +497,10 @@
                     <!-- Gradient Header -->
                     <div class="page-gradient-header">
                         <h1>Resources</h1>
-                         <p>Explore practice categories and helpful materials.</p>
+                         <p>Explore helpful learning materials and links.</p>
                     </div>
                      <div class="page-content-container">
-                         <!-- Search Input Removed from here -->
-                         
-                         <!-- Filter Buttons -->
-                         <div class="filters resource-filters">
-                             <input type="text" id="resource-search" class="search-input" placeholder="Search for instrument or practice category">
-                             <button class="filter-btn app-button app-button--secondary active" data-family="all">All</button>
-                             <button class="filter-btn app-button app-button--secondary" data-family="Bass Guitar">Bass</button>
-                             <button class="filter-btn app-button app-button--secondary" data-family="Brass">Brass</button>
-                             <button class="filter-btn app-button app-button--secondary" data-family="Guitar">Guitar</button>
-                             <button class="filter-btn app-button app-button--secondary" data-family="Keyboard">Keyboard</button>
-                             <button class="filter-btn app-button app-button--secondary" data-family="Percussion">Percussion</button>
-                             <button class="filter-btn app-button app-button--secondary" data-family="Strings">Strings</button>
-                             <button class="filter-btn app-button app-button--secondary" data-family="Voice">Voice</button>
-                             <button class="filter-btn app-button app-button--secondary" data-family="Woodwinds">Woodwinds</button>
-                         </div>
-
-                         <!-- Difficulty Filter -->
-                         <div class="difficulty-filter-container">
-                              <select id="difficulty-filter" class="filter-select difficulty-filter">
-                                  <option value="all">All Difficulty Levels</option>
-                                  <option value="b1">Beginner (Foundation)</option>
-                                  <option value="b2">Beginner (Developing)</option>
-                                  <option value="i1">Intermediate (Foundation)</option>
-                                  <option value="i2">Intermediate (Advanced)</option>
-                                  <option value="a">Advanced</option>
-                              </select>
-                         </div>
-
+                         <!-- How-To Buttons -->
                          <div style="text-align: center; margin: 20px 0; display: flex; flex-wrap: wrap; justify-content: center; gap: var(--space-sm);">
                              <button id="resources-how-to-use-btn" class="app-button app-button--secondary app-button--small">
                                   <i data-lucide="help-circle"></i>
@@ -527,16 +510,34 @@
                                   <i data-lucide="book-open"></i>
                                   <span>How to Practice</span>
                               </button>
-                             <button id="explore-resources-btn" class="app-button app-button--secondary app-button--small">
-                                  <i data-lucide="search"></i>
-                                  <span>Assistant</span>
+                             <button id="explore-resources-btn" class="app-button app-button--primary app-button--small">
+                                  <i data-lucide="video"></i>
+                                  <span>YouTube Resources</span>
                               </button>
                          </div>
                          
-                         <!-- Category List Container (Will be populated by JS) -->
-                         <div id="practice-categories-container" class="practice-categories-container">
-                             <!-- Static HTML content removed -->
-                             <!-- JavaScript will generate the list here -->
+                         <!-- Resource Filters -->
+                         <div class="resource-filters">
+                             <div class="resource-instrument-filters">
+                                 <button class="resource-instrument-filter-btn active" data-instrument="Guitar">Guitar</button>
+                                 <button class="resource-instrument-filter-btn active" data-instrument="Bass Guitar">Bass</button>
+                                 <button class="resource-instrument-filter-btn active" data-instrument="Keyboard">Keyboard</button>
+                                 <button class="resource-instrument-filter-btn active" data-instrument="Percussion">Drums</button>
+                                 <button class="resource-instrument-filter-btn active" data-instrument="Strings">Strings</button>
+                                 <button class="resource-instrument-filter-btn active" data-instrument="Woodwinds">Woodwinds</button>
+                                 <button class="resource-instrument-filter-btn active" data-instrument="Brass">Brass</button>
+                             </div>
+                             <input type="search" id="resource-search" placeholder="Search topics..." class="form-control">
+                         </div>
+                         
+                         <!-- Dynamic Resource Categories -->
+                         <div id="dynamic-resource-list" class="dynamic-resource-list">
+                             <!-- Categories will be loaded here by JS -->
+                         </div>
+                         
+                         <!-- Container for Static Resource List -->
+                         <div id="static-resource-content" class="static-resources-container">
+                            <!-- Static HTML content will be injected here by JS -->
                          </div>
                      </div>
                  </div>

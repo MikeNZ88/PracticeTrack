@@ -326,8 +326,16 @@ window.UI = (function() {
         console.log(`[DEBUG ${caller} Filter] Checking Category Filter. filters.categoryId = '${filters.categoryId}' (Type: ${typeof filters.categoryId})`);
         // **** Only filter if categoryId is valid, not 'all', and not the missing placeholder ****
         if (filters.categoryId && filters.categoryId !== 'all' && filters.categoryId !== '[FilterElement Missing]') { 
-            currentFilteredRecords = currentFilteredRecords.filter(record => record.categoryId === filters.categoryId);
-            console.log(`[DEBUG ${caller} Filter] -> Applied Category filter for ID: ${filters.categoryId}. Records remaining: ${currentFilteredRecords.length} (from ${initialCount})`);
+            // Validate category exists before filtering
+            const categoryExists = window.getItems ? 
+                window.getItems('CATEGORIES').some(cat => cat.id === filters.categoryId) : false;
+            
+            if (categoryExists) {
+                currentFilteredRecords = currentFilteredRecords.filter(record => record.categoryId === filters.categoryId);
+                console.log(`[DEBUG ${caller} Filter] -> Applied Category filter for ID: ${filters.categoryId}. Records remaining: ${currentFilteredRecords.length} (from ${initialCount})`);
+            } else {
+                console.log(`[DEBUG ${caller} Filter] -> Skipping Category filter (Category ID ${filters.categoryId} not found)`);
+            }
             initialCount = currentFilteredRecords.length; // Update count for next filter
         } else {
             console.log(`[DEBUG ${caller} Filter] -> Skipping Category filter (Value was '${filters.categoryId}')`);
