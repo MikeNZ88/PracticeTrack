@@ -1333,13 +1333,9 @@ function handleAddCategoryFromResource(topic) { // Renamed function
           window.addItem('CATEGORIES', newCategory);
           console.log('[DEBUG Resources] Category added via window.addItem:', newCategory);
           
-          // Trigger dropdown updates across the app
-          if (window.updateCategoryDropdowns) {
-              window.updateCategoryDropdowns();
-              console.log('[DEBUG Resources] Called window.updateCategoryDropdowns()');
-          } else {
-               console.warn('[DEBUG Resources] window.updateCategoryDropdowns function not found.');
-          }
+          // Dispatch 'dataChanged' event instead of calling updateCategoryDropdowns
+          console.log('[DEBUG Resources] Dispatching dataChanged event for CATEGORIES');
+          document.dispatchEvent(new CustomEvent('dataChanged', { detail: { type: 'CATEGORIES' } }));
 
           // Optional: Show success feedback (can replace alert)
           if (window.showNotification) {

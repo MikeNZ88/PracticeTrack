@@ -167,59 +167,72 @@ function initializeSessions() {
  * @returns {HTMLElement} - The session element
  */
 function createSessionElement(session) {
-    const sessionElement = document.createElement('div');
-    sessionElement.className = 'card session-item';
-    sessionElement.dataset.id = session.id;
+    console.log(`[DEBUG Sessions CreateElement] Creating element for session ID: ${session?.id}`); // Log entry
+    try {
+        const sessionElement = document.createElement('div');
+        sessionElement.className = 'card session-item';
+        sessionElement.dataset.id = session.id;
 
-    // Format duration
-    const durationStr = formatDuration(session);
+        // Format duration
+        const durationStr = formatDuration(session);
 
-    // Format date and time
-    const { dateStr, timeStr } = formatDateTime(session.startTime);
+        // Format date and time
+        const { dateStr, timeStr } = formatDateTime(session.startTime);
 
-    // Get category name
-    const category = getCategoryName(session.categoryId);
-    
-    // Determine category color class
-    const categoryColorClass = getCategoryColorClass(category);
+        // Get category name
+        const category = getCategoryName(session.categoryId); // Potential failure point
+        console.log(`[DEBUG Sessions CreateElement] Session ID: ${session?.id}, Category ID: ${session?.categoryId}, Found Category Name: ${category}`); // Log category info
+        
+        // Determine category color class
+        const categoryColorClass = getCategoryColorClass(category);
 
-    // Build HTML using template literal with modern design
-    sessionElement.innerHTML = `
-        <!-- Accent Bar at top -->
-        <div class="accent-bar ${categoryColorClass}"></div>
-        
-        <div class="session-header">
-             <span class="session-category card-name-pill">${category}</span>
-             <span class="session-duration">${durationStr}</span>
-        </div>
-        
-        <!-- Session Title added -->
-        <h3 class="session-title">${session.title || category + ' Practice'}</h3>
-        
-        <!-- Notes with background styling -->
-        ${session.notes ? `<div class="session-notes-container"><div class="session-notes">${session.notes}</div></div>` : ''}
-        
-        <div class="session-actions"> 
-            <span class="session-date">${dateStr} at ${timeStr}</span> 
-            <div class="action-buttons">
-                ${session.isLesson ? '<span class="lesson-badge">Lesson</span>' : ''}
-                <button class="icon-button edit-session app-button app-button--secondary" title="Edit Session">
-                    <i data-lucide="edit"></i>
-                </button>
-                <button class="icon-button delete-session app-button app-button--secondary" title="Delete Session">
-                    <i data-lucide="trash-2"></i>
-                </button>
+        // Build HTML using template literal with modern design
+        sessionElement.innerHTML = `
+            <!-- Accent Bar at top -->
+            <div class="accent-bar ${categoryColorClass}"></div>
+            
+            <div class="session-header">
+                <span class="session-category card-name-pill">${category || 'Unknown'}</span> <!-- Added fallback -->
+                <span class="session-duration">${durationStr}</span>
             </div>
-        </div>
-    `;
+            
+            <!-- Session Title added -->
+            <h3 class="session-title">${session.title || (category ? category + ' Practice' : 'Practice Session')}</h3> <!-- Added fallback -->
+            
+            <!-- Notes with background styling -->
+            ${session.notes ? `<div class="session-notes-container"><div class="session-notes">${escapeHTML(session.notes)}</div></div>` : ''} <!-- Added escaping -->
+            
+            <div class="session-actions"> 
+                <span class="session-date">${dateStr || '??'} at ${timeStr || '??'}</span> <!-- Added fallback -->
+                <div class="action-buttons">
+                    ${session.isLesson ? '<span class="lesson-badge">Lesson</span>' : ''}
+                    <button class="icon-button edit-session app-button app-button--secondary" title="Edit Session">
+                        <i data-lucide="edit"></i>
+                    </button>
+                    <button class="icon-button delete-session app-button app-button--secondary" title="Delete Session">
+                        <i data-lucide="trash-2"></i>
+                    </button>
+                </div>
+            </div>
+        `;
 
-    // Add event listeners
-    addSessionEventListeners(sessionElement, session.id);
+        // Add event listeners
+        addSessionEventListeners(sessionElement, session.id);
 
-    // Initialize icons
-    initializeIcons(sessionElement);
-    
-    return sessionElement;
+        // Initialize icons
+        initializeIcons(sessionElement); // Ensure this function exists and handles errors
+        
+        console.log(`[DEBUG Sessions CreateElement] Successfully created element for session ID: ${session?.id}`); // Log success
+        return sessionElement;
+
+    } catch (error) {
+        console.error(`[DEBUG Sessions CreateElement] Error creating element for session ID: ${session?.id}`, session, error); // Log error
+        // Return a placeholder or null to prevent breaking the loop entirely
+        const errorElement = document.createElement('div');
+        errorElement.className = 'card session-item error-item';
+        errorElement.textContent = `Error displaying session ${session?.id}. Check console.`;
+        return errorElement; // Return an error placeholder instead of null
+    }
 }
 
 /**
@@ -734,3 +747,18 @@ window.removeEventListener('scroll', handleScroll);
 
 // Make function available globally
 window.initializeSessions = initializeSessions;
+
+// Add a basic HTML escaping function if not already present globally
+function escapeHTML(str) {
+  if (typeof str !== 'string') return str; // Handle non-strings gracefully
+  return str.replace(/[&<>'"/]/g, function (s) {
+    return {
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;',
+      '/': '&#x2F;'
+    }[s];
+  });
+}

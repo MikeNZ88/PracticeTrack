@@ -9,6 +9,7 @@ window.UI = (function() {
     const domCache = {};
     const initializedPages = {}; // Add a flag object
     const activeCategoryFilters = []; // Keep track of active filter dropdowns
+    let categoriesNeedRefresh = false; // **** ADD Flag ****
     
     /**
      * Initialize a record listing page with standard components
@@ -84,18 +85,8 @@ window.UI = (function() {
             showDialogFn
         };
         
-        // >>> Only setup components and listeners ONCE <<< 
+        // --- Only setup listeners ONCE --- 
         if (!wasAlreadyInitialized) {
-            // Setup UI components
-            if (categoryFilter) {
-                setupCategoryFilter(categoryFilter, recordType);
-                // Add to our list of active filters IF NOT ALREADY THERE
-                if (!activeCategoryFilters.includes(categoryFilter)) {
-                    activeCategoryFilters.push(categoryFilter);
-                    console.log(`[UI Framework] Added category filter for page ${pageId} to active list.`);
-                }
-            }
-            
             // Add event listeners
             if (addButton) {
                 console.log(`[UI Framework] Attaching listener to Add button for page: ${pageId}`);
@@ -132,15 +123,32 @@ window.UI = (function() {
                     loadRecords(pageId);
                 });
             }
-        } // End of if (!wasAlreadyInitialized) for listeners
+        } 
+
+        // --- ALWAYS Check if Category Filter needs Refresh on Init/Activation --- 
+        if (categoryFilter && categoriesNeedRefresh) {
+            console.log(`[UI Framework Init ${pageId}] categoriesNeedRefresh is true. Calling setupCategoryFilter.`);
+            setupCategoryFilter(categoryFilter, recordType);
+            categoriesNeedRefresh = false; // Reset the flag after refresh
+        } else if (categoryFilter && !wasAlreadyInitialized) {
+            // If it wasn't previously initialized, populate filter even if no refresh needed
+             console.log(`[UI Framework Init ${pageId}] First initialization. Calling setupCategoryFilter.`);
+            setupCategoryFilter(categoryFilter, recordType);
+        }
+        // --- End Refresh Check ---
         
-        // Removed log before initial loadRecords call
         // >>> Always call loadRecords <<< 
         loadRecords(pageId);
         
         // Set the initialized flag for this page at the end
         initializedPages[pageId] = true;
         console.log(`[UI Framework] Page ${pageId} marked as initialized.`);
+
+        // Store category filter info for potential refresh
+        if (categoryFilterSelector) {
+             domCache[pageId].categoryFilterSelector = categoryFilterSelector;
+             domCache[pageId].recordType = recordType; // Need recordType too
+        }
     }
     
     /**
@@ -149,37 +157,50 @@ window.UI = (function() {
      * @param {string} recordType - The type of records
      */
     function setupCategoryFilter(filterElement, recordType) {
-        if (!filterElement) return;
+        if (!filterElement) {
+            console.error('[UI Framework SetupFilter] Filter element provided is null or undefined.');
+            return;
+        }
         
-        console.log(`[UI Framework] Setting up/refreshing category filter:`, filterElement);
+        console.log(`[UI Framework SetupFilter] Setting up/refreshing category filter:`, filterElement);
         const currentValue = filterElement.value; // Preserve current selection
         
         // Clear dropdown
         filterElement.innerHTML = '';
         
-        // Add "All Categories" option
-        const allOption = document.createElement('option');
-        allOption.value = '';
-        allOption.textContent = 'All Categories';
-        filterElement.appendChild(allOption);
-        
-        // Get categories from data layer
-        const categories = window.getItems ? window.getItems('CATEGORIES') : 
-            JSON.parse(localStorage.getItem('practiceTrack_categories')) || [];
-        
-        // Sort categories alphabetically by name
-        categories.sort((a, b) => a.name.localeCompare(b.name)); 
+        // **** ALWAYS get CATEGORIES ****
+        const categories = window.getItems('CATEGORIES'); 
+        // **** Log raw categories ****
+        console.log('[UI Framework SetupFilter] Raw categories fetched:', JSON.stringify(categories));
 
-        // Add categories to dropdown
-        categories.forEach(category => {
-            const option = document.createElement('option');
-            option.value = category.id;
-            option.textContent = category.name;
-            filterElement.appendChild(option);
-        });
+        filterElement.innerHTML = '<option value="all">Select Category</option>'; 
+
+        if (categories && categories.length > 0) {
+            // Filter out invalid categories before sorting
+            const validCategories = categories.filter(cat => cat && typeof cat.name === 'string');
+            // **** Log valid categories ****
+            console.log(`[UI Framework SetupFilter] Filtered to ${validCategories.length} valid categories:`, JSON.stringify(validCategories));
+
+            validCategories.sort((a, b) => {
+                 return a.name.localeCompare(b.name);
+             });
+
+            // **** Log each category being added ****
+            validCategories.forEach((category, index) => {
+                console.log(`[UI Framework SetupFilter] Adding option ${index}: ID=${category.id}, Name=${category.name}`);
+                const option = document.createElement('option');
+                option.value = category.id;
+                option.textContent = category.name;
+                filterElement.appendChild(option); 
+            });
+        } else {
+            console.log('[UI Framework SetupFilter] No categories found or array was empty.');
+        }
 
         // Restore previous selection if possible
+        console.log(`[UI Framework SetupFilter] Attempting to restore selected value to: ${currentValue}`);
         filterElement.value = currentValue;
+        console.log(`[UI Framework SetupFilter] Current dropdown value after restore: ${filterElement.value}`);
     }
     
     /**
@@ -201,9 +222,13 @@ window.UI = (function() {
         
         try {
             // Get filter values directly from cache
+            const categoryFilterValue = cache.categoryFilter ? cache.categoryFilter.value : '[FilterElement Missing]';
+            // **** Log the exact value read from the category filter ****
+            console.log(`[DEBUG ${recordType} Load] Reading category filter value: '${categoryFilterValue}' (Type: ${typeof categoryFilterValue})`);
+            
             const filters = {
                 search: cache.searchInput ? cache.searchInput.value.trim().toLowerCase() : '',
-                categoryId: cache.categoryFilter ? cache.categoryFilter.value : '',
+                categoryId: categoryFilterValue, // Use the logged value
                 status: cache.statusFilter ? cache.statusFilter.value : null,
                 startDate: (cache.dateInputs && cache.dateInputs[0]) ? cache.dateInputs[0].value : '',
                 endDate: (cache.dateInputs && cache.dateInputs[1]) ? cache.dateInputs[1].value : ''
@@ -285,148 +310,193 @@ window.UI = (function() {
      * @param {string} [recordType] - Optional: The type of record being filtered (GOALS, SESSIONS, MEDIA) - Used for type-specific search logic.
      * @returns {Array} - Filtered records
      */
-    function filterRecords(records, filters, recordType = null) { // Added recordType parameter with default
+    function filterRecords(records, filters, recordType = null) {
         const caller = recordType ? recordType : 'Stats'; // Identify caller for logging
-        console.log(`[DEBUG ${caller} Filter] Starting filterRecords. Input records: ${records.length}`, 'Filters:', JSON.parse(JSON.stringify(filters)));
+        console.log(`[DEBUG ${caller} Filter] Starting filterRecords. Input records: ${records ? records.length : 0}`, 'Filters:', JSON.parse(JSON.stringify(filters)));
 
         if (!records || !Array.isArray(records)) {
+            console.warn(`[DEBUG ${caller} Filter] Input records are invalid or not an array.`);
             return [];
         }
         
-        let filtered = [...records];
-        
-        // Filter by category
-        if (filters.categoryId) {
-            filtered = filtered.filter(record => record.categoryId === filters.categoryId);
-            console.log(`[DEBUG ${caller} Filter] After Category filter: ${filtered.length} records`); // Log after category filter
+        let currentFilteredRecords = [...records]; // Start with all records
+        let initialCount = currentFilteredRecords.length;
+
+        // --- Category Filter --- 
+        console.log(`[DEBUG ${caller} Filter] Checking Category Filter. filters.categoryId = '${filters.categoryId}' (Type: ${typeof filters.categoryId})`);
+        // **** Only filter if categoryId is valid, not 'all', and not the missing placeholder ****
+        if (filters.categoryId && filters.categoryId !== 'all' && filters.categoryId !== '[FilterElement Missing]') { 
+            currentFilteredRecords = currentFilteredRecords.filter(record => record.categoryId === filters.categoryId);
+            console.log(`[DEBUG ${caller} Filter] -> Applied Category filter for ID: ${filters.categoryId}. Records remaining: ${currentFilteredRecords.length} (from ${initialCount})`);
+            initialCount = currentFilteredRecords.length; // Update count for next filter
+        } else {
+            console.log(`[DEBUG ${caller} Filter] -> Skipping Category filter (Value was '${filters.categoryId}')`);
         }
-        
-        // Filter by status for goals or type for media
-        if (filters.status) {
+
+        // --- Status Filter --- 
+        console.log(`[DEBUG ${caller} Filter] Checking Status Filter. filters.status = '${filters.status}'`);
+        if (filters.status && filters.status !== 'all') { // Added 'all' check
             if (recordType === 'GOALS') {
                 if (filters.status === 'active') {
-                    filtered = filtered.filter(record => record.completed === false);
+                    currentFilteredRecords = currentFilteredRecords.filter(record => record.completed === false);
                 } else if (filters.status === 'completed') {
-                    filtered = filtered.filter(record => record.completed === true);
+                    currentFilteredRecords = currentFilteredRecords.filter(record => record.completed === true);
                 }
             } else if (recordType === 'MEDIA') {
                  if (['photo', 'video', 'note'].includes(filters.status)) {
-                     filtered = filtered.filter(record => record.type === filters.status);
+                     currentFilteredRecords = currentFilteredRecords.filter(record => record.type === filters.status);
                  }
             }
-            // 'all' status doesn't filter anything
+            console.log(`[DEBUG ${caller} Filter] -> Applied Status/Type filter '${filters.status}'. Records remaining: ${currentFilteredRecords.length} (from ${initialCount})`);
+            initialCount = currentFilteredRecords.length;
+        } else {
+            console.log(`[DEBUG ${caller} Filter] -> Skipping Status/Type filter (Value was '${filters.status}')`);
         }
-        
-        // Filter by search term (now uses recordType)
-        if (filters.search && filters.search.length > 0) { // Simplified check
+
+        // --- Search Filter --- 
+        console.log(`[DEBUG ${caller} Filter] Checking Search Filter. filters.search = '${filters.search}'`);
+        if (filters.search && filters.search.length > 0) {
             const searchTerm = filters.search; // Already lowercase from loadRecords
             
-            filtered = filtered.filter(record => {
-                if (!record) return false;
-                
-                // Get category name once
-                let categoryName = '';
-                if (record.categoryId) {
-                    const categories = window.getItems ? window.getItems('CATEGORIES') : 
-                        JSON.parse(localStorage.getItem('practiceTrack_categories')) || [];
-                    const category = categories.find(c => c.id === record.categoryId);
-                    categoryName = category ? category.name.toLowerCase() : 'unknown';
-                } else {
-                    categoryName = 'unknown';
+            // Get all categories once for efficiency
+            const allCategories = window.getItems ? window.getItems('CATEGORIES') : [];
+            // **** Filter categories BEFORE mapping to ensure name exists ****
+            const categoryMap = new Map(
+                 allCategories
+                     .filter(cat => cat && typeof cat.id === 'string' && typeof cat.name === 'string') // Ensure valid id and name
+                     .map(cat => [cat.id, cat.name.toLowerCase()])
+            );
+            console.log('[DEBUG Filter] Created categoryMap with size:', categoryMap.size); // Log map size
+
+            currentFilteredRecords = currentFilteredRecords.filter(record => {
+                // **** Add check for null/undefined record ****
+                if (!record) {
+                    console.warn(`[DEBUG ${caller} Search Detail] Skipping null/undefined record.`);
+                    return false;
                 }
                 
-                // Determine searchable fields based on recordType
+                // **** Log the record ID being processed by search ****
+                console.log(`[DEBUG ${caller} Search Detail] Checking Record ID: ${record.id}`);
+                
+                // Safely get category name
+                const categoryName = (record.categoryId && categoryMap.has(record.categoryId)) 
+                                     ? categoryMap.get(record.categoryId) 
+                                     : 'unknown';
+                
                 let fieldsToSearch = [];
-                if (recordType === 'GOALS') {
-                    // Goals: name (title), category, description
+                 if (recordType === 'GOALS') {
+                     // GOALS: Search title, description, and category name
                      fieldsToSearch = [
-                        record.title ? record.title.toLowerCase() : '',
+                        (typeof record.title === 'string') ? record.title.toLowerCase() : '',
                         categoryName,
-                        record.description ? record.description.toLowerCase() : ''
+                        (typeof record.description === 'string') ? record.description.toLowerCase() : '' 
                     ];
-                } else if (recordType === 'SESSIONS') {
-                    // Sessions: name (not available), category, notes
+                 } else if (recordType === 'SESSIONS') {
+                     // SESSIONS: Search notes and category name
+                     // **** More robust checks ****
+                     const safeNotes = (record.notes && typeof record.notes === 'string') ? record.notes.toLowerCase() : '';
                      fieldsToSearch = [
                         categoryName, 
-                        record.notes ? record.notes.toLowerCase() : ''
-                        // Assuming session doesn't have a name/title field to search
+                        safeNotes
                     ];
-                    // *** Add specific logging for Sessions search ***
-                    if (searchTerm.length > 0) { // Log only when searching
-                        console.log(`[DEBUG Sessions Filter] Searching for: "${searchTerm}" | Record Category: "${categoryName}" | Record Notes: "${record.notes ? record.notes.toLowerCase() : ''}"`);
-                    }
-                } else if (recordType === 'MEDIA') {
-                     // Media: name, category, description, content
+                 } else if (recordType === 'MEDIA') {
+                     // MEDIA: Search name (title/filename), description, and category name
                      fieldsToSearch = [
                         record.name ? record.name.toLowerCase() : '',
                         categoryName,
-                        record.description ? record.description.toLowerCase() : '',
-                        record.content ? record.content.toLowerCase() : '' // For notes
+                        record.description ? record.description.toLowerCase() : '' 
                     ];
-                    // *** Add specific logging for Media search ***
-                    if (searchTerm.length > 0) { // Log only when searching
-                        const nameField = record.name ? record.name.toLowerCase() : '[empty]';
-                        const categoryField = categoryName ? categoryName : '[empty]'; // Already lowercase or 'unknown'
-                        const descriptionField = record.description ? record.description.toLowerCase() : '[empty]';
-                        const contentField = record.content ? record.content.toLowerCase() : '[empty]';
-                        console.log(`[DEBUG MEDIA Filter] Searching for: "${searchTerm}" in Record ID: ${record.id} | Name: "${nameField}" | Category: "${categoryField}" | Desc: "${descriptionField}" | Content: "${contentField}"`);
-                    }
+                 } else { 
+                     // Default/Fallback
+                      fieldsToSearch = [
+                          record.name ? record.name.toLowerCase() : '', 
+                          record.title ? record.title.toLowerCase() : '',
+                          categoryName,
+                          (record.notes && typeof record.notes === 'string') ? record.notes.toLowerCase() : '', // Add safety here too
+                          (record.description && typeof record.description === 'string') ? record.description.toLowerCase() : '' // Add safety here too
+                      ].filter(Boolean); 
                  }
                 
-                // Check if any specified field contains the search term
-                return fieldsToSearch.some(field => field && field.includes(searchTerm));
+                 // **** Log the fields being searched for this record ****
+                 console.log(`[DEBUG ${caller} Search Detail] Record ID: ${record.id} - Fields:`, fieldsToSearch);
+                 
+                 // Check if any field contains the search term
+                 let found = false; // Start assuming not found
+                 fieldsToSearch.forEach((field, index) => {
+                     // Ensure field is a string before calling includes
+                     const isMatch = typeof field === 'string' && field.includes(searchTerm);
+                     // **** Log each field comparison ****
+                     console.log(`[DEBUG ${caller} Search Compare] Record ID: ${record.id}, Field[${index}]: "${field}", Term: "${searchTerm}", Match: ${isMatch}`);
+                     if (isMatch) {
+                         found = true;
+                     }
+                 });
+                 
+                 // **** Log the final result for this record ****
+                 console.log(`[DEBUG ${caller} Search Detail] Record ID: ${record.id} - Overall Found? ${found}`);
+                 
+                 return found;
             });
+            console.log(`[DEBUG ${caller} Filter] -> Applied Search filter '${filters.search}'. Records remaining: ${currentFilteredRecords.length} (from ${initialCount})`);
+            initialCount = currentFilteredRecords.length;
+        } else {
+             console.log(`[DEBUG ${caller} Filter] -> Skipping Search filter (Value was '${filters.search}')`);
         }
-        
-        // Filter by date range
+
+        // --- Start Date Filter --- 
+        console.log(`[DEBUG ${caller} Filter] Checking Start Date Filter. filters.startDate = '${filters.startDate}'`);
         if (filters.startDate) {
             try {
                 const startDate = new Date(filters.startDate);
                 if (!isNaN(startDate.getTime())) { 
                     startDate.setHours(0, 0, 0, 0); 
-                    // >>> ADD LOGGING FOR TODAY FILTER <<<
-                    const isTodayFilter = filters.startDate === filters.endDate && filters.startDate === new Date().toISOString().split('T')[0];
-                    filtered = filtered.filter(record => {
+                    currentFilteredRecords = currentFilteredRecords.filter(record => {
                         if (!record) return false;
                         const dateField = record.startTime || record.date || record.createdAt;
                         if (!dateField) return false;
-                        const recordDate = new Date(dateField);
-                        // Log comparison details specifically for the "Today" filter
-                        if (isTodayFilter) {
-                            console.log(`[DEBUG ${caller} Filter - Today Check] Record ID: ${record.id}, Record Date: ${recordDate.toISOString()}, Start Date: ${startDate.toISOString()}`);
-                        }
-                        return !isNaN(recordDate.getTime()) && recordDate >= startDate;
+                        try {
+                            const recordDate = new Date(dateField);
+                            return !isNaN(recordDate.getTime()) && recordDate >= startDate;
+                        } catch { return false; }
                     });
+                    console.log(`[DEBUG ${caller} Filter] -> Applied Start Date filter '${filters.startDate}'. Records remaining: ${currentFilteredRecords.length} (from ${initialCount})`);
+                    initialCount = currentFilteredRecords.length;
+                } else {
+                     console.warn(`[DEBUG ${caller} Filter] Invalid start date format: '${filters.startDate}'`);
                 }
-            } catch (e) { console.error("Error parsing start date:", filters.startDate, e); }
-            console.log(`[DEBUG ${caller} Filter] After Start Date filter: ${filtered.length} records`); // Log after date filter
+            } catch (e) { console.error("[DEBUG ${caller} Filter] Error parsing start date:", filters.startDate, e); }
+        } else {
+            console.log(`[DEBUG ${caller} Filter] -> Skipping Start Date filter.`);
         }
         
+        // --- End Date Filter --- 
+        console.log(`[DEBUG ${caller} Filter] Checking End Date Filter. filters.endDate = '${filters.endDate}'`);
         if (filters.endDate) {
              try {
                 const endDate = new Date(filters.endDate);
                 if (!isNaN(endDate.getTime())) { 
                     endDate.setHours(23, 59, 59, 999); 
-                    // >>> ADD LOGGING FOR TODAY FILTER <<<
-                    const isTodayFilter = filters.startDate === filters.endDate && filters.endDate === new Date().toISOString().split('T')[0];
-                    filtered = filtered.filter(record => {
+                    currentFilteredRecords = currentFilteredRecords.filter(record => {
                         if (!record) return false;
                         const dateField = record.startTime || record.date || record.createdAt;
                         if (!dateField) return false;
-                        const recordDate = new Date(dateField);
-                        // Log comparison details specifically for the "Today" filter
-                        if (isTodayFilter) {
-                            console.log(`[DEBUG ${caller} Filter - Today Check] Record ID: ${record.id}, Record Date: ${recordDate.toISOString()}, End Date: ${endDate.toISOString()}`);
-                        }
-                        return !isNaN(recordDate.getTime()) && recordDate <= endDate;
+                         try {
+                            const recordDate = new Date(dateField);
+                            return !isNaN(recordDate.getTime()) && recordDate <= endDate;
+                         } catch { return false; }
                     });
-                }
-            } catch (e) { console.error("Error parsing end date:", filters.endDate, e); }
-             console.log(`[DEBUG ${caller} Filter] After End Date filter: ${filtered.length} records`); // Log after date filter
+                    console.log(`[DEBUG ${caller} Filter] -> Applied End Date filter '${filters.endDate}'. Records remaining: ${currentFilteredRecords.length} (from ${initialCount})`);
+                    initialCount = currentFilteredRecords.length;
+                 } else {
+                     console.warn(`[DEBUG ${caller} Filter] Invalid end date format: '${filters.endDate}'`);
+                 }
+            } catch (e) { console.error("[DEBUG ${caller} Filter] Error parsing end date:", filters.endDate, e); }
+        } else {
+             console.log(`[DEBUG ${caller} Filter] -> Skipping End Date filter.`);
         }
         
-        console.log(`[DEBUG ${caller} Filter] Finished filterRecords. Output records: ${filtered.length}`);
-        return filtered;
+        console.log(`[DEBUG ${caller} Filter] Finished filterRecords. Final output records: ${currentFilteredRecords.length}`);
+        return currentFilteredRecords;
     }
     
     /**
@@ -736,6 +806,25 @@ window.UI = (function() {
                 // Optional: Remove stale references from activeCategoryFilters array here if needed
             }
         });
+    });
+
+    // --- Add Global Event Listener for Data Changes --- 
+    document.addEventListener('dataChanged', (e) => {
+        console.log('[UI Framework] Received dataChanged event:', e.detail);
+        if (e.detail && e.detail.type === 'CATEGORIES') {
+            console.log('[UI Framework] Category data changed. Setting refresh flag.');
+            categoriesNeedRefresh = true; // **** Set the flag ****
+            // --- REMOVE logic that tried to refresh immediately --- 
+            /* // REMOVED BLOCK
+            let refreshedFilter = false; 
+            Object.keys(domCache).forEach(pageId => { 
+                 // ... code to find active page and refresh filter ... 
+            });
+            if (!refreshedFilter) { 
+                 console.log('[UI Framework] No active page requiring category filter refresh was found.');
+            }
+            */
+        }
     });
 
     // Return public API

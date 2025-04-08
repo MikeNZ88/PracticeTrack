@@ -99,11 +99,24 @@ class Timer {
         });
 
         document.addEventListener('dataChanged', (e) => {
+            console.log('[DEBUG Timer] dataChanged event received:', e.detail); // Log event detail
             if (e.detail && e.detail.type === 'CATEGORIES') {
-                this.loadCategories();
+                console.log('[DEBUG Timer] dataChanged for CATEGORIES, calling this.loadCategories()');
+                // Add back optimization check before calling load
+                if (!this.categorySelect || this.categorySelect.options.length <= 1) {
+                     this.loadCategories();
+                } else {
+                     console.log('[DEBUG Timer] Skipping loadCategories as dropdown already populated.')
+                }
             }
             if (e.detail && e.detail.type === 'GOALS') {
-                this.loadGoals();
+                console.log('[DEBUG Timer] dataChanged for GOALS, calling this.loadGoals()');
+                // Add back optimization check before calling load
+                if (!this.goalSelect || this.goalSelect.options.length <= 1) {
+                     this.loadGoals();
+                } else {
+                     console.log('[DEBUG Timer] Skipping loadGoals as dropdown already populated.')
+                }
             }
         });
     }
@@ -144,6 +157,7 @@ class Timer {
 
         // Enable/Disable category select, goal select, and notes
         const inputsDisabled = this.isRunning || this.isPaused;
+        console.log(`[DEBUG Timer UpdateState] isRunning: ${this.isRunning}, isPaused: ${this.isPaused} => inputsDisabled: ${inputsDisabled}`);
         this.categorySelect.disabled = inputsDisabled;
         this.goalSelect.disabled = inputsDisabled;
         this.sessionNotes.disabled = inputsDisabled;
@@ -277,8 +291,10 @@ class Timer {
     loadTimerState() {
         try {
             const storedState = localStorage.getItem('practiceTrack_timerState');
+            console.log('[DEBUG Timer LoadState] Raw state from localStorage:', storedState);
             if (storedState) {
                 const timerState = JSON.parse(storedState);
+                console.log('[DEBUG Timer LoadState] Parsed state:', timerState);
 
                 this.timeElapsed = timerState.timeElapsed || 0;
                 this.isPaused = timerState.isPaused || false;
@@ -299,15 +315,16 @@ class Timer {
 
                 // Don't auto-start, just restore state and let user decide
                 this.updateDisplay();
-                this.updateButtonStates(); // This will correctly disable selects if needed
 
                 // If it was running, treat it as paused on reload
                 if (!this.isPaused && timerState.isRunning) { 
-                    console.log("Timer was running on last save, setting to paused state.");
+                    console.log("[DEBUG Timer LoadState] Timer was running on last save, setting to paused state.");
                     this.isPaused = true;
                     this.isRunning = false;
-                    this.updateButtonStates(); 
                 }
+                
+                console.log('[DEBUG Timer LoadState] Calling updateButtonStates after loading and adjusting state.');
+                this.updateButtonStates(); 
             }
         } catch (error) {
             console.error('Error loading timer state:', error);
@@ -347,14 +364,15 @@ class Timer {
         }
         let categories = [];
         try {
-            if (window.getItems) {
-                categories = window.getItems('CATEGORIES') || [];
-            } else {
-                console.warn('Data layer function getItems not found for categories.');
-                categories = JSON.parse(localStorage.getItem('practiceTrack_categories')) || [];
-            }
-            categories.sort((a, b) => a.name.localeCompare(b.name));
-            categories.forEach(category => {
+            let categories = window.getItems ? window.getItems('CATEGORIES') : 
+                JSON.parse(localStorage.getItem('practiceTrack_categories')) || [];
+
+            // Filter out invalid categories before sorting
+            const validCategories = categories.filter(cat => cat && typeof cat.name === 'string');
+
+            validCategories.sort((a, b) => a.name.localeCompare(b.name));
+
+            validCategories.forEach(category => {
                 const option = document.createElement('option');
                 option.value = category.id;
                 option.textContent = category.name;
@@ -373,17 +391,16 @@ class Timer {
         }
         let goals = [];
         try {
-            if (window.getItems) {
-                goals = window.getItems('GOALS') || [];
-            } else {
-                console.warn('Data layer function getItems not found for goals.');
-                goals = JSON.parse(localStorage.getItem('practiceTrack_goals')) || [];
-            }
-            const activeGoals = goals.filter(goal => !goal.completed);
-            
-            activeGoals.sort((a, b) => a.title.localeCompare(b.title));
+            let goals = window.getItems ? window.getItems('GOALS') : 
+                JSON.parse(localStorage.getItem('practiceTrack_goals')) || [];
 
-            activeGoals.forEach(goal => {
+            // Filter out invalid goals before sorting (assuming goals have a .title)
+            const validGoals = goals.filter(goal => goal && typeof goal.title === 'string');
+
+            // Sort active goals by title
+            validGoals.sort((a, b) => a.title.localeCompare(b.title));
+
+            validGoals.forEach(goal => {
                 const option = document.createElement('option');
                 option.value = goal.id;
                 option.textContent = goal.title.length > 50 ? goal.title.substring(0, 47) + '...' : goal.title;
@@ -412,17 +429,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Function called when navigating TO the timer page
 function activateTimerPage() {
-    // Ensure the timer instance exists (should always exist now)
+    console.log('[DEBUG Timer Activate] activateTimerPage called.'); // Log activation
     if (!window.timer) {
-        console.error("Timer instance (window.timer) not found during activation!");
-        window.timer = new Timer(); // Recreate as a fallback
+        console.error("[DEBUG Timer Activate] Timer instance (window.timer) not found during activation! Recreating.");
+        window.timer = new Timer(); 
         window.timer.loadTimerState(); // Load state if recreated
     } else {
-        // Just reload selectors to ensure they reflect latest data
-        console.log("Timer page activated, reloading selectors.");
+        console.log("[DEBUG Timer Activate] Timer instance exists. Reloading selectors.");
         window.timer.loadCategories();
         window.timer.loadGoals();
-        // DO NOT call loadTimerState() here again
+        // Explicitly update button states based on current state when activating page
+        console.log("[DEBUG Timer Activate] Explicitly calling updateButtonStates on activation.");
+        window.timer.updateButtonStates(); 
     }
 }
 
