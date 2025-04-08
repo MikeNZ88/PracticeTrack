@@ -8,6 +8,7 @@ window.UI = (function() {
     // Cache for DOM elements
     const domCache = {};
     const initializedPages = {}; // Add a flag object
+    const activeCategoryFilters = []; // Keep track of active filter dropdowns
     
     /**
      * Initialize a record listing page with standard components
@@ -88,6 +89,11 @@ window.UI = (function() {
             // Setup UI components
             if (categoryFilter) {
                 setupCategoryFilter(categoryFilter, recordType);
+                // Add to our list of active filters IF NOT ALREADY THERE
+                if (!activeCategoryFilters.includes(categoryFilter)) {
+                    activeCategoryFilters.push(categoryFilter);
+                    console.log(`[UI Framework] Added category filter for page ${pageId} to active list.`);
+                }
             }
             
             // Add event listeners
@@ -145,6 +151,9 @@ window.UI = (function() {
     function setupCategoryFilter(filterElement, recordType) {
         if (!filterElement) return;
         
+        console.log(`[UI Framework] Setting up/refreshing category filter:`, filterElement);
+        const currentValue = filterElement.value; // Preserve current selection
+        
         // Clear dropdown
         filterElement.innerHTML = '';
         
@@ -158,6 +167,9 @@ window.UI = (function() {
         const categories = window.getItems ? window.getItems('CATEGORIES') : 
             JSON.parse(localStorage.getItem('practiceTrack_categories')) || [];
         
+        // Sort categories alphabetically by name
+        categories.sort((a, b) => a.name.localeCompare(b.name)); 
+
         // Add categories to dropdown
         categories.forEach(category => {
             const option = document.createElement('option');
@@ -165,6 +177,9 @@ window.UI = (function() {
             option.textContent = category.name;
             filterElement.appendChild(option);
         });
+
+        // Restore previous selection if possible
+        filterElement.value = currentValue;
     }
     
     /**
@@ -709,6 +724,20 @@ window.UI = (function() {
         });
     }
     
+    // --- Global Event Listener for Category Updates --- 
+    document.addEventListener('categoriesUpdated', () => {
+        console.log('[UI Framework] Received categoriesUpdated event. Refreshing active category filters.');
+        activeCategoryFilters.forEach(filterElement => {
+            // Check if the element is still in the DOM before trying to update
+            if (document.body.contains(filterElement)) {
+                setupCategoryFilter(filterElement); // Rebuild the options
+            } else {
+                console.warn('[UI Framework] Found a stale category filter reference. Removing it.');
+                // Optional: Remove stale references from activeCategoryFilters array here if needed
+            }
+        });
+    });
+
     // Return public API
     return {
         initRecordPage,

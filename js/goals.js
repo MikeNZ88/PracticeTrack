@@ -41,6 +41,17 @@ function initializeGoals() {
             return (nameMatch || descriptionMatch) && categoryMatch && statusMatch;
         }
     });
+
+    // Manually add event listener for the Smart Goal button
+    const smartGoalBtn = document.getElementById('smart-goal-btn');
+    if (smartGoalBtn) {
+        // Remove existing listener to prevent duplicates if initializeGoals is called multiple times
+        smartGoalBtn.removeEventListener('click', handleSmartGoalClick); 
+        smartGoalBtn.addEventListener('click', handleSmartGoalClick);
+        console.log('Added click listener to Smart Goal button.');
+    } else {
+        console.warn('Smart Goal button (#smart-goal-btn) not found on goals page during initialization.');
+    }
 }
 
 /**
@@ -60,9 +71,9 @@ function createGoalElement(goal) {
     const dateStr = dateFormatter.format(new Date(goal.createdAt));
     const targetDateStr = goal.targetDate ? dateFormatter.format(new Date(goal.targetDate)) : null;
 
-    // Get category name and color
-    const category = window.getCategoryById ? window.getCategoryById(goal.categoryId) : { name: 'Unknown', color: 'gray' }; // Default if category not found
-    const categoryColorClass = getCategoryColorClass(category.name);
+    // Get category name and color using the correct data layer function
+    const category = window.getItemById ? window.getItemById('CATEGORIES', goal.categoryId) : { name: 'Unknown', color: 'gray' }; // Default if category not found
+    const categoryColorClass = getCategoryColorClass(category?.name || 'Unknown'); // Use optional chaining and fallback for color
     
     // Determine status class and icon
     const statusClass = goal.completed ? 'completed' : 'active';
@@ -73,6 +84,19 @@ function createGoalElement(goal) {
     const progressPercentage = hasProgress ? Math.min(100, Math.max(0, goal.progress)) : 0;
 
     // Create goal content with enhanced design
+    // Construct the display string for the main content
+    let goalContentDetail = '';
+    if (goal.title) { // Start with the title
+        goalContentDetail = goal.title;
+    }
+    if (goal.measureHelper) { // Append the measure helper if it exists
+        goalContentDetail += ` (Measured By: ${goal.measureHelper})`;
+    }
+    // If title and measureHelper are missing, fall back to description or empty
+    if (!goalContentDetail && goal.description) {
+        goalContentDetail = goal.description;
+    } 
+
     goalElement.innerHTML = `
         <!-- Accent Bar at top -->
         <div class="accent-bar ${categoryColorClass}"></div>
@@ -85,34 +109,18 @@ function createGoalElement(goal) {
                 <h3 class="goal-title card-title ${statusClass}">${goal.title}</h3>
             </div>
             
-            <!-- Apply session-notes styling to description/details -->
-            ${goal.description || goal.targetMetric ? `
+            <!-- Display the constructed goal detail string -->
+            ${goalContentDetail ? `
                 <div class="session-notes-container">
-                    <div class="session-notes">
-                        ${goal.description ? `<div class="goal-description ${statusClass}">${goal.description}</div>` : ''}
-                        ${goal.targetMetric ? `
-                            <div class="goal-target">
-                                <strong>Target:</strong> ${goal.targetMetric}
-                            </div>
-                        ` : ''}
-                        ${hasProgress ? `
-                            <div class="goal-progress">
-                                <div class="progress-header">
-                                    <span>Progress</span>
-                                    <span>${Math.round(progressPercentage)}%</span>
-                                </div>
-                                <div class="progress-bar-bg">
-                                    <div class="progress-bar-fill" style="width: ${progressPercentage}%"></div>
-                                </div>
-                            </div>
-                        ` : ''}
+                    <div class="session-notes goal-details-display">
+                       ${goalContentDetail} 
                     </div>
                 </div>
             ` : ''}
         </div>
         
         <div class="goal-footer">
-             <span class="goal-category card-name-pill">${category.name}</span>
+             <span class="goal-category card-name-pill">${category?.name || 'Unknown'}</span>
              
              <span class="goal-date-time">
                 ${goal.completed 
@@ -182,35 +190,62 @@ function getCategoryColorClass(category) {
 
 /**
  * Show goal dialog for adding/editing
- * @param {string} goalId - Optional goal ID for editing
+ * @param {string} [goalId] - Optional goal ID for editing
+ * @param {object} [initialData] - Optional initial data to pre-fill the form
  */
-function showGoalDialog(goalId) {
+function showGoalDialog(goalId, initialData = null) {
     // Get goal data if editing
     let goalData = null;
-    
     if (goalId) {
         goalData = window.getItemById ? window.getItemById('GOALS', goalId) : 
             (JSON.parse(localStorage.getItem('practiceTrack_goals')) || [])
                 .find(g => g.id === goalId);
     }
     
-    // Get categories for dropdown
-    const categories = window.getItems ? window.getItems('CATEGORIES') : 
-        JSON.parse(localStorage.getItem('practiceTrack_categories')) || [];
+    // Get categories for dropdown (only needed if not Smart Goal)
+    let categories = [];
+    if (!initialData?.isSmartGoal) { // Check the flag here
+        categories = window.getItems ? window.getItems('CATEGORIES') : 
+            JSON.parse(localStorage.getItem('practiceTrack_categories')) || [];
+    }
     
     const categoryOptions = categories.map(cat => ({
         value: cat.id,
         text: cat.name
     }));
     
-    // Set up form fields
-    const fields = [
+    // Define prompts for different goal actions
+    const prompts = {
+        improve: {
+            itemLabel: 'Skill to Improve:',
+            itemPlaceholder: 'e.g., Alternate Picking'
+        },
+        understand: {
+            itemLabel: 'Concept to Understand:',
+            itemPlaceholder: 'e.g., Chord Inversions'
+        },
+        learn: {
+            itemLabel: 'Piece/Song to Learn:',
+            itemPlaceholder: 'e.g., Bach Prelude in C'
+        },
+        default: {
+            itemLabel: 'Specific Item:',
+            itemPlaceholder: 'e.g., C Major Scale'
+        }
+    };
+
+    // --- Define fields based on flow --- 
+    let fields = [];
+    const isSmart = initialData?.isSmartGoal;
+
+    // Define field sets
+    const standardStartFields = [
         {
             type: 'text',
             id: 'goal-title',
             label: 'Goal Title',
             required: true,
-            value: goalData ? goalData.title : ''
+            value: goalData ? goalData.title : (initialData ? initialData.title : '')
         },
         {
             type: 'select',
@@ -218,31 +253,126 @@ function showGoalDialog(goalId) {
             label: 'Category',
             required: true,
             options: categoryOptions,
-            value: goalData ? goalData.categoryId : ''
+            value: goalData ? goalData.categoryId : (initialData ? initialData.categoryId : '')
+        }
+    ];
+
+    const smartGoalHelperFields = [
+        { type: 'divider', label: 'Goal Details' },
+        {
+            type: 'select',
+            id: 'goal-action-helper',
+            label: 'Action:',
+            options: [
+                { value: '', text: '-- Select Action --' },
+                { value: 'improve', text: 'Improve Skill' },
+                { value: 'understand', text: 'Understand Concept' },
+                { value: 'learn', text: 'Learn Piece/Song' }
+            ],
+            value: '' // Start empty for smart goal
         },
+        {
+            type: 'text',
+            id: 'goal-item-helper',
+            label: 'Specific Item (This will be the Category)',
+            required: true, 
+            placeholder: prompts.default.itemPlaceholder,
+            value: '' // Start empty for smart goal
+        },
+        {
+            type: 'text',
+            id: 'goal-measure-helper',
+            label: 'Measured By:',
+            placeholder: 'e.g., Play at 120 BPM / Explain clearly',
+            value: '' // Start empty for smart goal
+        },
+        { type: 'divider' },
+    ];
+
+    const sharedEndFields = [
         {
             type: 'date',
             id: 'goal-target-date',
             label: 'Target Date',
-            value: goalData && goalData.targetDate ? goalData.targetDate.split('T')[0] : ''
+            value: goalData && goalData.targetDate ? goalData.targetDate.split('T')[0] : (initialData ? initialData.targetDate : '')
         },
         {
             type: 'textarea',
             id: 'goal-description',
-            label: 'Description',
+            label: 'Description / Notes',
             rows: 4,
-            value: goalData ? goalData.description || '' : ''
+            value: goalData ? goalData.description || '' : (initialData ? initialData.description : '') 
         }
     ];
+
+    // Combine fields based on flow
+    if (isSmart) {
+        // Smart Goal: Helpers + Date/Description
+        fields = [...smartGoalHelperFields, ...sharedEndFields];
+    } else {
+        // Regular Add/Edit Goal: Title/Category + Date/Description
+        fields = [...standardStartFields, ...sharedEndFields];
+    }
     
     // Create dialog using UI framework
     goalDialog = window.UI.createStandardDialog({
-        title: goalId ? 'Edit Goal' : 'Add New Goal',
+        title: goalId ? 'Edit Goal' : (isSmart ? 'Create Smart Goal' : 'Add New Goal'),
         fields: fields,
-        onSubmit: (dialog, e) => handleGoalFormSubmit(dialog, e, goalId),
-        onCancel: (dialog) => dialog.close(),
+        onSubmit: (dialog, e) => handleGoalFormSubmit(dialog, e, goalId, isSmart), 
+        onCancel: (dialog) => { dialog.close(); },
         submitButtonText: 'Save Goal',
-        cancelButtonText: 'Cancel'
+        cancelButtonText: 'Cancel',
+        onRender: (dialogElement) => {
+            const form = dialogElement.querySelector('form');
+            const actionSelect = dialogElement.querySelector('#goal-action-helper');
+            const itemInput = dialogElement.querySelector('#goal-item-helper');
+            const itemLabel = dialogElement.querySelector(`label[for='goal-item-helper']`);
+            const descriptionTextarea = dialogElement.querySelector('#goal-description');
+            
+            let descriptionManuallyEdited = false;
+
+            // No longer need to mark the form dataset
+            // if (isSmart) {
+            //     console.log('[onRender] Setting form dataset flow to smart for element:', form);
+            // }
+
+            // --- Logic to update helper item label/placeholder based on Action --- 
+            if (actionSelect && itemInput && itemLabel) {
+                const updateHelperItemField = (selectedAction) => {
+                    const config = prompts[selectedAction] || prompts.default;
+                    // Only update placeholder, label is set in field definition now
+                    itemInput.placeholder = config.itemPlaceholder; 
+                };
+                actionSelect.addEventListener('change', (event) => {
+                    updateHelperItemField(event.target.value);
+                });
+                updateHelperItemField(actionSelect.value || 'default'); 
+            }
+            
+            // --- Listener for Manual Description Edits --- 
+            if (descriptionTextarea) {
+                descriptionTextarea.addEventListener('input', () => {
+                    if (!descriptionManuallyEdited) {
+                        console.log("Manual edit detected in description.");
+                    }
+                    descriptionManuallyEdited = true; // Set flag on first manual input
+                }, { once: true }); // Optimization: only need to set the flag once
+            }
+
+            // --- Logic to populate description based on itemInput (Smart Goal only) ---
+            if (isSmart && itemInput && descriptionTextarea) { 
+                const populateDescriptionFromItem = () => {
+                    // Only populate if user hasn't manually edited description yet
+                    if (!descriptionManuallyEdited) { 
+                        const itemValue = itemInput.value.trim();
+                        // Update description - even if itemValue is empty, clear the description
+                        descriptionTextarea.value = itemValue; 
+                    }
+                };
+                itemInput.addEventListener('input', populateDescriptionFromItem);
+                console.log("Added input listener to itemInput for description population (respects manual edits).");
+            }
+        }
     });
     
     // Show dialog
@@ -253,11 +383,11 @@ function showGoalDialog(goalId) {
  * Handle goal form submission
  * @param {HTMLElement} dialog - The dialog element
  * @param {Event} e - The submit event
- * @param {string} goalId - Optional goal ID for editing
+ * @param {string} [goalId] - Optional goal ID for editing
+ * @param {boolean} isSmart - Flag indicating if it's the Smart Goal flow
  */
-function handleGoalFormSubmit(dialog, e, goalId) {
+function handleGoalFormSubmit(dialog, e, goalId, isSmart) {
     try {
-        // Get original goal data IF editing to preserve completion status
         let originalGoalData = null;
         if (goalId) {
             originalGoalData = window.getItemById ? window.getItemById('GOALS', goalId) : 
@@ -266,30 +396,118 @@ function handleGoalFormSubmit(dialog, e, goalId) {
         }
 
         const form = e.target;
-        const titleInput = form.querySelector('#goal-title');
-        const categorySelect = form.querySelector('#goal-category');
+        // Remove console log and use the passed isSmart parameter directly
+        // console.log('[handleGoalFormSubmit] Form dataset flow:', form.dataset.flow);
+        // const isSmart = form.dataset.flow === 'smart'; 
+
+        // Get common elements
         const targetDateInput = form.querySelector('#goal-target-date');
         const descriptionInput = form.querySelector('#goal-description');
+        const actionSelect = form.querySelector('#goal-action-helper');
+        const itemInput = form.querySelector('#goal-item-helper');
+        const measureInput = form.querySelector('#goal-measure-helper');
         
-        // Validate inputs - only title is required
-        if (!titleInput || !titleInput.value) {
-            alert('Please enter a goal title');
-            return;
+        let categoryId = null;
+        let goalTitle = null;
+
+        if (isSmart) {
+            // --- Smart Goal Flow --- 
+            const actionValue = actionSelect ? actionSelect.value : '';
+            const itemValue = itemInput ? itemInput.value.trim() : '';
+            
+            // Validate required fields for Smart Goal
+            if (!itemValue) {
+                alert('Please enter a Specific Item (this will also be the category).');
+                itemInput?.focus();
+                return;
+            }
+            // Optionally validate action or measure if needed
+            // if (!actionValue) { ... }
+            // if (!measureInput || !measureInput.value.trim()) { ... }
+
+            // Generate Title
+            const actionText = actionSelect ? actionSelect.options[actionSelect.selectedIndex]?.text : 'Goal';
+            goalTitle = `${actionText}: ${itemValue}`; 
+
+            // Determine/Create Category based on itemValue
+            const categoryName = itemValue; // Specific Item is the category name
+            const allCategories = window.getItems ? window.getItems('CATEGORIES') : 
+                                 JSON.parse(localStorage.getItem('practiceTrack_categories')) || [];
+            const existingCategory = allCategories.find(cat => cat.name.toLowerCase() === categoryName.toLowerCase());
+
+            if (existingCategory) {
+                categoryId = existingCategory.id;
+                console.log(`Using existing category '${categoryName}' for Smart Goal.`);
+            } else {
+                // Category does not exist - Create it automatically
+                console.log(`Category '${categoryName}' not found. Creating automatically.`);
+                const newCategory = {
+                    id: `category_${Date.now()}`,
+                    name: categoryName,
+                    createdAt: new Date().toISOString()
+                };
+                if (window.addItem) {
+                    window.addItem('CATEGORIES', newCategory);
+                    categoryId = newCategory.id;
+                    document.dispatchEvent(new CustomEvent('categoriesUpdated'));
+                    console.log(`Created and added new category: '${categoryName}'`);
+                } else {
+                    console.error('Data layer function window.addItem not found. Cannot add category.');
+                    alert('Error: Could not add the new category.');
+                    return; 
+                }
+            }
+        } else {
+            // --- Standard Add/Edit Goal Flow --- 
+            const titleInput = form.querySelector('#goal-title');
+            const categorySelect = form.querySelector('#goal-category'); 
+
+            // Validate standard fields
+            if (!titleInput || !titleInput.value.trim()) {
+                alert('Please enter a goal title');
+                titleInput?.focus(); 
+                return;
+            }
+             if (!categorySelect || !categorySelect.value) {
+                 alert('Please select a category');
+                 categorySelect?.focus(); 
+                 return;
+            }
+            goalTitle = titleInput.value.trim();
+            categoryId = categorySelect.value;
         }
         
-        // Determine completion status: preserve if editing, false if new
+        // --- Final Checks and Data Assembly --- 
+        if (!goalTitle) {
+             console.error('Failed to determine Goal Title.');
+             alert('Error setting goal title. Cannot save.');
+             return;
+        }
+        if (!categoryId) {
+             console.error('Failed to determine Category ID.');
+             alert('Error setting category for the goal. Cannot save.');
+             return;
+        }
+
         const isCompleted = goalId && originalGoalData ? originalGoalData.completed : false;
 
-        // Create goal object
+        // Base goal data common to both flows
         const goalData = {
             id: goalId || `goal_${Date.now()}`,
-            title: titleInput.value.trim(),
-            categoryId: categorySelect ? categorySelect.value : null,
+            title: goalTitle, 
+            categoryId: categoryId, 
             targetDate: targetDateInput && targetDateInput.value ? new Date(targetDateInput.value).toISOString() : null,
-            description: descriptionInput ? descriptionInput.value.trim() : '',
-            completed: isCompleted, // Use determined status
-            createdAt: (goalId && originalGoalData) ? originalGoalData.createdAt : new Date().toISOString() // Preserve original creation date if editing
+            description: descriptionInput ? descriptionInput.value.trim() : '', 
+            completed: isCompleted,
+            createdAt: (goalId && originalGoalData) ? originalGoalData.createdAt : new Date().toISOString()
         };
+
+        // Conditionally add helper fields ONLY for smart goals
+        if (isSmart) {
+            goalData.actionHelper = actionSelect ? actionSelect.value : null; 
+            goalData.itemHelper = itemInput ? itemInput.value.trim() : null; 
+            goalData.measureHelper = measureInput ? measureInput.value.trim() : null;
+        } // For standard goals, these fields will just be absent
         
         // Save goal using the data layer
         if (window.addItem && window.updateItem) {
@@ -306,47 +524,52 @@ function handleGoalFormSubmit(dialog, e, goalId) {
                 if (stored) {
                     goals = JSON.parse(stored);
                 }
-            } catch (e) {
-                console.error('Error reading goals:', e);
+            } catch (err) { // Use different variable name
+                console.error('Error reading goals:', err);
                 goals = [];
             }
             
             if (goalId) {
-                // Update existing goal
                 const index = goals.findIndex(g => g.id === goalId);
                 if (index !== -1) {
                     goals[index] = goalData;
                 }
             } else {
-                // Add new goal
                 goals.push(goalData);
             }
             
-            // Save to localStorage
             localStorage.setItem('practiceTrack_goals', JSON.stringify(goals));
         }
         
+        // Success feedback & close dialog
         const saveButton = dialog.querySelector('button[type="submit"]');
         if (saveButton) {
             saveButton.textContent = 'Saved!';
-            saveButton.classList.add('success');
-            saveButton.disabled = true; // Briefly disable button
+            saveButton.classList.add('button-saved'); 
+            saveButton.disabled = true; 
             setTimeout(() => {
-                saveButton.textContent = 'Save Goal'; // Or original text
-                saveButton.classList.remove('success');
-                saveButton.disabled = false; // Re-enable
-                // Dialog is closed immediately after this block
-            }, 1500); // Revert after 1.5 seconds
+                 dialog.close(); 
+            }, 500); // Close after 0.5 seconds
+        } else {
+             dialog.close(); 
         }
-        // Close dialog immediately 
-        dialog.close();
         
-        // Reload goals list (already moved outside timeout)
-        window.UI.loadRecords('goals');
+        window.UI.loadRecords('goals'); 
         
     } catch (error) {
         console.error('Error saving goal:', error);
-        alert('There was an error saving the goal.');
+        alert('Error saving goal. Please try again.'); 
+        // Ensure dialog closes even on error
+        if (dialog) {
+             dialog.close(); 
+        }
+        // Re-enable save button if necessary (might not be needed if dialog closes)
+        const submitButton = dialog?.querySelector('button[type="submit"]'); // Renamed variable for clarity
+        if (submitButton) {
+            submitButton.textContent = 'Save Goal'; 
+            submitButton.classList.remove('button-saved');
+            submitButton.disabled = false;
+        }
     }
 }
 
@@ -453,6 +676,22 @@ async function deleteGoal(goalId) {
         console.error('Error deleting goal:', error);
         alert('Error deleting goal. Please try again.');
     }
+}
+
+function handleSmartGoalClick() {
+    console.log('Smart Goal button clicked!');
+    
+    // Define initial data for the goal dialog - NO default description needed now
+    const smartInitialData = {
+        isSmartGoal: true, 
+        title: '', // Title is auto-generated, not shown in form
+        description: '', // Start with empty description
+        categoryId: '', 
+        targetDate: ''   
+    };
+
+    // Call the existing showGoalDialog function with the pre-filled data
+    showGoalDialog(null, smartInitialData); 
 }
 
 // Initialize when page changes to goals

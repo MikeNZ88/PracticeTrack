@@ -132,12 +132,22 @@
                     <div class="timer-content-area">
                         <!-- Main Timer Card -->
                         <div class="timer-card">
-                            <!-- Category Selection -->
-                            <div class="form-group">
-                                <select id="practice-category" class="form-control">
-                                    <option value="">Select Practice Category</option>
-                                    <!-- Options loaded dynamically -->
-                                </select>
+                            <!-- Category and Goal Selection Wrapper -->
+                            <div class="form-group timer-selectors-wrapper">
+                                <div class="timer-selector-item">
+                                    <!-- <label for="practice-category">Category (Optional)</label> -->
+                                    <select id="practice-category" class="form-control" title="Select Category (Optional)">
+                                        <option value="">Select Category</option>
+                                        <!-- Options loaded dynamically -->
+                                    </select>
+                                </div>
+                                <div class="timer-selector-item">
+                                    <!-- <label for="timer-goal-select">Goal (Optional)</label> -->
+                                    <select id="timer-goal-select" class="form-control" title="Select Goal (Optional)">
+                                        <option value="">Select Goal</option>
+                                        <!-- Options loaded dynamically -->
+                                    </select>
+                                </div>
                             </div>
 
                             <!-- Timer Display with SVG Circles -->
@@ -343,6 +353,10 @@
                         <button id="add-goal-btn" class="app-button app-button--primary">
                             <i data-lucide="plus"></i>
                             <span>Add Goal</span>
+                        </button>
+                        <button id="smart-goal-btn" class="app-button app-button--secondary">
+                            <i data-lucide="lightbulb"></i>
+                            <span>Smart Goal</span>
                         </button>
                     </div>
                     <div id="goals-list" class="goals-list">

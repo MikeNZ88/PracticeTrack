@@ -116,7 +116,7 @@ const setupEventListeners = () => {
         
         // Listen for categories updates from other modules
         document.addEventListener('categoriesUpdated', (event) => {
-            console.log('Categories updated from another module');
+            console.log('Received categoriesUpdated event, reloading categories list.');
             loadCategories(); // Reload the categories list
         });
         
@@ -569,90 +569,130 @@ function loadCategories() {
     console.log('[loadCategories] Loading categories...');
     
     if (!categoriesList) {
-        console.error('[loadCategories] Category list container not found');
-        return;
+        // Try to find the element again, maybe it wasn't ready during init
+        categoriesList = document.getElementById('categories-list'); 
+        if (!categoriesList) {
+            console.error('[loadCategories] Category list container *still* not found');
+            return;
+        }
+        console.log('[loadCategories] Found categoriesList element after re-check.');
     }
     
     try {
         // Get categories from localStorage
         const categoriesStr = localStorage.getItem('practiceTrack_categories');
-        console.log('[loadCategories] Raw categories string from storage:', categoriesStr); // <-- Log 1
+        console.log('[loadCategories] Raw categories string from storage:', categoriesStr); // Log 1
         
         let categories = [];
         try {
             categories = categoriesStr ? JSON.parse(categoriesStr) : [];
+            // Add basic validation: ensure it's an array
+            if (!Array.isArray(categories)) {
+                console.error('[loadCategories] Parsed categories is not an array! Resetting.', categories);
+                categories = [];
+                localStorage.setItem('practiceTrack_categories', JSON.stringify([])); // Fix storage
+            }
         } catch (parseError) {
             console.error("[loadCategories] Error parsing categories JSON:", parseError);
             categories = []; // Default to empty on error
+            localStorage.setItem('practiceTrack_categories', JSON.stringify([])); // Fix storage
         }
-        console.log('[loadCategories] Parsed categories array BEFORE filtering:', JSON.parse(JSON.stringify(categories))); // <-- Log 2 (deep copy for logging)
+        console.log('[loadCategories] Parsed categories array:', JSON.parse(JSON.stringify(categories))); // Log 2 (deep copy for logging)
         
         // Clear list
         categoriesList.innerHTML = '';
+        console.log('[loadCategories] Cleared categoriesList innerHTML'); // Log 3
         
         if (categories.length === 0) {
             categoriesList.innerHTML = '<p class="no-categories">No categories added yet</p>';
+            console.log('[loadCategories] Displayed 'No categories' message.'); // Log 4
             return;
         }
         
+        // Sort categories alphabetically by name (case-insensitive)
+        categories.sort((a, b) => {
+            const nameA = a.name ? a.name.toLowerCase() : '';
+            const nameB = b.name ? b.name.toLowerCase() : '';
+            return nameA.localeCompare(nameB);
+        });
+        console.log('[loadCategories] Categories sorted alphabetically.'); // Log 5
+
         // Function to create a category item element
         const createCategoryElement = (category) => {
-            const item = document.createElement('div');
-            item.className = 'category-item';
-            item.innerHTML = `
-                <span class="category-name" title="${category.name}">${category.name}</span>
-                <span class="category-actions">
-                    <button class="icon-button delete-btn" data-id="${category.id}" aria-label="Delete category">
-                        <i data-lucide="trash-2"></i>
-                    </button>
-                </span>
-            `;
-            // Add delete handler
-            const deleteBtn = item.querySelector('.delete-btn');
-            if (deleteBtn) {
-                deleteBtn.addEventListener('click', () => handleDeleteCategory(category.id));
+            // Basic check for valid category object
+            if (!category || typeof category.name !== 'string' || typeof category.id !== 'string') {
+                console.warn('[loadCategories] Skipping invalid category object during element creation:', category);
+                return null; // Skip this category
             }
-            return item;
+
+            const listItem = document.createElement('li');
+            listItem.className = 'category-item';
+            listItem.dataset.categoryId = category.id;
+            
+            const categoryNameSpan = document.createElement('span');
+            categoryNameSpan.className = 'category-name';
+            categoryNameSpan.textContent = category.name;
+            listItem.appendChild(categoryNameSpan);
+            
+            // Category Actions Container
+            const actionsDiv = document.createElement('div');
+            actionsDiv.className = 'category-actions';
+            
+            // Edit Button (example)
+            /* // Uncomment if Edit functionality is desired here
+            const editBtn = document.createElement('button');
+            editBtn.className = 'icon-button edit-category app-button app-button--secondary';
+            editBtn.title = 'Edit Category';
+            editBtn.innerHTML = '<i data-lucide="edit"></i>';
+            editBtn.onclick = () => handleEditCategory(category.id);
+            actionsDiv.appendChild(editBtn);
+            */
+            
+            // Delete Button
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'icon-button delete-category app-button app-button--secondary';
+            deleteBtn.title = 'Delete Category';
+            deleteBtn.innerHTML = '<i data-lucide="trash-2"></i>';
+            deleteBtn.addEventListener('click', (e) => { 
+                e.stopPropagation(); // Prevent potential parent handlers
+                handleDeleteCategory(category.id);
+            });
+            actionsDiv.appendChild(deleteBtn);
+            
+            listItem.appendChild(actionsDiv);
+            
+            return listItem;
         };
-
-        // Group categories (assuming custom property exists)
-        const customCategories = categories.filter(cat => cat.custom === true); 
-        const defaultCategories = categories.filter(cat => cat.custom === false || cat.custom === undefined); 
-
-        console.log('[loadCategories] Filtered custom categories:', JSON.parse(JSON.stringify(customCategories))); // <-- Log 3
-        console.log('[loadCategories] Filtered default categories:', JSON.parse(JSON.stringify(defaultCategories)));
         
-        // Add default categories section if any exist
-        if (defaultCategories.length > 0) {
-            const header = document.createElement('h3');
-            header.textContent = 'Default Categories';
-            header.className = 'category-group-header';
-            categoriesList.appendChild(header);
-            defaultCategories.forEach(category => {
-                console.log('[loadCategories] Appending default category:', category.name); // <-- Log 4a
-                categoriesList.appendChild(createCategoryElement(category));
-            });
-        }
-        
-        // Add custom categories section if any exist
-        if (customCategories.length > 0) {
-            const header = document.createElement('h3');
-            header.textContent = 'Custom Categories';
-            header.className = 'category-group-header';
-            categoriesList.appendChild(header);
-            customCategories.forEach(category => {
-                console.log('[loadCategories] Appending custom category:', category.name); // <-- Log 4b
-                 categoriesList.appendChild(createCategoryElement(category));
-            });
-        }
+        // Create and append list items
+        let appendedCount = 0;
+        categories.forEach(category => {
+            const element = createCategoryElement(category);
+            if (element) {
+                categoriesList.appendChild(element);
+                appendedCount++;
+            }
+        });
+        console.log(`[loadCategories] Appended ${appendedCount} category elements to the list.`); // Log 6
 
-        // --- REMOVE Lucide Icons Call from here --- 
-        // if (window.lucide) { ... removed ... }
-        // --- End REMOVE Lucide Icons ---
+        // --- Initialize Lucide Icons for the newly added buttons --- 
+        if (window.lucide) {
+            try {
+                window.lucide.createIcons({ context: categoriesList }); // Target only the updated list
+                console.log('[loadCategories] Refreshed Lucide icons for category list.'); // Log 7
+            } catch (e) {
+                console.error("[loadCategories] Error refreshing Lucide icons:", e);
+            }
+        } else {
+            console.warn('[loadCategories] Lucide library not available when refreshing category list icons.');
+        }
+        // --- End Lucide Icons --- 
 
     } catch (error) {
-        console.error('[loadCategories] Error during loading categories:', error);
-        categoriesList.innerHTML = '<p class="error">Error loading categories</p>';
+        console.error('[loadCategories] Error loading categories:', error);
+        if (categoriesList) { // Check if list exists before modifying
+            categoriesList.innerHTML = '<p class="no-categories error-message">Error loading categories. Please check console.</p>';
+        }
     }
 }
 

@@ -11,6 +11,7 @@ class Timer {
         this.outerProgress = document.querySelector('.outer-progress');
         this.innerProgress = document.querySelector('.inner-progress');
         this.categorySelect = document.getElementById('practice-category');
+        this.goalSelect = document.getElementById('timer-goal-select');
         this.sessionNotes = document.getElementById('session-notes');
 
         // SVG elements for icons
@@ -27,8 +28,10 @@ class Timer {
 
         // Timer state
         this.timeElapsed = 0;
+        this.timeWhenPaused = 0;
         this.isRunning = false;
         this.isPaused = false;
+        this.sessionSaved = false;
         this.timerInterval = null;
         this.startTime = null;
 
@@ -36,6 +39,7 @@ class Timer {
         this.setupEventListeners();
         this.resetDisplay();
         this.loadCategories();
+        this.loadGoals();
     }
 
     setupEventListeners() {
@@ -54,6 +58,28 @@ class Timer {
         this.saveButton.addEventListener('click', () => {
             this.saveSession();
         }, true);
+
+        // Goal select listener to auto-set category
+        this.goalSelect.addEventListener('change', (event) => {
+            const goalId = event.target.value;
+            if (goalId) {
+                // Fetch goal data
+                const goal = window.getItemById ? window.getItemById('GOALS', goalId) : null;
+                if (goal && goal.categoryId) {
+                    console.log(`Goal selected: ${goal.title}. Setting category to ID: ${goal.categoryId}`);
+                    this.categorySelect.value = goal.categoryId;
+                    this.categorySelect.disabled = true; // Disable category select when goal is chosen
+                } else {
+                    console.warn(`Could not find goal or categoryId for goalId: ${goalId}. Allowing manual category selection.`);
+                    this.categorySelect.value = ''; // Reset category if goal lookup fails
+                    this.categorySelect.disabled = false; // Ensure category select is enabled
+                }
+            } else {
+                // No goal selected, enable category selection
+                console.log("No goal selected. Enabling category dropdown.");
+                this.categorySelect.disabled = false;
+            }
+        });
 
         document.addEventListener('keydown', (e) => {
             const activeElement = document.activeElement;
@@ -75,6 +101,9 @@ class Timer {
         document.addEventListener('dataChanged', (e) => {
             if (e.detail && e.detail.type === 'CATEGORIES') {
                 this.loadCategories();
+            }
+            if (e.detail && e.detail.type === 'GOALS') {
+                this.loadGoals();
             }
         });
     }
@@ -102,11 +131,21 @@ class Timer {
         // Show/hide Reset and Save buttons
         const showSecondaryButtons = this.timeElapsed > 0;
         this.resetButton.classList.toggle('hidden', !showSecondaryButtons);
-        this.saveButton.classList.toggle('hidden', !showSecondaryButtons || this.isRunning); // Hide save if running
+        this.saveButton.classList.toggle('hidden', !showSecondaryButtons || this.isRunning || this.sessionSaved);
 
-        // Enable/Disable category select and notes
+        // Re-enable save button if reset and not running
+        if (!this.isRunning && this.timeElapsed > 0 && this.sessionSaved) {
+            this.saveButton.disabled = true;
+            this.saveButton.textContent = 'Saved!';
+        } else if (!this.isRunning && this.timeElapsed > 0) {
+            this.saveButton.disabled = false;
+            this.saveButton.textContent = 'Save Session';
+        }
+
+        // Enable/Disable category select, goal select, and notes
         const inputsDisabled = this.isRunning || this.isPaused;
         this.categorySelect.disabled = inputsDisabled;
+        this.goalSelect.disabled = inputsDisabled;
         this.sessionNotes.disabled = inputsDisabled;
     }
 
@@ -134,6 +173,7 @@ class Timer {
             this.isRunning = false;
             this.isPaused = true;
             clearInterval(this.timerInterval);
+            this.timeWhenPaused = this.timeElapsed;
             this.updateButtonStates();
             this.saveTimerState();
         }
@@ -144,54 +184,76 @@ class Timer {
         this.isPaused = false;
         clearInterval(this.timerInterval);
         this.timeElapsed = 0;
+        this.timeWhenPaused = 0;
         this.startTime = null;
+        this.sessionSaved = false;
 
         this.resetDisplay();
         this.updateButtonStates();
-        this.saveTimerState(); // Save the reset state
-        this.sessionNotes.value = ''; // Clear notes on reset
+        this.saveTimerState();
+        this.sessionNotes.value = '';
+        this.categorySelect.value = '';
+        this.goalSelect.value = '';
+        this.categorySelect.disabled = false;
+        this.goalSelect.disabled = false;
+        this.sessionNotes.disabled = false;
+        console.log('Timer reset.');
     }
 
     saveSession() {
-        if (this.timeElapsed === 0) {
-            alert('Timer has not run yet.');
-            return;
-        }
-        if (this.isRunning) {
-            alert('Please pause or stop the timer before saving.');
+        if (this.timeElapsed <= 0) {
+            alert('Timer has not been started yet.');
             return;
         }
 
-        const categoryId = this.categorySelect.value;
-        const sessionStartTime = this.startTime || new Date(Date.now() - this.timeElapsed * 1000);
-        const sessionEndTime = new Date(sessionStartTime.getTime() + this.timeElapsed * 1000);
+        let categoryId = null;
+        const goalId = this.goalSelect.value || null;
+
+        // Determine categoryId based on goal selection first
+        if (goalId) {
+            const goal = window.getItemById ? window.getItemById('GOALS', goalId) : null;
+            if (goal && goal.categoryId) {
+                categoryId = goal.categoryId;
+                console.log(`Saving session linked to goal. Using goal's categoryId: ${categoryId}`);
+            } else {
+                console.warn(`Could not find categoryId for selected goal ${goalId}. Category will be null.`);
+                // categoryId remains null
+            }
+        } else {
+            // No goal selected, use the category dropdown value (which is optional)
+            categoryId = this.categorySelect.value || null;
+            console.log(`Saving session without specific goal. Using category dropdown value: ${categoryId}`);
+        }
 
         const sessionData = {
             id: `session_${Date.now()}`,
-            categoryId: categoryId,
-            startTime: sessionStartTime.toISOString(),
-            endTime: sessionEndTime.toISOString(),
-            duration: this.timeElapsed,
+            categoryId: categoryId, // Use the determined categoryId
+            goalId: goalId, 
+            startTime: this.startTime ? this.startTime.toISOString() : new Date(Date.now() - this.timeElapsed).toISOString(),
+            duration: Math.round(this.timeElapsed / 1000),
             notes: this.sessionNotes.value.trim(),
-            isLesson: false,
-            createdAt: new Date().toISOString(),
-            source: 'timer'
+            createdAt: new Date().toISOString()
         };
 
         try {
             if (window.addItem) {
                 window.addItem('SESSIONS', sessionData);
-                if (window.showNotification) {
-                    window.showNotification('Session Saved', 'Your practice session has been saved successfully.');
-                }
-                this.resetTimer(); // Reset after successful save
             } else {
-                console.error('Data layer function addItem not found.');
-                alert('Error: Could not save session. Data layer unavailable.');
+                console.warn('Data layer function addItem not found. Saving session to localStorage directly.');
+                let sessions = JSON.parse(localStorage.getItem('practiceTrack_sessions')) || [];
+                sessions.push(sessionData);
+                localStorage.setItem('practiceTrack_sessions', JSON.stringify(sessions));
             }
+            
+            console.log('Session saved:', sessionData);
+            this.sessionSaved = true;
+            this.saveButton.textContent = 'Saved!';
+            this.saveButton.disabled = true;
+            alert('Practice session saved successfully!');
+
         } catch (error) {
             console.error('Error saving session:', error);
-            alert('Failed to save session. Please check console for details.');
+            alert('Error saving session. Please try again.');
         }
     }
 
@@ -203,6 +265,7 @@ class Timer {
                 isPaused: this.isPaused,
                 startTime: this.startTime ? this.startTime.toISOString() : null,
                 categoryId: this.categorySelect.value,
+                goalId: this.goalSelect.value,
                 notes: this.sessionNotes.value
             };
             localStorage.setItem('practiceTrack_timerState', JSON.stringify(timerState));
@@ -221,27 +284,33 @@ class Timer {
                 this.isPaused = timerState.isPaused || false;
                 this.startTime = timerState.startTime ? new Date(timerState.startTime) : null;
 
-                if (timerState.categoryId) {
-                    this.categorySelect.value = timerState.categoryId;
-                }
+                // Remove setting dropdown values from saved state
+                // if (timerState.categoryId) {
+                //     this.categorySelect.value = timerState.categoryId;
+                // }
+                // if (timerState.goalId) {
+                //     this.goalSelect.value = timerState.goalId;
+                // }
+
+                // Restore notes only
                 if (timerState.notes) {
                     this.sessionNotes.value = timerState.notes;
                 }
 
                 // Don't auto-start, just restore state and let user decide
                 this.updateDisplay();
-                this.updateButtonStates();
+                this.updateButtonStates(); // This will correctly disable selects if needed
 
-                if (timerState.isRunning) {
-                    // If it was running, treat it as paused on reload
+                // If it was running, treat it as paused on reload
+                if (!this.isPaused && timerState.isRunning) { 
+                    console.log("Timer was running on last save, setting to paused state.");
                     this.isPaused = true;
                     this.isRunning = false;
-                    this.updateButtonStates();
+                    this.updateButtonStates(); 
                 }
             }
         } catch (error) {
             console.error('Error loading timer state:', error);
-            // Clear potentially corrupted state
             localStorage.removeItem('practiceTrack_timerState');
         }
     }
@@ -272,46 +341,95 @@ class Timer {
     }
 
     loadCategories() {
+        const currentValue = this.categorySelect.value;
         while (this.categorySelect.options.length > 1) {
             this.categorySelect.remove(1);
         }
         let categories = [];
-        if (window.getItems) {
-            categories = window.getItems('CATEGORIES') || [];
-        } else {
-            console.warn('Data layer function getItems not found for categories.');
+        try {
+            if (window.getItems) {
+                categories = window.getItems('CATEGORIES') || [];
+            } else {
+                console.warn('Data layer function getItems not found for categories.');
+                categories = JSON.parse(localStorage.getItem('practiceTrack_categories')) || [];
+            }
+            categories.sort((a, b) => a.name.localeCompare(b.name));
+            categories.forEach(category => {
+                const option = document.createElement('option');
+                option.value = category.id;
+                option.textContent = category.name;
+                this.categorySelect.appendChild(option);
+            });
+            this.categorySelect.value = currentValue;
+        } catch (error) {
+            console.error("Error loading categories into timer dropdown:", error);
         }
-        categories.forEach(category => {
-            const option = document.createElement('option');
-            option.value = category.id;
-            option.textContent = category.name;
-            this.categorySelect.appendChild(option);
-        });
+    }
+
+    loadGoals() {
+        const currentValue = this.goalSelect.value;
+        while (this.goalSelect.options.length > 1) {
+            this.goalSelect.remove(1);
+        }
+        let goals = [];
+        try {
+            if (window.getItems) {
+                goals = window.getItems('GOALS') || [];
+            } else {
+                console.warn('Data layer function getItems not found for goals.');
+                goals = JSON.parse(localStorage.getItem('practiceTrack_goals')) || [];
+            }
+            const activeGoals = goals.filter(goal => !goal.completed);
+            
+            activeGoals.sort((a, b) => a.title.localeCompare(b.title));
+
+            activeGoals.forEach(goal => {
+                const option = document.createElement('option');
+                option.value = goal.id;
+                option.textContent = goal.title.length > 50 ? goal.title.substring(0, 47) + '...' : goal.title;
+                option.title = goal.title;
+                this.goalSelect.appendChild(option);
+            });
+            this.goalSelect.value = currentValue;
+        } catch (error) {
+            console.error("Error loading goals into timer dropdown:", error);
+        }
     }
 }
 
+// Create the single timer instance immediately and assign to window
+window.timer = new Timer(); 
+
+// Load the initial state ONCE after the instance is created
 document.addEventListener('DOMContentLoaded', () => {
-    const timer = new Timer();
-    timer.loadTimerState(); // Load state after initialization
+    try {
+        console.log("DOM Loaded, loading initial timer state.");
+        window.timer.loadTimerState(); 
+    } catch (error) {
+        console.error("Error during initial timer state load:", error);
+    }
 });
 
-// Initialize timer when page activates
+// Function called when navigating TO the timer page
 function activateTimerPage() {
+    // Ensure the timer instance exists (should always exist now)
     if (!window.timer) {
-        window.timer = new Timer();
+        console.error("Timer instance (window.timer) not found during activation!");
+        window.timer = new Timer(); // Recreate as a fallback
+        window.timer.loadTimerState(); // Load state if recreated
     } else {
-        // Reinitialize the timer if it already exists
+        // Just reload selectors to ensure they reflect latest data
+        console.log("Timer page activated, reloading selectors.");
         window.timer.loadCategories();
+        window.timer.loadGoals();
+        // DO NOT call loadTimerState() here again
     }
-    
-    // Check for saved timer state
-    window.timer.loadTimerState();
 }
 
-// Make timer functionality available globally
+// Make activation function available globally
 window.activateTimerPage = activateTimerPage;
 
-// Initialize when page changes to timer
+// Listen for page changes to activate
 document.addEventListener('pageChanged', (e) => {
     if (e.detail === 'timer') {
         activateTimerPage();

@@ -7202,3 +7202,97 @@ textarea:focus {
     border-radius: var(--radius-md);
     border: 1px dashed var(--border-color);
 }
+
+/* Standard Dialog Styles */
+.standard-dialog {
+    /* ... existing styles ... */
+    max-width: 500px; /* Example width */
+    padding: var(--space-lg);
+    border: none;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-xl);
+}
+
+.standard-dialog::backdrop {
+    background-color: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+}
+
+/* --- Improved Checkbox Styling within Dialogs --- */
+.standard-dialog .form-group input[type="checkbox"] {
+    appearance: none; /* Hide default checkbox */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    width: 20px; /* Custom size */
+    height: 20px;
+    border: 2px solid var(--border-color); /* Custom border */
+    border-radius: var(--radius-sm);
+    background-color: var(--background-light);
+    cursor: pointer;
+    display: inline-block;
+    vertical-align: middle; /* Align with label text */
+    margin-right: var(--space-sm); /* Space between box and label */
+    position: relative; /* For pseudo-element */
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.standard-dialog .form-group input[type="checkbox"]:checked {
+    background-color: var(--primary-blue); /* Checked color */
+    border-color: var(--primary-blue);
+}
+
+/* Add a checkmark using a pseudo-element */
+.standard-dialog .form-group input[type="checkbox"]:checked::after {
+    content: '';
+    display: block;
+    position: absolute;
+    top: 2px;
+    left: 6px;
+    width: 5px;
+    height: 10px;
+    border: solid white; /* Checkmark color */
+    border-width: 0 3px 3px 0;
+    transform: rotate(45deg);
+}
+
+/* Ensure label aligns well and is clickable */
+.standard-dialog .form-group label[for*="category"] { /* Target labels for checkboxes */
+    display: inline-flex; /* Use flex to align checkbox and text */
+    align-items: center;
+    cursor: pointer;
+}
+/* --- End Checkbox Styling --- */
+
+/* Timer Page Specific Styles */
+.timer-page-wrapper {
+    /* ... existing styles ... */
+}
+
+.timer-card {
+    /* ... existing styles ... */
+}
+
+/* Wrapper for category and goal selectors */
+.timer-selectors-wrapper {
+    display: flex;
+    gap: var(--space-md); 
+    margin-bottom: var(--space-lg); 
+}
+
+.timer-selector-item {
+    flex: 1; 
+    /* No longer need flex-direction: column */
+}
+
+/* Remove label styling */
+/* .timer-selector-item label {
+    margin-bottom: var(--space-xs); 
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+} */
+
+.timer-display-container {
+    /* ... existing styles ... */
+}
+
+/* ... rest of existing CSS ... */
