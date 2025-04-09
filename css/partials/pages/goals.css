@@ -1,0 +1,227 @@
+/* Goals Page Styles
+-------------------------------------------------- */
+
+/* Goals Container */
+.goals-container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+/* Original Goal Item Styling */
+.goal-item {
+    background-color: var(--card-background);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-color);
+    padding: var(--space-md);
+    margin-bottom: var(--space-md);
+    box-shadow: var(--shadow-sm);
+    position: relative;
+    cursor: pointer;
+    transition: all var(--transition-normal);
+}
+
+.goal-item:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+/* Left border accents */
+.goal-item.accent-blue {
+    border-left: 4px solid var(--category-blue);
+}
+
+.goal-item.accent-orange {
+    border-left: 4px solid var(--category-orange);
+}
+
+.goal-item.accent-teal {
+    border-left: 4px solid var(--category-teal);
+}
+
+.goal-item.accent-purple {
+    border-left: 4px solid var(--category-purple);
+}
+
+.goal-item.accent-gray {
+    border-left: 4px solid var(--category-gray);
+}
+
+/* Card Content */
+.card-title {
+    font-size: var(--font-lg);
+    font-weight: 600;
+    color: var(--text-dark);
+    margin-bottom: var(--space-sm);
+    line-height: 1.4;
+}
+
+.card-title.completed {
+    text-decoration: line-through;
+    color: var(--text-medium);
+}
+
+.card-category-pill {
+    position: absolute;
+    top: var(--space-sm);
+    right: var(--space-sm);
+    background-color: rgba(107, 114, 128, 0.1);
+    color: var(--text-medium);
+    padding: var(--space-xs) var(--space-sm);
+    border-radius: var(--radius-full);
+    font-size: var(--font-xs);
+    font-weight: 500;
+    display: inline-block;
+}
+
+.card-description {
+    color: var(--text-medium);
+    font-size: var(--font-sm);
+    margin-bottom: var(--space-md);
+    line-height: 1.5;
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
+}
+
+.card-date {
+    color: var(--text-medium);
+    font-size: var(--font-sm);
+    margin-bottom: var(--space-sm);
+}
+
+/* Goal Progress Bar */
+.goal-progress {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-md);
+}
+
+.progress-bar-bg {
+    flex-grow: 1;
+    height: 8px;
+    background-color: rgba(107, 114, 128, 0.1);
+    border-radius: var(--radius-full);
+    overflow: hidden;
+}
+
+.progress-bar-fill {
+    height: 100%;
+    background-color: var(--primary-blue);
+    border-radius: var(--radius-full);
+    transition: width var(--transition-normal);
+}
+
+.progress-bar-fill.completed {
+    background-color: #22c55e; /* Green color for completed */
+}
+
+.progress-bar-fill.active {
+    background-color: var(--primary-blue);
+}
+
+/* Card Actions */
+.card-actions {
+    display: flex;
+    margin-top: var(--space-md);
+    border-top: 1px solid var(--border-color);
+    padding-top: var(--space-sm);
+}
+
+.action-spacer {
+    flex-grow: 1;
+}
+
+.action-button {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    padding: var(--space-xs) var(--space-sm);
+    border: none;
+    background: none;
+    color: var(--text-medium);
+    font-size: var(--font-xs);
+    cursor: pointer;
+    transition: all var(--transition-normal);
+    border-radius: var(--radius-md);
+}
+
+.action-button:hover {
+    background-color: rgba(107, 114, 128, 0.1);
+}
+
+.action-button i {
+    width: 12px;
+    height: 12px;
+}
+
+.goal-checkbox.completed {
+    color: #22c55e; /* Green color for completed */
+}
+
+.edit-button:hover {
+    color: var(--primary-blue);
+}
+
+.delete-button:hover {
+    color: #ef4444; /* Red color for delete */
+}
+
+/* Goal Status Colors */
+.goal-days-left {
+    font-size: var(--font-xs);
+    font-weight: 500;
+    color: var(--text-medium);
+}
+
+.goal-days-left.overdue {
+    color: #ef4444; /* Red color for overdue */
+}
+
+.goal-days-left.due-today {
+    color: #f97316; /* Orange color for due today */
+}
+
+.goal-days-left.due-soon {
+    color: #eab308; /* Yellow color for due soon */
+}
+
+/* Goal Filters */
+.goals-filters {
+    margin-bottom: var(--space-xl);
+}
+
+/* Goal Buttons */
+.goal-buttons {
+    display: flex;
+    gap: var(--space-md);
+    margin-bottom: var(--space-xl);
+}
+
+#add-goal-btn, 
+button[id^="add-"] {
+    background-color: var(--primary-blue);
+    color: white;
+    padding: var(--space-sm) var(--space-md);
+    border: none;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font-weight: 600;
+    margin-bottom: var(--space-md);
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-sm);
+    transition: background-color var(--transition-normal);
+}
+
+#add-goal-btn:hover,
+button[id^="add-"]:hover {
+    background-color: var(--primary-blue-dark);
+}
+
+#smart-goal-btn {
+    background-color: var(--secondary-orange);
+}
+
+#smart-goal-btn:hover {
+    background-color: var(--secondary-orange-dark);
+} 

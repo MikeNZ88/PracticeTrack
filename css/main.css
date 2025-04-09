@@ -1,0 +1,33 @@
+/*
+ * PracticeTrack Main CSS
+ * This file imports all partials into a single stylesheet
+ */
+
+/* Import base styles */
+@import 'partials/base.css';
+
+/* Import layout styles */
+@import 'partials/layout.css';
+
+/* Import navigation styles */
+@import 'partials/navigation.css';
+
+/* Import components styles */
+@import 'partials/components.css';
+
+/* Import forms styles */
+@import 'partials/forms.css';
+
+/* Import utilities styles */
+@import 'partials/utilities.css';
+
+/* Import page-specific styles */
+@import 'partials/pages/sessions.css';
+@import 'partials/pages/goals.css';
+@import 'partials/pages/timer.css';
+@import 'partials/pages/resources.css';
+
+/* Add other page-specific styles as needed */
+/* @import 'partials/pages/stats.css'; */
+/* @import 'partials/pages/media.css'; */
+/* @import 'partials/pages/settings.css'; */ 

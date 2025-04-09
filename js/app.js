@@ -10,6 +10,13 @@ let pages;
 
 // Initialize app function
 const initializeApp = () => {
+    // Check if Utils are loaded
+    if (window.Utils) {
+        console.log('Utilities module loaded successfully!');
+    } else {
+        console.warn('Utilities module not loaded. Some features may not work correctly.');
+    }
+    
     // Initialize Lucide icons
     if (window.lucide) {
         lucide.createIcons();

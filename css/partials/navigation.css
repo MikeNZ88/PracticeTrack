@@ -1,0 +1,340 @@
+/* Navigation & Header Styles
+-------------------------------------------------- */
+
+/* Main header */
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-md) var(--space-lg);
+  background-color: var(--primary-blue);
+  color: white;
+  box-shadow: var(--shadow-md);
+  position: relative;
+  z-index: 10;
+}
+
+.app-title {
+  font-size: var(--font-xl);
+  font-weight: 700;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.app-title i {
+  font-size: 1.2em;
+}
+
+.app-title a {
+  color: white;
+  text-decoration: none;
+}
+
+/* Header actions */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.header-btn {
+  background: transparent;
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  padding: var(--space-xs) var(--space-sm);
+  font-size: var(--font-sm);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  transition: background-color 0.2s;
+}
+
+.header-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.header-btn.active {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.header-btn.primary-action {
+  background-color: var(--accent-green);
+  color: white;
+  font-weight: 600;
+  padding: var(--space-xs) var(--space-md);
+}
+
+.header-btn.primary-action:hover {
+  background-color: var(--accent-green-dark);
+}
+
+/* Main navigation */
+.main-nav {
+  background-color: var(--primary-blue-dark);
+  padding: var(--space-xs) var(--space-lg);
+}
+
+.nav-list {
+  display: flex;
+  align-items: center;
+  gap: var(--space-lg);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.nav-item a {
+  color: rgba(255, 255, 255, 0.8);
+  text-decoration: none;
+  font-size: var(--font-md);
+  padding: var(--space-sm) 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  position: relative;
+  transition: color 0.2s;
+}
+
+.nav-item a:hover {
+  color: white;
+}
+
+.nav-item a.active {
+  color: white;
+}
+
+.nav-item a.active::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background-color: var(--accent-green);
+}
+
+/* Tab navigation */
+.tab-nav {
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: var(--space-lg);
+  overflow-x: auto;
+  scrollbar-width: none; /* Firefox */
+}
+
+.tab-nav::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Edge */
+}
+
+.tab-item {
+  padding: var(--space-sm) var(--space-md);
+  color: var(--text-muted);
+  font-size: var(--font-md);
+  font-weight: 500;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+
+.tab-item:hover {
+  color: var(--text-dark);
+}
+
+.tab-item.active {
+  color: var(--primary-blue);
+  border-bottom-color: var(--primary-blue);
+}
+
+/* Sidebar navigation */
+.sidebar {
+  width: 250px;
+  background-color: white;
+  border-right: 1px solid var(--border-color);
+  height: 100%;
+  overflow-y: auto;
+  flex-shrink: 0;
+}
+
+.sidebar-header {
+  padding: var(--space-md);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.sidebar-title {
+  margin: 0;
+  font-size: var(--font-lg);
+  font-weight: 600;
+  color: var(--text-dark);
+}
+
+.sidebar-nav {
+  padding: var(--space-md) 0;
+}
+
+.sidebar-nav-group {
+  margin-bottom: var(--space-md);
+}
+
+.sidebar-nav-title {
+  padding: 0 var(--space-md);
+  margin-bottom: var(--space-xs);
+  color: var(--text-muted);
+  font-size: var(--font-sm);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.sidebar-nav-items {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.sidebar-nav-item {
+  display: block;
+}
+
+.sidebar-nav-link {
+  display: flex;
+  align-items: center;
+  padding: var(--space-sm) var(--space-md);
+  color: var(--text-body);
+  text-decoration: none;
+  font-size: var(--font-md);
+  gap: var(--space-sm);
+  border-left: 3px solid transparent;
+  transition: all 0.2s;
+}
+
+.sidebar-nav-link:hover {
+  background-color: var(--background-light);
+  color: var(--text-dark);
+}
+
+.sidebar-nav-link.active {
+  background-color: var(--background-light);
+  color: var(--primary-blue);
+  border-left-color: var(--primary-blue);
+  font-weight: 500;
+}
+
+.sidebar-nav-link i {
+  color: var(--text-muted);
+  font-size: 1.2em;
+  transition: color 0.2s;
+}
+
+.sidebar-nav-link:hover i,
+.sidebar-nav-link.active i {
+  color: var(--primary-blue);
+}
+
+/* Mobile navigation */
+.mobile-nav-toggle {
+  display: none;
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: var(--font-lg);
+  cursor: pointer;
+}
+
+/* Responsive adjustments */
+@media (max-width: 992px) {
+  .app-header {
+    padding: var(--space-sm) var(--space-md);
+  }
+  
+  .main-nav {
+    padding: var(--space-xs) var(--space-md);
+  }
+  
+  .nav-list {
+    gap: var(--space-md);
+  }
+  
+  .sidebar {
+    width: 220px;
+  }
+}
+
+@media (max-width: 768px) {
+  .nav-list {
+    gap: var(--space-sm);
+  }
+  
+  .nav-item a {
+    font-size: var(--font-sm);
+  }
+  
+  .app-container {
+    flex-direction: column;
+  }
+  
+  .sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid var(--border-color);
+    height: auto;
+    max-height: 300px;
+  }
+}
+
+@media (max-width: 576px) {
+  .app-header {
+    padding: var(--space-xs) var(--space-sm);
+  }
+  
+  .app-title {
+    font-size: var(--font-lg);
+  }
+  
+  .header-actions {
+    gap: var(--space-sm);
+  }
+  
+  .header-btn span {
+    display: none;
+  }
+  
+  .mobile-nav-toggle {
+    display: block;
+  }
+  
+  .main-nav {
+    display: none;
+  }
+  
+  .main-nav.active {
+    display: block;
+  }
+  
+  .nav-list {
+    flex-direction: column;
+    gap: 0;
+  }
+  
+  .nav-item {
+    width: 100%;
+  }
+  
+  .nav-item a {
+    padding: var(--space-sm);
+    width: 100%;
+  }
+  
+  .nav-item a.active::after {
+    display: none;
+  }
+  
+  .nav-item a.active {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+} 

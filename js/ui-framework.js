@@ -642,7 +642,7 @@ window.UI = (function() {
     }
     
     /**
-     * Create a standard dialog for adding/editing records
+     * Create a standard dialog with form fields
      * @param {Object} options - Dialog options
      * @returns {HTMLDialogElement} - The dialog element
      */
@@ -788,6 +788,13 @@ window.UI = (function() {
         
         // Add to document
         document.body.appendChild(dialog);
+        
+        // Initialize icons in the dialog using the shared utility
+        if (window.Utils) {
+            window.Utils.initializeIcons(dialog);
+        } else if (window.lucide && typeof window.lucide.createIcons === 'function') {
+            window.lucide.createIcons();
+        }
         
         return dialog;
     }

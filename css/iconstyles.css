@@ -1,20 +1,20 @@
 /* Resize SVG icons for edit and delete buttons */
 .edit-button i, .delete-button i {
-    width: 14px !important;
-    height: 14px !important;
+    width: 16px !important;
+    height: 16px !important;
 }
 
 /* Uniform button sizes for session and goal cards */
 .session-item .action-button i, 
 .goal-item .action-button i {
-    width: 14px !important;
-    height: 14px !important;
+    width: 16px !important;
+    height: 16px !important;
 }
 
 /* Action buttons within card components */
 .card-actions .action-button i {
-    width: 14px !important;
-    height: 14px !important;
+    width: 16px !important;
+    height: 16px !important;
 }
 
 /* Target SVG elements directly as well */
@@ -22,6 +22,141 @@ button svg,
 .action-button svg,
 .edit-button svg, 
 .delete-button svg {
-    width: 14px !important;
-    height: 14px !important;
+    width: 16px !important;
+    height: 16px !important;
+}
+
+/* Improved button styling to match React components */
+.action-button, .edit-button, .delete-button {
+    padding: 8px !important;
+    border-radius: 50% !important;
+    transition: all 0.2s ease !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background: transparent !important;
+}
+
+/* Hover effects for buttons */
+.edit-button:hover {
+    background-color: rgba(236, 253, 245, 0.8) !important; /* Light teal background */
+    color: #0d9488 !important; /* Teal text */
+}
+
+.delete-button:hover {
+    background-color: rgba(254, 226, 226, 0.8) !important; /* Light red background */
+    color: #ef4444 !important; /* Red text */
+}
+
+/* General action button hover effect */
+.action-button:hover {
+    background-color: rgba(239, 246, 255, 0.8) !important; /* Light blue background */
+    color: #3b82f6 !important; /* Blue text */
+    transform: scale(1.05) !important;
+}
+
+/* Hide category labels on goal cards */
+.goal-item .card-category-pill {
+    display: none !important;
+}
+
+/* Ensure goal card buttons work properly */
+.goal-item .card-actions button {
+    cursor: pointer !important;
+    pointer-events: auto !important;
+    z-index: 10 !important;
+    position: relative !important;
+}
+
+/* Modern filter styling for goals and media tabs */
+.filters {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+    margin-bottom: 16px !important;
+    align-items: center !important;
+}
+
+/* Improved selects (category, status, type filters) */
+.goals-category-filter,
+.goals-status-filter,
+.media-type-filter,
+.date-preset-filter {
+    padding: 8px 12px !important;
+    border-radius: 8px !important;
+    border: 1px solid #e2e8f0 !important;
+    background-color: white !important;
+    font-size: 14px !important;
+    color: #4b5563 !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    min-width: 140px !important;
+    appearance: auto !important; /* Restore native select appearance */
+}
+
+/* Search inputs in filters */
+.goals-search-input,
+.search-input {
+    padding: 8px 12px !important;
+    border-radius: 8px !important;
+    border: 1px solid #e2e8f0 !important;
+    background-color: white !important;
+    font-size: 14px !important;
+    flex-grow: 1 !important;
+    min-width: 200px !important;
+}
+
+/* Focus states */
+.goals-category-filter:focus,
+.goals-status-filter:focus,
+.media-type-filter:focus,
+.date-preset-filter:focus,
+.goals-search-input:focus,
+.search-input:focus {
+    outline: none !important;
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2) !important;
+}
+
+/* Hover states */
+.goals-category-filter:hover,
+.goals-status-filter:hover,
+.media-type-filter:hover,
+.date-preset-filter:hover {
+    border-color: #cbd5e1 !important;
+    background-color: #f8fafc !important;
+}
+
+/* Date inputs */
+.date-input {
+    padding: 8px 12px !important;
+    border-radius: 8px !important;
+    border: 1px solid #e2e8f0 !important;
+    font-size: 14px !important;
+    color: #4b5563 !important;
+    background-color: white !important;
+}
+
+/* Date range container */
+.date-range {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    flex-wrap: wrap !important;
+}
+
+/* Date range labels */
+.date-range label {
+    font-size: 14px !important;
+    color: #64748b !important;
+}
+
+/* Fix filter functionality issues */
+.filters select,
+.filters input {
+    z-index: 5 !important;
+    position: relative !important;
+    pointer-events: auto !important;
+    opacity: 1 !important;
+    visibility: visible !important;
 }

@@ -250,128 +250,70 @@ function initializeSessions() {
 }
 
 /**
- * Create a session element for the UI
+ * Create a session element for the DOM
  * @param {Object} session - The session data
+ * @param {Object} categoryMap - Map of category IDs to names
  * @returns {HTMLElement} - The session element
  */
 function createSessionElement(session, categoryMap) {
-    console.log(`[DEBUG Sessions CreateElement] Creating element for session ID: ${session?.id}`);
+    // Detailed information for sessions card
+    const sessionElement = document.createElement('div');
+    sessionElement.classList.add('record-card', 'session-card');
+    sessionElement.setAttribute('data-id', session.id);
     
-    try {
-        const sessionElement = document.createElement('div');
-        sessionElement.className = 'session-item'; 
-        sessionElement.dataset.id = session.id;
-
-        // Format duration
-        const durationStr = formatDuration(session);
-
-        // Format date and time
-        const { dateStr, timeStr } = formatDateTime(session.startTime);
-        const formattedDate = dateStr;
-
-        // --- Determine Category Name and Color ---
-        let displayCategoryId = session.categoryId; 
-        let category = null;
-
-        if (session.goalId) {
-            try {
-                // Use includeArchived=true to get goals that may have archived categories
-                const goal = window.getItemById ? window.getItemById('GOALS', session.goalId) : null;
-                if (goal && goal.categoryId) {
-                    displayCategoryId = goal.categoryId; 
-                }
-            } catch (err) {
-                console.error(`[DEBUG Sessions CreateElement] Error fetching goal ${session.goalId} for session ${session.id}:`, err);
-            }
-        }
-
-        // Use provided category map instead of doing lookups for each session
-        let categoryName = 'Uncategorized';
-        let categoryColor = '';
-        
-        if (displayCategoryId && categoryMap && categoryMap.has(displayCategoryId)) {
-            const category = categoryMap.get(displayCategoryId);
-            categoryName = category.name;
-            categoryColor = category.color || '';
-        } else if (displayCategoryId) {
-            // If not in the map, try to get it directly (might be archived)
-            try {
-                // Include archived categories in the lookup
-                const categoryObj = window.getItemById ? window.getItemById('CATEGORIES', displayCategoryId) : null;
-                if (categoryObj) {
-                    categoryName = categoryObj.name || 'Uncategorized';
-                    categoryColor = categoryObj.color || '';
-                }
-            } catch (err) {
-                console.error(`[DEBUG Sessions CreateElement] Error fetching category ${displayCategoryId}:`, err);
-            }
-        }
-
-        // Build the session element
-        sessionElement.innerHTML = `
-            <div class="session-time">${timeStr}</div>
-            <div class="session-content">
-                <div class="session-info">
-                    <div class="session-duration">${durationStr}</div>
-                    <div class="card-date">${formattedDate}</div>
-                </div>
-                <div class="card-category-pill">${escapeHTML(categoryName)}</div>
-                <div class="session-notes">${session.notes ? escapeHTML(session.notes) : ''}</div>
-                <div class="card-actions">
-                    ${session.isLesson ? '<span class="lesson-badge">Lesson</span>' : ''}
-                    <div class="action-spacer"></div>
-                    <button class="action-button edit-button edit-session" title="Edit Session">
-                        <i data-lucide="edit"></i>
-                        <span>Edit</span>
-                    </button>
-                    <button class="action-button delete-button delete-session" title="Delete Session">
-                        <i data-lucide="trash-2"></i>
-                        <span>Delete</span>
-                    </button>
-                </div>
-            </div>
-        `;
-
-        // Add event listeners
-        addSessionEventListeners(sessionElement, session.id);
-        
-        // Initialize icons
-        initializeIcons(sessionElement);
-        
-        // Make the entire card clickable to view/edit the session
-        sessionElement.addEventListener('click', (e) => {
-            // Only trigger if not clicking on a button or button child
-            if (!e.target.closest('button')) {
-                showSessionDialog(session.id);
-            }
-        });
-        
-        // Add cursor pointer style to indicate clickable
-        sessionElement.style.cursor = 'pointer';
-        
-        return sessionElement;
-    } catch (error) {
-        console.error(`[DEBUG Sessions CreateElement] Error creating session element:`, error);
-        return document.createElement('div'); // Return empty div to avoid breaking the page
+    // Get category for color class
+    let categoryName = 'No Category';
+    if (session.categoryId && categoryMap && categoryMap[session.categoryId]) {
+        categoryName = categoryMap[session.categoryId];
+    } else if (session.categoryId) {
+        // Use utility function if not provided in map
+        categoryName = window.Utils.getCategoryName(session.categoryId);
     }
+    
+    // Apply category color class - using utility function
+    sessionElement.classList.add(window.Utils.getCategoryColorClass(categoryName));
+    
+    // Format date and time using the utility function
+    const { dateStr, timeStr } = window.Utils.formatDateTime(session.startTime);
+    
+    // Create HTML structure for session card with important details
+    sessionElement.innerHTML = `
+        <div class="record-header">
+            <div class="record-title">${window.Utils.escapeHTML(session.title || 'Practice Session')}</div>
+            <div class="record-actions">
+                <button class="icon-button edit-button edit-session" aria-label="Edit session">
+                    <i data-lucide="edit-3"></i>
+                </button>
+                <button class="icon-button delete-button delete-session" aria-label="Delete session">
+                    <i data-lucide="trash-2"></i>
+                </button>
+            </div>
+        </div>
+        <div class="record-details">
+            <div class="record-category">${window.Utils.escapeHTML(categoryName)}</div>
+            <div class="record-date-time">
+                <span class="record-date">${dateStr}</span>
+                <span class="record-time">${timeStr}</span>
+            </div>
+            <div class="session-duration">
+                <i data-lucide="clock"></i>
+                <span>${formatDuration(session)}</span>
+            </div>
+        </div>
+        ${session.notes ? `<div class="record-notes">${window.Utils.escapeHTML(session.notes)}</div>` : ''}
+    `;
+    
+    // Initialize event listeners (now using event delegation)
+    // addSessionEventListeners(sessionElement, session.id);
+    
+    // Initialize icons within element - using utility function
+    window.Utils.initializeIcons(sessionElement);
+    
+    return sessionElement;
 }
 
 /**
- * Get color class based on category name
- * @param {string} category - The category name
- * @returns {string} - CSS class for the category color
- */
-function getCategoryColorClass(category) {
-    category = category.toLowerCase();
-    if (category.includes('technique')) return 'accent-blue';
-    if (category.includes('theory')) return 'accent-orange';
-    if (category.includes('repertoire')) return 'accent-teal';
-    if (category.includes('reading')) return 'accent-purple';
-    return 'accent-gray'; // Default
-}
-
-/**
- * Format duration into a string
+ * Format duration into a string - keeping this locally since it's specialized
  * @param {Object} session - The session data
  * @returns {string} - Formatted duration string
  */
@@ -389,82 +331,6 @@ function formatDuration(session) {
     if (minutes > 0 || hours > 0) durationParts.push(`${minutes}m`);
     durationParts.push(`${seconds}s`);
     return durationParts.join(' ');
-}
-
-/**
- * Format date and time
- * @param {string} startTime - The session start time
- * @returns {Object} - Formatted date and time strings
- */
-function formatDateTime(startTime) {
-    const start = new Date(startTime);
-    return {
-        dateStr: new Intl.DateTimeFormat('en-US', { day: 'numeric', month: 'long', year: 'numeric' }).format(start),
-        timeStr: start.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
-    };
-}
-
-/**
- * Get category name
- * @param {string} categoryId - The category ID
- * @returns {string} - The category name
- */
-function getCategoryName(categoryId) {
-    const categories = window.getItems ? window.getItems('CATEGORIES') : 
-        JSON.parse(localStorage.getItem('practiceTrack_categories')) || [];
-    const category = categories.find(c => c.id === categoryId);
-    // If categoryId is empty or not found, return 'No Category'
-    // Otherwise, return the found category's name.
-    return category ? category.name : 'No Category';
-}
-
-/**
- * Add event listeners to session element
- * @param {HTMLElement} sessionElement - The session element
- * @param {string} sessionId - The session ID
- */
-function addSessionEventListeners(sessionElement, sessionId) {
-    // console.log(`[DEBUG Sessions Listeners] Attaching listeners for session ID: ${sessionId}`); // REMOVING LOG
-    
-    /* // REMOVING INDIVIDUAL LISTENERS - Will use event delegation
-    const deleteBtn = sessionElement.querySelector('.delete-session');
-    if (deleteBtn) {
-        // console.log(`[DEBUG Sessions Listeners] Found delete button for ${sessionId}`); // REMOVING LOG
-        deleteBtn.addEventListener('click', (e) => {
-            // console.log(`[DEBUG Sessions Listeners] Delete button clicked for ${sessionId}`); // REMOVING LOG
-            e.stopPropagation();
-            deleteSession(sessionId);
-        });
-    } else {
-        // console.warn(`[DEBUG Sessions Listeners] Delete button NOT FOUND for ${sessionId}`); // REMOVING LOG
-    }
-    
-    const editBtn = sessionElement.querySelector('.edit-session');
-    if (editBtn) {
-        // console.log(`[DEBUG Sessions Listeners] Found edit button for ${sessionId}`); // REMOVING LOG
-        editBtn.addEventListener('click', (e) => {
-            // console.log(`[DEBUG Sessions Listeners] Edit button clicked for ${sessionId}`); // REMOVING LOG
-            e.stopPropagation();
-            showSessionDialog(sessionId);
-        });
-    } else {
-        // console.warn(`[DEBUG Sessions Listeners] Edit button NOT FOUND for ${sessionId}`); // REMOVING LOG
-    }
-    */
-}
-
-/**
- * Initialize icons within a session element
- * @param {HTMLElement} sessionElement - The session element
- */
-function initializeIcons(sessionElement) {
-    if (window.lucide && sessionElement) {
-        try {
-            lucide.createIcons({ context: sessionElement });
-        } catch (e) {
-            console.error("Lucide icon initialization error:", e, "on element:", sessionElement);
-        }
-    }
 }
 
 /**
@@ -549,7 +415,7 @@ function showSessionDialog(sessionId) {
             placeholder: 'e.g., 1:25:30 or 45:00 or 90',
             pattern: "^\\d*[:]?\\d{0,2}[:]?\\d{0,2}$",
             title: "Enter duration as H:MM:SS, MM:SS, or just seconds",
-            value: (sessionData && typeof sessionData.duration === 'number') ? formatSecondsAsHMS(sessionData.duration) : '0:00:00'
+            value: (sessionData && typeof sessionData.duration === 'number') ? window.Utils.formatSecondsAsHMS(sessionData.duration) : '0:00:00'
         },
         {
             type: 'textarea',
@@ -562,77 +428,16 @@ function showSessionDialog(sessionId) {
     
     // Create dialog using UI framework
     sessionDialog = window.UI.createStandardDialog({
-        title: sessionId ? 'Edit Practice Session' : 'Add Practice Session',
+        title: sessionId ? 'Edit Session' : 'Add New Practice Session',
         fields: fields,
-        onSubmit: (dialog, e) => {
-            console.log('[DEBUG Sessions] onSubmit callback in createStandardDialog triggered.');
-            handleSessionFormSubmit(dialog, e, sessionId);
-        },
-        onCancel: (dialog) => dialog.close(),
+        onSubmit: (dialog, e) => handleSessionFormSubmit(dialog, e, sessionId),
+        onCancel: (dialog) => { dialog.close(); },
         submitButtonText: 'Save Session',
         cancelButtonText: 'Cancel'
     });
     
     // Show dialog
     sessionDialog.showModal();
-}
-
-/**
- * Helper function to format total seconds into HH:MM:SS string
- * @param {number} totalSeconds 
- * @returns {string} Formatted string
- */
-function formatSecondsAsHMS(totalSeconds) {
-    if (typeof totalSeconds !== 'number' || isNaN(totalSeconds) || totalSeconds < 0) {
-        return '0:00:00'; // Default or error case
-    }
-    const hours = Math.floor(totalSeconds / 3600);
-    const minutes = Math.floor((totalSeconds % 3600) / 60);
-    const seconds = totalSeconds % 60;
-    
-    // Pad minutes and seconds with leading zeros if needed
-    const paddedMinutes = String(minutes).padStart(2, '0');
-    const paddedSeconds = String(seconds).padStart(2, '0');
-    
-    return `${hours}:${paddedMinutes}:${paddedSeconds}`;
-}
-
-/**
- * Helper function to parse H:M:S string into total seconds
- * @param {string} hmsString - String like "1:23:45", "45:30", "90"
- * @returns {number} Total seconds, or 0 if invalid
- */
-function parseDurationHMS(hmsString) {
-    if (!hmsString || typeof hmsString !== 'string') return 0;
-    
-    const parts = hmsString.trim().split(':').map(part => parseInt(part, 10));
-    let hours = 0, minutes = 0, seconds = 0;
-
-    if (parts.length === 3) {
-        // H:M:S
-        hours = parts[0] || 0;
-        minutes = parts[1] || 0;
-        seconds = parts[2] || 0;
-    } else if (parts.length === 2) {
-        // M:S
-        minutes = parts[0] || 0;
-        seconds = parts[1] || 0;
-    } else if (parts.length === 1 && !isNaN(parts[0])) {
-        // Just seconds
-        seconds = parts[0];
-    } else {
-        // Invalid format
-        return 0; 
-    }
-    
-    // Basic validation (ensure components are numbers and within reasonable bounds)
-    if (isNaN(hours) || isNaN(minutes) || isNaN(seconds) || 
-        hours < 0 || minutes < 0 || seconds < 0 || 
-        minutes >= 60 || seconds >= 60) { 
-        return 0; 
-    }
-    
-    return (hours * 3600) + (minutes * 60) + seconds;
 }
 
 /**
@@ -683,7 +488,7 @@ function handleSessionFormSubmit(dialog, e, sessionId) {
 
         // --- Detailed Validation --- 
         let validationError = null;
-        const totalDurationSeconds = durationHMS ? parseDurationHMS(durationHMS) : 0;
+        const totalDurationSeconds = durationHMS ? window.Utils.parseDurationHMS(durationHMS) : 0;
 
         // REMOVED Category Check: Category is now optional
         /* 
@@ -796,50 +601,36 @@ function handleSessionFormSubmit(dialog, e, sessionId) {
  * @param {string} sessionId - The session ID to delete
  */
 async function deleteSession(sessionId) {
-    // Confirm deletion
-    const confirmed = await window.UI.confirmDialog({
-        title: 'Delete Session',
-        message: 'Are you sure you want to delete this practice session?',
-        confirmText: 'Delete',
-        cancelText: 'Cancel',
-        isDestructive: true
-    });
-    
-    if (!confirmed) return;
-    
+    // Ask for confirmation
+    if (!confirm('Are you sure you want to delete this session?')) {
+        return;
+    }
+
     try {
-        // Use data layer if available
-        if (window.deleteItem) {
-            window.deleteItem('SESSIONS', sessionId);
-        } else {
-            // Legacy localStorage handling
-            let sessions = [];
-            try {
-                const stored = localStorage.getItem('practiceTrack_sessions');
-                if (stored) {
-                    sessions = JSON.parse(stored);
-                }
-            } catch (e) {
-                console.error('Error reading sessions:', e);
-                sessions = []; // Start fresh if storage is corrupted
+        // Delete the session data
+        const success = window.deleteItem 
+            ? await window.deleteItem('SESSIONS', sessionId)
+            : await new Promise(resolve => {
+                // Fallback for local storage
+                let sessions = JSON.parse(localStorage.getItem('practiceTrack_sessions')) || [];
+                sessions = sessions.filter(s => s.id !== sessionId);
+                localStorage.setItem('practiceTrack_sessions', JSON.stringify(sessions));
+                resolve(true);
+            });
+        
+        if (success) {
+            // Remove from DOM
+            const sessionElement = document.querySelector(`.session-card[data-id="${sessionId}"]`);
+            if (sessionElement) {
+                sessionElement.remove();
             }
             
-            // Filter out the deleted session
-            sessions = sessions.filter(s => s.id !== sessionId);
-            
-            // Save back to storage
-            localStorage.setItem('practiceTrack_sessions', JSON.stringify(sessions));
+            // Check if list is now empty
+            updateEmptyState();
         }
-        
-        // Reload sessions list
-        window.UI.loadRecords('sessions', {
-            recordType: 'SESSIONS',
-            createRecordElementFn: createSessionElement
-        });
-        
     } catch (error) {
         console.error('Error deleting session:', error);
-        alert('Error deleting session. Please try again.');
+        alert('Failed to delete session. Please try again.');
     }
 }
 
@@ -999,35 +790,22 @@ function loadSessionBatch() {
  * Handle scroll event to load more sessions
  */
 function handleScroll() {
-    const scrollPosition = window.innerHeight + window.scrollY;
-    const documentHeight = document.body.offsetHeight;
-
-    if (scrollPosition >= documentHeight - 100) { // Load more when near bottom
-        loadSessionBatch();
-    }
+    // Use the utility debounce function
+    const debouncedScroll = window.Utils.debounce(() => {
+        const scrollY = window.scrollY;
+        const innerHeight = window.innerHeight;
+        const scrollHeight = document.body.scrollHeight;
+        
+        // If we're close to the bottom of the page, load more sessions
+        if (scrollY + innerHeight >= scrollHeight - 200) {
+            loadSessionBatch();
+        }
+    }, 100);
+    
+    debouncedScroll();
 }
 
-// Debounce function to limit the rate of function execution
-function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-    };
-};
-
-// Modify handleScroll to use debounce
-const debouncedHandleScroll = debounce(handleScroll, 200);
-
-// Update event listener to use debounced function
-window.addEventListener('scroll', debouncedHandleScroll);
-
-// Remove the original scroll event listener
-window.removeEventListener('scroll', handleScroll);
+// Remove original debounce function since it's now in utils.js
 
 // Initialize when page changes to sessions
 // document.addEventListener('pageChanged', (e) => {

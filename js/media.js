@@ -48,136 +48,144 @@ function initializeMedia() {
     // --- Add Date Preset Logic with Performance Optimizations --- 
     const pageElement = document.getElementById('media-page');
     const presetFilter = pageElement ? pageElement.querySelector('.date-preset-filter') : null;
+    const dateRangeDiv = pageElement ? pageElement.querySelector('.date-range') : null;
     const startDateInput = pageElement ? pageElement.querySelector('#media-start-date') : null;
     const endDateInput = pageElement ? pageElement.querySelector('#media-end-date') : null;
-    const dateRangeDiv = pageElement ? pageElement.querySelector('.date-range') : null;
     
-    if (presetFilter && startDateInput && endDateInput && dateRangeDiv) {
-        const handleMediaPresetChange = () => {
-            const selectedPreset = presetFilter.value;
-            console.log(`[DEBUG Media] Date preset changed to: ${selectedPreset}`);
-            
-            const today = new Date();
-            let startDate = '';
-            let endDate = '';
-            
-            // Show/hide custom date inputs based on preset
-            if (selectedPreset === 'custom') {
-                dateRangeDiv.style.display = 'flex';
-                return; // Don't set dates for custom
-            } else {
+    // Define the handleMediaPresetChange function 
+    function handleMediaPresetChange() {
+        const selectedPreset = presetFilter.value;
+        console.log(`[Media Debug] Date preset changed to: ${selectedPreset}`);
+        
+        const today = new Date();
+        let startDate = '';
+        let endDate = '';
+        
+        // Show/hide custom date inputs based on preset
+        if (selectedPreset === 'custom') {
+            dateRangeDiv.style.display = 'flex';
+            return; // Don't set dates for custom
+        } else {
+            dateRangeDiv.style.display = 'none';
+        }
+        
+        // Calculate date ranges based on preset
+        switch (selectedPreset) {
+            case 'today':
+                startDate = today.toISOString().split('T')[0];
+                endDate = startDate;
+                break;
+            case 'yesterday':
+                const yesterday = new Date(today);
+                yesterday.setDate(yesterday.getDate() - 1);
+                startDate = yesterday.toISOString().split('T')[0];
+                endDate = startDate;
+                break;
+            case 'week':
+                const thisWeekStart = new Date(today);
+                const dayOfWeek = today.getDay(); // 0 = Sunday, 6 = Saturday
+                const daysFromMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+                thisWeekStart.setDate(today.getDate() - daysFromMonday);
+                startDate = thisWeekStart.toISOString().split('T')[0];
+                endDate = today.toISOString().split('T')[0];
+                break;
+            case 'month':
+                const thisMonthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+                startDate = thisMonthStart.toISOString().split('T')[0];
+                endDate = today.toISOString().split('T')[0];
+                break;
+            case 'all':
+            default:
+                startDate = '';
+                endDate = '';
+                // Clear date inputs
+                startDateInput.value = '';
+                endDateInput.value = '';
                 dateRangeDiv.style.display = 'none';
-            }
-            
-            // Calculate date ranges based on preset
-            switch (selectedPreset) {
-                case 'today':
-                    startDate = today.toISOString().split('T')[0];
-                    endDate = startDate;
-                    break;
-                case 'yesterday':
-                    const yesterday = new Date(today);
-                    yesterday.setDate(yesterday.getDate() - 1);
-                    startDate = yesterday.toISOString().split('T')[0];
-                    endDate = startDate;
-                    break;
-                case 'thisWeek':
-                    const thisWeekStart = new Date(today);
-                    const dayOfWeek = today.getDay(); // 0 = Sunday, 6 = Saturday
-                    const daysFromMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
-                    thisWeekStart.setDate(today.getDate() - daysFromMonday);
-                    startDate = thisWeekStart.toISOString().split('T')[0];
-                    endDate = today.toISOString().split('T')[0];
-                    break;
-                case 'thisMonth':
-                    const thisMonthStart = new Date(today.getFullYear(), today.getMonth(), 1);
-                    startDate = thisMonthStart.toISOString().split('T')[0];
-                    endDate = today.toISOString().split('T')[0];
-                    break;
-                case 'all':
-                default:
-                    startDate = '';
-                    endDate = '';
-                    // Clear date inputs
-                    startDateInput.value = '';
-                    endDateInput.value = '';
-                    dateRangeDiv.style.display = 'none';
-                    break;
-            }
+                break;
+        }
 
-            // Set input values
-            if (startDateInput && endDateInput && selectedPreset !== 'all') {
-                startDateInput.value = startDate;
-                endDateInput.value = endDate;
-            }
-            
-            // Use optimized filtering if available
-            if (window.PerfOpt) {
-                window.PerfOpt.invalidateCache('MEDIA');
-            }
-            
-            // Reload records with new filters
-            window.UI.loadRecords('media');
-        };
+        // Set input values
+        if (startDateInput && endDateInput && selectedPreset !== 'all') {
+            startDateInput.value = startDate;
+            endDateInput.value = endDate;
+        }
         
-        // Clone elements to remove any existing event listeners
-        const newPresetFilter = presetFilter.cloneNode(true);
-        presetFilter.parentNode.replaceChild(newPresetFilter, presetFilter);
+        // Use optimized filtering if available
+        if (window.PerfOpt) {
+            window.PerfOpt.invalidateCache('MEDIA');
+        }
         
-        const newStartDateInput = startDateInput.cloneNode(true);
-        startDateInput.parentNode.replaceChild(newStartDateInput, startDateInput);
+        // Reload records with new filters
+        window.UI.loadRecords('media');
+    }
+    
+    // Store the original reference to handleMediaPresetChange in window for external access
+    window.handleMediaPresetChange = handleMediaPresetChange;
+    
+    // Set up date filter handling
+    if (presetFilter && dateRangeDiv && startDateInput && endDateInput) {
+        // Use direct event listeners instead of clone+replace which may be causing issues
         
-        const newEndDateInput = endDateInput.cloneNode(true);
-        endDateInput.parentNode.replaceChild(newEndDateInput, endDateInput);
+        // Direct event listener for preset filter
+        presetFilter.addEventListener('change', handleMediaPresetChange);
+        console.log('[Media Debug] Added direct listener to preset filter');
         
-        // Attach the handler to the change event
-        newPresetFilter.addEventListener('change', handleMediaPresetChange);
-        
-        // Custom date input handlers with debounce if available
-        const dateChangeHandler = window.PerfOpt ? 
+        // Define date input handler
+        const dateChangeHandler = window.PerfOpt && window.PerfOpt.debounce ? 
             window.PerfOpt.debounce(() => {
-                newPresetFilter.value = 'custom';
+                console.log('[Media Debug] Date input changed');
+                presetFilter.value = 'custom';
                 dateRangeDiv.style.display = 'flex';
                 window.UI.loadRecords('media');
             }, 300) : 
             () => {
-                newPresetFilter.value = 'custom';
+                console.log('[Media Debug] Date input changed');
+                presetFilter.value = 'custom';
                 dateRangeDiv.style.display = 'flex';
                 window.UI.loadRecords('media');
             };
         
-        newStartDateInput.addEventListener('change', dateChangeHandler);
-        newEndDateInput.addEventListener('change', dateChangeHandler);
+        // Direct event listeners for date inputs
+        startDateInput.addEventListener('change', dateChangeHandler);
+        endDateInput.addEventListener('change', dateChangeHandler);
+        console.log('[Media Debug] Added direct listeners to date inputs');
 
         // Set initial state to "Today"
-        newPresetFilter.value = 'today';
+        presetFilter.value = 'today';
         
         // Apply the initial filter
         handleMediaPresetChange();
     }
     
-    // Add optimized event listener for media type filter
+    // Add direct event listener for media type filter
     const typeFilter = pageElement ? pageElement.querySelector('.media-type-filter') : null;
     if (typeFilter && window.PerfOpt) {
-        const newTypeFilter = typeFilter.cloneNode(true);
-        typeFilter.parentNode.replaceChild(newTypeFilter, typeFilter);
+        // Clear any existing listeners
+        typeFilter.removeEventListener('change', null);
         
-        newTypeFilter.addEventListener('change', () => {
+        // Add direct listener
+        typeFilter.addEventListener('change', () => {
+            console.log('[Media Debug] Type filter changed:', typeFilter.value);
             window.PerfOpt.invalidateCache('MEDIA');
             window.UI.loadRecords('media');
         });
+        console.log('[Media Debug] Added direct listener to type filter');
     }
     
-    // Add optimized search input handling
+    // Add direct event listener for search input
     const searchInput = pageElement ? pageElement.querySelector('.search-input') : null;
     if (searchInput && window.PerfOpt) {
-        const newSearchInput = searchInput.cloneNode(true);
-        searchInput.parentNode.replaceChild(newSearchInput, searchInput);
+        // Clear any existing listeners
+        searchInput.removeEventListener('input', null);
         
-        newSearchInput.addEventListener('input', window.PerfOpt.debounce(() => {
+        // Add direct listener with debounce
+        searchInput.addEventListener('input', window.PerfOpt.debounce(() => {
+            console.log('[Media Debug] Search input changed:', searchInput.value);
             window.PerfOpt.invalidateCache('MEDIA');
             window.UI.loadRecords('media');
         }, 300));
+        console.log('[Media Debug] Added direct listener to search input');
     }
     
     console.log('[DEBUG Media] Initialization complete');
@@ -280,12 +288,8 @@ function createMediaElement(media) {
         element.style.cursor = 'default';
     }
 
-    // Initialize icons for this element
-    if (window.lucide) {
-        try { 
-            lucide.createIcons({ context: element }); 
-        } catch(e) { console.error('Error creating icons for media element:', e); }
-    }
+    // Initialize icons in the element using the shared utility
+    window.Utils.initializeIcons(element);
 
     return element;
 }
