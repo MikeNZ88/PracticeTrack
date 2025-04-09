@@ -1095,7 +1095,6 @@ if (document.readyState === 'loading') {
         initializeSettings();
     }
 }
-
 // Make functions available globally
 window.initializeSettings = initializeSettings;
 window.loadSettings = loadSettings;

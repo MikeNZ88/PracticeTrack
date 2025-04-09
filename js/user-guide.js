@@ -2,6 +2,7 @@
 window.UserGuide = (function() {
     // Create and show the user guide dialog
     function showUserGuide() {
+        console.log("showUserGuide function called");
         // Remove any existing dialog
         const existingDialog = document.querySelector('.user-guide-dialog');
         if (existingDialog) {
@@ -11,6 +12,17 @@ window.UserGuide = (function() {
         // Create dialog container
         const dialog = document.createElement('div');
         dialog.className = 'dialog user-guide-dialog';
+        // Add explicit inline styles to ensure dialog appears correctly
+        dialog.style.position = 'fixed';
+        dialog.style.top = '0';
+        dialog.style.left = '0';
+        dialog.style.width = '100%';
+        dialog.style.height = '100%';
+        dialog.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+        dialog.style.display = 'flex';
+        dialog.style.justifyContent = 'center';
+        dialog.style.alignItems = 'center';
+        dialog.style.zIndex = '9999';
         dialog.innerHTML = `
             <div class="dialog-content">
                 <div class="dialog-header">
@@ -251,15 +263,31 @@ window.UserGuide = (function() {
         // Add to document
         document.body.appendChild(dialog);
 
+        // Make sure dialog is visible
+        dialog.style.display = 'flex';
+
         // Initialize Lucide icons
         if (window.lucide && typeof window.lucide.createIcons === 'function') {
-            window.lucide.createIcons();
+            try {
+                window.lucide.createIcons();
+            } catch (err) {
+                console.error("Error initializing Lucide icons:", err);
+            }
         }
 
         // Add close button functionality
         const closeButton = dialog.querySelector('.close-button');
-        closeButton.addEventListener('click', () => {
-            dialog.remove();
+        if (closeButton) {
+            closeButton.addEventListener('click', () => {
+                dialog.remove();
+            });
+        }
+
+        // Add click outside to close
+        dialog.addEventListener('click', (event) => {
+            if (event.target === dialog) {
+                dialog.remove();
+            }
         });
 
         // Add tab navigation functionality
@@ -298,6 +326,7 @@ window.UserGuide = (function() {
 
     // Create and show the "How to Practice" dialog
     function showHowToPracticeGuide() {
+        console.log("showHowToPracticeGuide function called");
         // Remove any existing dialog
         const existingDialog = document.querySelector('.how-to-practice-dialog');
         if (existingDialog) {
@@ -307,8 +336,18 @@ window.UserGuide = (function() {
         // Create dialog container
         const dialog = document.createElement('div');
         dialog.className = 'dialog how-to-practice-dialog'; // Use a specific class
+        // Add explicit inline styles to ensure dialog appears correctly
+        dialog.style.position = 'fixed';
+        dialog.style.top = '0';
+        dialog.style.left = '0';
+        dialog.style.width = '100%';
+        dialog.style.height = '100%';
+        dialog.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+        dialog.style.display = 'flex';
+        dialog.style.justifyContent = 'center';
+        dialog.style.alignItems = 'center';
+        dialog.style.zIndex = '9999';
         
-        // >>> CONTENT WILL GO HERE <<<
         const guideContentHTML = `
             <h3>General Practice Principles</h3>
             <ul>
@@ -369,12 +408,17 @@ window.UserGuide = (function() {
 
         // Append to body and show
         document.body.appendChild(dialog);
+        // Explicitly set display style
         dialog.style.display = 'flex'; // Show the dialog
 
         // Add close functionality
-        dialog.querySelector('.close-button').addEventListener('click', () => {
-            dialog.remove();
-        });
+        const closeButton = dialog.querySelector('.close-button');
+        if (closeButton) {
+            closeButton.addEventListener('click', () => {
+                dialog.remove();
+            });
+        }
+        
         dialog.addEventListener('click', (e) => {
             if (e.target === dialog) { // Close if backdrop is clicked
                 dialog.remove();
@@ -391,7 +435,11 @@ window.UserGuide = (function() {
 
         // Initialize icons
         if (window.lucide) {
-            window.lucide.createIcons({ context: dialog });
+            try {
+                window.lucide.createIcons({ context: dialog });
+            } catch (err) {
+                console.error("Error initializing Lucide icons:", err);
+            }
         }
     }
 
@@ -401,6 +449,8 @@ window.UserGuide = (function() {
         const userGuideButton = document.getElementById('show-user-guide');
         const howToPracticeButton = document.getElementById('show-how-to-practice');
         const timerHowToUseButton = document.getElementById('timer-how-to-use-button'); // Get the new button
+        const resourcesHowToUseBtn = document.getElementById('resources-how-to-use-btn'); // Get resources button
+        const howToPracticeBtn = document.getElementById('how-to-practice-btn'); // Get how to practice button
 
         if (userGuideButton) {
             userGuideButton.addEventListener('click', (event) => {
@@ -416,6 +466,24 @@ window.UserGuide = (function() {
                 showUserGuide(); // Open the same guide
             });
         } 
+
+        // Add listener for the Resources page button
+        if (resourcesHowToUseBtn) {
+            resourcesHowToUseBtn.addEventListener('click', (event) => {
+                event.preventDefault();
+                showUserGuide(); // Open the same guide
+                console.log("Resources How To Use button clicked");
+            });
+        }
+
+        // Add listener for how to practice button in resources
+        if (howToPracticeBtn) {
+            howToPracticeBtn.addEventListener('click', (event) => {
+                event.preventDefault();
+                showHowToPracticeGuide();
+                console.log("How To Practice button clicked");
+            });
+        }
 
         if (howToPracticeButton) {
             howToPracticeButton.addEventListener('click', (event) => {

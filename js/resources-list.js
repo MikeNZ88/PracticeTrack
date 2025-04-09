@@ -216,12 +216,44 @@ window.PracticeResourcesList = (function() {
 
     // Create and show resources modal
     function showResourcesModal() {
-        // Create modal dialog
-        const dialog = document.createElement('dialog');
-        dialog.className = 'standard-dialog';
-        dialog.id = 'resources-modal';
+        console.log("Showing resources modal");
+        
+        // Remove any existing dialog first
+        const existingDialog = document.getElementById('resources-modal');
+        if (existingDialog) {
+            existingDialog.remove();
+        }
+        
+        // Instead of using HTML <dialog> element which might not be well supported,
+        // let's create a div with fixed positioning
+        const modalContainer = document.createElement('div');
+        modalContainer.className = 'resources-modal-container';
+        modalContainer.id = 'resources-modal';
+        
+        // Add inline styles to ensure it displays correctly
+        modalContainer.style.position = 'fixed';
+        modalContainer.style.top = '0';
+        modalContainer.style.left = '0';
+        modalContainer.style.width = '100%';
+        modalContainer.style.height = '100%';
+        modalContainer.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+        modalContainer.style.display = 'flex';
+        modalContainer.style.justifyContent = 'center';
+        modalContainer.style.alignItems = 'center';
+        modalContainer.style.zIndex = '9999';
         
         // Create modal content
+        const contentWrapper = document.createElement('div');
+        contentWrapper.className = 'modal-content-wrapper';
+        contentWrapper.style.backgroundColor = '#fff';
+        contentWrapper.style.borderRadius = '8px';
+        contentWrapper.style.padding = '20px';
+        contentWrapper.style.maxWidth = '80%';
+        contentWrapper.style.maxHeight = '80%';
+        contentWrapper.style.overflow = 'auto';
+        contentWrapper.style.position = 'relative';
+        
+        // Create content div
         const content = document.createElement('div');
         content.className = 'modal-content';
         content.innerHTML = parseMarkdownToHTML(resourcesData);
@@ -230,28 +262,64 @@ window.PracticeResourcesList = (function() {
         const closeButton = document.createElement('button');
         closeButton.className = 'app-button app-button--secondary';
         closeButton.innerHTML = '<i data-lucide="x"></i> Close';
-        closeButton.onclick = () => dialog.close();
+        closeButton.style.marginTop = '15px';
+        closeButton.style.display = 'block';
         
         // Add content and button to dialog
-        dialog.appendChild(content);
-        dialog.appendChild(closeButton);
+        contentWrapper.appendChild(content);
+        contentWrapper.appendChild(closeButton);
+        modalContainer.appendChild(contentWrapper);
         
         // Add dialog to body
-        document.body.appendChild(dialog);
+        document.body.appendChild(modalContainer);
         
-        // Show dialog
-        dialog.showModal();
+        // Add event listeners
+        closeButton.addEventListener('click', () => {
+            modalContainer.remove();
+        });
+        
+        // Close when clicking outside the content
+        modalContainer.addEventListener('click', (event) => {
+            if (event.target === modalContainer) {
+                modalContainer.remove();
+            }
+        });
+        
+        // Close on ESC key
+        document.addEventListener('keydown', function escapeClose(e) {
+            if (e.key === 'Escape' && document.getElementById('resources-modal')) {
+                modalContainer.remove();
+                document.removeEventListener('keydown', escapeClose);
+            }
+        });
         
         // Update Lucide icons
-        lucide.createIcons();
+        if (window.lucide) {
+            try {
+                lucide.createIcons();
+            } catch (err) {
+                console.error("Error initializing Lucide icons:", err);
+            }
+        }
     }
 
     // Initialize the module
     function init() {
+        console.log("Initializing PracticeResourcesList module");
         // Add click handler to the explore resources button
         const exploreResourcesBtn = document.getElementById('explore-resources-btn');
         if (exploreResourcesBtn) {
-            exploreResourcesBtn.addEventListener('click', showResourcesModal);
+            // Remove any existing click handlers to avoid conflicts
+            exploreResourcesBtn.removeEventListener('click', showResourcesModal);
+            // Add our click handler
+            exploreResourcesBtn.addEventListener('click', function(event) {
+                event.preventDefault();
+                console.log("Explore Resources button clicked");
+                showResourcesModal();
+            });
+            console.log("Added event listener to explore-resources-btn");
+        } else {
+            console.warn("Could not find explore-resources-btn element");
         }
     }
     
@@ -264,5 +332,6 @@ window.PracticeResourcesList = (function() {
 
 // Initialize the module when the DOM is fully loaded
 document.addEventListener('DOMContentLoaded', function() {
+    console.log("DOM loaded, initializing PracticeResourcesList");
     window.PracticeResourcesList.init();
 }); 

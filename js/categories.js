@@ -2875,6 +2875,9 @@ function setupResourceEventListeners() {
         console.warn('>>> [DEBUG Resources Setup] #how-to-practice-btn not found.');
     }
 
+    // Remove the conflicting event listener for explore-resources-btn
+    // It's already being handled by PracticeResourcesList.init() in resources-list.js
+    /* Remove this block to avoid conflicts
     const assistantBtn = document.getElementById('explore-resources-btn');
     if (assistantBtn) {
         assistantBtn.removeEventListener('click', handleAssistantClick);
@@ -2883,6 +2886,7 @@ function setupResourceEventListeners() {
     } else {
         console.warn('>>> [DEBUG Resources Setup] #explore-resources-btn not found.');
     }
+    */
     // **** END Listeners for How-To Buttons ****
 }
 
@@ -2971,28 +2975,36 @@ function handleHowToUseClick() {
     if (window.UserGuide && typeof window.UserGuide.showUserGuide === 'function') {
         console.log('[DEBUG Categories] Found window.UserGuide.showUserGuide, calling it.');
         try {
-            window.UserGuide.showUserGuide(); // Corrected function name
+            window.UserGuide.showUserGuide();
         } catch (error) {
             console.error("Error calling UserGuide.showUserGuide:", error);
-            alert('Error displaying User Guide.');
+            alert('Error displaying User Guide. Try refreshing the page.');
         }
     } else {
         console.error('[DEBUG Categories] window.UserGuide or window.UserGuide.showUserGuide is not available.');
         console.log('[DEBUG Categories] Current value of window.UserGuide:', window.UserGuide);
-        alert('Could not open User Guide. Check console for details.');
+        alert('User Guide is not available. Please refresh the page or check if JavaScript is enabled.');
     }
 }
 
 function handleHowToPracticeClick() {
     console.log("How to Practice button clicked");
-    // Placeholder: Replace with actual functionality or call to UserGuide module if available
-     if (window.UserGuide && typeof window.UserGuide.showHowToPracticeGuide === 'function') {
-        window.UserGuide.showHowToPracticeGuide();
+    if (window.UserGuide && typeof window.UserGuide.showHowToPracticeGuide === 'function') {
+        try {
+            window.UserGuide.showHowToPracticeGuide();
+        } catch (error) {
+            console.error("Error calling UserGuide.showHowToPracticeGuide:", error);
+            alert('Error displaying How to Practice guide. Try refreshing the page.');
+        }
     } else {
-         alert('How to Practice guide coming soon!');
+        console.error('[DEBUG Categories] window.UserGuide or window.UserGuide.showHowToPracticeGuide is not available.');
+        console.log('[DEBUG Categories] Current value of window.UserGuide:', window.UserGuide);
+        alert('How to Practice guide is not available. Please refresh the page or check if JavaScript is enabled.');
     }
 }
 
+// Remove handleAssistantClick function as it's handled by PracticeResourcesList
+/* 
 function handleAssistantClick() {
     console.log("[DEBUG Categories] Assistant button clicked.");
     // Check for the NEW MusicChannelFinder module
@@ -3011,6 +3023,7 @@ function handleAssistantClick() {
         alert('Channel Finder feature is not available yet.'); // Fallback alert
     }
 }
+*/
 // --- END Restore deleted code ---
 
 // Expose the initializeResources function to the window object
