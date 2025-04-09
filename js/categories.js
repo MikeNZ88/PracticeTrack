@@ -2576,6 +2576,9 @@ function toggleResourceSkillGroup(instrumentName, skillGroupName) {
 
 // Display resources based on filters and expanded state
 function displayResources() {
+    // Add resource-specific styles for text ellipsis
+    addResourceStyles();
+    
     const listContainer = document.getElementById('dynamic-resource-list');
     if (!listContainer) {
         console.error('Resource list container #dynamic-resource-list not found.');
@@ -2736,6 +2739,70 @@ function displayResources() {
             lucide.createIcons({ context: listContainer });
         } catch (e) { console.error("Error creating Lucide icons for resource list:", e); }
     }
+}
+
+// Add specific styles for resource items to ensure text doesn't overflow
+function addResourceStyles() {
+    // Check if styles are already added
+    if (document.getElementById('resource-ellipsis-styles')) {
+        return;
+    }
+    
+    const styles = `
+        /* Resource category and item text ellipsis */
+        .resource-category-header h3,
+        .resource-skill-group-header h4,
+        .resource-skill-group-content li span {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: calc(100% - 30px); /* Reserve space for toggle icons */
+        }
+        
+        /* Ensure resource cards have proper containment */
+        .resource-category,
+        .resource-skill-group,
+        .resource-skill-group-content li {
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+        
+        /* Make sure toggle icons don't get squeezed */
+        .toggle-icon {
+            flex-shrink: 0;
+        }
+        
+        /* Ensure resource category headers flex properly */
+        .resource-category-header,
+        .resource-skill-group-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        /* Make topic text properly flow with ellipsis */
+        .resource-skill-group-content li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .resource-skill-group-content li span {
+            flex: 1;
+            min-width: 0; /* Allow text to shrink */
+            margin-right: 8px;
+        }
+        
+        /* Make sure add buttons don't shrink */
+        .add-topic-btn {
+            flex-shrink: 0;
+        }
+    `;
+    
+    const styleSheet = document.createElement('style');
+    styleSheet.id = 'resource-ellipsis-styles';
+    styleSheet.textContent = styles;
+    document.head.appendChild(styleSheet);
 }
 
 // Handle adding a category from a resource topic

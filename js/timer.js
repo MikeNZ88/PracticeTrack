@@ -414,34 +414,34 @@ class Timer {
     }
 }
 
-// Create the single timer instance immediately and assign to window
-window.timer = new Timer(); 
-
-// Load the initial state ONCE after the instance is created
-document.addEventListener('DOMContentLoaded', () => {
-    try {
-        console.log("DOM Loaded, loading initial timer state.");
-        window.timer.loadTimerState(); 
-    } catch (error) {
-        console.error("Error during initial timer state load:", error);
-    }
-});
+// Global instance
+let timerInstance = null;
 
 // Function called when navigating TO the timer page
 function activateTimerPage() {
-    console.log('[DEBUG Timer Activate] activateTimerPage called.'); // Log activation
-    if (!window.timer) {
-        console.error("[DEBUG Timer Activate] Timer instance (window.timer) not found during activation! Recreating.");
-        window.timer = new Timer(); 
-        window.timer.loadTimerState(); // Load state if recreated
+    console.log("[DEBUG Timer] Activating Timer Page...");
+    if (!timerInstance) {
+        console.log("[DEBUG Timer] Creating new Timer instance...");
+        timerInstance = new Timer();
+        timerInstance.loadTimerState(); // Load state when created
     } else {
-        console.log("[DEBUG Timer Activate] Timer instance exists. Reloading selectors.");
-        window.timer.loadCategories();
-        window.timer.loadGoals();
-        // Explicitly update button states based on current state when activating page
-        console.log("[DEBUG Timer Activate] Explicitly calling updateButtonStates on activation.");
-        window.timer.updateButtonStates(); 
+        console.log("[DEBUG Timer] Timer instance already exists. Loading state and categories/goals...");
+        timerInstance.loadTimerState(); // Ensure state is loaded if returning to page
+        timerInstance.loadCategories(); // Reload categories in case they changed
+        timerInstance.loadGoals(); // Reload goals in case they changed
+        timerInstance.updateButtonStates(); // Update button states based on loaded state
     }
+
+    // Ensure the User Guide listeners (including the timer page button) are initialized
+    // This needs to happen *after* the page is active and the button exists
+    if (window.UserGuide && typeof window.UserGuide.initialize === 'function') {
+        console.log("[DEBUG Timer] Calling UserGuide.initialize() for timer page activation.");
+        window.UserGuide.initialize();
+    } else {
+        console.warn("[DEBUG Timer] UserGuide module or initialize function not found during timer activation.");
+    }
+
+    console.log("[DEBUG Timer] Timer Page activation complete.");
 }
 
 // Make activation function available globally

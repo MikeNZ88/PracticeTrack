@@ -2,27 +2,34 @@
 window.UserGuide = (function() {
     // Create and show the user guide dialog
     function showUserGuide() {
-        console.log("showUserGuide function called");
+        console.log("[UserGuide] showUserGuide function called"); // Entry point
+        
         // Remove any existing dialog
         const existingDialog = document.querySelector('.user-guide-dialog');
         if (existingDialog) {
+            console.log("[UserGuide] Removing existing dialog.");
             existingDialog.remove();
         }
 
+        console.log("[UserGuide] Creating new dialog container...");
         // Create dialog container
         const dialog = document.createElement('div');
         dialog.className = 'dialog user-guide-dialog';
         // Add explicit inline styles to ensure dialog appears correctly
-        dialog.style.position = 'fixed';
+        dialog.style.position = 'fixed !important';
         dialog.style.top = '0';
         dialog.style.left = '0';
-        dialog.style.width = '100%';
-        dialog.style.height = '100%';
+        dialog.style.width = '100% !important';
+        dialog.style.height = '100% !important';
         dialog.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
-        dialog.style.display = 'flex';
+        dialog.style.display = 'flex !important';
         dialog.style.justifyContent = 'center';
         dialog.style.alignItems = 'center';
-        dialog.style.zIndex = '9999';
+        dialog.style.zIndex = '9999 !important';
+        dialog.style.opacity = '1 !important';
+        dialog.style.visibility = 'visible !important';
+        
+        console.log("[UserGuide] Setting dialog innerHTML...");
         dialog.innerHTML = `
             <div class="dialog-content">
                 <div class="dialog-header">
@@ -260,32 +267,61 @@ window.UserGuide = (function() {
             </div>
         `;
 
+        console.log("[UserGuide] Appending dialog to body...");
         // Add to document
-        document.body.appendChild(dialog);
+        try {
+            document.body.appendChild(dialog);
+            console.log("[UserGuide] Dialog appended successfully.");
+            
+            // Make sure dialog is visible - redundant due to inline style but safe check
+            dialog.style.display = 'flex';
+            console.log("[UserGuide] Dialog display style set to flex.");
 
-        // Make sure dialog is visible
-        dialog.style.display = 'flex';
+            // --- Explicitly make overview visible AFTER appending ---
+            const overviewSection = dialog.querySelector('.guide-content > div[data-section="all"]');
+            if (overviewSection) {
+                overviewSection.classList.add('visible');
+                console.log("[UserGuide] Explicitly added 'visible' class to overview section.");
+            } else {
+                console.warn("[UserGuide] Overview content section not found after appending dialog.");
+            }
+            // --- End explicit visibility fix ---
 
+        } catch (appendError) {
+            console.error("[UserGuide] Error appending dialog to body:", appendError);
+            return; // Stop if appending fails
+        }
+
+        console.log("[UserGuide] Initializing Lucide icons inside dialog...");
         // Initialize Lucide icons
         if (window.lucide && typeof window.lucide.createIcons === 'function') {
             try {
-                window.lucide.createIcons();
+                window.lucide.createIcons({ context: dialog }); // Target context to dialog
+                console.log("[UserGuide] Lucide icons initialized successfully.");
             } catch (err) {
-                console.error("Error initializing Lucide icons:", err);
+                console.error("[UserGuide] Error initializing Lucide icons:", err);
+                // Don't necessarily stop execution, dialog might still work without icons
             }
+        } else {
+            console.warn("[UserGuide] Lucide library not found.");
         }
 
+        console.log("[UserGuide] Adding event listeners to dialog...");
         // Add close button functionality
         const closeButton = dialog.querySelector('.close-button');
         if (closeButton) {
             closeButton.addEventListener('click', () => {
+                console.log("[UserGuide] Close button clicked.");
                 dialog.remove();
             });
+        } else {
+            console.warn("[UserGuide] Close button not found in dialog.");
         }
 
         // Add click outside to close
         dialog.addEventListener('click', (event) => {
             if (event.target === dialog) {
+                console.log("[UserGuide] Dialog backdrop clicked.");
                 dialog.remove();
             }
         });
@@ -294,34 +330,42 @@ window.UserGuide = (function() {
         const filterButtons = dialog.querySelectorAll('.guide-filter-buttons .filter-button');
         const contentSections = dialog.querySelectorAll('.guide-content > div[data-section]');
 
-        filterButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                // Update button active state
-                filterButtons.forEach(btn => btn.classList.remove('active'));
-                button.classList.add('active');
+        if (filterButtons.length > 0 && contentSections.length > 0) {
+            filterButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const targetSection = button.dataset.section;
+                    console.log(`[UserGuide] Filter button clicked: ${targetSection}`);
+                    // Update button active state
+                    filterButtons.forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
 
-                // Show/Hide content sections
-                const targetSection = button.dataset.section;
-                contentSections.forEach(section => {
-                    if (section.dataset.section === targetSection || targetSection === 'all') {
-                        section.classList.add('visible');
-                    } else {
-                        section.classList.remove('visible');
-                    }
+                    // Show/Hide content sections
+                    contentSections.forEach(section => {
+                        section.classList.toggle('visible', section.dataset.section === targetSection || targetSection === 'all');
+                    });
                 });
             });
-        });
+            console.log("[UserGuide] Filter button listeners added.");
+        } else {
+            console.warn("[UserGuide] Filter buttons or content sections not found for listeners.");
+        }
         
         // Close dialog on escape key
-        document.addEventListener('keydown', function closeOnEscape(e) {
+        const closeOnEscape = (e) => {
             if (e.key === 'Escape') {
-                const currentDialog = document.querySelector('.user-guide-dialog');
+                console.log("[UserGuide] Escape key pressed.");
+                const currentDialog = document.querySelector('.user-guide-dialog'); // Re-query in case of issues
                 if (currentDialog) {
                     currentDialog.remove();
-                    document.removeEventListener('keydown', closeOnEscape); // Clean up listener
                 }
+                document.removeEventListener('keydown', closeOnEscape);
             }
-        }, { once: true }); // Option ensures listener is removed after first escape
+        };
+        document.addEventListener('keydown', closeOnEscape);
+        // Store the listener reference to be able to remove it if dialog is closed by other means
+        dialog.dataset.escapeListenerAttached = 'true'; 
+
+        console.log("[UserGuide] showUserGuide function finished.");
     }
 
     // Create and show the "How to Practice" dialog
@@ -448,50 +492,50 @@ window.UserGuide = (function() {
         console.log("Initializing User Guide Module...");
         const userGuideButton = document.getElementById('show-user-guide');
         const howToPracticeButton = document.getElementById('show-how-to-practice');
-        const timerHowToUseButton = document.getElementById('timer-how-to-use-button'); // Get the new button
-        const resourcesHowToUseBtn = document.getElementById('resources-how-to-use-btn'); // Get resources button
-        const howToPracticeBtn = document.getElementById('how-to-practice-btn'); // Get how to practice button
+        const timerHowToUseButton = document.getElementById('timer-how-to-use-button');
+        const resourcesHowToUseBtn = document.getElementById('resources-how-to-use-btn');
+        const howToPracticeBtn = document.getElementById('how-to-practice-btn');
 
-        if (userGuideButton) {
-            userGuideButton.addEventListener('click', (event) => {
-                event.preventDefault(); 
-                showUserGuide();
-            });
-        }
+        // Helper function to add listener only once
+        const addListenerOnce = (button, handlerFn) => {
+            if (button && !button.dataset.listenerAdded) {
+                button.addEventListener('click', handlerFn);
+                button.dataset.listenerAdded = 'true';
+                console.log(`Listener added to button: #${button.id}`);
+            } else if (button) {
+                console.log(`Listener already present on button: #${button.id}`);
+            }
+        };
 
-        // Add listener for the new Timer page button
-        if (timerHowToUseButton) {
-             timerHowToUseButton.addEventListener('click', (event) => {
-                event.preventDefault(); 
-                showUserGuide(); // Open the same guide
-            });
-        } 
+        // Add listeners using the helper
+        addListenerOnce(userGuideButton, (event) => {
+            event.preventDefault(); 
+            showUserGuide();
+        });
 
-        // Add listener for the Resources page button
-        if (resourcesHowToUseBtn) {
-            resourcesHowToUseBtn.addEventListener('click', (event) => {
-                event.preventDefault();
-                showUserGuide(); // Open the same guide
-                console.log("Resources How To Use button clicked");
-            });
-        }
+        addListenerOnce(timerHowToUseButton, (event) => {
+            event.preventDefault(); 
+            showUserGuide(); // Open the same guide
+        });
 
-        // Add listener for how to practice button in resources
-        if (howToPracticeBtn) {
-            howToPracticeBtn.addEventListener('click', (event) => {
-                event.preventDefault();
-                showHowToPracticeGuide();
-                console.log("How To Practice button clicked");
-            });
-        }
+        addListenerOnce(resourcesHowToUseBtn, (event) => {
+            event.preventDefault();
+            showUserGuide(); // Open the same guide
+            console.log("Resources How To Use button clicked");
+        });
 
-        if (howToPracticeButton) {
-            howToPracticeButton.addEventListener('click', (event) => {
-                event.preventDefault(); 
-                showHowToPracticeGuide();
-            });
-        }
-        console.log("User Guide Module initialized.");
+        addListenerOnce(howToPracticeBtn, (event) => {
+            event.preventDefault();
+            showHowToPracticeGuide();
+            console.log("How To Practice button clicked");
+        });
+
+        addListenerOnce(howToPracticeButton, (event) => {
+            event.preventDefault(); 
+            showHowToPracticeGuide();
+        });
+
+        console.log("User Guide Module initialization attempt complete.");
     }
 
     console.log("[DEBUG UserGuide] UserGuide module fully defined, attaching to window.");
@@ -504,5 +548,5 @@ window.UserGuide = (function() {
     };
 })();
 
-// Initialize the guide when the DOM is ready
-document.addEventListener('DOMContentLoaded', window.UserGuide.initialize); 
+// REMOVED: Initialize the guide when the DOM is ready
+// document.addEventListener('DOMContentLoaded', window.UserGuide.initialize); 

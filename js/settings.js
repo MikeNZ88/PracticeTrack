@@ -968,16 +968,19 @@ const addStyles = () => {
             border: 1px solid var(--border-color); /* Use theme variable */
             font-size: var(--font-sm); /* Use theme variable */
             min-height: 44px; /* Ensure consistent height */
+            max-width: 100%; /* Ensure card doesn't overflow container */
+            box-sizing: border-box; /* Include padding in width calculation */
         }
         
         .category-name {
             flex-grow: 1; /* Allow name to take available space */
             margin-right: var(--space-sm); /* Space before actions */
-            /* Ellipsis styles */
+            /* Enhanced ellipsis styles */
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
             min-width: 0; /* Important for flex items to allow shrinking */
+            max-width: calc(100% - 50px); /* Reserve space for actions */
             color: var(--text-dark); /* Use theme variable */
         }
         
@@ -1045,6 +1048,43 @@ const addStyles = () => {
         .danger-button {
             background: #f44336;
             color: white;
+        }
+
+        /* Global card text ellipsis styles */
+        .card-text, 
+        .card-title, 
+        .card-content,
+        .card .text-content, 
+        .card-description {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
+        }
+
+        /* Ensure all cards have proper text containment */
+        .card, 
+        .list-item, 
+        .resource-item, 
+        .session-card, 
+        .goal-card,
+        .media-card {
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+
+        /* Ensure text elements in cards use ellipsis */
+        .card span, 
+        .card p, 
+        .card h2, 
+        .card h3, 
+        .card h4,
+        .list-item span, 
+        .list-item div {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
         }
     `;
     

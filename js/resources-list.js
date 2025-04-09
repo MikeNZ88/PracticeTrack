@@ -34,6 +34,10 @@ window.PracticeResourcesList = (function() {
 - [edX Music Courses](https://www.edx.org/learn/music) - University courses with audit option
 - [Udemy Free Music Courses](https://www.udemy.com/topic/music/free/) - Free courses on various music topics
 
+### General Music Theory and Education
+- [MusicTheoryForMusicians.com](https://www.musictheoryformusicians.com/) - Comprehensive music theory lessons and resources
+- [ToneSavvy](https://www.tonesavvy.com/) - Interactive music theory and ear training exercises
+
 ## Instrument-Specific Resources
 
 ### Piano/Keyboard
@@ -41,6 +45,8 @@ window.PracticeResourcesList = (function() {
 - [Pianogroove](https://www.pianogroove.com/free-lessons/) - Jazz, blues and pop piano tutorials
 - [Piano Society](https://www.pianosociety.com/) - Classical piano recordings and sheet music
 - [Yale University Piano Lessons](https://www.youtube.com/playlist?list=PLh9mgdi4rNezhx8YiGIV8I22ICSuzslja) - Professor Wei-Yi Yang's piano lessons
+- [PianoNanny](https://www.pianonanny.com/) - Free online piano lessons for beginners
+- [Flowkey](https://www.flowkey.com/en) - Interactive piano learning app with free trial
 
 ### Guitar
 - [Justin Guitar](https://www.justinguitar.com/) - Comprehensive free guitar lessons
@@ -49,6 +55,10 @@ window.PracticeResourcesList = (function() {
 - [Fretboard Theory](https://www.fretboardtheory.com/blog/) - Blog with free guitar theory articles
 - [Classical Guitar Corner Academy Blog](https://www.classicalguitarcorner.com/blog/) - Free classical guitar resources
 - [Real Guitar Online Lessons](https://www.realguitarlessons.com/lessons/) - Free guitar resources
+- [TrueFire](https://truefire.com/) - Extensive guitar lessons and courses
+- [GuitarTricks](https://www.guitartricks.com/) - Comprehensive guitar learning platform with free trial
+- [Ultimate Guitar](https://www.ultimate-guitar.com/) - Extensive library of guitar tabs and chords
+- [Songsterr](https://www.songsterr.com/) - Interactive guitar tabs and sheet music
 
 ### Drums
 - [Drumeo Free Lessons](https://www.drumeo.com/free/) - Free drum lessons
@@ -56,6 +66,8 @@ window.PracticeResourcesList = (function() {
 - [Stephen Taylor Drum Lessons](https://www.stephentaylordrums.com/free-stuff/) - Free resources and video lessons
 - [Drum Rudiments](https://www.40drumrudiments.com/) - All 40 drum rudiments with video tutorials
 - [Modern Drummer Educational Resources](https://www.moderndrummer.com/education/) - Selected free content from Modern Drummer magazine
+- [Drum Channel](https://www.drumchannel.com/) - Drum lessons and masterclasses from top drummers
+- [Drum Ambition](https://www.drumambition.com/) - Beginner drum lessons with free trial
 
 ### Strings (Violin, Viola, Cello, Bass)
 - [Violin Lab Free Lessons](https://www.violinlab.com/free-violin-lessons/) - Free violin lessons
@@ -64,12 +76,16 @@ window.PracticeResourcesList = (function() {
 - [The Strad Magazine](https://www.thestrad.com/playing) - Selected free articles on string playing techniques
 - [String Pedagogy Notebook](https://stringpedagogy.com/articles/) - Free string pedagogy articles
 - [MyViolinVideos](https://www.myviolinvideos.com/) - Professor Kurt Sassmannshaus's free violin lessons
+- [Violin Online](https://www.violinonline.com/) - Free violin lessons and resources
+- [CelloBello](https://www.cellobello.org/) - Cello lessons and resources from renowned cellists
 
 ### Woodwinds
 - [The Flute Coach](https://theflutecoach.com/blog/) - Free flute resources and tutorials
 - [Clarinet Institute Digital Library](https://www.clarinetinstitute.com/free-music) - Free sheet music and resources
 - [David Keller's Bassoon Website](https://davidkbassoon.com/) - Free bassoon resources and articles
 - [McGill Saxophone Resources](https://www.mcgill.ca/music/about-us/blog/saxophone-resources) - Free articles and resources
+- [Flute Tunes](https://www.flutetunes.com/) - Free flute sheet music and exercises
+- [Sax on the Web](https://www.saxontheweb.net/) - Saxophone resources and forums
 
 ### Brass
 - [Trumpet Excerpts](https://www.trumpetexcerpts.org/) - Orchestral trumpet excerpts with commentary
@@ -77,6 +93,8 @@ window.PracticeResourcesList = (function() {
 - [Horn Matters](https://hornmatters.com/) - French horn articles and resources
 - [The Brass Junkies Podcast](https://podcasts.apple.com/us/podcast/the-brass-junkies/id1161220133) - Interviews with brass musicians
 - [International Tuba Euphonium Association Resources](https://www.iteaonline.org/index.php/resources/free-resources) - Free tuba and euphonium resources
+- [Brass Musician](https://www.brassmusician.com/) - Brass instrument resources and articles
+- [Tuba Peter](https://www.tubapeter.com/) - Tuba resources and lessons
 
 ## Technical Resources
 
@@ -86,6 +104,8 @@ window.PracticeResourcesList = (function() {
 - [Pro Audio Files](https://theproaudiofiles.com/category/free-tutorials/) - Free tutorials on audio engineering
 - [Sound On Sound (Selected Articles)](https://www.soundonsound.com/) - Technical articles on music production
 - [Music Tech Teacher](https://www.musictechteacher.com/) - Free music technology lessons and worksheets
+- [SoundGym](https://www.soundgym.co/) - Audio ear training and music production exercises
+- [Splice](https://splice.com/) - Music production tools and community
 
 ### Music Software Tutorials
 - [MuseScore Tutorials](https://musescore.org/en/tutorials) - Free notation software tutorials
@@ -98,6 +118,8 @@ window.PracticeResourcesList = (function() {
 - [Music Practice Tips](https://www.musicpracticetips.com/) - Effective practice strategies
 - [Gerald Klickstein's Blog](https://www.geraldklickstein.com/blog) - Music practice and performance wisdom
 - [The Musician's Way Blog](https://www.musiciansway.com/blog/) - Articles on practice, performance, and creativity
+- [The Bulletproof Musician](https://bulletproofmusician.com/) - Performance psychology and practice strategies
+- [The Practice of Practice](https://practiceofpractice.com/) - Blog and resources on effective practice methods
 
 ## Culture-Specific and World Music Resources
 
@@ -113,6 +135,8 @@ window.PracticeResourcesList = (function() {
 - [Learn Jazz Standards](https://www.learnjazzstandards.com/blog/) - Jazz theory and improvisation
 - [Jazz Advice](https://www.jazzadvice.com/) - Free jazz improvisation articles
 - [Open Jazz Theory](https://www.openjazztheory.org/) - Free online jazz theory textbook
+- [Jazz at Lincoln Center](https://academy.jazz.org/) - Jazz education resources and courses
+- [JazzGuitarLessons.net](https://www.jazzguitarlessons.net/) - Jazz guitar lessons and resources
 
 ## Music Education Research and Pedagogy
 
@@ -128,6 +152,10 @@ window.PracticeResourcesList = (function() {
 - [Orff Schulwerk Teacher Resources](https://aosa.org/resources/teacher-resources/) - Selected free resources on Orff approach
 - [Suzuki Association Resources](https://suzukiassociation.org/teachers/resources/) - Selected free resources on Suzuki method
 
+### Music Education Research and Pedagogy
+- [The Music Teachers National Association](https://www.mtna.org/) - Resources for music educators
+- [The National Association for Music Education](https://nafme.org/) - Music education resources and advocacy
+
 ## Music Medicine and Health
 
 ### Musicians' Health Resources
@@ -135,6 +163,8 @@ window.PracticeResourcesList = (function() {
 - [Musicians' Health Collective](https://musicianshealth.co.uk/blog/) - Articles on musicians' health
 - [The Musician's Health Resource](https://musicianshealth.com/blog/) - Health information for musicians
 - [Athletes and the Arts](https://www.athletesandthearts.com/resources/) - Resources on musician wellness
+- [Musicians' Health Collective](https://musicianshealth.co.uk/) - Articles on musicians' health and wellness
+- [Performing Arts Medicine Association](https://artsmed.org/) - Resources on health for performing artists
 
 ## Sheet Music Libraries
 
@@ -145,6 +175,8 @@ window.PracticeResourcesList = (function() {
 - [CPDL (Choral Public Domain Library)](https://www.cpdl.org/) - Free choral music
 - [8notes](https://www.8notes.com/) - Free sheet music for different instruments
 - [International Music Score Library Project (IMSLP)](https://imslp.org/wiki/Main_Page) - Free sheet music in the public domain
+- [Sheet Music Plus](https://www.sheetmusicplus.com/) - Free sheet music downloads and resources
+- [Virtual Sheet Music](https://www.virtualsheetmusic.com/) - Free sheet music and resources
 
 ## Sight-Reading and Ear Training
 
@@ -154,6 +186,8 @@ window.PracticeResourcesList = (function() {
 - [Teoria Ear Training](https://www.teoria.com/en/exercises/) - Interactive ear training exercises
 - [Functional Ear Trainer](https://www.miles.be/) - Free ear training application
 - [EarMaster Practice](https://www.earmaster.com/free-resources/) - Selected free ear training exercises
+- [Sight Reading Factory](https://www.sightreadingfactory.com/) - Sight-reading exercises and tools
+- [EarMaster](https://www.earmaster.com/) - Ear training and sight-singing exercises
 `;
 
     // Parse Markdown to HTML
@@ -216,7 +250,17 @@ window.PracticeResourcesList = (function() {
 
     // Create and show resources modal
     function showResourcesModal() {
-        console.log("Showing resources modal");
+        console.log("Showing resources modal requested - using static HTML modal instead");
+        
+        // Use the HTML modal instead of creating a new one
+        const staticModal = document.getElementById('resourcesModal');
+        if (staticModal) {
+            staticModal.style.display = 'block';
+            return;
+        }
+        
+        // The rest of this function is kept as a fallback but shouldn't run
+        console.log("Static modal not found, using dynamic modal as fallback");
         
         // Remove any existing dialog first
         const existingDialog = document.getElementById('resources-modal');

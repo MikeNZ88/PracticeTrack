@@ -10,14 +10,19 @@ let sessionDialog = null;
 let cachedCategories = null;
 
 // Constants for lazy loading
-const BATCH_SIZE = 20; // Number of sessions to load per batch
+const BATCH_SIZE = 30; // Increased from 20 to 30 for better initial load
 let currentBatchIndex = 0;
+let sessionCache = null; // Added cache for filtered sessions
 
 /**
  * Initialize sessions page with performance optimizations
  */
 function initializeSessions() {
     console.log('[DEBUG Sessions] Initializing Sessions page...');
+    // Reset batch index and cache
+    currentBatchIndex = 0;
+    sessionCache = null;
+    
     // Pre-cache categories
     cachedCategories = window.getItems ? window.getItems('CATEGORIES') : 
         JSON.parse(localStorage.getItem('practiceTrack_categories')) || [];
@@ -39,9 +44,6 @@ function initializeSessions() {
         showDialogFn: showSessionDialog // Ensure this function exists and works
     });
     
-    // Load the first batch of sessions
-    loadSessionBatch();
-
     // Add Date Preset Logic with optimizations - RESTORED
     const pageElement = document.getElementById('sessions-page');
     if (!pageElement) {
@@ -53,7 +55,9 @@ function initializeSessions() {
         presetFilter: pageElement.querySelector('.date-preset-filter'),
         startDateInput: pageElement.querySelector('#session-start-date'),
         endDateInput: pageElement.querySelector('#session-end-date'),
-        dateRangeDiv: pageElement.querySelector('.date-range')
+        dateRangeDiv: pageElement.querySelector('.date-range'),
+        categoryFilter: pageElement.querySelector('.category-filter'),
+        searchInput: pageElement.querySelector('.search-input')
     };
 
     if (!elements.presetFilter || !elements.startDateInput || 
@@ -64,6 +68,10 @@ function initializeSessions() {
 
     // Optimize date preset change handler
     const handlePresetChange = () => {
+        // Reset batch index and cache when filters change
+        currentBatchIndex = 0;
+        sessionCache = null;
+        
         const selectedPreset = elements.presetFilter.value;
         const today = new Date();
         const todayString = today.toISOString().split('T')[0]; // Get YYYY-MM-DD for today
@@ -125,38 +133,83 @@ function initializeSessions() {
             elements.endDateInput.value = endDate;
         }
         
-        // Trigger UI framework to reload records with the new date context
-        console.log(`[DEBUG Sessions] Date preset changed to ${selectedPreset}. Filtering with Start: ${startDate || 'none'}, End: ${endDate || 'none'}`);
-        window.UI.loadRecords('sessions');
+        // Clear previous sessions display
+        const sessionsList = document.getElementById('sessions-list');
+        if (sessionsList) {
+            sessionsList.innerHTML = '';
+        }
+        
+        // Load the first batch directly instead of using UI framework
+        loadSessionBatch();
     };
 
     // Add event listeners only once during initialization
     // Check if listeners were already added to prevent duplicates if init is called multiple times
     if (!elements.presetFilter.dataset.listenerAdded) {
         elements.presetFilter.addEventListener('change', handlePresetChange);
+        
         elements.startDateInput.addEventListener('change', () => {
             elements.presetFilter.value = 'custom';
             elements.dateRangeDiv.style.display = 'flex';
-            // No need to call handlePresetChange here, UI.loadRecords happens on input change via framework
+            // Reset cache and reload
+            currentBatchIndex = 0;
+            sessionCache = null;
+            const sessionsList = document.getElementById('sessions-list');
+            if (sessionsList) {
+                sessionsList.innerHTML = '';
+            }
+            loadSessionBatch();
         });
+        
         elements.endDateInput.addEventListener('change', () => {
             elements.presetFilter.value = 'custom';
             elements.dateRangeDiv.style.display = 'flex';
-             // No need to call handlePresetChange here
+            // Reset cache and reload
+            currentBatchIndex = 0;
+            sessionCache = null;
+            const sessionsList = document.getElementById('sessions-list');
+            if (sessionsList) {
+                sessionsList.innerHTML = '';
+            }
+            loadSessionBatch();
         });
+        
+        // Add listeners for category filter and search
+        if (elements.categoryFilter) {
+            elements.categoryFilter.addEventListener('change', () => {
+                // Reset cache and reload
+                currentBatchIndex = 0;
+                sessionCache = null;
+                const sessionsList = document.getElementById('sessions-list');
+                if (sessionsList) {
+                    sessionsList.innerHTML = '';
+                }
+                loadSessionBatch();
+            });
+        }
+        
+        if (elements.searchInput) {
+            elements.searchInput.addEventListener('input', debounce(() => {
+                // Reset cache and reload
+                currentBatchIndex = 0;
+                sessionCache = null;
+                const sessionsList = document.getElementById('sessions-list');
+                if (sessionsList) {
+                    sessionsList.innerHTML = '';
+                }
+                loadSessionBatch();
+            }, 300));
+        }
+        
         elements.presetFilter.dataset.listenerAdded = 'true'; // Mark as added
         console.log('[DEBUG Sessions] Date filter event listeners added.');
     }
 
     // Set initial state to "Today"
     elements.presetFilter.value = 'today'; 
-    // elements.dateRangeDiv.style.display = 'none'; // handlePresetChange will hide/show this
-    // elements.startDateInput.value = ''; // handlePresetChange will set these
-    // elements.endDateInput.value = ''; // handlePresetChange will set these
-
+    
     // Explicitly trigger the preset change handler to apply the default filter
     handlePresetChange();
-    // REMOVED: window.UI.loadRecords('sessions'); // handlePresetChange now triggers this via UI framework
 
     console.log('[DEBUG Sessions] Initialization complete.');
 }
@@ -166,11 +219,11 @@ function initializeSessions() {
  * @param {Object} session - The session data
  * @returns {HTMLElement} - The session element
  */
-function createSessionElement(session) {
-    console.log(`[DEBUG Sessions CreateElement] Creating element for session ID: ${session?.id}`); // Log entry
+function createSessionElement(session, categoryMap) {
+    console.log(`[DEBUG Sessions CreateElement] Creating element for session ID: ${session?.id}`);
+    
     try {
         const sessionElement = document.createElement('div');
-        // Use .session-item class for targeting
         sessionElement.className = 'session-item'; 
         sessionElement.dataset.id = session.id;
 
@@ -179,7 +232,7 @@ function createSessionElement(session) {
 
         // Format date and time
         const { dateStr, timeStr } = formatDateTime(session.startTime);
-        const formattedDate = dateStr; // Use just date part for card-date
+        const formattedDate = dateStr;
 
         // --- Determine Category Name and Color ---
         let displayCategoryId = session.categoryId; 
@@ -189,61 +242,58 @@ function createSessionElement(session) {
             try {
                 const goal = window.getItemById ? window.getItemById('GOALS', session.goalId) : null;
                 if (goal && goal.categoryId) {
-                    console.log(`[DEBUG Sessions CreateElement] Session ${session.id} linked to Goal ${session.goalId}. Using Goal's Category ID: ${goal.categoryId}`);
                     displayCategoryId = goal.categoryId; 
-                } else if (goal) {
-                    console.log(`[DEBUG Sessions CreateElement] Session ${session.id} linked to Goal ${session.goalId}, but Goal has no categoryId. Using session categoryId: ${session.categoryId}`);
-                } else {
-                    console.log(`[DEBUG Sessions CreateElement] Session ${session.id} linked to Goal ${session.goalId}, but Goal not found. Using session categoryId: ${session.categoryId}`);
                 }
             } catch (err) {
                 console.error(`[DEBUG Sessions CreateElement] Error fetching goal ${session.goalId} for session ${session.id}:`, err);
             }
         }
-        category = getCategoryName(displayCategoryId); 
-        // --- End Determine Category --- 
 
-        // Determine Session Title (Use category name if no specific title)
-        const sessionTitle = session.title || (category !== 'No Category' ? category + ' Practice' : 'Practice Session');
-        const notes = session.notes || '';
+        // Use provided category map instead of doing lookups for each session
+        let categoryName = 'Uncategorized';
+        let categoryColor = '';
+        
+        if (displayCategoryId && categoryMap && categoryMap.has(displayCategoryId)) {
+            const category = categoryMap.get(displayCategoryId);
+            categoryName = category.name;
+            categoryColor = category.color || '';
+        }
 
-        // Build HTML using new structure and classes
+        // Build the session element
         sessionElement.innerHTML = `
-            ${category !== 'No Category' ? `<div class="card-category-pill">${escapeHTML(category)}</div>` : ''} 
-            <h3 class="card-title">${escapeHTML(sessionTitle)}</h3>
-            ${notes ? `<p class="card-description">${escapeHTML(notes)}</p>` : '<p class="card-description">&nbsp;</p>' /* Add placeholder if no notes */} 
-            <p class="card-date">${formattedDate} (${durationStr})</p> 
-            
-            <div class="card-actions">
-                ${session.isLesson ? '<span class="lesson-badge">Lesson</span>' : ''} 
-                <span class="action-spacer"></span> <!-- Optional spacer -->
-                <button class="action-button edit-button edit-session" title="Edit Session">
-                    <i data-lucide="edit" width="12" height="12"></i>
-                    <span>Edit</span>
-                </button>
-                <button class="action-button delete-button delete-session" title="Delete Session">
-                    <i data-lucide="trash-2" width="12" height="12"></i>
-                    <span>Delete</span>
-                </button>
+            <div class="session-time">${timeStr}</div>
+            <div class="session-content">
+                <div class="session-info">
+                    <div class="session-duration">${durationStr}</div>
+                    <div class="card-date">${formattedDate}</div>
+                </div>
+                <div class="card-category-pill">${escapeHTML(categoryName)}</div>
+                <div class="session-notes">${session.notes ? escapeHTML(session.notes) : ''}</div>
+                <div class="session-actions">
+                    ${session.isLesson ? '<span class="lesson-badge">Lesson</span>' : ''}
+                    <div class="action-spacer"></div>
+                    <button class="action-button edit-button edit-session" title="Edit Session">
+                        <i data-lucide="edit"></i>
+                        <span>Edit</span>
+                    </button>
+                    <button class="action-button delete-button delete-session" title="Delete Session">
+                        <i data-lucide="trash-2"></i>
+                        <span>Delete</span>
+                    </button>
+                </div>
             </div>
         `;
 
         // Add event listeners
         addSessionEventListeners(sessionElement, session.id);
-
+        
         // Initialize icons
         initializeIcons(sessionElement);
         
-        console.log(`[DEBUG Sessions CreateElement] Successfully created element for session ID: ${session?.id}`);
         return sessionElement;
-
     } catch (error) {
-        console.error(`[DEBUG Sessions CreateElement] Error creating element for session ID: ${session?.id}`, session, error); // Log error
-        // Return a placeholder or null to prevent breaking the loop entirely
-        const errorElement = document.createElement('div');
-        errorElement.className = 'card session-item error-item';
-        errorElement.textContent = `Error displaying session ${session?.id}. Check console.`;
-        return errorElement; // Return an error placeholder instead of null
+        console.error(`[DEBUG Sessions CreateElement] Error creating session element:`, error);
+        return document.createElement('div'); // Return empty div to avoid breaking the page
     }
 }
 
@@ -726,16 +776,134 @@ async function deleteSession(sessionId) {
  * Load a batch of sessions
  */
 function loadSessionBatch() {
-    const allSessions = window.getItems ? window.getItems('SESSIONS') : JSON.parse(localStorage.getItem('practiceTrack_sessions')) || [];
+    // Use cached filtered sessions if available
+    if (!sessionCache) {
+        // Get filters
+        const pageElement = document.getElementById('sessions-page');
+        const presetFilter = pageElement ? pageElement.querySelector('.date-preset-filter') : null;
+        const startDateInput = pageElement ? pageElement.querySelector('#session-start-date') : null;
+        const endDateInput = pageElement ? pageElement.querySelector('#session-end-date') : null;
+        const categoryFilter = pageElement ? pageElement.querySelector('.category-filter') : null;
+        const searchInput = pageElement ? pageElement.querySelector('.search-input') : null;
+        
+        // Get all sessions
+        const allSessions = window.getItems ? window.getItems('SESSIONS') : 
+            JSON.parse(localStorage.getItem('practiceTrack_sessions')) || [];
+            
+        // Apply any active filters
+        const selectedPreset = presetFilter ? presetFilter.value : 'all';
+        const startDate = startDateInput && startDateInput.value ? new Date(startDateInput.value + 'T00:00:00') : null;
+        const endDate = endDateInput && endDateInput.value ? new Date(endDateInput.value + 'T23:59:59') : null;
+        const categoryId = categoryFilter && categoryFilter.value && categoryFilter.value !== 'all' ? categoryFilter.value : null;
+        const searchTerm = searchInput && searchInput.value ? searchInput.value.trim().toLowerCase() : '';
+        
+        // Pre-fetch categories for search
+        const categories = cachedCategories;
+        const categoryMap = new Map();
+        categories.forEach(cat => {
+            if (cat && cat.id && cat.name) {
+                categoryMap.set(cat.id, cat.name.toLowerCase());
+            }
+        });
+        
+        // Apply filters
+        const filteredSessions = allSessions.filter(session => {
+            if (!session) return false;
+            
+            let keep = true;
+            
+            // Apply date filters if active
+            if (startDate && new Date(session.startTime) < startDate) {
+                keep = false;
+            }
+            if (endDate && new Date(session.startTime) > endDate) {
+                keep = false;
+            }
+            
+            // Apply category filter if active
+            if (categoryId && session.categoryId !== categoryId) {
+                keep = false;
+            }
+            
+            // Apply search filter if active
+            if (searchTerm && keep) {
+                const matchesSearch = (
+                    // Check if notes contain the search term
+                    (session.notes && session.notes.toLowerCase().includes(searchTerm)) ||
+                    // Check if category name contains the search term
+                    (session.categoryId && categoryMap.has(session.categoryId) && 
+                     categoryMap.get(session.categoryId).includes(searchTerm))
+                );
+                if (!matchesSearch) {
+                    keep = false;
+                }
+            }
+            
+            return keep;
+        });
+        
+        // Sort sessions by date (newest first)
+        filteredSessions.sort((a, b) => {
+            const aDate = new Date(a.startTime || a.createdAt);
+            const bDate = new Date(b.startTime || b.createdAt);
+            return bDate - aDate;
+        });
+        
+        // Cache the filtered and sorted sessions
+        sessionCache = filteredSessions;
+        
+        // Show empty state if no sessions
+        if (filteredSessions.length === 0) {
+            const listContainer = document.getElementById('sessions-list');
+            if (listContainer) {
+                listContainer.innerHTML = `
+                    <div class="empty-state">
+                        <i data-lucide="list"></i>
+                        <p>No practice sessions found with the current filters.</p>
+                        <button id="empty-add-session" class="primary-button">Add New Session</button>
+                    </div>
+                `;
+                
+                // Initialize Lucide icons
+                if (window.lucide && typeof window.lucide.createIcons === 'function') {
+                    window.lucide.createIcons();
+                }
+                
+                // Add listener to the add button
+                const addButton = document.getElementById('empty-add-session');
+                if (addButton) {
+                    addButton.addEventListener('click', showSessionDialog);
+                }
+            }
+            return;
+        }
+    }
+    
+    // Get current batch
     const start = currentBatchIndex * BATCH_SIZE;
     const end = start + BATCH_SIZE;
-    const sessionBatch = allSessions.slice(start, end);
+    const sessionBatch = sessionCache.slice(start, end);
+    
+    if (sessionBatch.length === 0) {
+        // No more sessions to load
+        window.removeEventListener('scroll', debouncedHandleScroll);
+        return;
+    }
 
     const listContainer = document.getElementById('sessions-list');
+    if (!listContainer) return;
+    
+    // Use document fragment for better performance
     const fragment = document.createDocumentFragment();
 
+    // Pre-calculate common values for performance
+    const cachedCategoryMap = new Map();
+    cachedCategories.forEach(category => {
+        cachedCategoryMap.set(category.id, category);
+    });
+
     sessionBatch.forEach(session => {
-        const sessionElement = createSessionElement(session);
+        const sessionElement = createSessionElement(session, cachedCategoryMap);
         fragment.appendChild(sessionElement);
     });
 
@@ -743,12 +911,12 @@ function loadSessionBatch() {
     currentBatchIndex++;
 
     // Check if more sessions are available
-    if (end < allSessions.length) {
+    if (end < sessionCache.length) {
         // Add scroll event listener to load more sessions
-        window.addEventListener('scroll', handleScroll);
+        window.addEventListener('scroll', debouncedHandleScroll);
     } else {
         // Remove scroll listener if all sessions are loaded
-        window.removeEventListener('scroll', handleScroll);
+        window.removeEventListener('scroll', debouncedHandleScroll);
     }
 }
 
@@ -820,12 +988,71 @@ function addSessionSpecificStyles() {
          styleEl.id = 'session-styles';
          document.head.appendChild(styleEl);
      }
-     styleEl.textContent += `
+     styleEl.textContent = `
+        /* Updated Session Item Styles */
+        .session-item {
+            position: relative;
+            display: flex;
+            margin-bottom: 12px;
+            padding: 12px;
+            background: var(--card-background, white);
+            border: 1px solid var(--border-color, #e5e7eb);
+            border-radius: var(--radius-md, 8px);
+            box-shadow: var(--shadow-sm, 0 1px 2px rgba(0,0,0,0.05));
+            overflow: hidden;
+        }
+        
+        .session-time {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-medium, #6b7280);
+            min-width: 55px;
+            margin-right: 10px;
+            border-right: 1px solid var(--border-color, #e5e7eb);
+            padding-right: 10px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .session-content {
+            flex: 1;
+            position: relative;
+        }
+        
+        .session-info {
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        
+        .session-duration {
+            font-weight: 600;
+            color: var(--text-dark, #1f2937);
+            margin-right: 10px;
+        }
+        
+        .session-notes {
+            color: var(--text-medium, #6b7280);
+            font-size: 14px;
+            margin: 5px 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: calc(100% - 120px);
+        }
+        
+        .session-actions {
+            display: flex;
+            align-items: center;
+            margin-top: 8px;
+        }
+
         /* Updated Category Pill Styles - Now Defaulting to Blue */
         .card-category-pill {
             position: absolute;
-            top: 12px;
-            right: 12px;
+            top: 0px;
+            right: 0px;
             padding: 3px 10px; 
             border-radius: 12px;
             font-size: 12px; 
@@ -836,8 +1063,8 @@ function addSessionSpecificStyles() {
             color: #1D4ED8; /* blue-700 */
             border: 1px solid #93C5FD; /* blue-300 */
         }
-        /* Specific accent classes are removed or ignored, as the base style is now blue. */
-        /* Styles for lesson badge remain unchanged */
+        
+        /* Styles for lesson badge */
         .lesson-badge {
             font-size: 11px; 
             padding: 3px 8px; 
@@ -846,9 +1073,37 @@ function addSessionSpecificStyles() {
             border-radius: 12px; 
             margin-right: auto; /* Pushes edit/delete buttons right */
         }
+        
         .action-spacer { flex-grow: 1; } /* Pushes buttons to the right */
+        
+        /* Media query for mobile devices */
+        @media (max-width: 500px) {
+            .session-item {
+                flex-direction: column;
+            }
+            
+            .session-time {
+                border-right: none;
+                border-bottom: 1px solid var(--border-color, #e5e7eb);
+                padding: 0 0 5px 0;
+                margin: 0 0 5px 0;
+                min-width: auto;
+            }
+            
+            .card-category-pill {
+                position: relative;
+                top: auto;
+                right: auto;
+                display: inline-block;
+                margin-top: 5px;
+            }
+            
+            .session-notes {
+                max-width: 100%;
+            }
+        }
      `;
 }
 
 // Ensure this runs when the sessions are initialized
-document.addEventListener('DOMContentLoaded', addSessionSpecificStyles); // Or call from initializeSessions
+document.addEventListener('DOMContentLoaded', addSessionSpecificStyles);
