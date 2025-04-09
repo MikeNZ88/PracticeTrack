@@ -1,0 +1,414 @@
+/* Card Styles
+-------------------------------------------------- */
+
+/* Base Card */
+.card {
+    background-color: var(--card-background);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-color);
+    transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+    padding: var(--space-md);
+    margin-bottom: var(--space-md);
+}
+
+.card:hover {
+    box-shadow: var(--shadow-md);
+}
+
+/* Card Structure */
+.card__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: var(--space-sm);
+}
+
+.card__title {
+    font-size: var(--font-lg);
+    font-weight: 600;
+    color: var(--text-dark);
+    margin: 0;
+    flex: 1;
+}
+
+.card__actions {
+    display: flex;
+    gap: var(--space-xs);
+    align-items: center;
+}
+
+.card__content {
+    margin-bottom: var(--space-sm);
+}
+
+.card__footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: var(--space-md);
+    padding-top: var(--space-sm);
+    border-top: 1px solid var(--border-color-light);
+    font-size: var(--font-sm);
+    color: var(--text-medium);
+}
+
+/* Record Card (Base for Goal/Session/Media) */
+.record {
+    position: relative;
+    border-left: 4px solid transparent;
+    transition: all var(--transition-normal);
+}
+
+.record:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.record__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: var(--space-sm);
+}
+
+.record__title {
+    font-size: var(--font-md);
+    font-weight: 600;
+    color: var(--text-dark);
+    margin: 0;
+    margin-right: var(--space-md);
+    flex: 1;
+}
+
+.record__actions {
+    display: flex;
+    gap: var(--space-xs);
+}
+
+.record__details {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-sm);
+    align-items: center;
+}
+
+.record__category {
+    background-color: rgba(var(--text-medium-rgb), 0.1);
+    color: var(--text-medium);
+    padding: var(--space-xs) var(--space-sm);
+    border-radius: var(--radius-full);
+    font-size: var(--font-xs);
+    font-weight: 500;
+}
+
+.record__date-time {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    color: var(--text-medium);
+    font-size: var(--font-sm);
+}
+
+.record__date, 
+.record__time {
+    display: inline-flex;
+    align-items: center;
+}
+
+.record__notes, 
+.record__description {
+    color: var(--text-medium);
+    font-size: var(--font-sm);
+    line-height: 1.5;
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
+}
+
+/* Goal Card Specifics */
+.card--goal {
+    position: relative;
+    border-left-width: 4px;
+    border-left-style: solid;
+    border-left-color: transparent;
+}
+
+.card--goal:hover {
+    transform: translateY(-2px);
+}
+
+.card--goal.status--completed {
+    background-color: var(--success-light);
+    border-left-color: var(--success);
+}
+
+.card--goal.status--in-progress {
+    border-left-color: var(--primary-blue);
+}
+
+.card--goal.status--not-started {
+    border-left-color: var(--text-muted);
+}
+
+.goal__category {
+    display: inline-block;
+    background-color: rgba(var(--primary-blue-rgb), 0.1);
+    color: var(--primary-blue);
+    padding: 0.2em 0.5em;
+    border-radius: var(--radius-sm);
+    font-size: var(--font-xs);
+    font-weight: 500;
+    margin-bottom: var(--space-xs);
+}
+
+.goal__progress {
+    margin-top: var(--space-sm);
+}
+
+.progress-bar {
+    height: 8px;
+    background-color: var(--border-color-light);
+    border-radius: var(--radius-full);
+    overflow: hidden;
+}
+
+.progress-bar__fill {
+    height: 100%;
+    background-color: var(--primary-blue);
+    border-radius: var(--radius-full);
+    transition: width 0.3s ease;
+}
+
+.goal__target-date {
+    color: var(--text-medium);
+    font-size: var(--font-sm);
+}
+
+.goal__days-left {
+    font-size: var(--font-xs);
+    font-weight: 500;
+    color: var(--text-medium);
+}
+
+.goal__days-left--overdue {
+    color: var(--danger);
+}
+
+.goal__days-left--due-today {
+    color: var(--warning);
+}
+
+.goal__days-left--due-soon {
+    color: var(--warning-dark);
+}
+
+.goal__status {
+    margin-left: auto;
+}
+
+.goal__toggle {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    padding: var(--space-xs) var(--space-sm);
+    background-color: transparent;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-full);
+    color: var(--text-medium);
+    font-size: var(--font-xs);
+    cursor: pointer;
+    transition: all var(--transition-normal);
+    min-width: 100px;
+    justify-content: center;
+}
+
+.goal__toggle:hover {
+    background-color: rgba(var(--text-medium-rgb), 0.1);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+}
+
+.goal__toggle--completed {
+    background-color: rgba(var(--success-rgb), 0.1);
+    color: var(--success-dark);
+    border-color: rgba(var(--success-rgb), 0.3);
+}
+
+.goal__toggle--completed:hover {
+    background-color: rgba(var(--success-rgb), 0.2);
+}
+
+.card--goal.status--completed {
+    opacity: 0.8;
+}
+
+/* Session Card Specifics */
+.card--session {
+    position: relative;
+    border-left-width: 4px;
+    border-left-style: solid;
+    border-left-color: var(--primary-blue);
+}
+
+.card--session:hover {
+    transform: translateY(-2px);
+}
+
+.session__duration {
+    font-weight: 600;
+    color: var(--primary-blue);
+}
+
+.session__date {
+    color: var(--text-muted);
+    font-size: var(--font-sm);
+}
+
+.session__notes {
+    margin-top: var(--space-sm);
+    font-size: var(--font-sm);
+    color: var(--text-body);
+}
+
+/* Media Card Specifics */
+.card--media {
+    position: relative;
+    transition: transform 0.2s ease;
+}
+
+.card--media:hover {
+    transform: translateY(-3px) scale(1.01);
+}
+
+.media__thumbnail {
+    width: 100%;
+    height: 160px;
+    border-radius: var(--radius-sm);
+    object-fit: cover;
+    margin-bottom: var(--space-sm);
+    background-color: var(--border-color-light);
+}
+
+.media__type {
+    position: absolute;
+    top: var(--space-sm);
+    right: var(--space-sm);
+    background-color: rgba(0, 0, 0, 0.6);
+    color: white;
+    padding: 0.2em 0.5em;
+    border-radius: var(--radius-sm);
+    font-size: var(--font-xs);
+    font-weight: 500;
+}
+
+.media__title {
+    font-weight: 600;
+    margin-bottom: var(--space-xs);
+}
+
+.media__date {
+    color: var(--text-muted);
+    font-size: var(--font-sm);
+    margin-bottom: var(--space-sm);
+}
+
+.note__content {
+    background-color: var(--background-light);
+    padding: var(--space-md);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-sm);
+    max-height: 200px;
+    overflow: hidden;
+    position: relative;
+}
+
+.note__content--expandable::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 40px;
+    background: linear-gradient(to bottom, transparent, var(--background-light));
+}
+
+/* Empty State */
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-xl);
+    text-align: center;
+    background-color: var(--card-background);
+    border-radius: var(--radius-lg);
+    border: 1px dashed var(--border-color);
+}
+
+.empty-state__icon {
+    font-size: 48px;
+    color: var(--text-muted);
+    margin-bottom: var(--space-md);
+}
+
+.empty-state__title {
+    font-size: var(--font-lg);
+    font-weight: 600;
+    color: var(--text-dark);
+    margin-bottom: var(--space-xs);
+}
+
+.empty-state__description {
+    color: var(--text-medium);
+    margin-bottom: var(--space-md);
+    max-width: 400px;
+}
+
+.empty-state__actions {
+    display: flex;
+    gap: var(--space-sm);
+}
+
+/* Card Categories (Visual Distinction) */
+.category--blue {
+    border-color: var(--category-blue);
+}
+
+.category--orange {
+    border-color: var(--category-orange);
+}
+
+.category--teal {
+    border-color: var(--category-teal);
+}
+
+.category--purple {
+    border-color: var(--category-purple);
+}
+
+.category--gray {
+    border-color: var(--category-gray);
+}
+
+/* Responsive Card Adjustments */
+@media (max-width: 768px) {
+    .card {
+        padding: var(--space-sm);
+    }
+    
+    .card__header,
+    .record__header {
+        flex-direction: column;
+        gap: var(--space-xs);
+    }
+    
+    .card__actions,
+    .record__actions {
+        align-self: flex-end;
+    }
+    
+    .record__title {
+        margin-right: 0;
+    }
+} 
