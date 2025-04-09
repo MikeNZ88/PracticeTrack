@@ -229,6 +229,14 @@ const setupEventListeners = () => {
             themeToggle.addEventListener('change', handleThemeChange);
         }
         
+        // Add archived categories button listener
+        const viewArchivedBtn = document.getElementById('view-archived-categories');
+        if (viewArchivedBtn) {
+            const newViewArchivedBtn = viewArchivedBtn.cloneNode(true);
+            viewArchivedBtn.parentNode.replaceChild(newViewArchivedBtn, viewArchivedBtn);
+            newViewArchivedBtn.addEventListener('click', viewArchivedCategories);
+        }
+        
         console.log('Event listeners setup complete');
     } catch (error) {
         console.error('Error setting up event listeners:', error);
@@ -539,8 +547,17 @@ function handleDeleteCategory(categoryId) {
             return;
         }
         
-        // Filter out the category
-        const updatedCategories = categories.filter(cat => cat.id !== categoryId);
+        // Instead of removing, mark as archived
+        const updatedCategories = categories.map(cat => {
+            if (cat.id === categoryId) {
+                return {
+                    ...cat,
+                    archived: true,
+                    archivedAt: new Date().toISOString()
+                };
+            }
+            return cat;
+        });
         
         // Save updated categories
         localStorage.setItem('practiceTrack_categories', JSON.stringify(updatedCategories));
@@ -557,10 +574,10 @@ function handleDeleteCategory(categoryId) {
         });
         document.dispatchEvent(event);
         
-        alert('Category deleted successfully');
+        alert('Category removed from active list but preserved in historical data');
     } catch (error) {
-        console.error('Error deleting category:', error);
-        alert('Failed to delete category');
+        console.error('Error archiving category:', error);
+        alert('Failed to archive category');
     }
 }
 
@@ -627,9 +644,14 @@ const loadCategories = () => {
         console.log(`Found ${categories ? categories.length : 0} raw categories.`);
 
         if (categories && categories.length > 0) {
-            // **** Filter out invalid categories BEFORE processing ****
-            const validCategories = categories.filter(cat => cat && typeof cat.name === 'string' && cat.name.trim() !== '');
-            console.log(`Found ${validCategories.length} valid categories after filtering.`);
+            // **** Filter out invalid categories and archived ones BEFORE processing ****
+            const validCategories = categories.filter(cat => 
+                cat && 
+                typeof cat.name === 'string' && 
+                cat.name.trim() !== '' &&
+                !cat.archived // Don't show archived categories
+            );
+            console.log(`Found ${validCategories.length} valid active categories after filtering.`);
 
             // Sort valid categories alphabetically by name, case-insensitive
             validCategories.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })); 
@@ -908,7 +930,10 @@ const handleClearAllData = () => {
 
 // Add styles
 const addStyles = () => {
-    const styles = `
+    const styleElement = document.createElement('style');
+    styleElement.textContent = `
+        /* Settings Styles */
+        
         .settings-section {
             margin-bottom: 2rem;
             padding: 1.5rem;
@@ -1086,12 +1111,112 @@ const addStyles = () => {
             text-overflow: ellipsis;
             max-width: 100%;
         }
+        
+        /* Archived Categories */
+        #view-archived-categories {
+            margin-top: 10px;
+            background-color: #f0f0f0;
+            color: #333;
+            border: 1px solid #ccc;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+        
+        #view-archived-categories:hover {
+            background-color: #e0e0e0;
+        }
+        
+        .archived-categories-dialog {
+            border: none;
+            border-radius: 8px;
+            padding: 0;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            max-width: 500px;
+            width: 90%;
+        }
+        
+        .archived-categories-container {
+            padding: 20px;
+        }
+        
+        .archived-categories-dialog h2 {
+            margin-top: 0;
+            color: #333;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        
+        .archived-info {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 15px;
+        }
+        
+        .archived-categories-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .archived-category-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .archived-category-name {
+            font-weight: 500;
+            flex: 1;
+        }
+        
+        .archived-date {
+            font-size: 0.8em;
+            color: #888;
+            margin: 0 10px;
+        }
+        
+        .restore-category-btn {
+            background-color: #4a90e2;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 5px 10px;
+            cursor: pointer;
+            font-size: 0.8em;
+        }
+        
+        .restore-category-btn:hover {
+            background-color: #3a7bc8;
+        }
+        
+        .close-dialog-btn {
+            background-color: #f5f5f5;
+            color: #333;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 8px 15px;
+            margin-top: 15px;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+        
+        .close-dialog-btn:hover {
+            background-color: #e5e5e5;
+        }
+        
+        .dialog-buttons {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 15px;
+        }
     `;
     
-    // Add styles to document
-    const styleSheet = document.createElement('style');
-    styleSheet.textContent = styles; // Use only base styles
-    document.head.appendChild(styleSheet);
+    document.head.appendChild(styleElement);
 };
 
 // Initialize default categories if none exist
@@ -1118,6 +1243,122 @@ function initializeDefaultCategories() {
         }
     } catch (error) {
         console.error('Error initializing default categories:', error);
+    }
+}
+
+// Add this function to view and manage archived categories
+function viewArchivedCategories() {
+    try {
+        console.log('Loading archived categories');
+        
+        // Get all categories
+        const categories = JSON.parse(localStorage.getItem('practiceTrack_categories')) || [];
+        
+        // Filter to only archived categories
+        const archivedCategories = categories.filter(cat => cat && cat.archived === true);
+        
+        if (archivedCategories.length === 0) {
+            alert('No archived categories found.');
+            return;
+        }
+        
+        // Create a dialog to display archived categories
+        const dialog = document.createElement('dialog');
+        dialog.className = 'archived-categories-dialog';
+        
+        // Create dialog content
+        let categoriesHTML = '';
+        archivedCategories.forEach(category => {
+            const archivedDate = new Date(category.archivedAt).toLocaleDateString();
+            categoriesHTML += `
+                <li class="archived-category-item" data-id="${category.id}">
+                    <span class="archived-category-name">${escapeHTML(category.name)}</span>
+                    <span class="archived-date">Archived: ${archivedDate}</span>
+                    <button class="restore-category-btn" data-id="${category.id}">Restore</button>
+                </li>
+            `;
+        });
+        
+        dialog.innerHTML = `
+            <div class="archived-categories-container">
+                <h2>Archived Categories</h2>
+                <p class="archived-info">These categories are hidden from dropdowns but still preserved in historical data.</p>
+                <ul class="archived-categories-list">
+                    ${categoriesHTML}
+                </ul>
+                <div class="dialog-buttons">
+                    <button class="close-dialog-btn">Close</button>
+                </div>
+            </div>
+        `;
+        
+        // Add to document and show
+        document.body.appendChild(dialog);
+        dialog.showModal();
+        
+        // Add event listeners
+        const closeBtn = dialog.querySelector('.close-dialog-btn');
+        closeBtn.addEventListener('click', () => {
+            dialog.close();
+            document.body.removeChild(dialog);
+        });
+        
+        // Add restore functionality
+        const restoreBtns = dialog.querySelectorAll('.restore-category-btn');
+        restoreBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const categoryId = btn.dataset.id;
+                restoreArchivedCategory(categoryId);
+                dialog.close();
+                document.body.removeChild(dialog);
+            });
+        });
+        
+    } catch (error) {
+        console.error('Error viewing archived categories:', error);
+        alert('Failed to load archived categories');
+    }
+}
+
+// Add function to restore archived category
+function restoreArchivedCategory(categoryId) {
+    try {
+        console.log('Restoring archived category:', categoryId);
+        
+        // Get current categories
+        const categories = JSON.parse(localStorage.getItem('practiceTrack_categories')) || [];
+        
+        // Update the category to remove archived flag
+        const updatedCategories = categories.map(cat => {
+            if (cat.id === categoryId) {
+                const { archived, archivedAt, ...restoredCategory } = cat;
+                return {
+                    ...restoredCategory,
+                    updatedAt: new Date().toISOString() // Update the timestamp
+                };
+            }
+            return cat;
+        });
+        
+        // Save updated categories
+        localStorage.setItem('practiceTrack_categories', JSON.stringify(updatedCategories));
+        
+        // Reload categories
+        loadCategories();
+        
+        // Notify other components
+        const event = new CustomEvent('dataChanged', {
+            detail: {
+                type: 'CATEGORIES',
+                timestamp: Date.now()
+            }
+        });
+        document.dispatchEvent(event);
+        
+        alert('Category restored successfully');
+    } catch (error) {
+        console.error('Error restoring category:', error);
+        alert('Failed to restore category');
     }
 }
 

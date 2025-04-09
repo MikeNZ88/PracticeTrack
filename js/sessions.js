@@ -44,6 +44,39 @@ function initializeSessions() {
         showDialogFn: showSessionDialog // Ensure this function exists and works
     });
     
+    // --- START: Event Delegation for Session Card Buttons ---
+    const sessionsListContainer = document.getElementById('sessions-list');
+    if (sessionsListContainer && !sessionsListContainer.dataset.delegationListenerAdded) {
+        console.log('[DEBUG Sessions] Adding event delegation listener to #sessions-list');
+        sessionsListContainer.addEventListener('click', (e) => {
+            // Find the closest button clicked (edit or delete)
+            const editButton = e.target.closest('.edit-session');
+            const deleteButton = e.target.closest('.delete-session');
+            
+            if (editButton || deleteButton) {
+                // Prevent the main card click listener from firing
+                e.stopPropagation(); 
+                
+                // Find the parent session item to get the ID
+                const sessionItem = e.target.closest('.session-item');
+                if (sessionItem && sessionItem.dataset.id) {
+                    const sessionId = sessionItem.dataset.id;
+                    console.log(`[DEBUG Sessions Delegation] Click detected on ${editButton ? 'edit' : 'delete'} button for session ID: ${sessionId}`);
+                    
+                    if (editButton) {
+                        showSessionDialog(sessionId);
+                    } else if (deleteButton) {
+                        deleteSession(sessionId);
+                    }
+                } else {
+                    console.warn('[DEBUG Sessions Delegation] Could not find parent .session-item or its data-id for clicked button.');
+                }
+            }
+        });
+        sessionsListContainer.dataset.delegationListenerAdded = 'true'; // Mark listener as added
+    }
+    // --- END: Event Delegation ---
+    
     // Add Date Preset Logic with optimizations - RESTORED
     const pageElement = document.getElementById('sessions-page');
     if (!pageElement) {
@@ -242,6 +275,7 @@ function createSessionElement(session, categoryMap) {
 
         if (session.goalId) {
             try {
+                // Use includeArchived=true to get goals that may have archived categories
                 const goal = window.getItemById ? window.getItemById('GOALS', session.goalId) : null;
                 if (goal && goal.categoryId) {
                     displayCategoryId = goal.categoryId; 
@@ -259,6 +293,18 @@ function createSessionElement(session, categoryMap) {
             const category = categoryMap.get(displayCategoryId);
             categoryName = category.name;
             categoryColor = category.color || '';
+        } else if (displayCategoryId) {
+            // If not in the map, try to get it directly (might be archived)
+            try {
+                // Include archived categories in the lookup
+                const categoryObj = window.getItemById ? window.getItemById('CATEGORIES', displayCategoryId) : null;
+                if (categoryObj) {
+                    categoryName = categoryObj.name || 'Uncategorized';
+                    categoryColor = categoryObj.color || '';
+                }
+            } catch (err) {
+                console.error(`[DEBUG Sessions CreateElement] Error fetching category ${displayCategoryId}:`, err);
+            }
         }
 
         // Build the session element
@@ -271,7 +317,7 @@ function createSessionElement(session, categoryMap) {
                 </div>
                 <div class="card-category-pill">${escapeHTML(categoryName)}</div>
                 <div class="session-notes">${session.notes ? escapeHTML(session.notes) : ''}</div>
-                <div class="session-actions">
+                <div class="card-actions">
                     ${session.isLesson ? '<span class="lesson-badge">Lesson</span>' : ''}
                     <div class="action-spacer"></div>
                     <button class="action-button edit-button edit-session" title="Edit Session">
@@ -291,6 +337,17 @@ function createSessionElement(session, categoryMap) {
         
         // Initialize icons
         initializeIcons(sessionElement);
+        
+        // Make the entire card clickable to view/edit the session
+        sessionElement.addEventListener('click', (e) => {
+            // Only trigger if not clicking on a button or button child
+            if (!e.target.closest('button')) {
+                showSessionDialog(session.id);
+            }
+        });
+        
+        // Add cursor pointer style to indicate clickable
+        sessionElement.style.cursor = 'pointer';
         
         return sessionElement;
     } catch (error) {
@@ -367,21 +424,33 @@ function getCategoryName(categoryId) {
  * @param {string} sessionId - The session ID
  */
 function addSessionEventListeners(sessionElement, sessionId) {
+    // console.log(`[DEBUG Sessions Listeners] Attaching listeners for session ID: ${sessionId}`); // REMOVING LOG
+    
+    /* // REMOVING INDIVIDUAL LISTENERS - Will use event delegation
     const deleteBtn = sessionElement.querySelector('.delete-session');
     if (deleteBtn) {
+        // console.log(`[DEBUG Sessions Listeners] Found delete button for ${sessionId}`); // REMOVING LOG
         deleteBtn.addEventListener('click', (e) => {
+            // console.log(`[DEBUG Sessions Listeners] Delete button clicked for ${sessionId}`); // REMOVING LOG
             e.stopPropagation();
             deleteSession(sessionId);
         });
+    } else {
+        // console.warn(`[DEBUG Sessions Listeners] Delete button NOT FOUND for ${sessionId}`); // REMOVING LOG
     }
     
     const editBtn = sessionElement.querySelector('.edit-session');
     if (editBtn) {
+        // console.log(`[DEBUG Sessions Listeners] Found edit button for ${sessionId}`); // REMOVING LOG
         editBtn.addEventListener('click', (e) => {
+            // console.log(`[DEBUG Sessions Listeners] Edit button clicked for ${sessionId}`); // REMOVING LOG
             e.stopPropagation();
             showSessionDialog(sessionId);
         });
+    } else {
+        // console.warn(`[DEBUG Sessions Listeners] Edit button NOT FOUND for ${sessionId}`); // REMOVING LOG
     }
+    */
 }
 
 /**
@@ -900,7 +969,11 @@ function loadSessionBatch() {
 
     // Pre-calculate common values for performance
     const cachedCategoryMap = new Map();
-    cachedCategories.forEach(category => {
+    // Get all categories, including archived ones, for displaying session cards
+    const allCategories = window.getItems ? window.getItems('CATEGORIES', true) : 
+        JSON.parse(localStorage.getItem('practiceTrack_categories')) || [];
+    
+    allCategories.forEach(category => {
         cachedCategoryMap.set(category.id, category);
     });
 
@@ -981,131 +1054,3 @@ function escapeHTML(str) {
     }[s];
   });
 }
-
-// Add a specific CSS rule for the session category pill
-function addSessionSpecificStyles() {
-     let styleEl = document.getElementById('session-styles');
-     if (!styleEl) {
-         styleEl = document.createElement('style');
-         styleEl.id = 'session-styles';
-         document.head.appendChild(styleEl);
-     }
-     styleEl.textContent = `
-        /* Updated Session Item Styles */
-        .session-item {
-            position: relative;
-            display: flex;
-            margin-bottom: 12px;
-            padding: 12px;
-            background: var(--card-background, white);
-            border: 1px solid var(--border-color, #e5e7eb);
-            border-radius: var(--radius-md, 8px);
-            box-shadow: var(--shadow-sm, 0 1px 2px rgba(0,0,0,0.05));
-            overflow: hidden;
-        }
-        
-        .session-time {
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--text-medium, #6b7280);
-            min-width: 55px;
-            margin-right: 10px;
-            border-right: 1px solid var(--border-color, #e5e7eb);
-            padding-right: 10px;
-            display: flex;
-            align-items: center;
-        }
-        
-        .session-content {
-            flex: 1;
-            position: relative;
-        }
-        
-        .session-info {
-            display: flex;
-            justify-content: flex-start;
-            align-items: center;
-            margin-bottom: 5px;
-        }
-        
-        .session-duration {
-            font-weight: 600;
-            color: var(--text-dark, #1f2937);
-            margin-right: 10px;
-        }
-        
-        .session-notes {
-            color: var(--text-medium, #6b7280);
-            font-size: 14px;
-            margin: 5px 0;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: calc(100% - 120px);
-        }
-        
-        .session-actions {
-            display: flex;
-            align-items: center;
-            margin-top: 8px;
-        }
-
-        /* Updated Category Pill Styles - Now Defaulting to Blue */
-        .card-category-pill {
-            position: absolute;
-            top: 0px;
-            right: 0px;
-            padding: 3px 10px; 
-            border-radius: 12px;
-            font-size: 12px; 
-            font-weight: 500;
-            line-height: 1.5; 
-            /* Apply Blue theme directly */
-            background-color: #DBEAFE; /* blue-100 */
-            color: #1D4ED8; /* blue-700 */
-            border: 1px solid #93C5FD; /* blue-300 */
-        }
-        
-        /* Styles for lesson badge */
-        .lesson-badge {
-            font-size: 11px; 
-            padding: 3px 8px; 
-            background-color: #eef2ff; 
-            color: #4f46e5; 
-            border-radius: 12px; 
-            margin-right: auto; /* Pushes edit/delete buttons right */
-        }
-        
-        .action-spacer { flex-grow: 1; } /* Pushes buttons to the right */
-        
-        /* Media query for mobile devices */
-        @media (max-width: 500px) {
-            .session-item {
-                flex-direction: column;
-            }
-            
-            .session-time {
-                border-right: none;
-                border-bottom: 1px solid var(--border-color, #e5e7eb);
-                padding: 0 0 5px 0;
-                margin: 0 0 5px 0;
-                min-width: auto;
-            }
-            
-            .card-category-pill {
-                position: relative;
-                top: auto;
-                right: auto;
-                display: inline-block;
-                margin-top: 5px;
-            }
-            
-            .session-notes {
-                max-width: 100%;
-            }
-        }
-     `;
-}
-
-// Ensure this runs when the sessions are initialized
-document.addEventListener('DOMContentLoaded', addSessionSpecificStyles);

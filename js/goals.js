@@ -156,12 +156,7 @@ function createGoalElement(goal) {
         </div>
     `;
     
-    // Initialize icons
-    if (window.lucide) {
-        lucide.createIcons({ context: goalElement }); 
-    }
-    
-    // Add event listeners
+    // Add event listeners FIRST
     const checkbox = goalElement.querySelector('.goal-checkbox');
     if (checkbox) {
         checkbox.addEventListener('click', (e) => {
@@ -185,7 +180,7 @@ function createGoalElement(goal) {
             deleteGoal(goal.id);
         });
     }
-    
+
     // Add click listener to the whole card to open edit dialog (if not clicking a button)
     goalElement.addEventListener('click', (e) => {
         // Check if the click target was one of the buttons or their children
@@ -193,6 +188,14 @@ function createGoalElement(goal) {
             showGoalDialog(goal.id);
         }
     });
+    
+    // Initialize icons AFTER listeners are attached
+    if (window.lucide) {
+        lucide.createIcons({ context: goalElement }); 
+    }
+    
+    // Add cursor pointer style to indicate clickable
+    goalElement.style.cursor = 'pointer';
     
     return goalElement;
 }
@@ -702,11 +705,13 @@ async function deleteGoal(goalId) {
 }
 
 // Initialize when page changes to goals
+/* // REMOVING this listener to prevent re-initialization
 document.addEventListener('pageChanged', (e) => {
     if (e.detail === 'goals') {
         initializeGoals();
     }
 });
+*/
 
 // Make function available globally
 window.initializeGoals = initializeGoals;

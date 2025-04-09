@@ -265,15 +265,19 @@ function createMediaElement(media) {
         });
     }
     
-    // Add click listener to the whole card for viewing (if applicable)
-    if (media.type === 'photo' || media.type === 'video') {
-        element.addEventListener('click', () => {
-            viewMediaFile(media);
+    // Only make notes clickable to view/edit, not photos or videos
+    if (media.type === 'note') {
+        element.addEventListener('click', (e) => {
+            // Only trigger if not clicking on a button or button child
+            if (!e.target.closest('button')) {
+                showMediaDialog(media.id);
+            }
         });
-    } else if (media.type === 'note') {
-         element.addEventListener('click', () => {
-             showMediaDialog(media.id); // Open edit dialog directly for notes
-         });
+        // Add cursor pointer style to indicate clickable
+        element.style.cursor = 'pointer';
+    } else {
+        // Non-clickable cursor for photos and videos
+        element.style.cursor = 'default';
     }
 
     // Initialize icons for this element

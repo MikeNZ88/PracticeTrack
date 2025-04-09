@@ -364,7 +364,8 @@ class Timer {
         }
         let categories = [];
         try {
-            let categories = window.getItems ? window.getItems('CATEGORIES') : 
+            // Use includeArchived=false to exclude archived categories from dropdown
+            categories = window.getItems ? window.getItems('CATEGORIES', false) : 
                 JSON.parse(localStorage.getItem('practiceTrack_categories')) || [];
 
             // Filter out invalid categories before sorting
@@ -468,8 +469,8 @@ function showTimerDialog(timerId) {
                 .find(t => t.id === timerId);
     }
     
-    // Get categories for dropdown
-    const categories = window.getItems ? window.getItems('CATEGORIES') : 
+    // Get active categories for dropdown (exclude archived)
+    const categories = window.getItems ? window.getItems('CATEGORIES', false) : 
         JSON.parse(localStorage.getItem('practiceTrack_categories')) || [];
     
     const categoryOptions = categories.map(cat => ({

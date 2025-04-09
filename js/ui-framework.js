@@ -11,6 +11,10 @@ window.UI = (function() {
     const activeCategoryFilters = []; // Keep track of active filter dropdowns
     let categoriesNeedRefresh = false; // **** ADD Flag ****
     
+    // Add cache for rendered tab content
+    const tabRenderCache = {};
+    let currentActiveTab = null;
+    
     /**
      * Initialize a record listing page with standard components
      * @param {Object} options - Configuration options
@@ -138,7 +142,14 @@ window.UI = (function() {
         // --- End Refresh Check ---
         
         // >>> Always call loadRecords <<< 
-        loadRecords(pageId);
+        // Only load records immediately if this is the current active tab
+        if (document.querySelector(`#${pageId}-page:not([style*="display: none"])`)) {
+            console.log(`[UI Framework] Page ${pageId} is visible, loading records immediately.`);
+            loadRecords(pageId);
+            currentActiveTab = pageId;
+        } else {
+            console.log(`[UI Framework] Page ${pageId} is not visible, deferring record loading.`);
+        }
         
         // Set the initialized flag for this page at the end
         initializedPages[pageId] = true;
@@ -168,16 +179,19 @@ window.UI = (function() {
         // Clear dropdown
         filterElement.innerHTML = '';
         
-        // **** ALWAYS get CATEGORIES ****
-        const categories = window.getItems('CATEGORIES'); 
+        // **** ALWAYS get CATEGORIES - now with includeArchived=false for UI ****
+        const categories = window.getItems('CATEGORIES', false); 
         // **** Log raw categories ****
-        console.log('[UI Framework SetupFilter] Raw categories fetched:', JSON.stringify(categories));
+        console.log('[UI Framework SetupFilter] Active categories fetched:', JSON.stringify(categories));
 
         filterElement.innerHTML = '<option value="all">All categories</option>'; 
 
         if (categories && categories.length > 0) {
-            // Filter out invalid categories before sorting
-            const validCategories = categories.filter(cat => cat && typeof cat.name === 'string');
+            // Filter out invalid categories
+            const validCategories = categories.filter(cat => 
+                cat && 
+                typeof cat.name === 'string'
+            );
             // **** Log valid categories ****
             console.log(`[UI Framework SetupFilter] Filtered to ${validCategories.length} valid categories:`, JSON.stringify(validCategories));
 
@@ -214,6 +228,9 @@ window.UI = (function() {
             console.error(`Cache or list container not found for pageId: ${pageId}`);
             return;
         }
+
+        // Set as current active tab
+        currentActiveTab = pageId;
         
         const { recordType, createRecordElementFn, listContainer } = cache;
         
@@ -227,11 +244,31 @@ window.UI = (function() {
                 endDate: (cache.dateInputs && cache.dateInputs[1]) ? cache.dateInputs[1].value : ''
             };
             
+            // Generate a cache key from the filters
+            const cacheKey = JSON.stringify(filters);
+            
+            // Check if we have cached results for these exact filters
+            if (tabRenderCache[pageId] && tabRenderCache[pageId][cacheKey]) {
+                console.log(`[DEBUG ${pageId} Load] Using cached results for filters:`, cacheKey);
+                // Instead of rebuilding, just restore the cached content
+                listContainer.innerHTML = tabRenderCache[pageId][cacheKey];
+                
+                // Restore event listeners for dynamic elements if needed
+                if (window.lucide && typeof window.lucide.createIcons === 'function') {
+                    window.lucide.createIcons();
+                }
+                
+                return;
+            }
+            
             // Get records from data layer
             let records = window.getItems ? window.getItems(recordType) : 
                 JSON.parse(localStorage.getItem(`practiceTrack_${recordType}`)) || [];
             
             console.log(`[DEBUG ${recordType} Load] Raw records loaded: ${records.length}, Filters:`, JSON.stringify(filters));
+            
+            // Clear the container first
+            listContainer.innerHTML = '';
             
             // Check if we have the performance optimization module available
             if (window.PerfOpt) {
@@ -260,9 +297,6 @@ window.UI = (function() {
                 if (records.length === 0) {
                     showEmptyState(pageId, listContainer);
                 } else {
-                    // Clear the container first
-                    listContainer.innerHTML = '';
-                    
                     // Create record elements
                     records.forEach(record => {
                         if (typeof createRecordElementFn === 'function') {
@@ -279,6 +313,13 @@ window.UI = (function() {
                     window.lucide.createIcons();
                 }
             }
+            
+            // Cache the rendered HTML for these filters
+            if (!tabRenderCache[pageId]) {
+                tabRenderCache[pageId] = {};
+            }
+            tabRenderCache[pageId][cacheKey] = listContainer.innerHTML;
+            
         } catch (error) {
             console.error(`Error loading ${recordType}:`, error);
             listContainer.innerHTML = `
@@ -842,6 +883,75 @@ window.UI = (function() {
         }
     });
 
+    // Add a function to optimize tab switching
+    function optimizeTabSwitching() {
+        // Get all tab buttons
+        const tabButtons = document.querySelectorAll('.nav-item');
+        if (!tabButtons || tabButtons.length === 0) {
+            console.warn('[UI Framework] No tab buttons found for tab switch optimization');
+            return;
+        }
+        
+        console.log('[UI Framework] Setting up optimized tab switching for', tabButtons.length, 'tabs');
+        
+        // Map tab buttons to their respective page IDs
+        const tabToPageMap = {
+            'timer': 'timer',
+            'sessions': 'sessions',
+            'goals': 'goals',
+            'stats': 'stats',
+            'media': 'media',
+            'resources': 'resources'
+        };
+        
+        // Add click listeners to tab buttons for optimized switching
+        tabButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const tabId = this.getAttribute('data-tab') || this.id;
+                const pageId = tabToPageMap[tabId];
+                
+                if (!pageId) {
+                    console.warn(`[UI Framework] Could not map tab ${tabId} to a page ID`);
+                    return;
+                }
+                
+                console.log(`[UI Framework] Tab switch detected to ${pageId}`);
+                
+                // If we have cached data and the page is initialized, load it
+                if (initializedPages[pageId] && pageId !== currentActiveTab) {
+                    // Set short timeout to allow the DOM to update first
+                    setTimeout(() => {
+                        console.log(`[UI Framework] Loading records for newly visible tab: ${pageId}`);
+                        loadRecords(pageId);
+                    }, 10);
+                }
+            });
+        });
+        
+        console.log('[UI Framework] Tab switching optimization complete');
+    }
+
+    // Initialize tab switching optimization when DOM is ready
+    document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(optimizeTabSwitching, 100);
+    });
+    
+    // Clear the render cache when data changes
+    document.addEventListener('dataChanged', function(e) {
+        if (e.detail && e.detail.type) {
+            const recordType = e.detail.type;
+            console.log(`[UI Framework] Data changed for ${recordType}, clearing render cache`);
+            
+            // Clear relevant tab caches
+            Object.keys(tabRenderCache).forEach(pageId => {
+                if (domCache[pageId] && domCache[pageId].recordType === recordType) {
+                    console.log(`[UI Framework] Clearing render cache for ${pageId}`);
+                    tabRenderCache[pageId] = {};
+                }
+            });
+        }
+    });
+
     // Return public API
     return {
         initRecordPage,
@@ -851,6 +961,7 @@ window.UI = (function() {
         sortRecords,
         showEmptyState,
         createStandardDialog,
-        confirmDialog
+        confirmDialog,
+        optimizeTabSwitching
     };
 })(); 

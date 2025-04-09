@@ -1,0 +1,27 @@
+/* Resize SVG icons for edit and delete buttons */
+.edit-button i, .delete-button i {
+    width: 14px !important;
+    height: 14px !important;
+}
+
+/* Uniform button sizes for session and goal cards */
+.session-item .action-button i, 
+.goal-item .action-button i {
+    width: 14px !important;
+    height: 14px !important;
+}
+
+/* Action buttons within card components */
+.card-actions .action-button i {
+    width: 14px !important;
+    height: 14px !important;
+}
+
+/* Target SVG elements directly as well */
+button svg, 
+.action-button svg,
+.edit-button svg, 
+.delete-button svg {
+    width: 14px !important;
+    height: 14px !important;
+}

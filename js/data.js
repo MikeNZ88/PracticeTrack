@@ -22,32 +22,33 @@ const DEFAULT_CATEGORIES = [
 ];
 
 /**
- * Get all items of a specific type
- * @param {string} type - The data type to retrieve
+ * Get all items of a certain type
+ * @param {string} type - Item type (e.g., 'SESSIONS', 'GOALS', 'CATEGORIES')
+ * @param {boolean} includeArchived - Whether to include archived items (default true except for UI displays)
  * @returns {Array} - Array of items
  */
-function getItems(type) {
-    if (!DATA_TYPES[type]) {
-        console.error(`Invalid data type: ${type}`);
-        return [];
-    }
-    
+window.getItems = function(type, includeArchived = true) {
     try {
-        const stored = localStorage.getItem(DATA_TYPES[type]);
-        if (stored) {
-            return JSON.parse(stored);
+        if (!type) {
+            console.error('No type provided to getItems');
+            return [];
         }
         
-        // Return default categories if requesting categories and none exist
-        if (type === 'CATEGORIES') {
-            return DEFAULT_CATEGORIES;
+        // Get the items from localStorage
+        const storageKey = `practiceTrack_${type.toLowerCase()}`;
+        const items = JSON.parse(localStorage.getItem(storageKey)) || [];
+        
+        // For categories in a UI context, we might want to filter out archived ones
+        if (type === 'CATEGORIES' && !includeArchived) {
+            return items.filter(item => !item.archived);
         }
-    } catch (e) {
-        console.error(`Error reading ${type}:`, e);
+        
+        return items;
+    } catch (error) {
+        console.error(`Error getting ${type}:`, error);
+        return [];
     }
-    
-    return [];
-}
+};
 
 /**
  * Get a specific item by ID
@@ -207,7 +208,6 @@ function clearItems(type) {
 }
 
 // Export functions to window
-window.getItems = getItems;
 window.getItemById = getItemById;
 window.addItem = addItem;
 window.updateItem = updateItem;
