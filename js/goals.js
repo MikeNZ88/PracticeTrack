@@ -10,6 +10,8 @@ let goalDialog = null;
  * Initialize goals page 
  */
 function initializeGoals() {
+    console.log('[DEBUG Goals] Initializing goals page with performance optimizations');
+    
     // Use the UI framework to initialize the goals page
     window.UI.initRecordPage({
         pageId: 'goals',
@@ -24,34 +26,63 @@ function initializeGoals() {
         addEmptyStateButtonId: 'empty-add-goal',
         addEmptyStateButtonText: 'Set Your First Goal',
         createRecordElementFn: createGoalElement,
-        showDialogFn: showGoalDialog,
-        filterFn: (item, filters) => {
-            const searchTerm = filters.search ? filters.search.toLowerCase() : '';
-            const categoryFilter = filters.category || 'all';
-            const statusFilter = filters.status || 'all';
-
-            const nameMatch = !searchTerm || (item.title && item.title.toLowerCase().includes(searchTerm));
-            const descriptionMatch = !searchTerm || (item.description && item.description.toLowerCase().includes(searchTerm));
-            const categoryMatch = categoryFilter === 'all' || item.categoryId === categoryFilter;
-            
-            let statusMatch = true;
-            if (statusFilter === 'active') statusMatch = !item.completed;
-            if (statusFilter === 'completed') statusMatch = item.completed;
-
-            return (nameMatch || descriptionMatch) && categoryMatch && statusMatch;
-        }
+        showDialogFn: showGoalDialog
     });
 
     // Manually add event listener for the Smart Goal button
     const smartGoalBtn = document.getElementById('smart-goal-btn');
     if (smartGoalBtn) {
-        // Remove existing listener to prevent duplicates if initializeGoals is called multiple times
-        smartGoalBtn.removeEventListener('click', handleSmartGoalClick); 
-        smartGoalBtn.addEventListener('click', handleSmartGoalClick);
-        console.log('Added click listener to Smart Goal button.');
-    } else {
-        console.warn('Smart Goal button (#smart-goal-btn) not found on goals page during initialization.');
+        // Remove any existing listeners to prevent duplicates
+        const newSmartGoalBtn = smartGoalBtn.cloneNode(true);
+        smartGoalBtn.parentNode.replaceChild(newSmartGoalBtn, smartGoalBtn);
+        
+        // Add new listener
+        newSmartGoalBtn.addEventListener('click', () => {
+            showGoalDialog(null, { isSmartGoal: true });
+        });
     }
+    
+    // Add optimized debounced event listeners if the performance module is available
+    if (window.PerfOpt) {
+        const searchInput = document.querySelector('.goals-search-input');
+        const categoryFilter = document.querySelector('.goals-category-filter');
+        const statusFilter = document.querySelector('.goals-status-filter');
+        
+        // Remove existing listeners to avoid duplicates
+        if (searchInput) {
+            const newSearchInput = searchInput.cloneNode(true);
+            searchInput.parentNode.replaceChild(newSearchInput, searchInput);
+            
+            // Add debounced listener
+            newSearchInput.addEventListener('input', window.PerfOpt.debounce(() => {
+                window.PerfOpt.invalidateCache('GOALS');
+                window.UI.loadRecords('goals');
+            }, 300));
+        }
+        
+        // Add listeners for filters with immediate response
+        if (categoryFilter) {
+            const newCategoryFilter = categoryFilter.cloneNode(true);
+            categoryFilter.parentNode.replaceChild(newCategoryFilter, categoryFilter);
+            
+            newCategoryFilter.addEventListener('change', () => {
+                window.PerfOpt.invalidateCache('GOALS');
+                window.UI.loadRecords('goals');
+            });
+        }
+        
+        if (statusFilter) {
+            const newStatusFilter = statusFilter.cloneNode(true);
+            statusFilter.parentNode.replaceChild(newStatusFilter, statusFilter);
+            
+            newStatusFilter.addEventListener('change', () => {
+                window.PerfOpt.invalidateCache('GOALS');
+                window.UI.loadRecords('goals');
+            });
+        }
+    }
+    
+    console.log('[DEBUG Goals] Initialization complete');
 }
 
 /**
@@ -668,22 +699,6 @@ async function deleteGoal(goalId) {
         console.error('Error deleting goal:', error);
         alert('Error deleting goal. Please try again.');
     }
-}
-
-function handleSmartGoalClick() {
-    console.log('Smart Goal button clicked!');
-    
-    // Define initial data for the goal dialog - NO default description needed now
-    const smartInitialData = {
-        isSmartGoal: true, 
-        title: '', // Title is auto-generated, not shown in form
-        description: '', // Start with empty description
-        categoryId: '', 
-        targetDate: ''   
-    };
-
-    // Call the existing showGoalDialog function with the pre-filled data
-    showGoalDialog(null, smartInitialData); 
 }
 
 // Initialize when page changes to goals

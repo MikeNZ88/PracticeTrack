@@ -13,7 +13,7 @@ const mediaListContainer = document.getElementById('media-list');
  * Initialize media page
  */
 function initializeMedia() {
-    console.log('Initializing media page');
+    console.log('[DEBUG Media] Initializing media page with performance optimizations');
     
     // Use the UI framework to initialize the media page
     window.UI.initRecordPage({
@@ -34,106 +34,153 @@ function initializeMedia() {
     // Add media-specific styles
     addMediaStyles();
 
-    // Add listener for the new Upload button
+    // Add listener for the Upload button
     const uploadButton = document.getElementById('upload-media-btn');
     if (uploadButton) {
-        uploadButton.addEventListener('click', handleMediaUpload);
+        // Remove any existing listeners to prevent duplicates
+        const newUploadButton = uploadButton.cloneNode(true);
+        uploadButton.parentNode.replaceChild(newUploadButton, uploadButton);
+        
+        // Add new listener
+        newUploadButton.addEventListener('click', handleMediaUpload);
     }
     
-    // --- Add Date Preset Logic --- 
+    // --- Add Date Preset Logic with Performance Optimizations --- 
     const pageElement = document.getElementById('media-page');
     const presetFilter = pageElement ? pageElement.querySelector('.date-preset-filter') : null;
     const startDateInput = pageElement ? pageElement.querySelector('#media-start-date') : null;
     const endDateInput = pageElement ? pageElement.querySelector('#media-end-date') : null;
     const dateRangeDiv = pageElement ? pageElement.querySelector('.date-range') : null;
-
+    
     if (presetFilter && startDateInput && endDateInput && dateRangeDiv) {
-        // Define the handler function
         const handleMediaPresetChange = () => {
             const selectedPreset = presetFilter.value;
+            console.log(`[DEBUG Media] Date preset changed to: ${selectedPreset}`);
+            
             const today = new Date();
-            const todayString = today.toISOString().split('T')[0];
             let startDate = '';
             let endDate = '';
-
-            dateRangeDiv.style.display = (selectedPreset === 'custom') ? 'flex' : 'none';
-
+            
+            // Show/hide custom date inputs based on preset
+            if (selectedPreset === 'custom') {
+                dateRangeDiv.style.display = 'flex';
+                return; // Don't set dates for custom
+            } else {
+                dateRangeDiv.style.display = 'none';
+            }
+            
+            // Calculate date ranges based on preset
             switch (selectedPreset) {
                 case 'today':
-                    startDate = todayString;
-                    endDate = todayString;
+                    startDate = today.toISOString().split('T')[0];
+                    endDate = startDate;
                     break;
-                case 'week':
-                    const firstDayOfWeek = new Date(today.setDate(today.getDate() - today.getDay()));
-                    startDate = firstDayOfWeek.toISOString().split('T')[0];
-                    endDate = todayString;
+                case 'yesterday':
+                    const yesterday = new Date(today);
+                    yesterday.setDate(yesterday.getDate() - 1);
+                    startDate = yesterday.toISOString().split('T')[0];
+                    endDate = startDate;
                     break;
-                case 'month':
-                    startDate = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
-                    endDate = todayString;
+                case 'thisWeek':
+                    const thisWeekStart = new Date(today);
+                    const dayOfWeek = today.getDay(); // 0 = Sunday, 6 = Saturday
+                    const daysFromMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+                    thisWeekStart.setDate(today.getDate() - daysFromMonday);
+                    startDate = thisWeekStart.toISOString().split('T')[0];
+                    endDate = today.toISOString().split('T')[0];
                     break;
-                case 'year':
-                    startDate = new Date(today.getFullYear(), 0, 1).toISOString().split('T')[0];
-                    endDate = new Date(today.getFullYear(), 11, 31).toISOString().split('T')[0];
+                case 'thisMonth':
+                    const thisMonthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+                    startDate = thisMonthStart.toISOString().split('T')[0];
+                    endDate = today.toISOString().split('T')[0];
                     break;
-                case 'ytd':
-                    startDate = new Date(today.getFullYear(), 0, 1).toISOString().split('T')[0];
-                    endDate = todayString;
-                    break;
-                case 'custom':
-                     startDate = startDateInput.value || '';
-                     endDate = endDateInput.value || '';
-                     // Ensure custom inputs are shown
-                     dateRangeDiv.style.display = 'flex';
-                    break;
-                case 'all': // Explicit 'all' case
+                case 'all':
                 default:
-                     startDate = ''; // Explicitly clear for filtering
-                     endDate = '';   // Explicitly clear for filtering
-                     // Also clear the input fields themselves
-                     if (startDateInput) startDateInput.value = '';
-                     if (endDateInput) endDateInput.value = '';
-                     dateRangeDiv.style.display = 'none'; // Hide custom inputs
+                    startDate = '';
+                    endDate = '';
+                    // Clear date inputs
+                    startDateInput.value = '';
+                    endDateInput.value = '';
+                    dateRangeDiv.style.display = 'none';
                     break;
             }
 
-            // Set input values only if NOT custom and NOT all (already handled for all)
-            if (startDateInput && endDateInput && selectedPreset !== 'custom' && selectedPreset !== 'all') {
+            // Set input values
+            if (startDateInput && endDateInput && selectedPreset !== 'all') {
                 startDateInput.value = startDate;
                 endDateInput.value = endDate;
             }
-
-            // Trigger UI framework to reload records
-            console.log(`[DEBUG Media] Date preset changed to ${selectedPreset}. Filtering with Start: ${startDate || 'none'}, End: ${endDate || 'none'}`);
+            
+            // Use optimized filtering if available
+            if (window.PerfOpt) {
+                window.PerfOpt.invalidateCache('MEDIA');
+            }
+            
+            // Reload records with new filters
             window.UI.loadRecords('media');
         };
         
-        // Attach the handler to the change event
-        presetFilter.addEventListener('change', handleMediaPresetChange);
+        // Clone elements to remove any existing event listeners
+        const newPresetFilter = presetFilter.cloneNode(true);
+        presetFilter.parentNode.replaceChild(newPresetFilter, presetFilter);
         
-        // Custom date input handlers
-        startDateInput.addEventListener('change', () => {
-             presetFilter.value = 'custom';
-             dateRangeDiv.style.display = 'flex';
-             // loadRecords is already attached by initRecordPage
-         });
-         endDateInput.addEventListener('change', () => {
-              presetFilter.value = 'custom';
-              dateRangeDiv.style.display = 'flex';
-             // loadRecords is already attached by initRecordPage
-         });
+        const newStartDateInput = startDateInput.cloneNode(true);
+        startDateInput.parentNode.replaceChild(newStartDateInput, startDateInput);
+        
+        const newEndDateInput = endDateInput.cloneNode(true);
+        endDateInput.parentNode.replaceChild(newEndDateInput, endDateInput);
+        
+        // Attach the handler to the change event
+        newPresetFilter.addEventListener('change', handleMediaPresetChange);
+        
+        // Custom date input handlers with debounce if available
+        const dateChangeHandler = window.PerfOpt ? 
+            window.PerfOpt.debounce(() => {
+                newPresetFilter.value = 'custom';
+                dateRangeDiv.style.display = 'flex';
+                window.UI.loadRecords('media');
+            }, 300) : 
+            () => {
+                newPresetFilter.value = 'custom';
+                dateRangeDiv.style.display = 'flex';
+                window.UI.loadRecords('media');
+            };
+        
+        newStartDateInput.addEventListener('change', dateChangeHandler);
+        newEndDateInput.addEventListener('change', dateChangeHandler);
 
         // Set initial state to "Today"
-        presetFilter.value = 'today';
-        // dateRangeDiv.style.display = 'none'; // Handler will set this
-        // startDateInput.value = ''; // Handler will set this
-        // endDateInput.value = ''; // Handler will set this
-
-        // Apply the initial filter by calling the handler
+        newPresetFilter.value = 'today';
+        
+        // Apply the initial filter
         handleMediaPresetChange();
-        // REMOVED: window.UI.loadRecords('media'); // Handler calls this now
     }
-    // --- End Date Preset Logic ---
+    
+    // Add optimized event listener for media type filter
+    const typeFilter = pageElement ? pageElement.querySelector('.media-type-filter') : null;
+    if (typeFilter && window.PerfOpt) {
+        const newTypeFilter = typeFilter.cloneNode(true);
+        typeFilter.parentNode.replaceChild(newTypeFilter, typeFilter);
+        
+        newTypeFilter.addEventListener('change', () => {
+            window.PerfOpt.invalidateCache('MEDIA');
+            window.UI.loadRecords('media');
+        });
+    }
+    
+    // Add optimized search input handling
+    const searchInput = pageElement ? pageElement.querySelector('.search-input') : null;
+    if (searchInput && window.PerfOpt) {
+        const newSearchInput = searchInput.cloneNode(true);
+        searchInput.parentNode.replaceChild(newSearchInput, searchInput);
+        
+        newSearchInput.addEventListener('input', window.PerfOpt.debounce(() => {
+            window.PerfOpt.invalidateCache('MEDIA');
+            window.UI.loadRecords('media');
+        }, 300));
+    }
+    
+    console.log('[DEBUG Media] Initialization complete');
 }
 
 // Device detection

@@ -42,6 +42,13 @@ const initializeApp = () => {
     // Setup Back to Top Button
     setupBackToTopButton();
     
+    // Verify performance optimization module is loaded
+    if (window.PerfOpt) {
+        console.log('Performance optimization module loaded successfully!');
+    } else {
+        console.warn('Performance optimization module not loaded. Record tabs may experience slower performance.');
+    }
+    
     // Navigate to initial page
     navigateToPage(currentPage || 'timer');
 

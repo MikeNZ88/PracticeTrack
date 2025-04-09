@@ -173,7 +173,7 @@ window.UI = (function() {
         // **** Log raw categories ****
         console.log('[UI Framework SetupFilter] Raw categories fetched:', JSON.stringify(categories));
 
-        filterElement.innerHTML = '<option value="all">Select Category</option>'; 
+        filterElement.innerHTML = '<option value="all">All categories</option>'; 
 
         if (categories && categories.length > 0) {
             // Filter out invalid categories before sorting
@@ -197,9 +197,9 @@ window.UI = (function() {
             console.log('[UI Framework SetupFilter] No categories found or array was empty.');
         }
 
-        // Restore previous selection if possible
-        console.log(`[UI Framework SetupFilter] Attempting to restore selected value to: ${currentValue}`);
-        filterElement.value = currentValue;
+        // Restore previous selection if possible, or default to "all"
+        console.log(`[UI Framework SetupFilter] Attempting to restore selected value to: ${currentValue || 'all'}`);
+        filterElement.value = currentValue || 'all';
         console.log(`[UI Framework SetupFilter] Current dropdown value after restore: ${filterElement.value}`);
     }
     
@@ -207,8 +207,8 @@ window.UI = (function() {
      * Load records with filters
      * @param {string} pageId - The page ID
      */
-    function loadRecords(pageId) { // Removed options, always use cache
-        console.log(`[DEBUG ${pageId} Load] loadRecords function called.`); // Log function entry
+    function loadRecords(pageId) { 
+        console.log(`[DEBUG ${pageId} Load] loadRecords function called.`);
         const cache = domCache[pageId];
         if (!cache || !cache.listContainer) {
             console.error(`Cache or list container not found for pageId: ${pageId}`);
@@ -217,18 +217,11 @@ window.UI = (function() {
         
         const { recordType, createRecordElementFn, listContainer } = cache;
         
-        // Clear list
-        listContainer.innerHTML = '';
-        
         try {
             // Get filter values directly from cache
-            const categoryFilterValue = cache.categoryFilter ? cache.categoryFilter.value : '[FilterElement Missing]';
-            // **** Log the exact value read from the category filter ****
-            console.log(`[DEBUG ${recordType} Load] Reading category filter value: '${categoryFilterValue}' (Type: ${typeof categoryFilterValue})`);
-            
             const filters = {
                 search: cache.searchInput ? cache.searchInput.value.trim().toLowerCase() : '',
-                categoryId: categoryFilterValue, // Use the logged value
+                categoryId: cache.categoryFilter ? cache.categoryFilter.value : 'all',
                 status: cache.statusFilter ? cache.statusFilter.value : null,
                 startDate: (cache.dateInputs && cache.dateInputs[0]) ? cache.dateInputs[0].value : '',
                 endDate: (cache.dateInputs && cache.dateInputs[1]) ? cache.dateInputs[1].value : ''
@@ -238,40 +231,54 @@ window.UI = (function() {
             let records = window.getItems ? window.getItems(recordType) : 
                 JSON.parse(localStorage.getItem(`practiceTrack_${recordType}`)) || [];
             
-            // Removed RAW Records log
-
-            console.log(`[DEBUG ${recordType} Load] Raw records loaded:`, records.length > 0 ? JSON.parse(JSON.stringify(records)) : '[]', 'Filters to apply:', JSON.parse(JSON.stringify(filters)));
-
-            // Apply filters
-            records = filterRecords(records, filters, recordType);
-            console.log(`[DEBUG ${recordType} Load] Records after filtering: ${records.length}`);
+            console.log(`[DEBUG ${recordType} Load] Raw records loaded: ${records.length}, Filters:`, JSON.stringify(filters));
             
-            // Sort records
-            console.log(`[DEBUG ${recordType} Load] Attempting to sort ${records.length} records...`);
-            console.log(`[DEBUG ${recordType} Load] >>> CALLING sortRecords NOW for ${recordType}...`); // <<< Added explicit call log
-            records = sortRecords(records, recordType);
-            console.log(`[DEBUG ${recordType} Load] Records after sorting:`, records.length > 0 ? JSON.parse(JSON.stringify(records.map(r => r.id))) : '[]');
-            
-            // Show empty state if no records
-            if (records.length === 0) {
-                showEmptyState(pageId, listContainer);
+            // Check if we have the performance optimization module available
+            if (window.PerfOpt) {
+                // Use optimized filtering, sorting, and rendering
+                const processedRecords = window.PerfOpt.getCachedOrComputeRecords(
+                    records, 
+                    filters, 
+                    recordType,
+                    window.PerfOpt.optimizedFilterRecords,
+                    window.PerfOpt.optimizedSortRecords
+                );
+                
+                // Render with virtual scrolling
+                window.PerfOpt.renderRecordsBatched(
+                    processedRecords,
+                    listContainer,
+                    createRecordElementFn,
+                    () => showEmptyState(pageId, listContainer)
+                );
             } else {
-                // Create record elements
-                records.forEach(record => {
-                    if (typeof createRecordElementFn === 'function') {
-                        const element = createRecordElementFn(record);
-                        if (element) {
-                            listContainer.appendChild(element);
+                // Fallback to original implementation
+                records = filterRecords(records, filters, recordType);
+                records = sortRecords(records, recordType);
+                
+                // Show empty state if no records
+                if (records.length === 0) {
+                    showEmptyState(pageId, listContainer);
+                } else {
+                    // Clear the container first
+                    listContainer.innerHTML = '';
+                    
+                    // Create record elements
+                    records.forEach(record => {
+                        if (typeof createRecordElementFn === 'function') {
+                            const element = createRecordElementFn(record);
+                            if (element) {
+                                listContainer.appendChild(element);
+                            }
                         }
-                    }
-                });
+                    });
+                }
+                
+                // Initialize icons
+                if (window.lucide && typeof window.lucide.createIcons === 'function') {
+                    window.lucide.createIcons();
+                }
             }
-            
-            // Initialize icons
-            if (window.lucide && typeof window.lucide.createIcons === 'function') {
-                window.lucide.createIcons();
-            }
-            
         } catch (error) {
             console.error(`Error loading ${recordType}:`, error);
             listContainer.innerHTML = `

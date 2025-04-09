@@ -50,155 +50,157 @@ function initializeSessions() {
          console.error('[DEBUG Sessions] Sessions page element not found in initializeSessions.');
          return;
     }
-
+    
+    // Get preset filter and date inputs
     const elements = {
         presetFilter: pageElement.querySelector('.date-preset-filter'),
-        startDateInput: pageElement.querySelector('#session-start-date'),
-        endDateInput: pageElement.querySelector('#session-end-date'),
-        dateRangeDiv: pageElement.querySelector('.date-range'),
-        categoryFilter: pageElement.querySelector('.category-filter'),
+        dateRange: pageElement.querySelector('.date-range'),
+        startDateInput: pageElement.querySelector('#sessions-start-date'),
+        endDateInput: pageElement.querySelector('#sessions-end-date'),
         searchInput: pageElement.querySelector('.search-input')
     };
-
-    if (!elements.presetFilter || !elements.startDateInput || 
-        !elements.endDateInput || !elements.dateRangeDiv) {
-        console.error('[DEBUG Sessions] One or more date filter elements not found.');
-        return; // Avoid errors if elements are missing
+    
+    // Skip if elements aren't found
+    if (!elements.presetFilter) {
+        console.error('[DEBUG Sessions] Date preset filter not found on sessions page');
+        return;
     }
-
-    // Optimize date preset change handler
-    const handlePresetChange = () => {
-        // Reset batch index and cache when filters change
-        currentBatchIndex = 0;
-        sessionCache = null;
-        
+    
+    // Function to handle preset change
+    function handlePresetChange() {
         const selectedPreset = elements.presetFilter.value;
+        console.log(`[DEBUG Sessions] Date preset changed to: ${selectedPreset}`);
+        
         const today = new Date();
-        const todayString = today.toISOString().split('T')[0]; // Get YYYY-MM-DD for today
         let startDate = '';
         let endDate = '';
-
-        elements.dateRangeDiv.style.display = (selectedPreset === 'custom') ? 'flex' : 'none';
-
+        
+        // Show/hide custom date inputs based on preset
+        if (selectedPreset === 'custom') {
+            elements.dateRange.style.display = 'flex';
+            return; // Don't change values when 'custom' is selected
+        } else {
+            elements.dateRange.style.display = 'none';
+        }
+        
+        // Calculate date ranges based on preset
         switch (selectedPreset) {
             case 'today':
-                startDate = todayString;
-                endDate = todayString;
+                startDate = today.toISOString().split('T')[0];
+                endDate = startDate;
                 break;
-            case 'week':
-                const currentDay = today.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
-                const daysSinceMonday = (currentDay === 0) ? 6 : currentDay - 1; // Calculate days passed since Monday
-                const mondayDate = new Date(today);
-                mondayDate.setDate(today.getDate() - daysSinceMonday);
-                startDate = mondayDate.toISOString().split('T')[0];
-                
-                // Calculate upcoming Sunday
-                const daysUntilSunday = (currentDay === 0) ? 0 : 7 - currentDay;
-                const sundayDate = new Date(today);
-                sundayDate.setDate(today.getDate() + daysUntilSunday);
-                endDate = sundayDate.toISOString().split('T')[0];
+            case 'yesterday':
+                const yesterday = new Date(today);
+                yesterday.setDate(yesterday.getDate() - 1);
+                startDate = yesterday.toISOString().split('T')[0];
+                endDate = startDate;
                 break;
-            case 'month':
-                startDate = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
-                endDate = todayString; // Use todayString
+            case 'thisWeek':
+                const thisWeekStart = new Date(today);
+                const dayOfWeek = today.getDay(); // 0 = Sunday, 6 = Saturday
+                const daysFromMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+                thisWeekStart.setDate(today.getDate() - daysFromMonday);
+                startDate = thisWeekStart.toISOString().split('T')[0];
+                endDate = today.toISOString().split('T')[0];
                 break;
-            case 'year':
-                startDate = new Date(today.getFullYear(), 0, 1).toISOString().split('T')[0];
-                endDate = new Date(today.getFullYear(), 11, 31).toISOString().split('T')[0];
+            case 'lastWeek':
+                const lastWeekStart = new Date(today);
+                const lastWeekEnd = new Date(today);
+                const currentDayOfWeek = today.getDay() || 7; // Convert Sunday (0) to 7
+                const daysToLastMonday = currentDayOfWeek + 6; // Days to previous Monday
+                const daysToLastSunday = currentDayOfWeek + 0; // Days to previous Sunday
+                lastWeekStart.setDate(today.getDate() - daysToLastMonday);
+                lastWeekEnd.setDate(today.getDate() - daysToLastSunday);
+                startDate = lastWeekStart.toISOString().split('T')[0];
+                endDate = lastWeekEnd.toISOString().split('T')[0];
                 break;
-            case 'ytd':
-                startDate = new Date(today.getFullYear(), 0, 1).toISOString().split('T')[0];
-                endDate = todayString; // Use todayString
+            case 'thisMonth':
+                const thisMonthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+                startDate = thisMonthStart.toISOString().split('T')[0];
+                endDate = today.toISOString().split('T')[0];
                 break;
-            case 'custom':
-                 startDate = elements.startDateInput.value;
-                 endDate = elements.endDateInput.value;
-                 // Ensure custom inputs are shown
-                 elements.dateRangeDiv.style.display = 'flex'; 
+            case 'lastMonth':
+                const lastMonthStart = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+                const lastMonthEnd = new Date(today.getFullYear(), today.getMonth(), 0);
+                startDate = lastMonthStart.toISOString().split('T')[0];
+                endDate = lastMonthEnd.toISOString().split('T')[0];
                 break;
-            case 'all': // Explicit 'all' case
-            default: 
-                 startDate = ''; // Explicitly clear for filtering
-                 endDate = '';   // Explicitly clear for filtering
-                 // Also clear the input fields themselves
-                 elements.startDateInput.value = ''; 
-                 elements.endDateInput.value = '';
-                 elements.dateRangeDiv.style.display = 'none'; // Hide custom inputs
+            case 'thisYear':
+                const thisYearStart = new Date(today.getFullYear(), 0, 1);
+                startDate = thisYearStart.toISOString().split('T')[0];
+                endDate = today.toISOString().split('T')[0];
+                break;
+            case 'all':
+            default:
+                startDate = '';
+                endDate = '';
                 break;
         }
         
-        // Set input values only if NOT custom and NOT all (already handled for all)
-        if (selectedPreset !== 'custom' && selectedPreset !== 'all') {
+        // Set input values
+        if (elements.startDateInput && elements.endDateInput) {
             elements.startDateInput.value = startDate;
             elements.endDateInput.value = endDate;
         }
         
-        // Clear previous sessions display
-        const sessionsList = document.getElementById('sessions-list');
-        if (sessionsList) {
-            sessionsList.innerHTML = '';
+        // Use our optimized filter handling
+        if (window.PerfOpt) {
+            // Invalidate cache for this record type
+            window.PerfOpt.invalidateCache('SESSIONS');
         }
         
-        // Load the first batch directly instead of using UI framework
-        loadSessionBatch();
-    };
-
-    // Add event listeners only once during initialization
-    // Check if listeners were already added to prevent duplicates if init is called multiple times
+        // Trigger UI framework to reload sessions with new filter
+        window.UI.loadRecords('sessions');
+    }
+    
+    // Add event listener for preset change if not already added
     if (!elements.presetFilter.dataset.listenerAdded) {
         elements.presetFilter.addEventListener('change', handlePresetChange);
         
-        elements.startDateInput.addEventListener('change', () => {
-            elements.presetFilter.value = 'custom';
-            elements.dateRangeDiv.style.display = 'flex';
-            // Reset cache and reload
-            currentBatchIndex = 0;
-            sessionCache = null;
-            const sessionsList = document.getElementById('sessions-list');
-            if (sessionsList) {
-                sessionsList.innerHTML = '';
-            }
-            loadSessionBatch();
-        });
-        
-        elements.endDateInput.addEventListener('change', () => {
-            elements.presetFilter.value = 'custom';
-            elements.dateRangeDiv.style.display = 'flex';
-            // Reset cache and reload
-            currentBatchIndex = 0;
-            sessionCache = null;
-            const sessionsList = document.getElementById('sessions-list');
-            if (sessionsList) {
-                sessionsList.innerHTML = '';
-            }
-            loadSessionBatch();
-        });
-        
-        // Add listeners for category filter and search
-        if (elements.categoryFilter) {
-            elements.categoryFilter.addEventListener('change', () => {
-                // Reset cache and reload
-                currentBatchIndex = 0;
-                sessionCache = null;
-                const sessionsList = document.getElementById('sessions-list');
-                if (sessionsList) {
-                    sessionsList.innerHTML = '';
-                }
-                loadSessionBatch();
+        // Add event listeners to date inputs - optimized with debounce
+        if (elements.startDateInput && elements.endDateInput) {
+            const debouncedReload = window.PerfOpt ? 
+                window.PerfOpt.debounce(() => window.UI.loadRecords('sessions'), 300) : 
+                () => window.UI.loadRecords('sessions');
+                
+            elements.startDateInput.addEventListener('change', function() {
+                elements.presetFilter.value = 'custom';
+                elements.dateRange.style.display = 'flex';
+                debouncedReload();
+            });
+            
+            elements.endDateInput.addEventListener('change', function() {
+                elements.presetFilter.value = 'custom';
+                elements.dateRange.style.display = 'flex';
+                debouncedReload();
             });
         }
         
         if (elements.searchInput) {
-            elements.searchInput.addEventListener('input', debounce(() => {
-                // Reset cache and reload
-                currentBatchIndex = 0;
-                sessionCache = null;
-                const sessionsList = document.getElementById('sessions-list');
-                if (sessionsList) {
-                    sessionsList.innerHTML = '';
-                }
-                loadSessionBatch();
-            }, 300));
+            // Use debounce for search input if available
+            const debouncedSearch = window.PerfOpt ? 
+                window.PerfOpt.debounce(() => {
+                    // Reset cache and reload
+                    currentBatchIndex = 0;
+                    sessionCache = null;
+                    const sessionsList = document.getElementById('sessions-list');
+                    if (sessionsList) {
+                        sessionsList.innerHTML = '';
+                    }
+                    window.UI.loadRecords('sessions');
+                }, 300) : 
+                () => {
+                    // Fallback if PerfOpt not available
+                    currentBatchIndex = 0;
+                    sessionCache = null;
+                    const sessionsList = document.getElementById('sessions-list');
+                    if (sessionsList) {
+                        sessionsList.innerHTML = '';
+                    }
+                    window.UI.loadRecords('sessions');
+                };
+                
+            elements.searchInput.addEventListener('input', debouncedSearch);
         }
         
         elements.presetFilter.dataset.listenerAdded = 'true'; // Mark as added
