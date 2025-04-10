@@ -1,0 +1,179 @@
+/* 
+ * Reset Styles
+ * Basic reset styles to normalize browser rendering
+ */
+
+/* Modern CSS Reset */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* Set core root defaults */
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+  height: 100%;
+}
+
+/* Set core body defaults */
+body {
+  min-height: 100vh;
+  text-rendering: optimizeSpeed;
+  line-height: 1.5;
+  font-family: var(--font-sans);
+  background-color: var(--background-light);
+  color: var(--text-dark);
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden; /* Prevent horizontal scroll */
+  position: relative;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Remove default margin and padding */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+ul,
+ol,
+figure,
+blockquote,
+dl,
+dd {
+  margin: 0;
+  padding: 0;
+}
+
+/* Remove list styles on ul, ol elements */
+ul,
+ol {
+  list-style: none;
+}
+
+/* Make images easier to work with */
+img,
+picture,
+video,
+canvas,
+svg {
+  max-width: 100%;
+  display: block;
+}
+
+/* Inherit fonts for inputs and buttons */
+input,
+button,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+/* Set default focus style */
+:focus {
+  outline: 3px solid rgba(59, 127, 245, 0.5);
+  outline-offset: 2px;
+}
+
+/* Remove outline for mouse users, but keep it for keyboard */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Style focus-visible for keyboard users */
+:focus-visible {
+  outline: 3px solid var(--primary-blue);
+  outline-offset: 2px;
+}
+
+/* Set default for buttons */
+button {
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+/* Set default for anchors */
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* Reset form elements to make them stylable */
+button,
+input,
+select,
+textarea {
+  background-color: transparent;
+  border: none;
+}
+
+/* Make sure textareas without a rows attribute are not tiny */
+textarea:not([rows]) {
+  min-height: 10em;
+}
+
+/* Smooth scrolling and selection */
+::selection {
+  background-color: var(--primary-blue-light);
+  color: var(--primary-blue-dark);
+}
+
+/* Remove all animations and transitions for people that prefer not to see them */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Fix inconsistency with Firefox for form controls */
+button,
+input,
+select,
+textarea {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* Hide elements with .hidden class */
+.hidden {
+  display: none !important;
+}
+
+/* Handle screen reader-only elements */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Set a consistent word wrap to avoid content overflow */
+* {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+/* Set default focus-within style */
+:focus-within {
+  position: relative;
+}

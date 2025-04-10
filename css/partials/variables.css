@@ -1,0 +1,120 @@
+/* 
+ * Design System Variables
+ * Core design tokens for colors, typography, spacing, and other UI variables
+ */
+
+ :root {
+    /* Color System - Core Palette */
+    --primary-blue: #3b7ff5;
+    --primary-blue-dark: #2c5cc0;
+    --primary-blue-light: #e6f0ff;
+    
+    --secondary-orange: #ff9054;
+    --secondary-orange-dark: #e87040;
+    --secondary-orange-light: #fff2ec;
+    
+    /* UI Colors */
+    --success: #22c55e;
+    --success-light: #dcfce7;
+    
+    --warning: #f59e0b;
+    --warning-light: #fef3c7;
+    
+    --error: #ef4444;
+    --error-light: #fee2e2;
+    
+    --info: #3b82f6;
+    --info-light: #dbeafe;
+    
+    /* Neutral Colors */
+    --text-dark: #111827;
+    --text-medium: #4b5563;
+    --text-light: #9ca3af;
+    
+    /* Background Colors */
+    --background-light: #f9fafb;
+    --background-subtle: #f3f4f6;
+    --border-color: #e5e7eb;
+    --card-background: #ffffff;
+    --card-background-hover: #f8fafc;
+    
+    /* Dark Theme Colors - Light Inversion */
+    .theme-dark {
+      --text-dark: #f3f4f6;
+      --text-medium: #d1d5db;
+      --text-light: #6b7280;
+      
+      --background-light: #111827;
+      --background-subtle: #1f2937;
+      --border-color: #374151;
+      --card-background: #1e293b;
+      --card-background-hover: #273548;
+      
+      /* Adjusted for dark mode */
+      --primary-blue-light: #1e3a8a;
+      --success-light: #065f46;
+      --warning-light: #78350f;
+      --error-light: #7f1d1d;
+      --info-light: #1e3a8a;
+    }
+    
+    /* Typography */
+    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+    --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    
+    /* Font Sizes */
+    --font-xs: 0.75rem;    /* 12px */
+    --font-sm: 0.875rem;   /* 14px */
+    --font-md: 1rem;       /* 16px */
+    --font-lg: 1.125rem;   /* 18px */
+    --font-xl: 1.25rem;    /* 20px */
+    --font-2xl: 1.5rem;    /* 24px */
+    --font-3xl: 1.875rem;  /* 30px */
+    --font-4xl: 2.25rem;   /* 36px */
+    --font-5xl: 3rem;      /* 48px */
+    
+    /* Spacing System */
+    --space-xs: 0.25rem;   /* 4px */
+    --space-sm: 0.5rem;    /* 8px */
+    --space-md: 1rem;      /* 16px */
+    --space-lg: 1.5rem;    /* 24px */
+    --space-xl: 2rem;      /* 32px */
+    --space-2xl: 3rem;     /* 48px */
+    --space-3xl: 4rem;     /* 64px */
+    
+    /* Borders & Radius */
+    --radius-sm: 0.25rem;   /* 4px */
+    --radius-md: 0.375rem;  /* 6px */
+    --radius-lg: 0.5rem;    /* 8px */
+    --radius-xl: 0.75rem;   /* 12px */
+    --radius-full: 9999px;  /* Fully rounded (for pills, circles) */
+    
+    /* Shadows */
+    --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    
+    /* Dark Theme Shadow Adjustments */
+    .theme-dark {
+      --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.3);
+      --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.3);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
+      --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.3);
+    }
+    
+    /* Transitions */
+    --transition-fast: 150ms ease;
+    --transition-normal: 250ms ease;
+    --transition-slow: 500ms ease;
+    
+    /* Z-index Scale */
+    --z-below: -1;
+    --z-normal: 1; 
+    --z-above: 10;
+    --z-modal: 100;
+    --z-toast: 1000;
+    --z-max: 9999;
+  }
