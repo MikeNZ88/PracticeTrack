@@ -1,0 +1,234 @@
+/* 
+ * Sessions Page Styles
+ * Styles specific to the sessions list and filtering components
+ */
+
+#sessions-page {
+    /* Page-specific container styles */
+}
+
+/* Filters */
+#sessions-page .filters {
+    display: flex;
+    flex-wrap: wrap; /* Allow filters to wrap on smaller screens */
+    gap: var(--space-md);
+    margin-bottom: var(--space-xl);
+    padding: var(--space-lg);
+    background-color: var(--card-background);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+}
+
+#sessions-page .filters > * {
+    flex: 1; /* Allow filter elements to grow */
+    min-width: 150px; /* Minimum width for filter elements */
+}
+
+#sessions-page .filters .search-input {
+    flex-grow: 2; /* Allow search input to take more space */
+    max-width: 400px;
+}
+
+#sessions-page .filters .category-filter {
+    max-width: 200px;
+}
+
+#sessions-page .filters .date-preset-filter {
+    max-width: 180px;
+}
+
+/* Responsive Filters */
+@media (max-width: 960px) { 
+    #sessions-page .filters {
+        flex-direction: column;
+    }
+    #sessions-page .filters > * {
+        max-width: none; /* Remove max-width on smaller screens */
+        width: 100%;
+    }
+}
+
+/* Sessions List */
+.sessions-list {
+    display: grid;
+    gap: var(--space-lg);
+}
+
+/* Session Item/Card Styles are in components/cards.css */
+/* Below are styles for elements *within* the session card */
+
+.session-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start; /* Align items to the top */
+    margin-bottom: var(--space-md);
+}
+
+.session-category { 
+    font-size: var(--font-xs);
+    font-weight: 600;
+    color: var(--primary-blue-dark);
+    background-color: var(--primary-blue-light);
+    padding: var(--space-xs) var(--space-sm);
+    border-radius: var(--radius-full);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+}
+
+.session-duration { 
+    font-size: var(--font-sm);
+    font-weight: 500;
+    color: var(--text-medium);
+}
+
+.session-header h3 {
+    font-size: var(--font-lg); /* Slightly smaller than default h3 */
+    font-weight: 600;
+    margin: 0; /* Reset margin */
+    flex-grow: 1; /* Allow title to take space */
+    padding-right: var(--space-md); /* Space before duration */
+}
+
+.session-details {
+    margin-bottom: var(--space-md);
+}
+
+.session-time { 
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    font-size: var(--font-sm);
+    color: var(--text-light);
+    margin-bottom: var(--space-xs);
+}
+
+.session-time::before {
+    content: '';
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238a95a5' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpolyline points='12 6 12 12 16 14'/%3E%3C/svg%3E");
+    background-size: contain;
+    opacity: 0.7;
+}
+
+.lesson-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xs);
+    background-color: var(--info-light);
+    color: var(--info);
+    padding: var(--space-xs) var(--space-sm);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-xs);
+    font-weight: 600;
+    margin-left: var(--space-sm);
+}
+
+.session-notes {
+    font-size: var(--font-sm);
+    color: var(--text-medium);
+    line-height: 1.5;
+    margin-bottom: var(--space-lg);
+    /* Style list items within notes */
+    list-style-position: inside;
+}
+.session-notes ul,
+.session-notes ol {
+    padding-left: var(--space-md);
+    margin-top: var(--space-sm);
+}
+.session-notes li {
+    margin-bottom: var(--space-xs);
+}
+
+.session-actions { 
+    margin-top: auto; /* Push actions to the bottom */
+    padding-top: var(--space-md);
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.session-date {
+    font-size: var(--font-sm);
+    color: var(--text-light);
+}
+
+.session-actions .action-buttons {
+    display: flex;
+    gap: var(--space-sm);
+}
+
+/* Session Dialog styles are in components/dialogs.css */
+/* Session Form styles are mostly in components/forms.css */
+
+/* Animations for list items */
+.sessions-list > * {
+    animation: fadeInUp 0.5s ease-out forwards;
+    opacity: 0;
+}
+
+.sessions-list > *:nth-child(1) {
+    animation-delay: 0.1s;
+}
+.sessions-list > *:nth-child(2) {
+    animation-delay: 0.2s;
+}
+.sessions-list > *:nth-child(3) {
+    animation-delay: 0.3s;
+}
+/* Add more delays if needed */
+
+/* Dark Theme Adjustments */
+.theme-dark #sessions-page .filters {
+    background-color: var(--card-background);
+    box-shadow: var(--shadow-sm);
+}
+
+.theme-dark .session-category {
+    background-color: rgba(59, 127, 245, 0.2);
+    color: var(--primary-blue-light);
+}
+
+.theme-dark .session-duration {
+    color: var(--text-medium);
+}
+
+.theme-dark .session-time {
+    color: var(--text-light);
+}
+
+.theme-dark .session-time::before {
+    filter: invert(70%) sepia(10%) saturate(400%) hue-rotate(180deg) brightness(90%) contrast(85%); /* Adjust icon color */
+}
+
+.theme-dark .lesson-badge {
+    background-color: var(--info-light);
+    color: var(--info);
+}
+
+.theme-dark .session-notes {
+    color: var(--text-medium);
+}
+
+.theme-dark .session-actions {
+    border-top-color: var(--border-color);
+}
+
+.theme-dark .session-date {
+    color: var(--text-light);
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

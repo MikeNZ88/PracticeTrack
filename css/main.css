@@ -1,0 +1,36 @@
+/* 
+ * PracticeTrack Main CSS
+ * Modular CSS structure with imports
+ */
+
+/* Base styles - core design system */
+@import 'partials/reset.css';
+@import 'partials/variables.css';
+@import 'partials/typography.css';
+@import 'partials/layout.css';
+
+/* Components - reusable UI elements */
+@import 'partials/components/buttons.css';
+@import 'partials/components/cards.css';
+@import 'partials/components/forms.css';
+@import 'partials/components/dialogs.css';
+@import 'partials/components/navigation.css';
+@import 'partials/components/header.css';
+
+/* Pages - page-specific styles */
+@import 'partials/pages/timer.css';
+@import 'partials/pages/sessions.css';
+@import 'partials/pages/goals.css';
+@import 'partials/pages/stats.css';
+@import 'partials/pages/media.css';
+@import 'partials/pages/resources.css';
+@import 'partials/pages/settings.css';
+
+/* Legacy files - to ensure nothing breaks during transition */
+/* @import 'modal-fixes.css'; */ /* Merged into dialogs.css */
+/* @import 'iconstyles.css'; */ /* Merged into cards.css */
+
+/* 
+ * Note: As we migrate to modular CSS, we'll gradually move styles 
+ * from the monolithic styles.css into the appropriate files above
+ */ 

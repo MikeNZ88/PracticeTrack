@@ -47,60 +47,38 @@ function initializeGoals() {
         const searchInput = document.querySelector('.goals-search-input');
         const categoryFilter = document.querySelector('.goals-category-filter');
         const statusFilter = document.querySelector('.goals-status-filter');
-        const datePresetFilter = document.querySelector('#goals-page .date-preset-filter');
         
-        // Direct event listeners instead of clone+replace which may be causing issues
+        // Remove existing listeners to avoid duplicates
         if (searchInput) {
-            // Clear any existing listeners (safety measure)
-            searchInput.removeEventListener('input', null);
+            const newSearchInput = searchInput.cloneNode(true);
+            searchInput.parentNode.replaceChild(newSearchInput, searchInput);
             
-            // Add direct listener
-            searchInput.addEventListener('input', window.PerfOpt.debounce(() => {
-                console.log('[Goals] Search input changed:', searchInput.value);
+            // Add debounced listener
+            newSearchInput.addEventListener('input', window.PerfOpt.debounce(() => {
                 window.PerfOpt.invalidateCache('GOALS');
                 window.UI.loadRecords('goals');
             }, 300));
-            console.log('[Goals Debug] Added direct listener to search input');
         }
         
-        // Direct event listeners for filters
+        // Add listeners for filters with immediate response
         if (categoryFilter) {
-            // Clear existing listeners
-            categoryFilter.removeEventListener('change', null);
+            const newCategoryFilter = categoryFilter.cloneNode(true);
+            categoryFilter.parentNode.replaceChild(newCategoryFilter, categoryFilter);
             
-            // Add direct listener
-            categoryFilter.addEventListener('change', () => {
-                console.log('[Goals] Category filter changed:', categoryFilter.value);
+            newCategoryFilter.addEventListener('change', () => {
                 window.PerfOpt.invalidateCache('GOALS');
                 window.UI.loadRecords('goals');
             });
-            console.log('[Goals Debug] Added direct listener to category filter');
         }
         
         if (statusFilter) {
-            // Clear existing listeners
-            statusFilter.removeEventListener('change', null);
+            const newStatusFilter = statusFilter.cloneNode(true);
+            statusFilter.parentNode.replaceChild(newStatusFilter, statusFilter);
             
-            // Add direct listener
-            statusFilter.addEventListener('change', () => {
-                console.log('[Goals] Status filter changed:', statusFilter.value);
+            newStatusFilter.addEventListener('change', () => {
                 window.PerfOpt.invalidateCache('GOALS');
                 window.UI.loadRecords('goals');
             });
-            console.log('[Goals Debug] Added direct listener to status filter');
-        }
-        
-        if (datePresetFilter) {
-            // Clear existing listeners
-            datePresetFilter.removeEventListener('change', null);
-            
-            // Add direct listener
-            datePresetFilter.addEventListener('change', () => {
-                console.log('[Goals] Date preset changed:', datePresetFilter.value);
-                window.PerfOpt.invalidateCache('GOALS');
-                window.UI.loadRecords('goals');
-            });
-            console.log('[Goals Debug] Added direct listener to date preset filter');
         }
     }
     
@@ -113,106 +91,127 @@ function initializeGoals() {
  * @returns {HTMLElement} - The goal element
  */
 function createGoalElement(goal) {
-    // Create goal element
     const goalElement = document.createElement('div');
-    goalElement.classList.add('record-card', 'goal-card');
-    goalElement.setAttribute('data-id', goal.id);
+    // Apply base class .goal-item
+    goalElement.className = 'goal-item'; 
+    goalElement.dataset.id = goal.id;
     
-    // Add completed class if goal is completed
-    if (goal.completed) {
-        goalElement.classList.add('completed');
-    }
+    const formatOptions = { day: 'numeric', month: 'long', year: 'numeric' };
+    const dateFormatter = new Intl.DateTimeFormat('en-US', formatOptions);
     
+    const dateStr = dateFormatter.format(new Date(goal.createdAt));
+    const targetDateStr = goal.targetDate ? dateFormatter.format(new Date(goal.targetDate)) : null;
+
     // Get category name
-    let categoryName = 'No Category';
-    if (goal.categoryId) {
-        categoryName = window.Utils.getCategoryName(goal.categoryId);
+    const category = window.getItemById ? window.getItemById('CATEGORIES', goal.categoryId) : { name: 'Unknown' };
+    const categoryName = category?.name || 'Unknown';
+    // Note: We don't need categoryColorClass here anymore for the pill itself
+    
+    const isCompleted = goal.completed;
+    const statusClass = isCompleted ? 'completed' : 'active';
+    const hasProgress = goal.progress !== undefined;
+    const progressPercentage = hasProgress ? Math.min(100, Math.max(0, goal.progress)) : 0;
+
+    let goalDetail = goal.description || '';
+    if (goal.measureHelper) {
+        goalDetail = (goalDetail ? goalDetail + ' ' : '') + `(Measured By: ${goal.measureHelper})`;
     }
-    
-    // Add category color class
-    goalElement.classList.add(window.Utils.getCategoryColorClass(categoryName));
-    
-    // Format date strings
-    let targetDateStr = '';
-    if (goal.targetDate) {
-        const targetDate = new Date(goal.targetDate);
-        targetDateStr = new Intl.DateTimeFormat('en-US', { 
-            month: 'short', 
-            day: 'numeric',
-            year: 'numeric'
-        }).format(targetDate);
-    }
-    
-    // Calculate days left or overdue
-    let daysLeftText = '';
-    let daysLeftClass = '';
-    
-    if (goal.targetDate) {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const targetDate = new Date(goal.targetDate);
-        targetDate.setHours(0, 0, 0, 0);
-        
-        const diffTime = targetDate - today;
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        
-        if (diffDays < 0 && !goal.completed) {
-            daysLeftText = `${Math.abs(diffDays)} day${Math.abs(diffDays) !== 1 ? 's' : ''} overdue`;
-            daysLeftClass = 'overdue';
-        } else if (diffDays === 0) {
-            daysLeftText = 'Due today';
-            daysLeftClass = 'due-today';
-        } else if (diffDays > 0) {
-            daysLeftText = `${diffDays} day${diffDays !== 1 ? 's' : ''} left`;
-            daysLeftClass = diffDays <= 3 ? 'due-soon' : '';
-        }
-    }
-    
-    // Create the goal element HTML
+
+    // Build HTML using new structure
     goalElement.innerHTML = `
-        <div class="record-header">
-            <div class="record-title">${window.Utils.escapeHTML(goal.title)}</div>
-            <div class="record-actions">
-                <button class="icon-button edit-button edit-goal" aria-label="Edit goal">
-                    <i data-lucide="edit-3"></i>
-                </button>
-                <button class="icon-button delete-button delete-goal" aria-label="Delete goal">
-                    <i data-lucide="trash-2"></i>
-                </button>
-            </div>
-        </div>
-        <div class="record-details">
-            <div class="record-category">${window.Utils.escapeHTML(categoryName)}</div>
-            ${goal.targetDate ? `
-                <div class="goal-dates">
-                    <div class="goal-target-date">Target: ${targetDateStr}</div>
-                    ${daysLeftText ? `<div class="goal-days-left ${daysLeftClass}">${daysLeftText}</div>` : ''}
+        ${categoryName !== 'Unknown' ? `<div class="card-category-pill">${escapeHTML(categoryName)}</div>` : ''}
+        <h3 class="card-title ${statusClass}">${escapeHTML(goal.title)}</h3>
+        
+        ${goalDetail ? `<p class="card-description">${escapeHTML(goalDetail)}</p>` : '<p class="card-description">&nbsp;</p>'}
+        
+        ${hasProgress ? `
+            <div class="goal-progress">
+                <div class="progress-bar-bg">
+                    <div class="progress-bar-fill ${statusClass}" style="width: ${progressPercentage}%;"></div>
                 </div>
-            ` : ''}
-            <div class="goal-status">
-                <button class="goal-toggle-button ${goal.completed ? 'completed' : ''}" 
-                        aria-label="${goal.completed ? 'Mark as incomplete' : 'Mark as complete'}">
-                    <i data-lucide="${goal.completed ? 'check-circle' : 'circle'}"></i>
-                    <span>${goal.completed ? 'Completed' : 'Incomplete'}</span>
-                </button>
+                <span>${progressPercentage}%</span>
             </div>
+        ` : ''}
+
+        <p class="card-date">
+             ${isCompleted 
+                 ? `Completed: ${dateStr}` 
+                 : targetDateStr ? `Target: ${targetDateStr}` : `Created: ${dateStr}`}
+        </p> 
+             
+        <div class="card-actions">
+             <button class="goal-checkbox action-button ${statusClass}" title="Toggle Goal Status">
+                 <i data-lucide="${isCompleted ? 'check-square' : 'square'}" width="12" height="12"></i> 
+                 <span>${isCompleted ? 'Completed' : 'Mark Complete'}</span>
+             </button>
+             <span class="action-spacer"></span> <!-- Spacer -->
+             <button class="action-button edit-button edit-goal" title="Edit Goal">
+                 <i data-lucide="edit" width="12" height="12"></i>
+                 <span>Edit</span>
+             </button>
+             <button class="action-button delete-button delete-goal" title="Delete Goal">
+                 <i data-lucide="trash-2" width="12" height="12"></i>
+                 <span>Delete</span>
+             </button>
         </div>
-        ${goal.description ? `<div class="record-description">${window.Utils.escapeHTML(goal.description)}</div>` : ''}
     `;
     
-    // Set up toggle event
-    const toggleButton = goalElement.querySelector('.goal-toggle-button');
-    if (toggleButton) {
-        toggleButton.addEventListener('click', (e) => {
-            e.stopPropagation();
+    // Add event listeners FIRST
+    const checkbox = goalElement.querySelector('.goal-checkbox');
+    if (checkbox) {
+        checkbox.addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevent card click
             toggleGoal(goal.id);
         });
     }
     
-    // Initialize icons in the element
-    window.Utils.initializeIcons(goalElement);
+    const editBtn = goalElement.querySelector('.edit-goal');
+    if (editBtn) {
+        editBtn.addEventListener('click', (e) => {
+            e.stopPropagation(); 
+            showGoalDialog(goal.id);
+        });
+    }
+    
+    const deleteBtn = goalElement.querySelector('.delete-goal');
+    if (deleteBtn) {
+        deleteBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            deleteGoal(goal.id);
+        });
+    }
+
+    // Add click listener to the whole card to open edit dialog (if not clicking a button)
+    goalElement.addEventListener('click', (e) => {
+        // Check if the click target was one of the buttons or their children
+        if (!e.target.closest('button')) {
+            showGoalDialog(goal.id);
+        }
+    });
+    
+    // Initialize icons AFTER listeners are attached
+    if (window.lucide) {
+        lucide.createIcons({ context: goalElement }); 
+    }
+    
+    // Add cursor pointer style to indicate clickable
+    goalElement.style.cursor = 'pointer';
     
     return goalElement;
+}
+
+/**
+ * Get color class based on category name
+ * @param {string} category - The category name
+ * @returns {string} - CSS class for the category color
+ */
+function getCategoryColorClass(category) {
+    category = category.toLowerCase();
+    if (category.includes('technique')) return 'accent-blue';
+    if (category.includes('theory')) return 'accent-orange';
+    if (category.includes('repertoire')) return 'accent-teal';
+    if (category.includes('reading')) return 'accent-purple';
+    return 'accent-gray'; // Default
 }
 
 /**

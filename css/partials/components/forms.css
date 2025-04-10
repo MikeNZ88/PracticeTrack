@@ -1,0 +1,209 @@
+/* 
+ * Form Styles
+ * Styles for form elements like inputs, selects, textareas, labels, and form groups
+ */
+
+/* Form Group */
+.form-group {
+    margin-bottom: var(--space-lg);
+}
+
+.form-group label {
+    display: block;
+    font-weight: 500;
+    color: var(--text-medium);
+    margin-bottom: var(--space-sm);
+    font-size: var(--font-sm);
+}
+
+/* Form Control (Base for inputs, selects, textareas) */
+.form-control,
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="date"],
+input[type="time"],
+select,
+textarea {
+    display: block;
+    width: 100%;
+    padding: 0.75rem 1rem;
+    font-family: var(--font-sans);
+    font-size: var(--font-md);
+    color: var(--text-dark);
+    background-color: var(--card-background);
+    background-clip: padding-box;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.form-control:focus,
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="number"]:focus,
+input[type="date"]:focus,
+input[type="time"]:focus,
+select:focus,
+textarea:focus {
+    outline: none;
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 3px rgba(59, 127, 245, 0.12);
+}
+
+textarea.form-control,
+textarea {
+    min-height: 120px;
+    resize: vertical;
+}
+
+/* Specific styles for select elements */
+select.form-control,
+select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%238a95a5'%3E%3Cpath fill-rule='evenodd' d='M8 11.293l-4.646-4.647a.5.5 0 01.708-.708L8 9.879l4.939-4.94a.5.5 0 01.707.708L8 11.293z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 1em;
+    padding-right: 2.5rem; /* Make space for the arrow */
+}
+
+/* Styles for Time Input (if needed) */
+input[type="time"].form-control,
+input[type="time"] {
+    /* Specific styles for time input */
+}
+
+input[type="time"]:focus {
+    /* Focus styles if different */
+}
+
+/* Checkbox Styles */
+.checkbox-label {
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+    position: relative;
+    padding-left: 28px; /* Space for custom checkbox */
+    margin-bottom: var(--space-sm);
+    user-select: none;
+    font-size: var(--font-md);
+}
+
+.checkbox-label:hover {
+    /* Optional hover state */
+}
+
+.checkbox-label input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    height: 0;
+    width: 0;
+}
+
+.checkbox-label span {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    transform: translateY(-50%);
+    height: 18px;
+    width: 18px;
+    background-color: var(--background-light);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    transition: all var(--transition-fast);
+}
+
+.checkbox-label:hover span {
+    border-color: var(--primary-blue-light);
+}
+
+.checkbox-label input[type="checkbox"]:checked ~ span {
+    background-color: var(--primary-blue);
+    border-color: var(--primary-blue);
+}
+
+.checkbox-label input[type="checkbox"]:focus ~ span {
+    box-shadow: 0 0 0 3px rgba(59, 127, 245, 0.12);
+}
+
+.checkbox-label input[type="checkbox"]:checked ~ span::after {
+    content: "";
+    position: absolute;
+    left: 6px;
+    top: 3px;
+    width: 4px;
+    height: 8px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+/* Filter Specific Styles (from styles.css) - May need moving later */
+.search-input,
+.goals-search-input {
+    padding-left: 2.5rem; /* Space for icon */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%238a95a5' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: left 1rem center;
+    background-size: 1em;
+}
+
+select.filter-select,
+select.category-filter,
+select.goals-category-filter,
+select.goals-status-filter,
+select.media-type-filter,
+select.stats-category-filter,
+select.date-preset-filter {
+    min-width: 150px; /* Ensure selects have a decent width */
+}
+
+.date-input,
+.stats-date-input {
+    min-width: 130px; /* Give date inputs a specific min-width */
+}
+
+/* Dark Theme Adjustments */
+.theme-dark .form-control,
+.theme-dark input[type="text"],
+.theme-dark input[type="email"],
+.theme-dark input[type="password"],
+.theme-dark input[type="number"],
+.theme-dark input[type="date"],
+.theme-dark input[type="time"],
+.theme-dark select,
+.theme-dark textarea {
+    background-color: var(--card-background);
+    border-color: var(--border-color);
+    color: var(--text-dark);
+}
+
+.theme-dark .form-control:focus,
+.theme-dark input:focus,
+.theme-dark select:focus,
+.theme-dark textarea:focus {
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 3px rgba(59, 127, 245, 0.2); /* Adjusted focus shadow */
+}
+
+.theme-dark select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23b4b9c8'%3E%3Cpath fill-rule='evenodd' d='M8 11.293l-4.646-4.647a.5.5 0 01.708-.708L8 9.879l4.939-4.94a.5.5 0 01.707.708L8 11.293z'/%3E%3C/svg%3E"); /* Darker arrow */
+}
+
+.theme-dark .checkbox-label span {
+    background-color: var(--background-light);
+    border-color: var(--border-color);
+}
+
+.theme-dark .checkbox-label input[type="checkbox"]:checked ~ span {
+    background-color: var(--primary-blue);
+    border-color: var(--primary-blue);
+}
+
+/* Add more form-related styles as needed */

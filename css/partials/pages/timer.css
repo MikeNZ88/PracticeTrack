@@ -1,0 +1,309 @@
+/* 
+ * Timer Page Styles
+ * Styles specific to the timer page layout and components
+ */
+
+#timer-page {
+    /* Timer page specific container styles if needed */
+}
+
+.timer-page-wrapper {
+    max-width: 800px; /* Constrain timer content width */
+    margin: 0 auto;
+}
+
+.timer-page-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: var(--space-md);
+}
+
+.timer-gradient-header {
+    /* Using styles from layout.css, maybe override colors */
+    background: linear-gradient(135deg, var(--primary-blue), #6a11cb); /* Example gradient */
+}
+
+.timer-content-area {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-xl);
+}
+
+/* Main Timer Card */
+.timer-card {
+    /* Using base .card styles from components/cards.css */
+    padding: var(--space-xl); /* Larger padding for main timer */
+}
+
+.timer-selectors-wrapper {
+    display: flex;
+    gap: var(--space-lg);
+    margin-bottom: var(--space-lg);
+}
+
+.timer-selector-item {
+    flex: 1;
+}
+
+/* Timer Display (Circular) */
+.timer-display-container {
+    position: relative;
+    width: 250px;
+    height: 250px;
+    margin: var(--space-xl) auto; /* Center the timer */
+}
+
+.timer-svg {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg); /* Start progress from the top */
+}
+
+.timer-circle-bg,
+.timer-circle-progress {
+    fill: none;
+    stroke-width: 12;
+}
+
+.timer-circle-bg {
+    stroke: var(--border-color);
+}
+
+.timer-circle-progress {
+    stroke: var(--primary-blue);
+    stroke-linecap: round;
+    transition: stroke-dashoffset 0.3s linear;
+}
+
+.timer-time {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+}
+
+.timer-digits {
+    font-family: var(--font-mono);
+    font-size: var(--font-5xl);
+    font-weight: 300;
+    color: var(--text-dark);
+    line-height: 1;
+}
+
+.timer-display-container.paused .timer-digits {
+    color: var(--text-light);
+}
+
+.timer-status {
+    font-size: var(--font-sm);
+    color: var(--text-medium);
+    margin-top: var(--space-xs);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Timer Controls */
+.timer-controls {
+    display: flex;
+    justify-content: center;
+    gap: var(--space-lg);
+    margin-top: var(--space-lg);
+    margin-bottom: var(--space-xl);
+}
+
+.timer-btn {
+    /* Using base .app-button styles from components/buttons.css */
+    width: 70px;
+    height: 70px;
+    border-radius: var(--radius-full);
+    padding: 0;
+    box-shadow: var(--shadow-md);
+}
+
+.timer-btn:hover { 
+    transform: translateY(-2px); 
+    box-shadow: var(--shadow-lg);
+}
+.timer-btn:active { 
+    transform: translateY(0); 
+    box-shadow: var(--shadow-md); 
+}
+
+.timer-btn svg, .timer-btn i {
+    width: 24px; 
+    height: 24px; 
+}
+
+.timer-btn.primary-action {
+    /* Specific styles for start/pause */
+    background: linear-gradient(135deg, var(--primary-blue), var(--primary-blue-dark));
+}
+
+.timer-btn.primary-action.pause-state {
+    /* Styles when timer is running (shows pause icon) */
+    background: linear-gradient(135deg, var(--secondary-orange), var(--secondary-orange-dark));
+}
+
+.timer-btn.secondary-action {
+    /* Specific styles for reset/lap */
+    background-color: var(--card-background);
+    color: var(--text-medium);
+    border: 1px solid var(--border-color);
+}
+
+.timer-btn.secondary-action:hover {
+    background-color: var(--background-light);
+    color: var(--text-dark);
+}
+
+/* Save Button Area */
+.save-button-container {
+    display: flex;
+    justify-content: center;
+    min-height: 60px; /* Reserve space even when hidden */
+    margin-top: var(--space-md);
+}
+
+.save-button-container:not(:has(> .hidden)) {
+    /* Styles when button is visible, if needed */
+}
+
+.save-action {
+    /* Uses .app-button styles */
+}
+
+/* Session Form within Timer Page */
+#timer-page .session-form {
+    /* Styles specific to the form on this page */
+}
+
+#timer-page .session-form textarea {
+    min-height: 80px;
+}
+
+/* Quick Tip Card */
+.quick-tip-card {
+    /* Using base .card styles */
+    background-color: var(--info-light);
+    border-color: rgba(66, 148, 255, 0.2);
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-md);
+}
+
+.tip-icon {
+    flex-shrink: 0;
+    background-color: var(--info);
+    color: white;
+    border-radius: var(--radius-full);
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.tip-icon svg {
+    width: 20px;
+    height: 20px;
+}
+
+.tip-content h3 {
+    margin-top: 0;
+    margin-bottom: var(--space-xs);
+    font-size: var(--font-md);
+    color: var(--text-dark);
+}
+
+.tip-content p {
+    font-size: var(--font-sm);
+    color: var(--text-medium);
+    margin-bottom: 0;
+}
+
+/* Metronome Card */
+.metronome-card {
+    /* Using base .card styles */
+}
+
+.metronome-content {
+    /* Layout for metronome controls */
+}
+
+/* Dark Theme Adjustments */
+.theme-dark .timer-circle-bg {
+    stroke: var(--border-color);
+}
+
+.theme-dark .timer-digits {
+    color: var(--text-dark);
+}
+
+.theme-dark .timer-display-container.paused .timer-digits {
+    color: var(--text-medium);
+}
+
+.theme-dark .timer-status {
+    color: var(--text-light);
+}
+
+.theme-dark .timer-btn.secondary-action {
+    background-color: var(--card-background);
+    color: var(--text-medium);
+    border-color: var(--border-color);
+}
+
+.theme-dark .timer-btn.secondary-action:hover {
+    background-color: var(--border-color);
+    color: var(--text-dark);
+}
+
+.theme-dark .quick-tip-card {
+    background-color: var(--info-light);
+    border-color: rgba(66, 148, 255, 0.3);
+}
+
+.theme-dark .tip-icon {
+    background-color: var(--info);
+}
+
+.theme-dark .tip-content h3 {
+    color: var(--text-dark);
+}
+
+.theme-dark .tip-content p {
+    color: var(--text-medium);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .timer-display-container {
+        width: 200px;
+        height: 200px;
+    }
+    .timer-digits {
+        font-size: var(--font-4xl);
+    }
+    .timer-controls {
+        gap: var(--space-md);
+    }
+    .timer-btn {
+        width: 60px;
+        height: 60px;
+    }
+    .timer-selectors-wrapper {
+        flex-direction: column;
+        gap: var(--space-md);
+    }
+}
+
+@media (max-width: 480px) {
+    .timer-display-container {
+        width: 180px;
+        height: 180px;
+    }
+    .timer-digits {
+        font-size: 3rem; /* Custom size */
+    }
+}

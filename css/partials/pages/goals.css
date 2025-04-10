@@ -1,0 +1,259 @@
+/* 
+ * Goals Page Styles
+ * Styles specific to the goals list, filtering, and goal cards content
+ */
+
+#goals-page {
+    /* Page-specific container styles */
+}
+
+/* Filters */
+#goals-page .filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-md);
+    margin-bottom: var(--space-xl);
+    padding: var(--space-lg);
+    background-color: var(--card-background);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+}
+
+#goals-page .filters > * {
+    flex: 1;
+    min-width: 150px;
+}
+
+#goals-page .filters .goals-search-input {
+    flex-grow: 2;
+    max-width: 400px;
+}
+
+#goals-page .filters .goals-category-filter {
+    max-width: 200px;
+}
+
+#goals-page .filters .goals-status-filter {
+    max-width: 180px;
+}
+
+/* Responsive Filters */
+@media (max-width: 768px) { 
+    #goals-page .filters {
+        flex-direction: column;
+    }
+    #goals-page .filters > * {
+        max-width: none;
+        width: 100%;
+    }
+}
+
+/* Goals List */
+.goals-list {
+    display: grid;
+    gap: var(--space-lg);
+}
+
+/* Goal Card Styles (Base is in components/cards.css) */
+/* Styles for elements *within* the goal card */
+
+.goal-main-content {
+    /* Layout inside the card if needed */
+}
+
+.goal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: var(--space-sm);
+}
+
+.goal-status-toggle {
+    background: none;
+    border: none;
+    padding: var(--space-xs);
+    cursor: pointer;
+    border-radius: var(--radius-full);
+    color: var(--text-light);
+    transition: all var(--transition-fast);
+    margin-left: var(--space-md); /* Space from title */
+    flex-shrink: 0;
+}
+
+.goal-status-toggle:hover {
+    color: var(--text-dark);
+    background-color: var(--background-light);
+}
+
+.goal-status-toggle i {
+    width: 20px;
+    height: 20px;
+    display: block;
+}
+
+/* Styles for different completion states */
+.goal-status-toggle.active {
+    /* Style when goal is active/in-progress */
+    color: var(--warning); /* Use warning color for active */
+}
+.goal-status-toggle.active:hover {
+    background-color: var(--warning-light);
+}
+
+.goal-status-toggle.completed {
+    color: var(--success);
+}
+.goal-status-toggle.completed:hover {
+    background-color: var(--success-light);
+}
+
+.goal-title {
+    font-size: var(--font-lg);
+    font-weight: 600;
+    margin: 0;
+    flex-grow: 1;
+    line-height: 1.4;
+    transition: color var(--transition-fast);
+}
+
+.goal-title.completed {
+    text-decoration: line-through;
+    color: var(--text-light);
+}
+
+.goal-description {
+    font-size: var(--font-sm);
+    color: var(--text-medium);
+    margin-bottom: var(--space-md);
+    line-height: 1.5;
+    transition: color var(--transition-fast);
+}
+
+.goal-description.completed {
+    color: var(--text-light);
+}
+
+/* Progress Bar */
+.goal-progress {
+    margin-bottom: var(--space-md);
+}
+
+.progress-bar-bg {
+    height: 8px;
+    background-color: var(--border-color);
+    border-radius: var(--radius-full);
+    overflow: hidden;
+}
+
+.progress-bar-fill {
+    height: 100%;
+    background-color: var(--primary-blue);
+    border-radius: var(--radius-full);
+    transition: width 0.5s ease-out;
+}
+
+/* Goal Footer */
+.goal-footer {
+    margin-top: auto; /* Push footer to bottom */
+    padding-top: var(--space-md);
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-md);
+    font-size: var(--font-sm);
+    color: var(--text-light);
+}
+
+.goal-category {
+    /* Similar to session category, maybe slightly different */
+    font-size: var(--font-xs);
+    font-weight: 600;
+    color: var(--info); /* Example color */
+    background-color: var(--info-light);
+    padding: var(--space-xs) var(--space-sm);
+    border-radius: var(--radius-full);
+    white-space: nowrap;
+}
+
+.goal-target, /* Target display */
+.goal-date-time { /* Date display */
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+}
+
+.goal-target i, 
+.goal-date-time i {
+    width: 14px;
+    height: 14px;
+    opacity: 0.7;
+}
+
+.goal-actions {
+    display: flex;
+    gap: var(--space-sm);
+}
+
+/* Goal Dialog styles are in components/dialogs.css */
+
+/* Animations */
+.goals-list > * {
+    animation: fadeInUp 0.5s ease-out forwards;
+    opacity: 0;
+}
+
+.goals-list > *:nth-child(1) { animation-delay: 0.1s; }
+.goals-list > *:nth-child(2) { animation-delay: 0.2s; }
+.goals-list > *:nth-child(3) { animation-delay: 0.3s; }
+/* Add more delays if needed */
+
+
+/* Dark Theme Adjustments */
+.theme-dark #goals-page .filters {
+    background-color: var(--card-background);
+}
+
+.theme-dark .goal-status-toggle {
+    color: var(--text-light);
+}
+.theme-dark .goal-status-toggle:hover {
+    background-color: var(--border-color);
+}
+.theme-dark .goal-status-toggle.active {
+    color: var(--warning);
+}
+.theme-dark .goal-status-toggle.active:hover {
+    background-color: var(--warning-light);
+}
+.theme-dark .goal-status-toggle.completed {
+    color: var(--success);
+}
+.theme-dark .goal-status-toggle.completed:hover {
+    background-color: var(--success-light);
+}
+
+.theme-dark .goal-title.completed {
+    color: var(--text-light);
+}
+
+.theme-dark .goal-description {
+    color: var(--text-medium);
+}
+.theme-dark .goal-description.completed {
+    color: var(--text-light);
+}
+
+.theme-dark .progress-bar-bg {
+    background-color: var(--border-color);
+}
+
+.theme-dark .goal-footer {
+    border-top-color: var(--border-color);
+    color: var(--text-light);
+}
+
+.theme-dark .goal-category {
+    background-color: var(--info-light);
+    color: var(--info);
+}

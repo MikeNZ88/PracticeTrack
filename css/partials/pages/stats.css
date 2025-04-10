@@ -1,0 +1,250 @@
+/* 
+ * Stats Page Styles
+ * Styles specific to the statistics display, charts, and filtering
+ */
+
+#stats-page {
+    /* Page-specific container styles */
+}
+
+/* Filters */
+#stats-page .filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-md);
+    margin-bottom: var(--space-xl);
+    padding: var(--space-lg);
+    background-color: var(--card-background);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+}
+
+#stats-page .filters > * {
+    flex: 1;
+    min-width: 150px;
+}
+
+#stats-page .filter-button { /* Button group style if using buttons */
+    /* Styles for filter buttons */
+}
+
+#stats-page .stats-category-filter {
+    max-width: 250px;
+}
+
+/* Date Range styles likely use general form styles */
+
+/* Responsive Filters */
+@media (max-width: 768px) { 
+    #stats-page .filters {
+        flex-direction: column;
+    }
+    #stats-page .filters > * {
+        max-width: none;
+        width: 100%;
+    }
+    #stats-page .date-range {
+        /* Specific adjustments for date range on mobile if needed */
+        display: flex;
+        gap: var(--space-sm);
+    }
+    #stats-page .date-range > * {
+        flex: 1;
+    }
+}
+
+/* Stats Grid */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); /* Adjust minmax */
+    gap: var(--space-lg);
+    margin-bottom: var(--space-xl);
+}
+
+/* Stat Card styles are in components/cards.css */
+/* Below are styles for elements *within* the stat card */
+
+.stat-value {
+    font-size: var(--font-4xl); /* Large value */
+    font-weight: 700;
+    color: var(--primary-blue);
+    line-height: 1.1;
+    margin-bottom: var(--space-xs);
+    order: 2; /* Value below title */
+}
+
+/* For compound values (e.g., Xh Ym) */
+.stat-value-compound {
+    font-size: var(--font-3xl); /* Slightly smaller */
+    display: flex;
+    align-items: baseline; /* Align hours and minutes */
+    justify-content: center;
+    gap: var(--space-xs);
+    line-height: 1.1;
+    margin-bottom: var(--space-xs);
+    order: 2;
+}
+
+.stat-item {
+    /* Styling for individual parts of compound value */
+}
+
+.stat-sub-value {
+    font-weight: 700;
+}
+
+.stat-sub-label {
+    font-size: var(--font-xs); /* Smaller label for sub-items */
+    color: var(--text-light);
+}
+
+.stat-description {
+    font-size: var(--font-xs); 
+    color: var(--text-light);
+    margin-top: auto; /* Push description down */
+    order: 3; /* Ensure description is last */
+    padding-top: var(--space-sm); 
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-xs); 
+}
+
+/* Comparison Indicator */
+.stat-comparison {
+    display: inline-flex; 
+    align-items: center;
+    gap: var(--space-xs);
+    font-weight: 600;
+    font-size: var(--font-xs);
+    padding: 2px 6px;
+    border-radius: var(--radius-sm);
+}
+
+.stat-comparison.increase {
+    color: var(--success);
+    background-color: var(--success-light);
+}
+
+.stat-comparison.decrease {
+    color: var(--error);
+    background-color: var(--error-light);
+}
+
+.stat-comparison.no-change,
+.stat-comparison.no-data {
+    color: var(--text-light);
+    background-color: var(--background-light);
+}
+
+.stat-comparison i { 
+    width: 12px;
+    height: 12px;
+    stroke-width: 3;
+}
+
+/* Stats Charts Container */
+.stats-charts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: var(--space-xl);
+}
+
+.chart-container {
+    background-color: var(--card-background);
+    border-radius: var(--radius-lg);
+    padding: var(--space-lg);
+    box-shadow: var(--shadow-md);
+}
+
+.chart-container h3 {
+    text-align: center;
+    margin-bottom: var(--space-lg);
+    font-size: var(--font-lg);
+    color: var(--text-dark);
+}
+
+/* Canvas element for Chart.js */
+canvas {
+    max-width: 100%;
+    height: auto;
+}
+
+/* Stats Explanation */
+.stats-explanation {
+    background-color: var(--info-light);
+    border: 1px solid var(--info);
+    border-radius: var(--radius-md);
+    padding: var(--space-lg);
+    margin-top: var(--space-xl);
+    font-size: var(--font-sm);
+    color: var(--text-medium);
+    line-height: 1.6;
+}
+
+.stats-explanation p {
+    margin-bottom: var(--space-sm);
+}
+.stats-explanation strong {
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+.stats-explanation .stat-comparison {
+    display: inline-flex; /* Show indicators inline */
+    vertical-align: middle;
+    margin: 0 var(--space-xs);
+}
+
+.stats-explanation .stat-comparison i {
+    margin-right: 2px;
+}
+
+
+/* Dark Theme Adjustments */
+.theme-dark #stats-page .filters {
+    background-color: var(--card-background);
+}
+
+.theme-dark .stat-value {
+    color: var(--primary-blue-light); /* Lighter blue for dark */
+}
+
+.theme-dark .stat-sub-label {
+    color: var(--text-light);
+}
+
+.theme-dark .stat-description {
+    color: var(--text-light);
+}
+
+.theme-dark .stat-comparison.increase {
+    background-color: var(--success-light);
+}
+.theme-dark .stat-comparison.decrease {
+    background-color: var(--error-light);
+}
+.theme-dark .stat-comparison.no-change,
+.theme-dark .stat-comparison.no-data {
+    background-color: var(--border-color); /* Darker background */
+    color: var(--text-light);
+}
+
+.theme-dark .chart-container {
+    background-color: var(--card-background);
+    box-shadow: var(--shadow-md);
+}
+
+.theme-dark .chart-container h3 {
+    color: var(--text-dark);
+}
+
+/* Chart.js specific dark theme adjustments might be needed via JS */
+.theme-dark .stats-explanation {
+    background-color: var(--info-light);
+    border-color: var(--info);
+    color: var(--text-medium);
+}
+.theme-dark .stats-explanation strong {
+    color: var(--text-dark);
+}

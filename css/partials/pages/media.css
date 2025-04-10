@@ -1,0 +1,234 @@
+/* 
+ * Media Page Styles
+ * Styles specific to the media library grid, controls, and cards content
+ */
+
+#media-page {
+    /* Page-specific container styles */
+}
+
+/* Media Controls */
+.media-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-md);
+    margin-bottom: var(--space-xl);
+    align-items: center; /* Align filter and button */
+}
+
+.media-controls .media-type-filter {
+    /* Using styles from forms.css */
+    min-width: 200px; /* Give filter a decent width */
+    flex-grow: 1; /* Allow filter to take space */
+    max-width: 300px;
+}
+
+.media-controls .add-media-btn {
+    /* Using styles from buttons.css */
+    margin-left: auto; /* Push button to the right */
+}
+
+/* Media List Grid */
+.media-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); /* Responsive grid */
+    gap: var(--space-lg);
+}
+
+/* Media Card Styles (Base is in components/cards.css) */
+/* Styles for elements *within* the media card */
+
+.media-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: var(--space-md);
+}
+
+.media-name {
+    font-size: var(--font-lg);
+    font-weight: 600;
+    margin: 0;
+    color: var(--text-dark);
+    /* Ellipsis for long names */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 80%; /* Prevent overly long names pushing actions */
+}
+
+.media-type-badge {
+    font-size: var(--font-xs);
+    font-weight: 600;
+    padding: var(--space-xs) var(--space-sm);
+    border-radius: var(--radius-full);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+}
+
+.media-type-badge.photo {
+    background-color: var(--success-light);
+    color: var(--success);
+}
+.media-type-badge.video {
+    background-color: var(--info-light);
+    color: var(--info);
+}
+.media-type-badge.audio {
+    background-color: var(--warning-light);
+    color: var(--warning);
+}
+.media-type-badge.note {
+    background-color: #e6ebf5; /* Use border color for subtle note */
+    color: var(--text-medium);
+}
+
+.media-preview {
+    position: relative;
+    margin-bottom: var(--space-md);
+    background-color: var(--background-light);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    aspect-ratio: 16 / 9; /* Maintain aspect ratio */
+}
+
+.media-preview img, 
+.media-preview video {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.media-preview-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    color: var(--text-light);
+}
+
+.media-preview-placeholder i {
+    width: 48px;
+    height: 48px;
+}
+
+/* For text-based notes */
+.media-note-content {
+    font-family: var(--font-mono);
+    font-size: var(--font-sm);
+    padding: var(--space-md);
+    background-color: var(--background-light);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-md);
+    max-height: 150px; /* Limit height */
+    overflow-y: auto;
+    line-height: 1.5;
+}
+
+.media-description {
+    font-size: var(--font-sm);
+    color: var(--text-medium);
+    margin-bottom: var(--space-md);
+    line-height: 1.5;
+}
+
+.media-footer {
+    margin-top: auto; /* Push footer to bottom */
+    padding-top: var(--space-md);
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-md);
+    font-size: var(--font-sm);
+    color: var(--text-light);
+}
+
+.media-date {
+    white-space: nowrap;
+}
+
+.media-actions {
+    display: flex;
+    gap: var(--space-sm);
+}
+
+/* Media View Dialog styles are in components/dialogs.css */
+
+/* Animations */
+.media-list > * {
+    animation: fadeInUp 0.5s ease-out forwards;
+    opacity: 0;
+}
+
+.media-list > *:nth-child(1) { animation-delay: 0.1s; }
+.media-list > *:nth-child(2) { animation-delay: 0.2s; }
+.media-list > *:nth-child(3) { animation-delay: 0.3s; }
+/* Add more delays if needed */
+
+/* Dark Theme Adjustments */
+.theme-dark .media-controls {
+    /* No specific changes needed if using standard form styles */
+}
+
+.theme-dark .media-name {
+    color: var(--text-dark);
+}
+
+.theme-dark .media-type-badge.photo { background-color: var(--success-light); }
+.theme-dark .media-type-badge.video { background-color: var(--info-light); }
+.theme-dark .media-type-badge.audio { background-color: var(--warning-light); }
+.theme-dark .media-type-badge.note { background-color: var(--border-color); color: var(--text-medium); }
+
+.theme-dark .media-preview {
+    background-color: var(--border-color);
+}
+
+.theme-dark .media-preview-placeholder i {
+    color: var(--text-light);
+}
+
+.theme-dark .media-note-content {
+    background-color: var(--border-color);
+}
+
+.theme-dark .media-description {
+    color: var(--text-medium);
+}
+
+.theme-dark .media-footer {
+    border-top-color: var(--border-color);
+    color: var(--text-light);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .media-list {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    }
+}
+
+@media (max-width: 480px) {
+    .media-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .media-controls .add-media-btn {
+        margin-left: 0;
+    }
+    .media-list {
+        grid-template-columns: 1fr; /* Single column on very small screens */
+    }
+    .media-card .media-footer {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--space-sm);
+    }
+    .media-card .media-actions {
+        width: 100%;
+        justify-content: flex-end;
+    }
+}
